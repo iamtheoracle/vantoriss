@@ -1,0 +1,75 @@
+{
+  "name": "Application",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "The user who submitted the application"
+    },
+    "full_name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "account_type": {
+      "type": "string",
+      "enum": [
+        "Personal",
+        "Joint",
+        "Business",
+        "Organization"
+      ]
+    },
+    "kyc_status": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "not_started"
+    },
+    "kyc_documents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Uploaded KYC document URLs"
+    },
+    "kyc_notes": {
+      "type": "string"
+    },
+    "application_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending"
+    },
+    "admin_notes": {
+      "type": "string"
+    },
+    "opening_balance": {
+      "type": "number",
+      "default": 0
+    },
+    "business_name": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "full_name",
+    "email",
+    "account_type"
+  ]
+}

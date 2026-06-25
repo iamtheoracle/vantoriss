@@ -1,0 +1,45 @@
+{
+  "name": "Account",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "account_number": {
+      "type": "string"
+    },
+    "account_type": {
+      "type": "string",
+      "enum": [
+        "Personal",
+        "Joint",
+        "Business",
+        "Organization"
+      ]
+    },
+    "account_name": {
+      "type": "string"
+    },
+    "balance": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "frozen",
+        "closed"
+      ],
+      "default": "active"
+    },
+    "application_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "account_type",
+    "account_name"
+  ]
+}

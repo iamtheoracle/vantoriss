@@ -1,0 +1,39 @@
+{
+  "name": "Transaction",
+  "type": "object",
+  "properties": {
+    "account_id": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "opening_balance",
+        "deposit",
+        "withdrawal",
+        "adjustment"
+      ]
+    },
+    "amount": {
+      "type": "number"
+    },
+    "description": {
+      "type": "string"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "balance_after": {
+      "type": "number"
+    },
+    "created_by_admin": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "account_id",
+    "type",
+    "amount"
+  ]
+}
