@@ -29,6 +29,11 @@
     "created_by_admin": {
       "type": "boolean",
       "default": false
+    },
+    "transaction_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Custom date for backdated historical transactions (defaults to creation date if omitted)"
     }
   },
   "required": [
