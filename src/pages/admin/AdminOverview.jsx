@@ -3,10 +3,13 @@ import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { Users, FileText, ArrowDownToLine, Wallet, TrendingUp, Clock } from 'lucide-react';
 import StatusBadge from '@/components/vantoris/StatusBadge';
+import AumChart from '@/components/vantoris/AumChart';
+import QuickReview from '@/components/vantoris/QuickReview';
 
 export default function AdminOverview() {
   const [stats, setStats] = useState({ members: 0, pendingApps: 0, pendingWithdrawals: 0, totalBalance: 0 });
   const [recentItems, setRecentItems] = useState([]);
+  const [quickReview, setQuickReview] = useState({ oldestApps: [], recentWithdrawals: [] });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,6 +31,18 @@ export default function AdminOverview() {
       const memberCount = users.filter(u => u.role !== 'admin').length;
 
       setStats({ members: memberCount, pendingApps, pendingWithdrawals, totalBalance });
+
+      // Quick Review: 3 oldest pending applications
+      const oldestApps = apps
+        .filter(a => a.application_status === 'pending')
+        .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
+        .slice(0, 3);
+      // Quick Review: 2 most recent pending withdrawals
+      const recentWithdrawals = withdrawals
+        .filter(w => w.status === 'pending')
+        .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
+        .slice(0, 2);
+      setQuickReview({ oldestApps, recentWithdrawals });
 
       // Build recent queue from apps, withdrawals
       const recent = [
@@ -83,6 +98,16 @@ export default function AdminOverview() {
             </div>
           );
         })}
+      </div>
+
+      {/* AUM Chart */}
+      <div className="mb-8">
+        <AumChart />
+      </div>
+
+      {/* Quick Review */}
+      <div className="mb-8">
+        <QuickReview oldestApps={quickReview.oldestApps} recentWithdrawals={quickReview.recentWithdrawals} />
       </div>
 
       {/* Recent Queue */}

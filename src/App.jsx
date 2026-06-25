@@ -31,6 +31,7 @@ import AdminKYC from './pages/admin/AdminKYC';
 import AdminMembers from './pages/admin/AdminMembers';
 import AdminAccounts from './pages/admin/AdminAccounts';
 import AdminWithdrawals from './pages/admin/AdminWithdrawals';
+import AdminAgent from './pages/admin/AdminAgent';
 
 // Layouts
 import MemberLayout from './components/vantoris/MemberLayout';
@@ -86,6 +87,7 @@ const AuthenticatedApp = () => {
           <Route path="/admin/members" element={<AdminMembers />} />
           <Route path="/admin/accounts" element={<AdminAccounts />} />
           <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
+          <Route path="/admin/assistant" element={<AdminAgent />} />
         </Route>
       </Route>
 

@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { formatCurrency, generateAccountNumber } from '@/lib/formatCurrency';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Check, X } from 'lucide-react';
+import { Check, X, CheckSquare, Square } from 'lucide-react';
 
 export default function AdminApplications() {
   const [applications, setApplications] = useState([]);
@@ -12,6 +12,8 @@ export default function AdminApplications() {
   const [openingBalance, setOpeningBalance] = useState('');
   const [adminNotes, setAdminNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [bulkMode, setBulkMode] = useState(false);
 
   useEffect(() => { loadApps(); }, []);
 
@@ -19,6 +21,90 @@ export default function AdminApplications() {
     const apps = await base44.entities.Application.list('-created_date', 50);
     setApplications(apps);
     setLoading(false);
+  }
+
+  const bulkEligible = applications.filter(a => a.application_status === 'pending' && a.kyc_status === 'approved');
+
+  function toggleSelect(id) {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.length === bulkEligible.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(bulkEligible.map(a => a.id));
+    }
+  }
+
+  async function handleBulkApprove() {
+    if (selectedIds.length === 0) return;
+    setSubmitting(true);
+    try {
+      for (const id of selectedIds) {
+        const app = applications.find(a => a.id === id);
+        if (!app) continue;
+        const acctNum = generateAccountNumber();
+        const account = await base44.entities.Account.create({
+          user_id: app.user_id,
+          account_number: acctNum,
+          account_type: app.account_type,
+          account_name: app.business_name
+            ? `${app.business_name} (${app.account_type})`
+            : `${app.full_name} - ${app.account_type}`,
+          balance: 0,
+          status: 'active',
+          application_id: app.id,
+        });
+        await base44.entities.Transaction.create({
+          account_id: account.id,
+          type: 'opening_balance',
+          amount: 0,
+          description: 'Opening Balance',
+          balance_after: 0,
+          created_by_admin: true,
+        });
+        await base44.entities.Application.update(id, {
+          application_status: 'approved',
+          admin_notes: 'Bulk approved',
+        });
+        await base44.entities.Notification.create({
+          user_id: app.user_id,
+          title: 'Account Approved',
+          message: `Your ${app.account_type} account has been approved. Account: ${acctNum}`,
+          type: 'success',
+        });
+      }
+      setSelectedIds([]);
+      setBulkMode(false);
+      loadApps();
+    } catch (e) { console.error(e); }
+    setSubmitting(false);
+  }
+
+  async function handleBulkReject() {
+    if (selectedIds.length === 0) return;
+    setSubmitting(true);
+    try {
+      for (const id of selectedIds) {
+        const app = applications.find(a => a.id === id);
+        if (!app) continue;
+        await base44.entities.Application.update(id, {
+          application_status: 'rejected',
+          admin_notes: 'Bulk rejected',
+        });
+        await base44.entities.Notification.create({
+          user_id: app.user_id,
+          title: 'Application Not Approved',
+          message: 'Your application was not approved at this time.',
+          type: 'warning',
+        });
+      }
+      setSelectedIds([]);
+      setBulkMode(false);
+      loadApps();
+    } catch (e) { console.error(e); }
+    setSubmitting(false);
   }
 
   async function handleApprove() {
@@ -108,10 +194,56 @@ export default function AdminApplications() {
       <h1 className="text-2xl font-bold text-white mb-1">Applications</h1>
       <p className="text-[#AAB4C3] text-sm mb-6">Review and approve member applications</p>
 
+      {/* Bulk Action Bar */}
+      {bulkEligible.length > 0 && (
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => { setBulkMode(!bulkMode); setSelectedIds([]); }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
+                bulkMode ? 'bg-brass/15 text-brass' : 'bg-[#242D38] text-[#AAB4C3] hover:text-white'
+              }`}
+            >
+              <CheckSquare size={14} /> Bulk Select
+            </button>
+            {bulkMode && selectedIds.length > 0 && (
+              <span className="text-[#AAB4C3] text-xs">{selectedIds.length} selected</span>
+            )}
+          </div>
+          {bulkMode && selectedIds.length > 0 && (
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleBulkApprove}
+                disabled={submitting}
+                className="flex items-center gap-1.5 px-4 py-2 bg-olive text-white rounded-xl text-xs font-semibold hover:bg-olive/80 transition-all disabled:opacity-40"
+              >
+                <Check size={14} /> Bulk Approve ({selectedIds.length})
+              </button>
+              <button
+                onClick={handleBulkReject}
+                disabled={submitting}
+                className="flex items-center gap-1.5 px-4 py-2 bg-crimson text-white rounded-xl text-xs font-semibold hover:bg-crimson/80 transition-all disabled:opacity-40"
+              >
+                <X size={14} /> Bulk Reject ({selectedIds.length})
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="vantoris-card overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[#242D38] bg-[#1a2535]">
+              {bulkMode && (
+                <th className="px-3 py-3 w-10">
+                  <button onClick={toggleSelectAll} className="text-[#AAB4C3] hover:text-brass transition-all">
+                    {selectedIds.length === bulkEligible.length && bulkEligible.length > 0
+                      ? <CheckSquare size={16} className="text-brass" />
+                      : <Square size={16} />}
+                  </button>
+                </th>
+              )}
               <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3">Applicant</th>
               <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3">Type</th>
               <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3">KYC</th>
@@ -121,36 +253,54 @@ export default function AdminApplications() {
             </tr>
           </thead>
           <tbody>
-            {applications.map(app => (
-              <tr key={app.id} className="border-b border-[#242D38]/40 hover:bg-[#242D38]/20 transition-all">
-                <td className="px-5 py-4">
-                  <p className="text-white font-medium">{app.full_name}</p>
-                  <p className="text-[#AAB4C3] text-xs">{app.email}</p>
-                </td>
-                <td className="px-5 py-4 text-white">{app.account_type}</td>
-                <td className="px-5 py-4"><StatusBadge status={app.kyc_status} /></td>
-                <td className="px-5 py-4"><StatusBadge status={app.application_status} /></td>
-                <td className="px-5 py-4 text-[#AAB4C3] text-xs">
-                  {new Date(app.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                </td>
-                <td className="px-5 py-4">
-                  {app.application_status === 'pending' && app.kyc_status === 'approved' && (
-                    <button
-                      onClick={() => setSelected(app)}
-                      className="px-3 py-1.5 bg-brass/15 text-brass rounded-lg text-xs font-medium hover:bg-brass/25 transition-all"
-                    >
-                      Review
-                    </button>
+            {applications.map(app => {
+              const isBulkEligible = bulkMode && app.application_status === 'pending' && app.kyc_status === 'approved';
+              return (
+                <tr key={app.id} className={`border-b border-[#242D38]/40 hover:bg-[#242D38]/20 transition-all ${
+                  selectedIds.includes(app.id) ? 'bg-brass/5' : ''
+                }`}>
+                  {bulkMode && (
+                    <td className="px-3 py-4">
+                      {isBulkEligible ? (
+                        <button onClick={() => toggleSelect(app.id)} className="text-[#AAB4C3] hover:text-brass">
+                          {selectedIds.includes(app.id)
+                            ? <CheckSquare size={16} className="text-brass" />
+                            : <Square size={16} />}
+                        </button>
+                      ) : (
+                        <span className="inline-block w-4" />
+                      )}
+                    </td>
                   )}
-                  {app.application_status === 'pending' && app.kyc_status !== 'approved' && (
-                    <span className="text-[#AAB4C3] text-xs">Awaiting KYC</span>
-                  )}
-                </td>
-              </tr>
-            ))}
+                  <td className="px-5 py-4">
+                    <p className="text-white font-medium">{app.full_name}</p>
+                    <p className="text-[#AAB4C3] text-xs">{app.email}</p>
+                  </td>
+                  <td className="px-5 py-4 text-white">{app.account_type}</td>
+                  <td className="px-5 py-4"><StatusBadge status={app.kyc_status} /></td>
+                  <td className="px-5 py-4"><StatusBadge status={app.application_status} /></td>
+                  <td className="px-5 py-4 text-[#AAB4C3] text-xs">
+                    {new Date(app.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </td>
+                  <td className="px-5 py-4">
+                    {app.application_status === 'pending' && app.kyc_status === 'approved' && (
+                      <button
+                        onClick={() => setSelected(app)}
+                        className="px-3 py-1.5 bg-brass/15 text-brass rounded-lg text-xs font-medium hover:bg-brass/25 transition-all"
+                      >
+                        Review
+                      </button>
+                    )}
+                    {app.application_status === 'pending' && app.kyc_status !== 'approved' && (
+                      <span className="text-[#AAB4C3] text-xs">Awaiting KYC</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
             {applications.length === 0 && (
               <tr>
-                <td colSpan={6} className="py-12 text-center text-[#AAB4C3]">No applications</td>
+                <td colSpan={bulkMode ? 7 : 6} className="py-12 text-center text-[#AAB4C3]">No applications</td>
               </tr>
             )}
           </tbody>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FileText, ShieldCheck, Users, Wallet, ArrowDownToLine, LogOut } from 'lucide-react';
+import { LayoutDashboard, FileText, ShieldCheck, Users, Wallet, ArrowDownToLine, LogOut, Bot } from 'lucide-react';
 import ShieldLogo from './ShieldLogo';
 import { base44 } from '@/api/base44Client';
 
@@ -11,6 +11,7 @@ const navItems = [
   { label: 'Members', path: '/admin/members', icon: Users },
   { label: 'Accounts', path: '/admin/accounts', icon: Wallet },
   { label: 'Withdrawals', path: '/admin/withdrawals', icon: ArrowDownToLine },
+  { label: 'AI Assistant', path: '/admin/assistant', icon: Bot },
 ];
 
 export default function AdminSidebar() {
