@@ -6,7 +6,8 @@
       "entity_name": "Application",
       "allowed_operations": [
         "read",
-        "update"
+        "update",
+        "create"
       ]
     },
     {
@@ -22,47 +23,58 @@
       "allowed_operations": [
         "read",
         "create",
-        "update"
+        "update",
+        "delete"
       ]
     },
     {
       "entity_name": "WithdrawalRequest",
       "allowed_operations": [
         "read",
-        "update"
+        "update",
+        "create",
+        "delete"
       ]
     },
     {
       "entity_name": "ServiceRequest",
       "allowed_operations": [
         "read",
-        "update"
+        "update",
+        "create"
       ]
     },
     {
       "entity_name": "Notification",
       "allowed_operations": [
         "read",
-        "create"
+        "create",
+        "update",
+        "delete"
       ]
     },
     {
       "entity_name": "AuditLog",
       "allowed_operations": [
         "read",
-        "create"
+        "create",
+        "update"
       ]
     },
     {
       "entity_name": "User",
       "allowed_operations": [
-        "read"
+        "read",
+        "create",
+        "update"
       ]
     },
     {
       "entity_name": "Document",
       "allowed_operations": [
-        "read"
+        "read",
+        "update",
+        "create"
       ]
     }
   ],
