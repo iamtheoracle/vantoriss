@@ -23,8 +23,9 @@ import AccountDetail from './pages/AccountDetail';
 import Services from './pages/Services';
 import Messages from './pages/Messages';
 import Profile from './pages/Profile';
+import MemberDocuments from './pages/MemberDocuments';
 
-// Admin pages
+// Admin pages (Operations Center)
 import AdminOverview from './pages/admin/AdminOverview';
 import AdminApplications from './pages/admin/AdminApplications';
 import AdminKYC from './pages/admin/AdminKYC';
@@ -33,9 +34,32 @@ import AdminAccounts from './pages/admin/AdminAccounts';
 import AdminWithdrawals from './pages/admin/AdminWithdrawals';
 import AdminAgent from './pages/admin/AdminAgent';
 
-// Layouts
+// Operations Center pages
+import Organizations from './pages/operations/Organizations';
+import Finance from './pages/operations/Finance';
+import Deposits from './pages/operations/Deposits';
+import Transfers from './pages/operations/Transfers';
+import OperationsDocuments from './pages/operations/OperationsDocuments';
+import Cards from './pages/operations/Cards';
+import WalletAssignment from './pages/operations/WalletAssignment';
+import AccountAssignment from './pages/operations/AccountAssignment';
+import Reports from './pages/operations/Reports';
+import ExecutiveReports from './pages/operations/ExecutiveReports';
+import AuditLogs from './pages/operations/AuditLogs';
+import ActivityTimeline from './pages/operations/ActivityTimeline';
+import Configuration from './pages/operations/Configuration';
+import ApiManagement from './pages/operations/ApiManagement';
+import Integrations from './pages/operations/Integrations';
+import OperationsNotifications from './pages/operations/OperationsNotifications';
+import Security from './pages/operations/Security';
+import FeatureFlags from './pages/operations/FeatureFlags';
+import BackgroundJobs from './pages/operations/BackgroundJobs';
+import SystemHealth from './pages/operations/SystemHealth';
+
+// Layouts & Guards
 import MemberLayout from './components/vantoris/MemberLayout';
 import AdminLayout from './components/vantoris/AdminLayout';
+import OperationsRoute from './components/OperationsRoute';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -73,21 +97,47 @@ const AuthenticatedApp = () => {
           <Route path="/services" element={<Services />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/documents" element={<MemberDocuments />} />
         </Route>
 
         {/* Non-layout member routes */}
         <Route path="/apply" element={<Apply />} />
         <Route path="/apply/kyc" element={<ApplyKYC />} />
 
-        {/* Admin routes */}
-        <Route element={<AdminLayout />}>
-          <Route path="/admin" element={<AdminOverview />} />
-          <Route path="/admin/applications" element={<AdminApplications />} />
-          <Route path="/admin/kyc" element={<AdminKYC />} />
-          <Route path="/admin/members" element={<AdminMembers />} />
-          <Route path="/admin/accounts" element={<AdminAccounts />} />
-          <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
-          <Route path="/admin/assistant" element={<AdminAgent />} />
+        {/* Backward-compatible redirect */}
+        <Route path="/admin/*" element={<Navigate to="/operations" replace />} />
+
+        {/* Operations Center routes */}
+        <Route element={<OperationsRoute />}>
+          <Route element={<AdminLayout />}>
+            <Route path="/operations" element={<AdminOverview />} />
+            <Route path="/operations/applications" element={<AdminApplications />} />
+            <Route path="/operations/kyc" element={<AdminKYC />} />
+            <Route path="/operations/members" element={<AdminMembers />} />
+            <Route path="/operations/accounts" element={<AdminAccounts />} />
+            <Route path="/operations/withdrawals" element={<AdminWithdrawals />} />
+            <Route path="/operations/assistant" element={<AdminAgent />} />
+            <Route path="/operations/organizations" element={<Organizations />} />
+            <Route path="/operations/finance" element={<Finance />} />
+            <Route path="/operations/deposits" element={<Deposits />} />
+            <Route path="/operations/transfers" element={<Transfers />} />
+            <Route path="/operations/documents" element={<OperationsDocuments />} />
+            <Route path="/operations/cards" element={<Cards />} />
+            <Route path="/operations/wallet-assignment" element={<WalletAssignment />} />
+            <Route path="/operations/account-assignment" element={<AccountAssignment />} />
+            <Route path="/operations/reports" element={<Reports />} />
+            <Route path="/operations/executive-reports" element={<ExecutiveReports />} />
+            <Route path="/operations/audit-logs" element={<AuditLogs />} />
+            <Route path="/operations/activity" element={<ActivityTimeline />} />
+            <Route path="/operations/configuration" element={<Configuration />} />
+            <Route path="/operations/api-management" element={<ApiManagement />} />
+            <Route path="/operations/integrations" element={<Integrations />} />
+            <Route path="/operations/notifications" element={<OperationsNotifications />} />
+            <Route path="/operations/security" element={<Security />} />
+            <Route path="/operations/feature-flags" element={<FeatureFlags />} />
+            <Route path="/operations/background-jobs" element={<BackgroundJobs />} />
+            <Route path="/operations/system-health" element={<SystemHealth />} />
+          </Route>
         </Route>
       </Route>
 

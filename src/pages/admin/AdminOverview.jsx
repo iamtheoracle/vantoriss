@@ -28,7 +28,7 @@ export default function AdminOverview() {
       const totalBalance = accounts.reduce((sum, a) => sum + (a.balance || 0), 0);
       const pendingApps = apps.filter(a => a.application_status === 'pending').length;
       const pendingWithdrawals = withdrawals.filter(w => w.status === 'pending').length;
-      const memberCount = users.filter(u => u.role !== 'admin').length;
+      const memberCount = users.filter(u => u.role === 'user').length;
 
       setStats({ members: memberCount, pendingApps, pendingWithdrawals, totalBalance });
 

@@ -28,7 +28,7 @@ export default function AdminMembers() {
     </div>;
   }
 
-  const members = users.filter(u => u.role !== 'admin');
+  const members = users.filter(u => u.role === 'user');
   const filtered = members.filter(m =>
     (m.full_name || '').toLowerCase().includes(search.toLowerCase()) ||
     (m.email || '').toLowerCase().includes(search.toLowerCase())

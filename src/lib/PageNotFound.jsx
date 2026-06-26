@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { hasOperationsAccess } from '@/lib/operationsAccess';
 
 
 export default function PageNotFound({}) {
@@ -40,14 +41,14 @@ export default function PageNotFound({}) {
                     </div>
                     
                     {/* Admin Note */}
-                    {isFetched && authData.isAuthenticated && authData.user?.role === 'admin' && (
+                    {isFetched && authData.isAuthenticated && hasOperationsAccess(authData.user?.role) && (
                         <div className="mt-8 p-4 bg-[#242D38] rounded-lg border border-[#242D38]">
                             <div className="flex items-start space-x-3">
                                 <div className="flex-shrink-0 w-5 h-5 rounded-full bg-brass/20 flex items-center justify-center mt-0.5">
                                     <div className="w-2 h-2 rounded-full bg-[#B08D57]"></div>
                                 </div>
                                 <div className="text-left space-y-1">
-                                    <p className="text-sm font-medium text-white">Admin Note</p>
+                                    <p className="text-sm font-medium text-white">Operations Note</p>
                                     <p className="text-sm text-[#AAB4C3] leading-relaxed">
                                         This page hasn't been set up yet.
                                     </p>

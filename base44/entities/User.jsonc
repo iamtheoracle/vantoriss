@@ -1,17 +1,24 @@
 {
+  "name": "User",
+  "type": "object",
   "properties": {
     "role": {
       "type": "string",
       "description": "The role of the user in the app",
       "enum": [
-        "admin",
-        "user"
-      ]
+        "user",
+        "operations_officer",
+        "finance_officer",
+        "compliance_officer",
+        "executive",
+        "administrator",
+        "super_administrator",
+        "admin"
+      ],
+      "default": "user"
     }
   },
   "required": [
     "role"
-  ],
-  "name": "User",
-  "type": "object"
+  ]
 }

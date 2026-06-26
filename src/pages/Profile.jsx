@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import ShieldLogo from '@/components/vantoris/ShieldLogo';
-import { User, Mail, Shield, LogOut, Settings } from 'lucide-react';
+import { hasOperationsAccess, getRoleLabel } from '@/lib/operationsAccess';
+import { User, Mail, Shield, LogOut, FileText } from 'lucide-react';
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -38,7 +39,7 @@ export default function Profile() {
         <div>
           <p className="text-white font-semibold text-lg">{user.full_name || 'Member'}</p>
           <p className="text-[#AAB4C3] text-sm">{user.email}</p>
-          <p className="text-brass text-xs capitalize mt-0.5">{user.role}</p>
+          <p className="text-brass text-xs mt-0.5">{getRoleLabel(user.role)}</p>
         </div>
       </div>
 
@@ -62,19 +63,31 @@ export default function Profile() {
           <Shield size={18} className="text-[#AAB4C3]" />
           <div className="flex-1">
             <p className="text-[#AAB4C3] text-xs">Account Role</p>
-            <p className="text-white text-sm capitalize">{user.role}</p>
+            <p className="text-white text-sm">{getRoleLabel(user.role)}</p>
           </div>
         </div>
       </div>
 
-      {/* Admin link */}
-      {user.role === 'admin' && (
+      {/* My Documents */}
+      <button
+        onClick={() => navigate('/documents')}
+        className="vantoris-card p-4 w-full flex items-center gap-3 hover:border-brass/30 transition-all mb-3"
+      >
+        <FileText size={18} className="text-[#AAB4C3]" />
+        <span className="text-white text-sm font-medium">My Documents</span>
+      </button>
+
+      {/* Operations Center access — discreet, role-gated */}
+      {hasOperationsAccess(user.role) && (
         <button
-          onClick={() => navigate('/admin')}
+          onClick={() => navigate('/operations')}
           className="vantoris-card p-4 w-full flex items-center gap-3 hover:border-brass/30 transition-all mb-3"
         >
-          <Settings size={18} className="text-brass" />
-          <span className="text-white text-sm font-medium">Admin Dashboard</span>
+          <Shield size={18} className="text-brass" />
+          <div className="text-left">
+            <span className="text-white text-sm font-medium">Operations Center</span>
+            <p className="text-[#AAB4C3] text-xs">Staff access</p>
+          </div>
         </button>
       )}
 

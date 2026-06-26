@@ -61,18 +61,55 @@ export default function AccountDetail() {
   async function generateStatement() {
     setGeneratingPdf(true);
     try {
+      const me = await base44.auth.me();
       const jsPDF = (await import('jspdf')).default;
       const doc = new jsPDF();
-      const filtered = transactions.filter(t => {
-        const d = new Date(t.created_date);
+
+      // Sort all transactions chronologically
+      const allTxns = [...transactions].sort((a, b) =>
+        new Date(a.transaction_date || a.created_date) - new Date(b.transaction_date || b.created_date)
+      );
+
+      // Filter by date range
+      const filtered = allTxns.filter(t => {
+        const d = new Date(t.transaction_date || t.created_date);
         if (stmtRange.from && d < new Date(stmtRange.from)) return false;
         if (stmtRange.to && d > new Date(stmtRange.to + 'T23:59:59')) return false;
         return true;
       });
 
+      // Opening balance: sum of all transactions before the from date
+      const beforeRange = stmtRange.from
+        ? allTxns.filter(t => new Date(t.transaction_date || t.created_date) < new Date(stmtRange.from))
+        : [];
+      const openingBalance = beforeRange.reduce((sum, t) => sum + (t.amount || 0), 0);
+
+      // Closing balance
+      const closingBalance = filtered.length > 0
+        ? (filtered[filtered.length - 1].balance_after != null
+          ? filtered[filtered.length - 1].balance_after
+          : openingBalance + filtered.reduce((sum, t) => sum + (t.amount || 0), 0))
+        : account.balance;
+
+      // Transaction summary
+      const credits = filtered.filter(t => (t.amount || 0) >= 0).reduce((s, t) => s + Math.abs(t.amount || 0), 0);
+      const debits = filtered.filter(t => (t.amount || 0) < 0).reduce((s, t) => s + Math.abs(t.amount || 0), 0);
+
+      // Reference number
+      const now = new Date();
+      const refDate = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+      const refRand = Math.random().toString(36).substring(2, 6).toUpperCase();
+      const referenceNumber = `VST-${refDate}-${refRand}`;
+
+      const periodText = stmtRange.from && stmtRange.to
+        ? `${stmtRange.from} to ${stmtRange.to}`
+        : 'All Transactions';
+
+      // === PDF Generation ===
       doc.setFillColor(14, 26, 43);
       doc.rect(0, 0, 210, 297, 'F');
 
+      // Institution branding
       doc.setTextColor(176, 141, 87);
       doc.setFontSize(22);
       doc.setFont(undefined, 'bold');
@@ -81,44 +118,75 @@ export default function AccountDetail() {
       doc.setTextColor(170, 180, 195);
       doc.text('PRIVATE INSTITUTIONAL PLATFORM', 20, 31);
 
-      doc.setTextColor(170, 180, 195);
+      // Statement title
+      doc.setTextColor(255, 255, 255);
       doc.setFontSize(16);
       doc.setFont(undefined, 'bold');
       doc.text('STATEMENT OF ACCOUNT', 130, 25);
 
-      doc.setFontSize(9);
+      // Reference & timestamp
+      doc.setFontSize(8);
       doc.setFont(undefined, 'normal');
-      const periodText = stmtRange.from && stmtRange.to
-        ? `${stmtRange.from} to ${stmtRange.to}`
-        : 'All Transactions';
-      doc.text(`Statement Period: ${periodText}`, 130, 33);
+      doc.setTextColor(170, 180, 195);
+      doc.text(`Reference: ${referenceNumber}`, 130, 33);
+      doc.text(`Generated: ${now.toLocaleString('en-US')}`, 130, 38);
+      doc.text(`Period: ${periodText}`, 130, 43);
 
+      // Divider
       doc.setDrawColor(176, 141, 87);
       doc.setLineWidth(0.5);
-      doc.line(20, 40, 190, 40);
+      doc.line(20, 47, 190, 47);
 
+      // Member details
+      doc.setTextColor(170, 180, 195);
+      doc.setFontSize(7);
+      doc.text('MEMBER', 20, 55);
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(11);
+      doc.setFontSize(10);
       doc.setFont(undefined, 'bold');
-      doc.text(account.account_name, 20, 50);
+      doc.text(me.full_name || 'Member', 20, 61);
+
+      // Account details
+      doc.setTextColor(170, 180, 195);
+      doc.setFontSize(7);
       doc.setFont(undefined, 'normal');
-      doc.setFontSize(9);
-      doc.setTextColor(170, 180, 195);
-      doc.text(`Account: ${account.account_number}`, 20, 56);
-      doc.text(`Type: ${account.account_type}`, 20, 62);
-
-      doc.setFillColor(36, 45, 56);
-      doc.roundedRect(130, 44, 60, 20, 3, 3, 'F');
-      doc.setTextColor(170, 180, 195);
-      doc.setFontSize(8);
-      doc.text('Current Balance', 135, 51);
+      doc.text('ACCOUNT', 110, 55);
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(14);
+      doc.setFontSize(10);
       doc.setFont(undefined, 'bold');
-      doc.text(formatCurrency(account.balance), 135, 60);
+      doc.text(account.account_name, 110, 61);
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(170, 180, 195);
+      doc.text(`Account Number: ${account.account_number}`, 110, 67);
+      doc.text(`Account Type: ${account.account_type}`, 110, 72);
+
+      // Balance summary box
+      doc.setFillColor(36, 45, 56);
+      doc.roundedRect(20, 78, 170, 24, 3, 3, 'F');
+      doc.setTextColor(170, 180, 195);
+      doc.setFontSize(7);
+      doc.text('OPENING BALANCE', 25, 85);
+      doc.text('CREDITS', 80, 85);
+      doc.text('DEBITS', 120, 85);
+      doc.text('CLOSING BALANCE', 155, 85);
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'bold');
+      doc.text(formatCurrency(openingBalance), 25, 93);
+      doc.setTextColor(62, 76, 58);
+      doc.text(formatCurrency(credits), 80, 93);
+      doc.setTextColor(140, 47, 57);
+      doc.text(formatCurrency(debits), 120, 93);
+      doc.setTextColor(255, 255, 255);
+      doc.text(formatCurrency(closingBalance), 155, 93);
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(7);
+      doc.setTextColor(170, 180, 195);
+      doc.text(`${filtered.length} transactions in period`, 25, 99);
 
       // Table header
-      let y = 78;
+      let y = 114;
       doc.setFillColor(36, 45, 56);
       doc.rect(20, y - 5, 170, 8, 'F');
       doc.setTextColor(170, 180, 195);
@@ -127,42 +195,75 @@ export default function AccountDetail() {
       doc.text('DATE', 22, y);
       doc.text('DESCRIPTION', 50, y);
       doc.text('REFERENCE', 100, y);
-      doc.text('DEBIT (USD)', 132, y);
-      doc.text('CREDIT (USD)', 158, y);
+      doc.text('DEBIT', 140, y);
+      doc.text('CREDIT', 165, y);
       y += 8;
 
+      // Transaction history
       doc.setFont(undefined, 'normal');
       doc.setFontSize(8);
       filtered.forEach(txn => {
-        if (y > 270) { doc.addPage(); doc.setFillColor(14, 26, 43); doc.rect(0, 0, 210, 297, 'F'); y = 20; }
+        if (y > 275) {
+          doc.addPage();
+          doc.setFillColor(14, 26, 43);
+          doc.rect(0, 0, 210, 297, 'F');
+          y = 20;
+        }
+        const txnDate = new Date(txn.transaction_date || txn.created_date);
         doc.setTextColor(170, 180, 195);
-        doc.text(new Date(txn.created_date).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }), 22, y);
+        doc.text(txnDate.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }), 22, y);
         doc.setTextColor(255, 255, 255);
         doc.text((txn.description || txn.type).substring(0, 25), 50, y);
         doc.setTextColor(170, 180, 195);
         doc.text((txn.reference || '-').substring(0, 18), 100, y);
-        if (txn.type === 'withdrawal') {
+        if (txn.amount < 0) {
           doc.setTextColor(140, 47, 57);
-          doc.text(formatCurrency(Math.abs(txn.amount)), 132, y);
-          doc.text('-', 162, y);
+          doc.text(formatCurrency(Math.abs(txn.amount)), 140, y);
+          doc.text('-', 168, y);
         } else {
-          doc.text('-', 137, y);
+          doc.text('-', 143, y);
           doc.setTextColor(62, 76, 58);
-          doc.text(formatCurrency(Math.abs(txn.amount)), 158, y);
+          doc.text(formatCurrency(Math.abs(txn.amount)), 165, y);
         }
         doc.setDrawColor(36, 45, 56);
         doc.line(20, y + 2, 190, y + 2);
         y += 7;
       });
 
-      // Footer
-      doc.setTextColor(176, 141, 87);
-      doc.setFontSize(7);
-      doc.text('SECURE. TRUSTED. TAILORED FOR YOU.', 20, 287);
-      doc.setTextColor(170, 180, 195);
-      doc.text('VANTORIS - Elevating Your Financial World.', 20, 292);
+      // Page numbers and footer on all pages
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setTextColor(176, 141, 87);
+        doc.setFontSize(7);
+        doc.text('SECURE. TRUSTED. TAILORED FOR YOU.', 20, 287);
+        doc.setTextColor(170, 180, 195);
+        doc.text('VANTORIS — Elevating Your Financial World.', 20, 292);
+        doc.text(`Page ${i} of ${pageCount}`, 170, 292);
+        doc.text(referenceNumber, 90, 292);
+      }
 
+      // Download
       doc.save(`Vantoris_Statement_${account.account_number}.pdf`);
+
+      // Automatic archive: upload and save to Member Documents
+      try {
+        const blob = doc.output('blob');
+        const file = new File([blob], `statement_${referenceNumber}.pdf`, { type: 'application/pdf' });
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        await base44.entities.Document.create({
+          user_id: me.id,
+          title: `Account Statement — ${periodText}`,
+          type: 'statement',
+          file_url,
+          reference_number: referenceNumber,
+          account_id: account.id,
+          statement_period: periodText,
+          status: 'active',
+        });
+      } catch (archiveErr) {
+        console.error('Statement archive failed:', archiveErr);
+      }
     } catch (e) { console.error(e); }
     setGeneratingPdf(false);
     setShowStatement(false);

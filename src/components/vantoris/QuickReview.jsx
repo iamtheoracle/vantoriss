@@ -15,7 +15,7 @@ export default function QuickReview({ oldestApps, recentWithdrawals }) {
             </div>
             <h3 className="text-white font-semibold text-sm">Oldest Pending Applications</h3>
           </div>
-          <Link to="/admin/applications" className="text-brass text-xs hover:underline flex items-center gap-1">
+          <Link to="/operations/applications" className="text-brass text-xs hover:underline flex items-center gap-1">
             View all <ArrowUpRight size={12} />
           </Link>
         </div>
@@ -29,7 +29,7 @@ export default function QuickReview({ oldestApps, recentWithdrawals }) {
           {oldestApps.map((app, idx) => (
             <Link
               key={app.id}
-              to="/admin/applications"
+              to="/operations/applications"
               className="flex items-center gap-3 p-3 rounded-xl bg-[#242D38]/40 hover:bg-[#242D38] transition-all"
             >
               <div className="w-8 h-8 rounded-full bg-brass/10 flex items-center justify-center flex-shrink-0">
@@ -61,7 +61,7 @@ export default function QuickReview({ oldestApps, recentWithdrawals }) {
             </div>
             <h3 className="text-white font-semibold text-sm">Recent Withdrawal Requests</h3>
           </div>
-          <Link to="/admin/withdrawals" className="text-brass text-xs hover:underline flex items-center gap-1">
+          <Link to="/operations/withdrawals" className="text-brass text-xs hover:underline flex items-center gap-1">
             View all <ArrowUpRight size={12} />
           </Link>
         </div>
@@ -75,7 +75,7 @@ export default function QuickReview({ oldestApps, recentWithdrawals }) {
           {recentWithdrawals.map((wd, idx) => (
             <Link
               key={wd.id}
-              to="/admin/withdrawals"
+              to="/operations/withdrawals"
               className="flex items-center gap-3 p-3 rounded-xl bg-[#242D38]/40 hover:bg-[#242D38] transition-all"
             >
               <div className="w-8 h-8 rounded-full bg-crimson/10 flex items-center justify-center flex-shrink-0">

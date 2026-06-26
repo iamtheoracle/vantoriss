@@ -1,0 +1,61 @@
+{
+  "name": "Document",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "The member who owns this document"
+    },
+    "title": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "statement",
+        "kyc_document",
+        "tax_document",
+        "agreement",
+        "other"
+      ],
+      "default": "other"
+    },
+    "file_url": {
+      "type": "string"
+    },
+    "reference_number": {
+      "type": "string",
+      "description": "Unique reference for statements and formal documents"
+    },
+    "account_id": {
+      "type": "string",
+      "description": "Associated account for statements"
+    },
+    "statement_period": {
+      "type": "string",
+      "description": "Date range covered, e.g. 2025-01-01 to 2025-03-31"
+    },
+    "archived": {
+      "type": "boolean",
+      "default": false
+    },
+    "archive_reference": {
+      "type": "string",
+      "description": "External storage reference for archived documents"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "archived",
+        "archival_failed"
+      ],
+      "default": "active"
+    }
+  },
+  "required": [
+    "user_id",
+    "title",
+    "type"
+  ]
+}
