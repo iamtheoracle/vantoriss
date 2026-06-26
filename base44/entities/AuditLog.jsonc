@@ -1,0 +1,63 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "properties": {
+    "account_id": {
+      "type": "string",
+      "description": "The account affected by this action"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "The admin who performed the action"
+    },
+    "admin_name": {
+      "type": "string",
+      "description": "Display name of the admin"
+    },
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "transaction_created",
+        "transaction_edited",
+        "balance_adjusted",
+        "withdrawal_processed",
+        "withdrawal_rejected",
+        "account_created",
+        "account_status_changed",
+        "application_approved",
+        "application_rejected",
+        "kyc_approved",
+        "kyc_rejected"
+      ],
+      "description": "The type of administrative action performed"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable summary of what happened"
+    },
+    "details": {
+      "type": "string",
+      "description": "Additional context \u2014 notes, references, prior values"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Transaction amount if applicable (negative for debits)"
+    },
+    "balance_before": {
+      "type": "number",
+      "description": "Account balance before the action"
+    },
+    "balance_after": {
+      "type": "number",
+      "description": "Account balance after the action"
+    },
+    "target_user_id": {
+      "type": "string",
+      "description": "The member affected (for application/KYC actions)"
+    }
+  },
+  "required": [
+    "action_type",
+    "description"
+  ]
+}

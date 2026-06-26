@@ -4,6 +4,7 @@ import { formatCurrency, generateAccountNumber } from '@/lib/formatCurrency';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Check, X, CheckSquare, Square } from 'lucide-react';
+import { logAuditEntry } from '@/lib/auditLogger';
 
 export default function AdminApplications() {
   const [applications, setApplications] = useState([]);
@@ -154,6 +155,17 @@ export default function AdminApplications() {
         type: 'success',
       });
 
+      await logAuditEntry({
+        action_type: 'application_approved',
+        description: `Application approved for ${selected.full_name} — ${selected.account_type} account ${acctNum}`,
+        details: `Opening balance: ${formatCurrency(balance)}, Notes: ${adminNotes || 'None'}`,
+        account_id: account.id,
+        amount: balance,
+        balance_before: 0,
+        balance_after: balance,
+        target_user_id: selected.user_id,
+      });
+
       setSelected(null);
       setOpeningBalance('');
       setAdminNotes('');
@@ -175,6 +187,12 @@ export default function AdminApplications() {
         title: 'Application Not Approved',
         message: adminNotes || 'Your application was not approved at this time.',
         type: 'warning',
+      });
+      await logAuditEntry({
+        action_type: 'application_rejected',
+        description: `Application rejected for ${selected.full_name}`,
+        details: `Reason: ${adminNotes || 'No reason provided'}`,
+        target_user_id: selected.user_id,
       });
       setSelected(null);
       setAdminNotes('');

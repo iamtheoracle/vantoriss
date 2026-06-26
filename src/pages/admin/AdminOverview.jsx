@@ -5,6 +5,7 @@ import { Users, FileText, ArrowDownToLine, Wallet, TrendingUp, Clock } from 'luc
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import AumChart from '@/components/vantoris/AumChart';
 import QuickReview from '@/components/vantoris/QuickReview';
+import DailyEmailSummary from '@/components/vantoris/DailyEmailSummary';
 
 export default function AdminOverview() {
   const [stats, setStats] = useState({ members: 0, pendingApps: 0, pendingWithdrawals: 0, totalBalance: 0 });
@@ -77,8 +78,13 @@ export default function AdminOverview() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-white mb-1">Operations Center</h1>
-      <p className="text-[#AAB4C3] text-sm mb-6">System overview and pending actions</p>
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Operations Center</h1>
+          <p className="text-[#AAB4C3] text-sm">System overview and pending actions</p>
+        </div>
+        <DailyEmailSummary />
+      </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-4 gap-4 mb-8">

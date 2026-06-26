@@ -1,31 +1,83 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
-import { Users, Search } from 'lucide-react';
+import { Users, Search, Plus, Wallet } from 'lucide-react';
+import { generateAccountNumber } from '@/lib/formatCurrency';
+import { logAuditEntry } from '@/lib/auditLogger';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export default function AdminMembers() {
   const [users, setUsers] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [showCreate, setShowCreate] = useState(null);
+  const [acctForm, setAcctForm] = useState({ account_type: 'Personal', account_name: '', opening_balance: '' });
+  const [creating, setCreating] = useState(false);
 
-  useEffect(() => {
-    async function load() {
-      const [u, a] = await Promise.all([
-        base44.entities.User.list('-created_date', 50),
-        base44.entities.Account.list('-created_date', 50),
-      ]);
-      setUsers(u);
-      setAccounts(a);
-      setLoading(false);
-    }
-    load();
-  }, []);
+  useEffect(() => { loadData(); }, []);
+
+  async function loadData() {
+    const [u, a] = await Promise.all([
+      base44.entities.User.list('-created_date', 50),
+      base44.entities.Account.list('-created_date', 50),
+    ]);
+    setUsers(u);
+    setAccounts(a);
+    setLoading(false);
+  }
 
   if (loading) {
     return <div className="flex items-center justify-center h-96">
       <div className="w-8 h-8 border-2 border-brass/30 border-t-brass rounded-full animate-spin" />
     </div>;
+  }
+
+  async function handleCreateAccount() {
+    if (!showCreate) return;
+    setCreating(true);
+    try {
+      const acctNum = generateAccountNumber();
+      const balance = parseFloat(acctForm.opening_balance) || 0;
+      const account = await base44.entities.Account.create({
+        user_id: showCreate.id,
+        account_number: acctNum,
+        account_type: acctForm.account_type,
+        account_name: acctForm.account_name || `${showCreate.full_name} - ${acctForm.account_type}`,
+        balance: balance,
+        status: 'active',
+      });
+      if (balance > 0) {
+        await base44.entities.Transaction.create({
+          account_id: account.id,
+          type: 'opening_balance',
+          amount: balance,
+          description: 'Opening Balance',
+          balance_after: balance,
+          created_by_admin: true,
+        });
+      }
+      await base44.entities.Notification.create({
+        user_id: showCreate.id,
+        title: 'New Account Created',
+        message: `A ${acctForm.account_type} account has been created for you. Account: ${acctNum}`,
+        type: 'success',
+      });
+      await logAuditEntry({
+        action_type: 'account_created',
+        description: `Created ${acctForm.account_type} account ${acctNum} for ${showCreate.full_name}`,
+        details: `Opening balance: ${formatCurrency(balance)}`,
+        account_id: account.id,
+        amount: balance,
+        balance_before: 0,
+        balance_after: balance,
+        target_user_id: showCreate.id,
+      });
+      setShowCreate(null);
+      setAcctForm({ account_type: 'Personal', account_name: '', opening_balance: '' });
+      loadData();
+    } catch (e) { console.error(e); }
+    setCreating(false);
   }
 
   const members = users.filter(u => u.role === 'user');
@@ -59,6 +111,7 @@ export default function AdminMembers() {
               <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3">Accounts</th>
               <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3">Total Balance</th>
               <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3">Joined</th>
+              <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -81,17 +134,80 @@ export default function AdminMembers() {
                   <td className="px-5 py-4 text-[#AAB4C3] text-xs">
                     {new Date(member.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </td>
+                  <td className="px-5 py-4">
+                    <button
+                      onClick={() => { setShowCreate(member); setAcctForm({ account_type: 'Personal', account_name: '', opening_balance: '' }); }}
+                      className="flex items-center gap-1 px-3 py-1.5 bg-brass/15 text-brass rounded-lg text-xs font-medium hover:bg-brass/25 transition-all"
+                    >
+                      <Plus size={12} /> Add Account
+                    </button>
+                  </td>
                 </tr>
               );
             })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={5} className="py-12 text-center text-[#AAB4C3]">No members found</td>
+                <td colSpan={6} className="py-12 text-center text-[#AAB4C3]">No members found</td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
+
+      <Dialog open={!!showCreate} onOpenChange={() => setShowCreate(null)}>
+        <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white">Create Account for {showCreate?.full_name}</DialogTitle>
+          </DialogHeader>
+          {showCreate && (
+            <div className="space-y-4 mt-2">
+              <div className="vantoris-card p-3">
+                <p className="text-white text-sm font-medium">{showCreate.full_name}</p>
+                <p className="text-[#AAB4C3] text-xs">{showCreate.email}</p>
+              </div>
+              <div>
+                <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Account Type</label>
+                <select
+                  value={acctForm.account_type}
+                  onChange={e => setAcctForm({ ...acctForm, account_type: e.target.value })}
+                  className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none"
+                >
+                  <option>Personal</option>
+                  <option>Joint</option>
+                  <option>Business</option>
+                  <option>Organization</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Account Name</label>
+                <input
+                  value={acctForm.account_name}
+                  onChange={e => setAcctForm({ ...acctForm, account_name: e.target.value })}
+                  className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none"
+                  placeholder={`${showCreate.full_name} - ${acctForm.account_type}`}
+                />
+              </div>
+              <div>
+                <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Opening Balance (USD)</label>
+                <input
+                  type="number"
+                  value={acctForm.opening_balance}
+                  onChange={e => setAcctForm({ ...acctForm, opening_balance: e.target.value })}
+                  className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none"
+                  placeholder="0.00"
+                />
+              </div>
+              <button
+                disabled={creating}
+                onClick={handleCreateAccount}
+                className="w-full py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl disabled:opacity-40 flex items-center justify-center gap-2"
+              >
+                <Wallet size={16} /> {creating ? 'Creating...' : 'Create Account'}
+              </button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

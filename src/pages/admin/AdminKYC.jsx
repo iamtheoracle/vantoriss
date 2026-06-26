@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Check, X, FileText, ExternalLink } from 'lucide-react';
+import { Check, X, FileText, ExternalLink, BellRing } from 'lucide-react';
+import { logAuditEntry } from '@/lib/auditLogger';
 
 export default function AdminKYC() {
   const [applications, setApplications] = useState([]);
@@ -10,6 +11,8 @@ export default function AdminKYC() {
   const [selected, setSelected] = useState(null);
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [sendingReminders, setSendingReminders] = useState(false);
+  const [reminderResult, setReminderResult] = useState(null);
 
   useEffect(() => { loadApps(); }, []);
 
@@ -35,11 +38,40 @@ export default function AdminKYC() {
           : `Your identity verification requires additional attention. ${notes || ''}`,
         type: status === 'approved' ? 'success' : 'warning',
       });
+      await logAuditEntry({
+        action_type: status === 'approved' ? 'kyc_approved' : 'kyc_rejected',
+        description: `KYC ${status} for ${selected.full_name}`,
+        details: `Notes: ${notes || 'None'}`,
+        target_user_id: selected.user_id,
+      });
       setSelected(null);
       setNotes('');
       loadApps();
     } catch (e) { console.error(e); }
     setSubmitting(false);
+  }
+
+  async function handleSendKycReminders() {
+    setSendingReminders(true);
+    try {
+      const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+      const staleApps = applications.filter(
+        a => a.kyc_status === 'pending' && new Date(a.created_date) < threeDaysAgo
+      );
+      let sent = 0;
+      for (const app of staleApps) {
+        await base44.entities.Notification.create({
+          user_id: app.user_id,
+          title: 'KYC Documents Required',
+          message: 'Your KYC verification has been pending for over 3 days. Please upload your identity documents to complete your application.',
+          type: 'action',
+          link: '/apply/kyc',
+        });
+        sent++;
+      }
+      setReminderResult({ sent, total: staleApps.length });
+    } catch (e) { console.error(e); }
+    setSendingReminders(false);
   }
 
   const kycApps = applications.filter(a => a.kyc_status === 'pending' || a.kyc_status === 'approved' || a.kyc_status === 'rejected');
@@ -54,6 +86,23 @@ export default function AdminKYC() {
     <div>
       <h1 className="text-2xl font-bold text-white mb-1">KYC Review</h1>
       <p className="text-[#AAB4C3] text-sm mb-6">Verify member identity documents</p>
+
+      <div className="flex items-center gap-3 mb-6">
+        <button
+          onClick={handleSendKycReminders}
+          disabled={sendingReminders}
+          className="flex items-center gap-2 px-4 py-2.5 bg-brass/15 text-brass rounded-xl text-sm font-medium hover:bg-brass/25 transition-all disabled:opacity-40"
+        >
+          <BellRing size={16} /> {sendingReminders ? 'Sending...' : 'Send KYC Reminders'}
+        </button>
+        {reminderResult && (
+          <span className="text-[#AAB4C3] text-sm">
+            {reminderResult.sent > 0
+              ? `✓ Sent ${reminderResult.sent} reminder${reminderResult.sent > 1 ? 's' : ''} to members with pending KYC >3 days`
+              : 'No stale KYC applications found'}
+          </span>
+        )}
+      </div>
 
       <div className="vantoris-card overflow-hidden">
         <table className="w-full text-sm">

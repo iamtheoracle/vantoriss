@@ -4,7 +4,8 @@ import { formatCurrency } from '@/lib/formatCurrency';
 import { exportToCsv } from '@/lib/exportCsv';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Plus, Search, Download, History, Pencil, ArrowLeft } from 'lucide-react';
+import { Plus, Search, Download, History, Pencil, ArrowLeft, ScrollText } from 'lucide-react';
+import { logAuditEntry } from '@/lib/auditLogger';
 
 export default function AdminAccounts() {
   const [accounts, setAccounts] = useState([]);
@@ -18,6 +19,7 @@ export default function AdminAccounts() {
   const [loadingTxns, setLoadingTxns] = useState(false);
   const [editingTxn, setEditingTxn] = useState(null);
   const [exporting, setExporting] = useState(false);
+  const [auditLogs, setAuditLogs] = useState([]);
 
   useEffect(() => { loadAccounts(); }, []);
 
@@ -31,8 +33,12 @@ export default function AdminAccounts() {
     setViewingHistory(acct);
     setLoadingTxns(true);
     try {
-      const txns = await base44.entities.Transaction.filter({ account_id: acct.id }, '-created_date', 200);
+      const [txns, logs] = await Promise.all([
+        base44.entities.Transaction.filter({ account_id: acct.id }, '-created_date', 200),
+        base44.entities.AuditLog.filter({ account_id: acct.id }, '-created_date', 50),
+      ]);
       setTransactions(txns);
+      setAuditLogs(logs);
     } catch (e) { console.error(e); }
     setLoadingTxns(false);
   }
@@ -71,6 +77,16 @@ export default function AdminAccounts() {
         title: typeLabel,
         message: `${txnForm.description || typeLabel}: ${formatCurrency(Math.abs(amount))}`,
         type: txnForm.type === 'withdrawal' ? 'action' : 'success',
+      });
+
+      await logAuditEntry({
+        action_type: txnForm.type === 'adjustment' ? 'balance_adjusted' : 'transaction_created',
+        description: `${typeLabel}: ${formatCurrency(Math.abs(amount))} — ${txnForm.description || 'No description'}`,
+        details: `Type: ${txnForm.type}, Reference: ${txnForm.reference || 'N/A'}${txnForm.transaction_date ? `, Backdated: ${txnForm.transaction_date}` : ''}`,
+        account_id: showTxn.id,
+        amount: txnForm.type === 'withdrawal' ? -Math.abs(amount) : amount,
+        balance_before: showTxn.balance,
+        balance_after: newBalance,
       });
 
       setShowTxn(null);
@@ -112,6 +128,16 @@ export default function AdminAccounts() {
         }
       }
 
+      await logAuditEntry({
+        action_type: 'transaction_edited',
+        description: `Edited transaction: ${txnForm.type} of ${formatCurrency(Math.abs(parseFloat(txnForm.amount)))}`,
+        details: `Old amount: ${formatCurrency(oldAmount)}, New amount: ${formatCurrency(txnForm.type === 'withdrawal' ? -Math.abs(amount) : amount)}, Description: ${txnForm.description || 'N/A'}`,
+        account_id: viewingHistory.id,
+        amount: txnForm.type === 'withdrawal' ? -Math.abs(amount) : amount,
+        balance_before: viewingHistory.balance,
+        balance_after: newBalance,
+      });
+
       setEditingTxn(null);
       setTxnForm({ type: 'deposit', amount: '', description: '', reference: '', transaction_date: '' });
       setViewingHistory({ ...viewingHistory, balance: newBalance });
@@ -149,46 +175,6 @@ export default function AdminAccounts() {
       exportToCsv(`account_${viewingHistory.account_number}_transactions`, headers, rows);
     } catch (e) { console.error(e); }
     setExporting(false);
-  }
-
-  async function handleAddTransaction() {
-    if (!showTxn) return;
-    setSubmitting(true);
-    try {
-      const amount = parseFloat(txnForm.amount);
-      let newBalance = showTxn.balance;
-      if (txnForm.type === 'deposit') newBalance += amount;
-      else if (txnForm.type === 'withdrawal') newBalance -= amount;
-      else newBalance += amount; // adjustment can be negative
-
-      await base44.entities.Transaction.create({
-        account_id: showTxn.id,
-        type: txnForm.type,
-        amount: txnForm.type === 'withdrawal' ? -Math.abs(amount) : amount,
-        description: txnForm.description,
-        reference: txnForm.reference,
-        balance_after: newBalance,
-        created_by_admin: true,
-      });
-
-      await base44.entities.Account.update(showTxn.id, { balance: newBalance });
-
-      // Notify member
-      const typeLabel = txnForm.type === 'deposit' ? 'Deposit Received'
-        : txnForm.type === 'withdrawal' ? 'Withdrawal Processed'
-        : 'Account Adjustment';
-      await base44.entities.Notification.create({
-        user_id: showTxn.user_id,
-        title: typeLabel,
-        message: `${txnForm.description || typeLabel}: ${formatCurrency(Math.abs(amount))}`,
-        type: txnForm.type === 'withdrawal' ? 'action' : 'success',
-      });
-
-      setShowTxn(null);
-      setTxnForm({ type: 'deposit', amount: '', description: '', reference: '' });
-      loadAccounts();
-    } catch (e) { console.error(e); }
-    setSubmitting(false);
   }
 
   if (loading) {
@@ -310,6 +296,38 @@ export default function AdminAccounts() {
             </table>
           )}
         </div>
+
+        {/* Audit Trail */}
+        {auditLogs.length > 0 && (
+          <div className="mt-6">
+            <div className="flex items-center gap-2 mb-3">
+              <ScrollText size={16} className="text-brass" />
+              <h2 className="text-white font-semibold text-lg">Audit Trail</h2>
+              <span className="text-[#AAB4C3] text-xs">{auditLogs.length} entries</span>
+            </div>
+            <div className="vantoris-card p-4 space-y-3">
+              {auditLogs.map(log => (
+                <div key={log.id} className="flex items-start gap-3 pb-3 border-b border-[#242D38]/60 last:border-0 last:pb-0">
+                  <div className="w-2 h-2 rounded-full bg-brass mt-1.5 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white text-sm font-medium">{log.description}</p>
+                    <p className="text-[#AAB4C3] text-xs mt-0.5">
+                      {log.admin_name} • {new Date(log.created_date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                    {log.details && <p className="text-[#AAB4C3]/70 text-xs mt-1">{log.details}</p>}
+                    {(log.balance_before != null || log.balance_after != null) && (
+                      <p className="text-[#AAB4C3]/50 text-[11px] mt-0.5 font-mono">
+                        {log.balance_before != null && `Before: ${formatCurrency(log.balance_before)}`}
+                        {log.balance_before != null && log.balance_after != null && ' → '}
+                        {log.balance_after != null && `After: ${formatCurrency(log.balance_after)}`}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Add Transaction Dialog (reused in history view) */}
         <Dialog open={!!showTxn} onOpenChange={() => setShowTxn(null)}>

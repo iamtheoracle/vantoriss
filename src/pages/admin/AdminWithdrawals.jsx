@@ -4,6 +4,7 @@ import { formatCurrency } from '@/lib/formatCurrency';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Check, X } from 'lucide-react';
+import { logAuditEntry } from '@/lib/auditLogger';
 
 export default function AdminWithdrawals() {
   const [withdrawals, setWithdrawals] = useState([]);
@@ -64,6 +65,17 @@ export default function AdminWithdrawals() {
         type: 'success',
       });
 
+      await logAuditEntry({
+        action_type: 'withdrawal_processed',
+        description: `Withdrawal processed: ${formatCurrency(Math.abs(selected.amount))} via ${selected.method}`,
+        details: `Request ID: ${selected.id}, Notes: ${adminNotes || 'None'}`,
+        account_id: selected.account_id,
+        amount: -Math.abs(selected.amount),
+        balance_before: account?.balance || 0,
+        balance_after: newBalance,
+        target_user_id: selected.user_id,
+      });
+
       setSelected(null);
       setAdminNotes('');
       loadData();
@@ -85,6 +97,15 @@ export default function AdminWithdrawals() {
         message: `Your withdrawal request of ${formatCurrency(Math.abs(selected.amount))} was not approved. ${adminNotes || ''}`,
         type: 'warning',
       });
+      await logAuditEntry({
+        action_type: 'withdrawal_rejected',
+        description: `Withdrawal rejected: ${formatCurrency(Math.abs(selected.amount))} via ${selected.method}`,
+        details: `Request ID: ${selected.id}, Reason: ${adminNotes || 'No reason provided'}`,
+        account_id: selected.account_id,
+        amount: -Math.abs(selected.amount),
+        target_user_id: selected.user_id,
+      });
+
       setSelected(null);
       setAdminNotes('');
       loadData();
