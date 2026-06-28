@@ -1,0 +1,34 @@
+{
+  "name": "InternalComment",
+  "type": "object",
+  "properties": {
+    "entity_type": {
+      "type": "string",
+      "enum": [
+        "service_request",
+        "verification_request"
+      ],
+      "description": "The type of ticket this comment belongs to"
+    },
+    "entity_id": {
+      "type": "string",
+      "description": "The ID of the ticket being commented on"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "The admin who wrote the comment"
+    },
+    "author_name": {
+      "type": "string",
+      "description": "Display name of the commenter"
+    },
+    "content": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "entity_type",
+    "entity_id",
+    "content"
+  ]
+}

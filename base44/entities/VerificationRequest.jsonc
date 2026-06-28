@@ -1,0 +1,48 @@
+{
+  "name": "VerificationRequest",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "The member who submitted the funding request"
+    },
+    "account_id": {
+      "type": "string",
+      "description": "The account to fund"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "method": {
+      "type": "string",
+      "enum": [
+        "Opening Contribution",
+        "Wire Transfer",
+        "Crypto Deposit",
+        "ACH Deposit"
+      ]
+    },
+    "reference": {
+      "type": "string",
+      "description": "Member-provided reference (tx hash, wire confirmation, etc.)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending"
+    },
+    "admin_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "account_id",
+    "amount",
+    "method"
+  ]
+}

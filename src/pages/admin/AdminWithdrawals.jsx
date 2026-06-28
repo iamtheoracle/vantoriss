@@ -5,6 +5,7 @@ import StatusBadge from '@/components/vantoris/StatusBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Check, X } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
+import { sendTransactionEmail } from '@/lib/transactionEmails';
 
 export default function AdminWithdrawals() {
   const [withdrawals, setWithdrawals] = useState([]);
@@ -63,6 +64,15 @@ export default function AdminWithdrawals() {
         title: 'Withdrawal Processed',
         message: `Your withdrawal of ${formatCurrency(Math.abs(selected.amount))} via ${selected.method} has been processed.`,
         type: 'success',
+      });
+
+      await sendTransactionEmail({
+        user_id: selected.user_id,
+        account: account,
+        type: 'withdrawal',
+        amount: Math.abs(selected.amount),
+        description: `Withdrawal - ${selected.method}`,
+        newBalance,
       });
 
       await logAuditEntry({

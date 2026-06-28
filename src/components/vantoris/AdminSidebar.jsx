@@ -6,7 +6,7 @@ import {
   Wallet, CreditCard, UserCheck, FolderOpen,
   BarChart3, TrendingUp, ScrollText, Activity,
   Bot, Settings, Code, Plug, Bell, Lock, Flag, Cog, HeartPulse,
-  LogOut, ChevronRight
+  LogOut, ChevronRight, Wrench
 } from 'lucide-react';
 import ShieldLogo from './ShieldLogo';
 import { base44 } from '@/api/base44Client';
@@ -32,6 +32,7 @@ const sections = [
       { label: 'Finance Overview', path: '/operations/finance', icon: DollarSign },
       { label: 'Deposits', path: '/operations/deposits', icon: ArrowDownToLine },
       { label: 'Withdrawals', path: '/operations/withdrawals', icon: ArrowUpRight },
+      { label: 'Verification Requests', path: '/operations/verification-requests', icon: ShieldCheck },
       { label: 'Transfers', path: '/operations/transfers', icon: ArrowLeftRight },
       { label: 'Accounts', path: '/operations/accounts', icon: Wallet },
       { label: 'Cards', path: '/operations/cards', icon: CreditCard },
@@ -40,6 +41,7 @@ const sections = [
   {
     label: 'Operations',
     items: [
+      { label: 'Service Requests', path: '/operations/service-requests', icon: Wrench },
       { label: 'Wallet Assignment', path: '/operations/wallet-assignment', icon: Wallet },
       { label: 'Account Assignment', path: '/operations/account-assignment', icon: UserCheck },
       { label: 'Documents', path: '/operations/documents', icon: FolderOpen },

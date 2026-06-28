@@ -47,6 +47,8 @@ import Reports from './pages/operations/Reports';
 import ExecutiveReports from './pages/operations/ExecutiveReports';
 import AuditLogs from './pages/operations/AuditLogs';
 import ActivityTimeline from './pages/operations/ActivityTimeline';
+import VerificationRequests from './pages/operations/VerificationRequests';
+import ServiceRequests from './pages/operations/ServiceRequests';
 import Configuration from './pages/operations/Configuration';
 import ApiManagement from './pages/operations/ApiManagement';
 import Integrations from './pages/operations/Integrations';
@@ -116,6 +118,8 @@ const AuthenticatedApp = () => {
             <Route path="/operations/members" element={<AdminMembers />} />
             <Route path="/operations/accounts" element={<AdminAccounts />} />
             <Route path="/operations/withdrawals" element={<AdminWithdrawals />} />
+            <Route path="/operations/verification-requests" element={<VerificationRequests />} />
+            <Route path="/operations/service-requests" element={<ServiceRequests />} />
             <Route path="/operations/assistant" element={<AdminAgent />} />
             <Route path="/operations/organizations" element={<Organizations />} />
             <Route path="/operations/finance" element={<Finance />} />

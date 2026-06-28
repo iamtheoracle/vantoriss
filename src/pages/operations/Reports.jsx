@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
-import { BarChart3, Users, Wallet, FileText, ArrowDownToLine, Download } from 'lucide-react';
+import { BarChart3, Users, Wallet, FileText, ArrowDownToLine, Download, Mail, Calendar } from 'lucide-react';
 import { exportToCsv } from '@/lib/exportCsv';
 
 export default function Reports() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [generatingReport, setGeneratingReport] = useState(false);
+  const [reportResult, setReportResult] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -59,17 +61,104 @@ export default function Reports() {
     exportToCsv('vantoris_operations_report', ['Metric', 'Value'], rows);
   }
 
+  async function handleGenerateMonthlyReport() {
+    setGeneratingReport(true);
+    setReportResult(null);
+    try {
+      const now = new Date();
+      const monthName = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const monthTxns = transactions.filter(t => new Date(t.created_date) >= monthStart);
+      const monthDeposits = monthTxns.filter(t => t.type === 'deposit' || t.type === 'opening_balance').reduce((s, t) => s + Math.abs(t.amount || 0), 0);
+      const monthWithdrawals = monthTxns.filter(t => t.type === 'withdrawal').reduce((s, t) => s + Math.abs(t.amount || 0), 0);
+      const monthVolume = monthDeposits + monthWithdrawals;
+
+      const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+      const prevMonthTxns = transactions.filter(t => {
+        const d = new Date(t.created_date);
+        return d >= prevMonthStart && d <= prevMonthEnd;
+      });
+      const prevAUM = prevMonthTxns.reduce((s, t) => s + (t.amount || 0), 0);
+      const assetGrowth = totalAUM - prevAUM;
+      const growthPct = prevAUM > 0 ? ((assetGrowth / prevAUM) * 100).toFixed(1) : 'N/A';
+
+      const reportBody = `VANTORIS MONTHLY REPORT — ${monthName}\n\n` +
+        `═══════════════════════════════════════════\n\n` +
+        `TOTAL ASSETS UNDER MANAGEMENT\n` +
+        `Current AUM: ${formatCurrency(totalAUM)}\n` +
+        `Previous Month AUM: ${formatCurrency(prevAUM)}\n` +
+        `Asset Growth: ${formatCurrency(assetGrowth)} (${growthPct}%)\n\n` +
+        `TRANSACTION VOLUME — ${monthName}\n` +
+        `Total Transactions: ${monthTxns.length}\n` +
+        `Deposits: ${formatCurrency(monthDeposits)}\n` +
+        `Withdrawals: ${formatCurrency(monthWithdrawals)}\n` +
+        `Total Volume: ${formatCurrency(monthVolume)}\n\n` +
+        `PLATFORM SUMMARY\n` +
+        `Total Members: ${memberCount}\n` +
+        `Total Accounts: ${accounts.length}\n` +
+        `Pending Applications: ${pendingApps}\n` +
+        `Pending Withdrawals: ${pendingWd}\n\n` +
+        `═══════════════════════════════════════════\n` +
+        `Generated: ${now.toLocaleString()}\n`;
+
+      await base44.integrations.Core.SendEmail({
+        to: 'operations@vantoris.com',
+        subject: `Vantoris Monthly Report — ${monthName}`,
+        body: reportBody,
+      });
+
+      const reportRows = [
+        { Metric: 'Current AUM', Value: formatCurrency(totalAUM) },
+        { Metric: 'Previous Month AUM', Value: formatCurrency(prevAUM) },
+        { Metric: 'Asset Growth', Value: formatCurrency(assetGrowth) },
+        { Metric: 'Growth %', Value: `${growthPct}%` },
+        { Metric: 'Monthly Transactions', Value: monthTxns.length },
+        { Metric: 'Monthly Deposits', Value: formatCurrency(monthDeposits) },
+        { Metric: 'Monthly Withdrawals', Value: formatCurrency(monthWithdrawals) },
+        { Metric: 'Monthly Volume', Value: formatCurrency(monthVolume) },
+        { Metric: 'Total Members', Value: memberCount },
+        { Metric: 'Total Accounts', Value: accounts.length },
+        { Metric: 'Pending Applications', Value: pendingApps },
+        { Metric: 'Pending Withdrawals', Value: pendingWd },
+      ];
+      exportToCsv(`vantoris_monthly_report_${monthName.replace(/\s/g, '_')}`, ['Metric', 'Value'], reportRows);
+
+      setReportResult({ monthName, txns: monthTxns.length, aum: totalAUM, growth: assetGrowth });
+    } catch (e) { console.error(e); }
+    setGeneratingReport(false);
+  }
+
   return (
     <OperationsPageLayout
       title="Reports"
       description="Platform analytics and operational metrics"
       icon={BarChart3}
       actions={
-        <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 bg-olive/15 text-emerald-400 rounded-xl text-xs font-medium hover:bg-olive/25 transition-all">
-          <Download size={14} /> Export CSV
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleGenerateMonthlyReport}
+            disabled={generatingReport}
+            className="flex items-center gap-2 px-4 py-2 bg-brass/15 text-brass rounded-xl text-xs font-medium hover:bg-brass/25 transition-all disabled:opacity-40"
+          >
+            <Calendar size={14} /> {generatingReport ? 'Generating...' : 'Monthly Report'}
+          </button>
+          <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 bg-olive/15 text-emerald-400 rounded-xl text-xs font-medium hover:bg-olive/25 transition-all">
+            <Download size={14} /> Export CSV
+          </button>
+        </div>
       }
     >
+      {reportResult && (
+        <div className="vantoris-card p-4 mb-6 flex items-center gap-3 border-brass/30">
+          <Mail size={18} className="text-brass flex-shrink-0" />
+          <p className="text-[#AAB4C3] text-sm">
+            ✓ Monthly report for <span className="text-white font-medium">{reportResult.monthName}</span> generated and emailed to the admin team. {reportResult.txns} transactions this month, AUM growth of {formatCurrency(reportResult.growth)}.
+          </p>
+        </div>
+      )}
+
       <div className="grid grid-cols-4 gap-4">
         {stats.map(s => {
           const Icon = s.icon;

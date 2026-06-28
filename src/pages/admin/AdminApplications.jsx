@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { formatCurrency, generateAccountNumber } from '@/lib/formatCurrency';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Check, X, CheckSquare, Square } from 'lucide-react';
+import { Check, X, CheckSquare, Square, Mail, Clock } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
 
 export default function AdminApplications() {
@@ -15,6 +15,8 @@ export default function AdminApplications() {
   const [submitting, setSubmitting] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [bulkMode, setBulkMode] = useState(false);
+  const [sendingReminders, setSendingReminders] = useState(false);
+  const [reminderResult, setReminderResult] = useState(null);
 
   useEffect(() => { loadApps(); }, []);
 
@@ -22,6 +24,37 @@ export default function AdminApplications() {
     const apps = await base44.entities.Application.list('-created_date', 50);
     setApplications(apps);
     setLoading(false);
+  }
+
+  async function handleSendReminders() {
+    setSendingReminders(true);
+    setReminderResult(null);
+    try {
+      const now = Date.now();
+      const stale = applications.filter(a => {
+        const created = new Date(a.created_date).getTime();
+        const hoursOld = (now - created) / (1000 * 60 * 60);
+        return a.application_status === 'pending' && hoursOld >= 48;
+      });
+      let sent = 0;
+      for (const app of stale) {
+        await base44.integrations.Core.SendEmail({
+          to: app.email,
+          subject: 'Complete Your Vantoris Application',
+          body: `Dear ${app.full_name},\n\nWe noticed your Vantoris membership application is still incomplete. You're just a few steps away from accessing your wealth management portal.\n\nPlease log in to your account and complete your application to proceed:\n- Submit any remaining details\n- Complete KYC verification\n\nIf you have any questions, our team is here to help.\n\nWarm regards,\nThe Vantoris Team`,
+        });
+        await base44.entities.Notification.create({
+          user_id: app.user_id,
+          title: 'Complete Your Application',
+          message: 'Your application has been pending for over 48 hours. Please complete it to proceed.',
+          type: 'action',
+          link: '/apply',
+        });
+        sent++;
+      }
+      setReminderResult({ sent, total: stale.length });
+    } catch (e) { console.error(e); }
+    setSendingReminders(false);
   }
 
   const bulkEligible = applications.filter(a => a.application_status === 'pending' && a.kyc_status === 'approved');
@@ -211,6 +244,23 @@ export default function AdminApplications() {
     <div>
       <h1 className="text-2xl font-bold text-white mb-1">Applications</h1>
       <p className="text-[#AAB4C3] text-sm mb-6">Review and approve member applications</p>
+
+      <div className="flex items-center gap-3 mb-6">
+        <button
+          onClick={handleSendReminders}
+          disabled={sendingReminders}
+          className="flex items-center gap-2 px-4 py-2.5 bg-brass/15 text-brass rounded-xl text-sm font-medium hover:bg-brass/25 transition-all disabled:opacity-40"
+        >
+          <Mail size={16} /> {sendingReminders ? 'Sending...' : 'Send Incomplete Application Reminders'}
+        </button>
+        {reminderResult && (
+          <span className="text-[#AAB4C3] text-sm">
+            {reminderResult.sent > 0
+              ? `✓ Sent ${reminderResult.sent} reminder${reminderResult.sent > 1 ? 's' : ''} to members with incomplete applications (>48h)`
+              : 'No incomplete applications found (48h+)'}
+          </span>
+        )}
+      </div>
 
       {/* Bulk Action Bar */}
       {bulkEligible.length > 0 && (

@@ -4,8 +4,9 @@ import { formatCurrency } from '@/lib/formatCurrency';
 import { exportToCsv } from '@/lib/exportCsv';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Plus, Search, Download, History, Pencil, ArrowLeft, ScrollText } from 'lucide-react';
+import { Plus, Search, Download, History, Pencil, ArrowLeft, ScrollText, Mail } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
+import { sendTransactionEmail } from '@/lib/transactionEmails';
 
 export default function AdminAccounts() {
   const [accounts, setAccounts] = useState([]);
@@ -77,6 +78,15 @@ export default function AdminAccounts() {
         title: typeLabel,
         message: `${txnForm.description || typeLabel}: ${formatCurrency(Math.abs(amount))}`,
         type: txnForm.type === 'withdrawal' ? 'action' : 'success',
+      });
+
+      await sendTransactionEmail({
+        user_id: showTxn.user_id,
+        account: showTxn,
+        type: txnForm.type,
+        amount,
+        description: txnForm.description,
+        newBalance,
       });
 
       await logAuditEntry({
