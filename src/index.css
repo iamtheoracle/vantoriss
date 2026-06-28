@@ -52,6 +52,47 @@
   }
   body {
     @apply bg-background text-foreground font-body;
+    /* Respect system dark mode — Vantoris is always dark institutional theme */
+    color-scheme: dark;
+  }
+  /* Prevent rubber-band bounce on main scroll containers */
+  .vantoris-scroll {
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* Disable text selection on interactive UI elements */
+  button,
+  [role="tab"],
+  [role="button"],
+  a[href],
+  svg,
+  .select-none-interact {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* Allow text selection for content users need to copy */
+  .selectable-content,
+  input,
+  textarea {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+  /* iOS Safe Area helpers */
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .safe-left {
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+  .safe-right {
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  .safe-pt-top {
+    padding-top: max(env(safe-area-inset-top, 0px), 1.5rem);
   }
 }
 

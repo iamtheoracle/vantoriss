@@ -74,8 +74,8 @@ export default function AdminSidebar() {
   const location = useLocation();
 
   return (
-    <aside className="fixed left-0 top-0 bottom-0 w-64 bg-[#111C2D] border-r border-[#242D38] flex flex-col z-40">
-      <div className="p-6 flex items-center gap-3 flex-shrink-0">
+    <aside className="fixed left-0 top-0 bottom-0 w-64 bg-[#111C2D] border-r border-[#242D38] flex flex-col z-40 lg:relative lg:z-auto" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+      <div className="p-6 flex items-center gap-3 flex-shrink-0" style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 1.5rem)' }}>
         <ShieldLogo size={36} />
         <div>
           <h1 className="text-white font-bold text-lg tracking-widest">VANTORIS</h1>

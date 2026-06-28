@@ -5,6 +5,9 @@ import { Users, Search, Plus, Wallet } from 'lucide-react';
 import { generateAccountNumber } from '@/lib/formatCurrency';
 import { logAuditEntry } from '@/lib/auditLogger';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+
+const ACCOUNT_TYPES = ['Personal', 'Joint', 'Business', 'Organization'];
 
 export default function AdminMembers() {
   const [users, setUsers] = useState([]);
@@ -167,16 +170,21 @@ export default function AdminMembers() {
               </div>
               <div>
                 <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Account Type</label>
-                <select
+                <Select
                   value={acctForm.account_type}
-                  onChange={e => setAcctForm({ ...acctForm, account_type: e.target.value })}
-                  className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none"
+                  onValueChange={val => setAcctForm({ ...acctForm, account_type: val })}
                 >
-                  <option>Personal</option>
-                  <option>Joint</option>
-                  <option>Business</option>
-                  <option>Organization</option>
-                </select>
+                  <SelectTrigger className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none h-auto">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#242D38] border-[#242D38]">
+                    {ACCOUNT_TYPES.map(type => (
+                      <SelectItem key={type} value={type} className="text-white focus:bg-brass/15 focus:text-brass">
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Account Name</label>

@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import ShieldLogo from '@/components/vantoris/ShieldLogo';
+import DeleteAccountDialog from '@/components/vantoris/DeleteAccountDialog';
 import { hasOperationsAccess, getRoleLabel } from '@/lib/operationsAccess';
-import { User, Mail, Shield, LogOut, FileText } from 'lucide-react';
+import { User, Mail, Shield, LogOut, FileText, Trash2 } from 'lucide-react';
 
 export default function Profile() {
   const [user, setUser] = useState(null);
+  const [showDelete, setShowDelete] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -94,11 +96,22 @@ export default function Profile() {
       {/* Logout */}
       <button
         onClick={() => base44.auth.logout('/')}
-        className="vantoris-card p-4 w-full flex items-center gap-3 hover:border-crimson/30 transition-all"
+        className="vantoris-card p-4 w-full flex items-center gap-3 hover:border-crimson/30 transition-all mb-2"
       >
         <LogOut size={18} className="text-red-400" />
         <span className="text-red-400 text-sm font-medium">Sign Out</span>
       </button>
+
+      {/* Delete Account */}
+      <button
+        onClick={() => setShowDelete(true)}
+        className="vantoris-card p-4 w-full flex items-center gap-3 hover:border-crimson/30 transition-all"
+      >
+        <Trash2 size={18} className="text-red-400/70" />
+        <span className="text-red-400/70 text-sm font-medium">Delete Account</span>
+      </button>
+
+      <DeleteAccountDialog open={showDelete} onOpenChange={setShowDelete} />
 
       {/* Footer */}
       <div className="mt-8 flex flex-col items-center">

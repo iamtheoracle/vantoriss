@@ -1,9 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useParams, useNavigate } from 'react-router-dom';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { ArrowLeft, ArrowUpRight, ArrowDownLeft, TrendingUp, Download, FileText } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+
+const WITHDRAWAL_METHODS = ['Bank Transfer', 'Wire Transfer', 'Crypto Withdrawal', 'Internal Transfer'];
 
 export default function AccountDetail() {
   const { id } = useParams();
@@ -18,21 +22,20 @@ export default function AccountDetail() {
   const [stmtRange, setStmtRange] = useState({ from: '', to: '' });
   const [generatingPdf, setGeneratingPdf] = useState(false);
 
-  useEffect(() => {
-    loadData();
+  const loadData = useCallback(async () => {
+    const [acct, txns] = await Promise.all([
+      base44.entities.Account.get(id),
+      base44.entities.Transaction.filter({ account_id: id }, '-created_date', 50),
+    ]);
+    setAccount(acct);
+    setTransactions(txns);
   }, [id]);
 
-  async function loadData() {
-    try {
-      const [acct, txns] = await Promise.all([
-        base44.entities.Account.get(id),
-        base44.entities.Transaction.filter({ account_id: id }, '-created_date', 50),
-      ]);
-      setAccount(acct);
-      setTransactions(txns);
-    } catch (e) { console.error(e); }
-    setLoading(false);
-  }
+  useEffect(() => {
+    loadData().catch(e => console.error(e)).finally(() => setLoading(false));
+  }, [loadData]);
+
+  const { containerProps, PullIndicator } = usePullToRefresh(loadData);
 
   async function handleWithdraw() {
     setSubmitting(true);
@@ -278,7 +281,8 @@ export default function AccountDetail() {
   }
 
   return (
-    <div className="px-5 pt-6">
+    <div className="px-5 pt-6 vantoris-scroll" {...containerProps}>
+      <PullIndicator />
       <button onClick={() => navigate('/accounts')} className="flex items-center gap-2 text-[#AAB4C3] text-sm mb-6">
         <ArrowLeft size={18} />
         <span>Back</span>
@@ -382,16 +386,21 @@ export default function AccountDetail() {
             </div>
             <div>
               <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Method</label>
-              <select
+              <Select
                 value={wForm.method}
-                onChange={e => setWForm({ ...wForm, method: e.target.value })}
-                className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none"
+                onValueChange={val => setWForm({ ...wForm, method: val })}
               >
-                <option>Bank Transfer</option>
-                <option>Wire Transfer</option>
-                <option>Crypto Withdrawal</option>
-                <option>Internal Transfer</option>
-              </select>
+                <SelectTrigger className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none h-auto">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-[#242D38] border-[#242D38] max-h-60">
+                  {WITHDRAWAL_METHODS.map(method => (
+                    <SelectItem key={method} value={method} className="text-white focus:bg-brass/15 focus:text-brass">
+                      {method}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Notes</label>

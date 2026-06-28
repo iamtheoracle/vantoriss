@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '@/lib/formatCurrency';
 import ShieldLogo from '@/components/vantoris/ShieldLogo';
 import StatusBadge from '@/components/vantoris/StatusBadge';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { ArrowUpRight, ArrowDownLeft, Bell, ChevronRight, TrendingUp, Clock } from 'lucide-react';
 
 export default function Home() {
@@ -15,34 +16,33 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    loadData();
+  const loadData = useCallback(async () => {
+    const me = await base44.auth.me();
+    setUser(me);
+    const [apps, accts, notifs] = await Promise.all([
+      base44.entities.Application.filter({ user_id: me.id }),
+      base44.entities.Account.filter({ user_id: me.id }),
+      base44.entities.Notification.filter({ user_id: me.id }, '-created_date', 5),
+    ]);
+    setApplication(apps[0] || null);
+    setAccounts(accts);
+    setNotifications(notifs);
+
+    if (accts.length > 0) {
+      const txns = await base44.entities.Transaction.filter(
+        { account_id: accts.map(a => a.id) },
+        '-created_date',
+        10
+      );
+      setTransactions(txns);
+    }
   }, []);
 
-  async function loadData() {
-    try {
-      const me = await base44.auth.me();
-      setUser(me);
-      const [apps, accts, notifs] = await Promise.all([
-        base44.entities.Application.filter({ user_id: me.id }),
-        base44.entities.Account.filter({ user_id: me.id }),
-        base44.entities.Notification.filter({ user_id: me.id }, '-created_date', 5),
-      ]);
-      setApplication(apps[0] || null);
-      setAccounts(accts);
-      setNotifications(notifs);
+  useEffect(() => {
+    loadData().catch(e => console.error(e)).finally(() => setLoading(false));
+  }, [loadData]);
 
-      if (accts.length > 0) {
-        const txns = await base44.entities.Transaction.filter(
-          { account_id: accts.map(a => a.id) },
-          '-created_date',
-          10
-        );
-        setTransactions(txns);
-      }
-    } catch (e) { console.error(e); }
-    setLoading(false);
-  }
+  const { containerProps, PullIndicator } = usePullToRefresh(loadData);
 
   if (loading) {
     return (
@@ -140,7 +140,8 @@ export default function Home() {
 
   // Approved member dashboard
   return (
-    <div className="px-5 pt-6">
+    <div className="px-5 pt-6 vantoris-scroll" {...containerProps}>
+      <PullIndicator />
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
