@@ -18,10 +18,12 @@ export default function DailyEmailSummary() {
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
 
-      const [accounts, transactions, withdrawals] = await Promise.all([
+      const [accounts, transactions, withdrawals, serviceRequests, users] = await Promise.all([
         base44.entities.Account.list('-created_date', 200),
         base44.entities.Transaction.list('-created_date', 200),
         base44.entities.WithdrawalRequest.list('-created_date', 200),
+        base44.entities.ServiceRequest.list('-created_date', 200),
+        base44.entities.User.list('-created_date', 200),
       ]);
 
       const todayDeposits = transactions.filter(t => {
@@ -30,25 +32,53 @@ export default function DailyEmailSummary() {
       });
       const totalDeposits = todayDeposits.reduce((s, t) => s + Math.abs(t.amount || 0), 0);
 
+      const todayWithdrawals = withdrawals.filter(w => {
+        const d = new Date(w.created_date);
+        return d >= today && d < tomorrow;
+      });
       const pendingWithdrawals = withdrawals.filter(w => w.status === 'pending');
       const totalPendingWithdrawals = pendingWithdrawals.reduce((s, w) => s + Math.abs(w.amount || 0), 0);
+
+      const todayServiceRequests = serviceRequests.filter(r => {
+        const d = new Date(r.created_date);
+        return d >= today && d < tomorrow;
+      });
+      function getUserName(id) { return users.find(u => u.id === id)?.full_name || '—'; }
 
       const totalAum = accounts.reduce((s, a) => s + (a.balance || 0), 0);
 
       const dateStr = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
       const subject = `Vantoris Daily Summary — ${dateStr}`;
+      const depositsList = todayDeposits.length > 0
+        ? todayDeposits.map(t => `  - ${formatCurrency(Math.abs(t.amount || 0))} · ${t.description || 'Deposit'}`).join('\n')
+        : '  (none)';
+      const withdrawalsList = todayWithdrawals.length > 0
+        ? todayWithdrawals.map(w => `  - ${formatCurrency(Math.abs(w.amount || 0))} · ${w.method} · ${w.status}`).join('\n')
+        : '  (none)';
+      const serviceList = todayServiceRequests.length > 0
+        ? todayServiceRequests.map(r => `  - ${r.service_type} · ${getUserName(r.user_id)}${r.details ? ' · ' + r.details.slice(0, 80) : ''}`).join('\n')
+        : '  (none)';
       const body = `
 VANTORIS — DAILY OPERATIONS SUMMARY
 ${dateStr}
 
 ═══════════════════════════════════════════════
 
-DEPOSITS TODAY
+NEW DEPOSITS (LAST 24H)
   Count:           ${todayDeposits.length}
   Total Amount:    ${formatCurrency(totalDeposits)}
+${depositsList}
 
-PENDING WITHDRAWALS
+NEW WITHDRAWALS (LAST 24H)
+  Count:           ${todayWithdrawals.length}
+${withdrawalsList}
+
+NEW SERVICE REQUESTS (LAST 24H)
+  Count:           ${todayServiceRequests.length}
+${serviceList}
+
+PENDING WITHDRAWALS (ALL)
   Count:           ${pendingWithdrawals.length}
   Total Amount:    ${formatCurrency(totalPendingWithdrawals)}
 

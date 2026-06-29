@@ -57,6 +57,7 @@ const AuditLogs = React.lazy(() => import('./pages/operations/AuditLogs'));
 const ActivityTimeline = React.lazy(() => import('./pages/operations/ActivityTimeline'));
 const VerificationRequests = React.lazy(() => import('./pages/operations/VerificationRequests'));
 const ServiceRequests = React.lazy(() => import('./pages/operations/ServiceRequests'));
+const MemberMessages = React.lazy(() => import('./pages/operations/MemberMessages'));
 const Referrals = React.lazy(() => import('./pages/operations/Referrals'));
 const Configuration = React.lazy(() => import('./pages/operations/Configuration'));
 const ApiManagement = React.lazy(() => import('./pages/operations/ApiManagement'));
@@ -132,6 +133,7 @@ const AuthenticatedApp = () => {
               <Route path="/operations/withdrawals" element={<AdminWithdrawals />} />
               <Route path="/operations/verification-requests" element={<VerificationRequests />} />
               <Route path="/operations/service-requests" element={<ServiceRequests />} />
+              <Route path="/operations/member-messages" element={<MemberMessages />} />
               <Route path="/operations/referrals" element={<Referrals />} />
               <Route path="/operations/assistant" element={<AdminAgent />} />
               <Route path="/operations/organizations" element={<Organizations />} />

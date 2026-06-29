@@ -6,6 +6,7 @@ import ShieldLogo from '@/components/vantoris/ShieldLogo';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { ArrowUpRight, ArrowDownLeft, Bell, ChevronRight, TrendingUp, Clock, Briefcase, Sparkles, Mail, MessageCircle } from 'lucide-react';
+import { whatsappLink } from '@/lib/businessConfig';
 
 export default function Home() {
   const [user, setUser] = useState(null);
@@ -290,7 +291,7 @@ export default function Home() {
             <p className="text-white font-medium text-sm">Email</p>
             <p className="text-[#AAB4C3] text-xs">support@vantoris.com</p>
           </a>
-          <a href="https://wa.me/18005551234" target="_blank" rel="noopener noreferrer" className="vantoris-card p-4 text-left hover:border-brass/30 transition-all">
+          <a href={whatsappLink('Hello Vantoris Support, I need assistance.')} target="_blank" rel="noopener noreferrer" className="vantoris-card p-4 text-left hover:border-brass/30 transition-all">
             <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center mb-2">
               <MessageCircle size={20} className="text-emerald-400" />
             </div>

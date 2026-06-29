@@ -5,7 +5,8 @@ import ShieldLogo from '@/components/vantoris/ShieldLogo';
 import DeleteAccountDialog from '@/components/vantoris/DeleteAccountDialog';
 import { hasOperationsAccess, getRoleLabel } from '@/lib/operationsAccess';
 import { formatCurrency } from '@/lib/formatCurrency';
-import { User, Mail, Shield, LogOut, FileText, Trash2, Copy, Check, Gift, Sparkles, Wallet, Briefcase, Bell, Users, Building2, Globe, ChevronRight } from 'lucide-react';
+import { User, Mail, Shield, LogOut, FileText, Trash2, Copy, Check, Gift, Sparkles, Wallet, Briefcase, Bell, Users, Building2, Globe, ChevronRight, MessageCircle } from 'lucide-react';
+import { whatsappLink, BUSINESS_WHATSAPP_DISPLAY } from '@/lib/businessConfig';
 
 const ACCOUNT_ICONS = { Personal: User, Joint: Users, Business: Building2, Organization: Globe };
 
@@ -192,6 +193,23 @@ export default function Profile() {
           </div>
         </div>
       )}
+
+      {/* Contact Support — WhatsApp */}
+      <a
+        href={whatsappLink(`Hello Vantoris Support, I have a question regarding my account.`)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="vantoris-card p-4 w-full flex items-center gap-3 hover:border-emerald-500/30 transition-all mb-3"
+      >
+        <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center">
+          <MessageCircle size={18} className="text-emerald-400" />
+        </div>
+        <div className="flex-1 text-left">
+          <span className="text-white text-sm font-medium">WhatsApp Support</span>
+          <p className="text-[#AAB4C3] text-xs">Chat with us · {BUSINESS_WHATSAPP_DISPLAY}</p>
+        </div>
+        <ChevronRight size={16} className="text-[#AAB4C3]" />
+      </a>
 
       {/* Operations Center access — discreet, role-gated */}
       {hasOperationsAccess(user.role) && (

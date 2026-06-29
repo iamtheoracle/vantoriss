@@ -67,6 +67,12 @@ export default function Services() {
         message: `Your request for ${serviceType} has been submitted for review.`,
         type: 'info',
       });
+      // Alert operations team
+      await base44.integrations.Core.SendEmail({
+        to: 'operations@vantoris.com',
+        subject: `New Service Request: ${serviceType}`,
+        body: `A new service request has been submitted.\n\nMember: ${user.full_name || '—'} (${user.email || '—'})\nService: ${serviceType}\nDetails: ${reqDetails || 'None provided'}\n\nReview it in the Operations Center under Service Requests.`,
+      });
     } catch (e) {
       console.error(e);
       setRequests(prev => prev.filter(r => r.id !== tempId));

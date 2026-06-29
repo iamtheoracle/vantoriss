@@ -1,0 +1,50 @@
+{
+  "name": "MessageThread",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "The member in this conversation thread"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Thread subject, typically the original notification title"
+    },
+    "last_message": {
+      "type": "string",
+      "description": "Preview of the most recent message in the thread"
+    },
+    "last_sender": {
+      "type": "string",
+      "enum": [
+        "member",
+        "admin"
+      ],
+      "default": "member"
+    },
+    "last_message_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "unread_by_member": {
+      "type": "boolean",
+      "default": false
+    },
+    "unread_by_admin": {
+      "type": "boolean",
+      "default": true
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "closed"
+      ],
+      "default": "open"
+    }
+  },
+  "required": [
+    "user_id",
+    "subject"
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "name": "ThreadMessage",
+  "type": "object",
+  "properties": {
+    "thread_id": {
+      "type": "string",
+      "description": "The thread this message belongs to"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "The member in this thread (denormalized for filtering)"
+    },
+    "sender": {
+      "type": "string",
+      "enum": [
+        "member",
+        "admin"
+      ]
+    },
+    "body": {
+      "type": "string",
+      "description": "The message content"
+    },
+    "admin_name": {
+      "type": "string",
+      "description": "Display name of the admin if sender is admin"
+    }
+  },
+  "required": [
+    "thread_id",
+    "user_id",
+    "sender",
+    "body"
+  ]
+}
