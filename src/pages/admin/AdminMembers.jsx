@@ -160,7 +160,7 @@ export default function AdminMembers() {
         </button>
       </div>
 
-      <div className="vantoris-card overflow-hidden">
+      <div className="hidden md:block vantoris-card overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[#242D38] bg-[#1a2535]">
@@ -218,6 +218,41 @@ export default function AdminMembers() {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-3">
+        {filtered.map(member => {
+          const memberAccts = accounts.filter(a => a.user_id === member.id);
+          const totalBal = memberAccts.reduce((sum, a) => sum + (a.balance || 0), 0);
+          return (
+            <div key={member.id} className="vantoris-card p-4 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-brass/15 flex items-center justify-center">
+                  <span className="text-brass text-xs font-bold">{(member.full_name || 'U').charAt(0)}</span>
+                </div>
+                <div className="flex-1">
+                  <p className="text-white font-medium text-sm">{member.full_name || '—'}</p>
+                  <p className="text-[#AAB4C3] text-xs">{member.email}</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-[#AAB4C3]">{memberAccts.length} accounts</span>
+                <span className="text-white font-medium">{formatCurrency(totalBal)}</span>
+              </div>
+              <p className="text-[#AAB4C3] text-xs">Joined {new Date(member.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+              <div className="flex items-center gap-2">
+                <button onClick={() => { setShowCreate(member); setAcctForm({ account_type: 'Personal', account_name: '', opening_balance: '' }); }} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-brass/15 text-brass rounded-lg text-xs font-medium">
+                  <Plus size={12} /> Add Account
+                </button>
+                <button onClick={() => { setNotesMember(member); setNotesText(member.admin_notes || ''); }} className={`flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-medium ${member.admin_notes ? 'bg-brass/25 text-brass' : 'bg-[#242D38] text-[#AAB4C3]'}`}>
+                  <StickyNote size={12} /> Notes
+                </button>
+              </div>
+            </div>
+          );
+        })}
+        {filtered.length === 0 && <p className="text-center text-[#AAB4C3] py-8">No members found</p>}
       </div>
 
       <Dialog open={!!showCreate} onOpenChange={() => setShowCreate(null)}>

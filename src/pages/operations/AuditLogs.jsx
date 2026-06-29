@@ -86,7 +86,8 @@ export default function AuditLogs() {
           <p className="text-[#AAB4C3] text-sm">Administrative actions will be logged here for compliance tracking.</p>
         </div>
       ) : (
-        <div className="vantoris-card overflow-hidden">
+        <>
+        <div className="hidden md:block vantoris-card overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[#242D38] bg-[#1a2535]">
@@ -138,6 +139,33 @@ export default function AuditLogs() {
             </tbody>
           </table>
         </div>
+
+        {/* Mobile Cards */}
+        <div className="md:hidden space-y-3">
+          {filtered.map(log => {
+            const meta = actionLabels[log.action_type] || { label: log.action_type, color: 'text-[#AAB4C3] bg-[#242D38]' };
+            return (
+              <div key={log.id} className="vantoris-card p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${meta.color}`}>{meta.label}</span>
+                  <span className="text-[#AAB4C3] text-xs">{new Date(log.created_date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+                <p className="text-white text-xs font-medium">{log.description}</p>
+                {log.details && <p className="text-[#AAB4C3]/70 text-[11px]">{log.details}</p>}
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-[#AAB4C3]">{log.admin_name || '—'}</span>
+                  {log.amount != null && (
+                    <span className={`font-medium ${log.amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{formatCurrency(log.amount)}</span>
+                  )}
+                </div>
+                {log.balance_before != null && log.balance_after != null && (
+                  <p className="text-[11px] font-mono text-[#AAB4C3]">{formatCurrency(log.balance_before)} → {formatCurrency(log.balance_after)}</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        </>
       )}
     </OperationsPageLayout>
   );

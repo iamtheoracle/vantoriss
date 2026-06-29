@@ -308,7 +308,7 @@ export default function AdminApplications() {
         </div>
       )}
 
-      <div className="vantoris-card overflow-hidden">
+      <div className="hidden md:block vantoris-card overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[#242D38] bg-[#1a2535]">
@@ -382,6 +382,49 @@ export default function AdminApplications() {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-3">
+        {applications.map(app => {
+          const isBulkEligible = bulkMode && app.application_status === 'pending' && app.kyc_status === 'approved';
+          return (
+            <div key={app.id} className={`vantoris-card p-4 space-y-2 ${selectedIds.includes(app.id) ? 'border-brass/40' : ''}`}>
+              {bulkMode && (
+                <div className="flex items-center gap-2">
+                  {isBulkEligible ? (
+                    <button onClick={() => toggleSelect(app.id)} className="text-[#AAB4C3]">
+                      {selectedIds.includes(app.id) ? <CheckSquare size={16} className="text-brass" /> : <Square size={16} />}
+                    </button>
+                  ) : <span className="inline-block w-4" />}
+                </div>
+              )}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-white font-medium text-sm">{app.full_name}</p>
+                  <p className="text-[#AAB4C3] text-xs">{app.email}</p>
+                </div>
+                <StatusBadge status={app.application_status} />
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-white">{app.account_type}</span>
+                <span className="text-[#AAB4C3]">{new Date(app.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <StatusBadge status={app.kyc_status} />
+                {app.application_status === 'pending' && app.kyc_status === 'approved' && !bulkMode && (
+                  <button onClick={() => setSelected(app)} className="flex-1 py-2 bg-brass/15 text-brass rounded-lg text-xs font-medium">
+                    Review
+                  </button>
+                )}
+                {app.application_status === 'pending' && app.kyc_status !== 'approved' && (
+                  <span className="text-[#AAB4C3] text-xs">Awaiting KYC</span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+        {applications.length === 0 && <p className="text-center text-[#AAB4C3] py-8">No applications</p>}
       </div>
 
       {/* Review Dialog */}

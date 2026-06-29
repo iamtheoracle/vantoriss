@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Wallet, Briefcase, Bell, User, Sparkles } from 'lucide-react';
+import { TabHistoryContext } from '@/lib/TabHistoryContext';
 
 const navItems = [
   { label: 'Home', path: '/', icon: Home },
@@ -13,6 +14,7 @@ const navItems = [
 
 export default function BottomNav() {
   const location = useLocation();
+  const { getTabPath } = useContext(TabHistoryContext);
 
   return (
     <nav
@@ -28,7 +30,7 @@ export default function BottomNav() {
           return (
             <Link
               key={item.path}
-              to={item.path}
+              to={getTabPath(item.path)}
               className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all duration-200 ${
                 isActive ? 'text-brass' : 'text-[#AAB4C3] hover:text-white'
               }`}

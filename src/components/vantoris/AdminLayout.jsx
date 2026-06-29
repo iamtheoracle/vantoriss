@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
+import PageTransition from './PageTransition';
 
 export default function AdminLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -45,7 +46,7 @@ export default function AdminLayout() {
 
       {/* Main content — responsive: no fixed margin on mobile, ml-64 on desktop */}
       <main className="lg:ml-64 p-4 lg:p-8 pt-20 lg:pt-8 vantoris-scroll min-h-screen">
-        <Outlet />
+        <PageTransition />
       </main>
     </div>
   );

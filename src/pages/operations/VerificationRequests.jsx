@@ -212,7 +212,7 @@ export default function VerificationRequests() {
         </div>
       )}
 
-      <div className="vantoris-card overflow-hidden">
+      <div className="hidden md:block vantoris-card overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[#242D38] bg-[#1a2535]">
@@ -275,6 +275,49 @@ export default function VerificationRequests() {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-3">
+        {requests.map(req => {
+          const acct = getAccount(req.account_id);
+          const user = getUser(req.user_id);
+          const isPending = req.status === 'pending';
+          return (
+            <div key={req.id} className={`vantoris-card p-4 space-y-2 ${selectedIds.includes(req.id) ? 'border-brass/40' : ''}`}>
+              {bulkMode && isPending && (
+                <button onClick={() => toggleSelect(req.id)} className="flex items-center gap-2 text-xs text-[#AAB4C3]">
+                  {selectedIds.includes(req.id) ? <CheckSquare size={14} className="text-brass" /> : <Square size={14} />}
+                  {selectedIds.includes(req.id) ? 'Selected' : 'Select'}
+                </button>
+              )}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-white font-medium text-sm">{user?.full_name || '—'}</p>
+                  <p className="text-[#AAB4C3] text-xs">{user?.email || ''}</p>
+                </div>
+                <StatusBadge status={req.status} />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-white text-xs font-medium">{acct?.account_name || '—'}</p>
+                  <p className="text-[#AAB4C3] text-xs font-mono">{acct?.account_number || ''}</p>
+                </div>
+                <p className="text-emerald-400 font-semibold text-sm">{formatCurrency(Math.abs(req.amount))}</p>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-white text-xs">{req.method}</span>
+                <span className="text-[#AAB4C3] text-xs font-mono truncate ml-2">{req.reference || '—'}</span>
+              </div>
+              {isPending && !bulkMode && (
+                <button onClick={() => setSelected(req)} className="w-full py-2 bg-brass/15 text-brass rounded-lg text-xs font-medium">
+                  Review
+                </button>
+              )}
+            </div>
+          );
+        })}
+        {requests.length === 0 && <p className="text-center text-[#AAB4C3] py-8">No verification requests</p>}
       </div>
 
       {/* Review Dialog */}

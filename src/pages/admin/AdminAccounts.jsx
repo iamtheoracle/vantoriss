@@ -246,7 +246,7 @@ export default function AdminAccounts() {
           </div>
         </div>
 
-        <div className="vantoris-card overflow-hidden">
+        <div className="hidden md:block vantoris-card overflow-hidden">
           {loadingTxns ? (
             <div className="flex items-center justify-center py-12">
               <div className="w-8 h-8 border-2 border-brass/30 border-t-brass rounded-full animate-spin" />
@@ -304,6 +304,40 @@ export default function AdminAccounts() {
                 )}
               </tbody>
             </table>
+          )}
+        </div>
+
+        {/* Mobile Transaction Cards */}
+        <div className="md:hidden space-y-3">
+          {loadingTxns ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="w-8 h-8 border-2 border-brass/30 border-t-brass rounded-full animate-spin" />
+            </div>
+          ) : (
+            <>
+              {transactions.map(txn => (
+                <div key={txn.id} className="vantoris-card p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      txn.type === 'deposit' || txn.type === 'opening_balance' ? 'bg-emerald-500/10 text-emerald-400' :
+                      txn.type === 'withdrawal' ? 'bg-red-500/10 text-red-400' :
+                      'bg-brass/10 text-brass'
+                    }`}>{txn.type.replace('_', ' ')}</span>
+                    <span className="text-[#AAB4C3] text-xs">{(txn.transaction_date || txn.created_date).split('T')[0]}</span>
+                  </div>
+                  <p className="text-white text-xs">{txn.description || '—'}</p>
+                  {txn.reference && <p className="text-[#AAB4C3] text-xs font-mono">{txn.reference}</p>}
+                  <div className="flex items-center justify-between">
+                    <span className={`font-semibold text-sm ${(txn.amount || 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{formatCurrency(txn.amount)}</span>
+                    <span className="text-white text-xs font-medium">{txn.balance_after != null ? formatCurrency(txn.balance_after) : '—'}</span>
+                  </div>
+                  <button onClick={() => openEditTxn(txn)} className="flex items-center gap-1 px-2.5 py-1 bg-[#242D38] text-[#AAB4C3] rounded-lg text-xs font-medium">
+                    <Pencil size={10} /> Edit
+                  </button>
+                </div>
+              ))}
+              {transactions.length === 0 && <p className="text-center text-[#AAB4C3] py-8">No transactions found</p>}
+            </>
           )}
         </div>
 
@@ -377,7 +411,7 @@ export default function AdminAccounts() {
         />
       </div>
 
-      <div className="vantoris-card overflow-hidden">
+      <div className="hidden md:block vantoris-card overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[#242D38] bg-[#1a2535]">
@@ -420,6 +454,32 @@ export default function AdminAccounts() {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-3">
+        {filtered.map(acct => (
+          <div key={acct.id} className="vantoris-card p-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-white font-medium text-sm">{acct.account_name}</p>
+              <StatusBadge status={acct.status} />
+            </div>
+            <p className="text-[#AAB4C3] font-mono text-xs">{acct.account_number}</p>
+            <div className="flex items-center justify-between">
+              <span className="text-white text-xs">{acct.account_type}</span>
+              <span className="text-white font-semibold">{formatCurrency(acct.balance)}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={() => viewHistory(acct)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-[#242D38] text-[#AAB4C3] rounded-lg text-xs font-medium">
+                <History size={12} /> History
+              </button>
+              <button onClick={() => { setShowTxn(acct); setTxnForm({ type: 'deposit', amount: '', description: '', reference: '', transaction_date: '' }); }} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-brass/15 text-brass rounded-lg text-xs font-medium">
+                <Plus size={12} /> Add Txn
+              </button>
+            </div>
+          </div>
+        ))}
+        {filtered.length === 0 && <p className="text-center text-[#AAB4C3] py-8">No accounts found</p>}
       </div>
 
       <Dialog open={!!showTxn} onOpenChange={() => setShowTxn(null)}>
