@@ -1,0 +1,111 @@
+{
+  "name": "OperationalProfile",
+  "type": "object",
+  "properties": {
+    "full_name": {
+      "type": "string",
+      "description": "Staff member full name"
+    },
+    "staff_id": {
+      "type": "string",
+      "description": "Internal staff identifier"
+    },
+    "employee_number": {
+      "type": "string",
+      "description": "Employee number (optional)"
+    },
+    "position": {
+      "type": "string",
+      "description": "Job title / position"
+    },
+    "department": {
+      "type": "string",
+      "description": "Department (Operations, Finance, Compliance, etc.)"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "Super Administrator",
+        "Administrator",
+        "Executive",
+        "Operations Manager",
+        "Operations Officer",
+        "Finance Officer",
+        "Compliance Officer",
+        "Risk Officer",
+        "KYC Officer",
+        "Customer Support",
+        "Auditor",
+        "Document Officer",
+        "Card Operations",
+        "Treasury Officer",
+        "IT Administrator"
+      ],
+      "default": "Operations Officer"
+    },
+    "permission_groups": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Assigned permission groups"
+    },
+    "work_email": {
+      "type": "string",
+      "description": "Work email address"
+    },
+    "work_phone": {
+      "type": "string",
+      "description": "Work phone number"
+    },
+    "profile_photo": {
+      "type": "string",
+      "description": "Profile photo URL"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Suspended",
+        "Inactive"
+      ],
+      "default": "Active"
+    },
+    "date_joined": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the staff member joined"
+    },
+    "last_login": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last login timestamp"
+    },
+    "mfa_status": {
+      "type": "string",
+      "enum": [
+        "Enabled",
+        "Disabled",
+        "Pending"
+      ],
+      "default": "Pending"
+    },
+    "assigned_tasks": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of tasks currently assigned"
+    },
+    "activity_summary": {
+      "type": "string",
+      "description": "Summary of recent activity"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Linked authentication user ID"
+    }
+  },
+  "required": [
+    "full_name",
+    "role"
+  ]
+}

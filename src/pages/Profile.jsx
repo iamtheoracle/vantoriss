@@ -6,11 +6,13 @@ import DeleteAccountDialog from '@/components/vantoris/DeleteAccountDialog';
 import { hasOperationsAccess, getRoleLabel } from '@/lib/operationsAccess';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { User, Mail, Shield, LogOut, FileText, Trash2, Copy, Check, Gift, Sparkles, Wallet, Briefcase, Bell, Users, Building2, Globe, ChevronRight, MessageCircle } from 'lucide-react';
-import { whatsappLink, BUSINESS_WHATSAPP_DISPLAY } from '@/lib/businessConfig';
+import { whatsappLink, BUSINESS_WHATSAPP_DISPLAY, BUSINESS_WHATSAPP_NUMBER } from '@/lib/businessConfig';
+import { useWhatsAppConfig, whatsappLinkFromConfig } from '@/hooks/useWhatsAppConfig';
 
 const ACCOUNT_ICONS = { Personal: User, Joint: Users, Business: Building2, Organization: Globe };
 
 export default function Profile() {
+  const whatsappNumber = useWhatsAppConfig();
   const [user, setUser] = useState(null);
   const [accounts, setAccounts] = useState([]);
   const [showDelete, setShowDelete] = useState(false);
@@ -196,7 +198,7 @@ export default function Profile() {
 
       {/* Contact Support — WhatsApp */}
       <a
-        href={whatsappLink(`Hello Vantoris Support, I have a question regarding my account.`)}
+        href={whatsappLinkFromConfig(whatsappNumber, `Hello Vantoris Support, I have a question regarding my account.`)}
         target="_blank"
         rel="noopener noreferrer"
         className="vantoris-card p-4 w-full flex items-center gap-3 hover:border-emerald-500/30 transition-all mb-3"

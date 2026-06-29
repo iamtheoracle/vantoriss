@@ -24,6 +24,7 @@ const sections = [
       { label: 'Members', path: '/operations/members', icon: Users },
       { label: 'Organizations', path: '/operations/organizations', icon: Building2 },
       { label: 'KYC Review', path: '/operations/kyc', icon: ShieldCheck },
+      { label: 'Operational Profiles', path: '/operations/operational-profiles', icon: ShieldCheck },
     ],
   },
   {

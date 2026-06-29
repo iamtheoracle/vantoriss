@@ -1,0 +1,32 @@
+{
+  "name": "AppConfiguration",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Configuration key (e.g. whatsapp_number, support_email)"
+    },
+    "value": {
+      "type": "string",
+      "description": "Configuration value"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "general",
+        "notifications",
+        "security",
+        "payments"
+      ],
+      "default": "general"
+    },
+    "label": {
+      "type": "string",
+      "description": "Human-readable label for this config setting"
+    }
+  },
+  "required": [
+    "key",
+    "value"
+  ]
+}
