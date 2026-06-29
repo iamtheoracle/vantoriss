@@ -5,7 +5,7 @@ import { formatCurrency } from '@/lib/formatCurrency';
 import ShieldLogo from '@/components/vantoris/ShieldLogo';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
-import { ArrowUpRight, ArrowDownLeft, Bell, ChevronRight, TrendingUp, Clock } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, Bell, ChevronRight, TrendingUp, Clock, Briefcase, Sparkles } from 'lucide-react';
 
 export default function Home() {
   const [user, setUser] = useState(null);
@@ -192,6 +192,33 @@ export default function Home() {
           </div>
           <p className="text-white font-semibold text-lg">{unreadCount}</p>
           <p className="text-[#AAB4C3] text-[11px]">Unread Messages</p>
+        </div>
+      </div>
+
+      {/* Quick Access */}
+      <div className="mb-6">
+        <h3 className="text-white font-semibold text-sm mb-3">Quick Access</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => navigate('/services')}
+            className="vantoris-card p-4 flex flex-col items-start gap-2 hover:border-brass/30 transition-all"
+          >
+            <div className="w-10 h-10 rounded-xl bg-brass/15 flex items-center justify-center">
+              <Briefcase size={18} className="text-brass" />
+            </div>
+            <p className="text-white font-medium text-sm">Services</p>
+            <p className="text-[#AAB4C3] text-[11px]">Request accounts & cards</p>
+          </button>
+          <button
+            onClick={() => navigate('/advisor')}
+            className="vantoris-card p-4 flex flex-col items-start gap-2 hover:border-brass/30 transition-all"
+          >
+            <div className="w-10 h-10 rounded-xl bg-purple-500/15 flex items-center justify-center">
+              <Sparkles size={18} className="text-purple-400" />
+            </div>
+            <p className="text-white font-medium text-sm">Advisor</p>
+            <p className="text-[#AAB4C3] text-[11px]">AI financial guidance</p>
+          </button>
         </div>
       </div>
 
