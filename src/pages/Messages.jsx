@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Bell, CheckCheck, Shield, ArrowDownLeft, ArrowUpRight, Info } from 'lucide-react';
+import { Bell, CheckCheck, Shield, ArrowDownLeft, ArrowUpRight, Info, Send } from 'lucide-react';
 
 const typeIcons = {
   success: { icon: CheckCheck, bg: 'bg-olive/20', color: 'text-emerald-400' },
@@ -12,6 +12,11 @@ const typeIcons = {
 export default function Messages() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  const [sending, setSending] = useState(false);
+  const [repliedIds, setRepliedIds] = useState([]);
 
   useEffect(() => {
     loadNotifications();
@@ -19,6 +24,7 @@ export default function Messages() {
 
   async function loadNotifications() {
     const me = await base44.auth.me();
+    setUser(me);
     const notifs = await base44.entities.Notification.filter({ user_id: me.id }, '-created_date', 50);
     setNotifications(notifs);
     setLoading(false);
@@ -27,6 +33,24 @@ export default function Messages() {
     for (const n of unread) {
       base44.entities.Notification.update(n.id, { read: true });
     }
+  }
+
+  async function sendReply(notif) {
+    if (!replyText.trim()) return;
+    setSending(true);
+    try {
+      await base44.integrations.Core.SendEmail({
+        to: 'support@vantoris.com',
+        subject: `Member Reply: ${notif.title}`,
+        body: `Member: ${user?.full_name || 'Unknown'} (${user?.email || 'No email'})\n\nOriginal Notification: ${notif.title}\n${notif.message}\n\nMember Reply:\n${replyText}`,
+      });
+      setRepliedIds(prev => [...prev, notif.id]);
+      setReplyingTo(null);
+      setReplyText('');
+    } catch (e) {
+      console.error(e);
+    }
+    setSending(false);
   }
 
   if (loading) {
@@ -70,6 +94,43 @@ export default function Messages() {
                   <p className="text-[#AAB4C3]/50 text-[10px] mt-1">
                     {new Date(notif.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </p>
+                  {repliedIds.includes(notif.id) ? (
+                    <p className="text-emerald-400 text-[11px] mt-2 flex items-center gap-1">
+                      <CheckCheck size={12} /> Reply sent
+                    </p>
+                  ) : replyingTo === notif.id ? (
+                    <div className="mt-2 space-y-2">
+                      <textarea
+                        value={replyText}
+                        onChange={e => setReplyText(e.target.value)}
+                        placeholder="Type your reply…"
+                        rows={2}
+                        className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-3 py-2 text-white text-sm focus:border-brass/50 focus:outline-none resize-none selectable-content"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => sendReply(notif)}
+                          disabled={sending || !replyText.trim()}
+                          className="flex-1 py-2 bg-brass text-[#0E1A2B] text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 disabled:opacity-40"
+                        >
+                          <Send size={12} /> Send
+                        </button>
+                        <button
+                          onClick={() => { setReplyingTo(null); setReplyText(''); }}
+                          className="px-3 py-2 bg-[#242D38] text-[#AAB4C3] text-xs font-medium rounded-xl"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => { setReplyingTo(notif.id); setReplyText(''); }}
+                      className="text-brass text-[11px] font-medium mt-2"
+                    >
+                      Reply
+                    </button>
+                  )}
                 </div>
               </div>
             );
