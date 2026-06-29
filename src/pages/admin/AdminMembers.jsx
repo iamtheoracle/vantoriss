@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
-import { Users, Search, Plus, Wallet, Download } from 'lucide-react';
+import { Users, Search, Plus, Wallet, Download, StickyNote } from 'lucide-react';
 import { generateAccountNumber } from '@/lib/formatCurrency';
 import { logAuditEntry } from '@/lib/auditLogger';
 import { exportToCsv } from '@/lib/exportCsv';
@@ -19,6 +19,9 @@ export default function AdminMembers() {
   const [showCreate, setShowCreate] = useState(null);
   const [acctForm, setAcctForm] = useState({ account_type: 'Personal', account_name: '', opening_balance: '' });
   const [creating, setCreating] = useState(false);
+  const [notesMember, setNotesMember] = useState(null);
+  const [notesText, setNotesText] = useState('');
+  const [savingNotes, setSavingNotes] = useState(false);
 
   useEffect(() => { loadData(); }, []);
 
@@ -190,12 +193,20 @@ export default function AdminMembers() {
                     {new Date(member.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </td>
                   <td className="px-5 py-4">
-                    <button
-                      onClick={() => { setShowCreate(member); setAcctForm({ account_type: 'Personal', account_name: '', opening_balance: '' }); }}
-                      className="flex items-center gap-1 px-3 py-1.5 bg-brass/15 text-brass rounded-lg text-xs font-medium hover:bg-brass/25 transition-all"
-                    >
-                      <Plus size={12} /> Add Account
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => { setShowCreate(member); setAcctForm({ account_type: 'Personal', account_name: '', opening_balance: '' }); }}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-brass/15 text-brass rounded-lg text-xs font-medium hover:bg-brass/25 transition-all"
+                      >
+                        <Plus size={12} /> Add Account
+                      </button>
+                      <button
+                        onClick={() => { setNotesMember(member); setNotesText(member.admin_notes || ''); }}
+                        className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${member.admin_notes ? 'bg-brass/25 text-brass' : 'bg-[#242D38] text-[#AAB4C3] hover:bg-[#242D38]/80 hover:text-white'}`}
+                      >
+                        <StickyNote size={12} /> Notes
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );
@@ -263,6 +274,56 @@ export default function AdminMembers() {
                 className="w-full py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl disabled:opacity-40 flex items-center justify-center gap-2"
               >
                 <Wallet size={16} /> {creating ? 'Creating...' : 'Create Account'}
+              </button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Admin Notes Dialog */}
+      <Dialog open={!!notesMember} onOpenChange={() => setNotesMember(null)}>
+        <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <StickyNote size={18} className="text-brass" />
+              Admin Notes — {notesMember?.full_name}
+            </DialogTitle>
+          </DialogHeader>
+          {notesMember && (
+            <div className="space-y-4 mt-2">
+              <div className="vantoris-card p-3">
+                <p className="text-[#AAB4C3] text-xs">{notesMember.email}</p>
+              </div>
+              <div>
+                <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Internal Notes (member cannot see these)</label>
+                <textarea
+                  value={notesText}
+                  onChange={e => setNotesText(e.target.value)}
+                  placeholder="Add internal context, special instructions, or compliance notes..."
+                  className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none resize-none selectable-content"
+                  rows={5}
+                />
+              </div>
+              <button
+                disabled={savingNotes}
+                onClick={async () => {
+                  setSavingNotes(true);
+                  try {
+                    await base44.entities.User.update(notesMember.id, { admin_notes: notesText });
+                    await logAuditEntry({
+                      action_type: 'account_status_changed',
+                      description: `Updated admin notes for ${notesMember.full_name}`,
+                      details: notesText || 'Notes cleared',
+                      target_user_id: notesMember.id,
+                    });
+                    setNotesMember(null);
+                    loadData();
+                  } catch (e) { console.error(e); }
+                  setSavingNotes(false);
+                }}
+                className="w-full py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl disabled:opacity-40"
+              >
+                {savingNotes ? 'Saving...' : 'Save Notes'}
               </button>
             </div>
           )}

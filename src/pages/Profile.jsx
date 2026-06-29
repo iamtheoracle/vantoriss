@@ -4,17 +4,26 @@ import { useNavigate } from 'react-router-dom';
 import ShieldLogo from '@/components/vantoris/ShieldLogo';
 import DeleteAccountDialog from '@/components/vantoris/DeleteAccountDialog';
 import { hasOperationsAccess, getRoleLabel } from '@/lib/operationsAccess';
-import { User, Mail, Shield, LogOut, FileText, Trash2 } from 'lucide-react';
+import { User, Mail, Shield, LogOut, FileText, Trash2, Copy, Check, Gift, Sparkles } from 'lucide-react';
 
 export default function Profile() {
   const [user, setUser] = useState(null);
   const [showDelete, setShowDelete] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [referralLink, setReferralLink] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
     async function load() {
       const me = await base44.auth.me();
+      // Generate referral code if missing
+      if (me && !me.referral_code) {
+        const code = generateReferralCode(me.id);
+        await base44.auth.updateMe({ referral_code: code });
+        me.referral_code = code;
+      }
       setUser(me);
+      setReferralLink(`${window.location.origin}/register?ref=${me.referral_code || ''}`);
     }
     load();
   }, []);
@@ -70,6 +79,15 @@ export default function Profile() {
         </div>
       </div>
 
+      {/* AI Advisor */}
+      <button
+        onClick={() => navigate('/advisor')}
+        className="vantoris-card p-4 w-full flex items-center gap-3 hover:border-brass/30 transition-all mb-3"
+      >
+        <Sparkles size={18} className="text-brass" />
+        <span className="text-white text-sm font-medium">Vantoris Advisor</span>
+      </button>
+
       {/* My Documents */}
       <button
         onClick={() => navigate('/documents')}
@@ -78,6 +96,33 @@ export default function Profile() {
         <FileText size={18} className="text-[#AAB4C3]" />
         <span className="text-white text-sm font-medium">My Documents</span>
       </button>
+
+      {/* Referral Program */}
+      <div className="vantoris-card p-4 mb-3">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 rounded-xl bg-brass/15 flex items-center justify-center">
+            <Gift size={18} className="text-brass" />
+          </div>
+          <div>
+            <p className="text-white text-sm font-medium">Refer a Friend</p>
+            <p className="text-[#AAB4C3] text-xs">Share your invite link</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 bg-[#0E1A2B] rounded-xl px-3 py-2.5 border border-[#242D38]">
+          <span className="text-[#AAB4C3] text-xs flex-1 truncate selectable-content">{referralLink}</span>
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(referralLink);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            }}
+            className="flex items-center gap-1 px-3 py-1.5 bg-brass/15 text-brass rounded-lg text-xs font-medium hover:bg-brass/25 transition-all flex-shrink-0"
+          >
+            {copied ? <Check size={12} /> : <Copy size={12} />}
+            {copied ? 'Copied' : 'Copy'}
+          </button>
+        </div>
+      </div>
 
       {/* Operations Center access — discreet, role-gated */}
       {hasOperationsAccess(user.role) && (
@@ -120,4 +165,13 @@ export default function Profile() {
       </div>
     </div>
   );
+}
+
+function generateReferralCode(userId) {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 8; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
 }

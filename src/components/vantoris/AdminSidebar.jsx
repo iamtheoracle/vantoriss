@@ -6,7 +6,7 @@ import {
   Wallet, CreditCard, UserCheck, FolderOpen,
   BarChart3, TrendingUp, ScrollText, Activity,
   Bot, Settings, Code, Plug, Bell, Lock, Flag, Cog, HeartPulse,
-  LogOut, ChevronRight, Wrench
+  LogOut, ChevronRight, Wrench, Users2
 } from 'lucide-react';
 import ShieldLogo from './ShieldLogo';
 import { base44 } from '@/api/base44Client';
@@ -42,6 +42,7 @@ const sections = [
     label: 'Operations',
     items: [
       { label: 'Service Requests', path: '/operations/service-requests', icon: Wrench },
+      { label: 'Referrals', path: '/operations/referrals', icon: Users2 },
       { label: 'Wallet Assignment', path: '/operations/wallet-assignment', icon: Wallet },
       { label: 'Account Assignment', path: '/operations/account-assignment', icon: UserCheck },
       { label: 'Documents', path: '/operations/documents', icon: FolderOpen },
