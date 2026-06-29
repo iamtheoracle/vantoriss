@@ -5,7 +5,7 @@ import { formatCurrency } from '@/lib/formatCurrency';
 import ShieldLogo from '@/components/vantoris/ShieldLogo';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
-import { ArrowUpRight, ArrowDownLeft, Bell, ChevronRight, TrendingUp, Clock, Briefcase, Sparkles } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, Bell, ChevronRight, TrendingUp, Clock, Briefcase, Sparkles, Mail, MessageCircle } from 'lucide-react';
 
 export default function Home() {
   const [user, setUser] = useState(null);
@@ -196,30 +196,21 @@ export default function Home() {
       </div>
 
       {/* Quick Access */}
-      <div className="mb-6">
-        <h3 className="text-white font-semibold text-sm mb-3">Quick Access</h3>
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={() => navigate('/services')}
-            className="vantoris-card p-4 flex flex-col items-start gap-2 hover:border-brass/30 transition-all"
-          >
-            <div className="w-10 h-10 rounded-xl bg-brass/15 flex items-center justify-center">
-              <Briefcase size={18} className="text-brass" />
-            </div>
-            <p className="text-white font-medium text-sm">Services</p>
-            <p className="text-[#AAB4C3] text-[11px]">Request accounts & cards</p>
-          </button>
-          <button
-            onClick={() => navigate('/advisor')}
-            className="vantoris-card p-4 flex flex-col items-start gap-2 hover:border-brass/30 transition-all"
-          >
-            <div className="w-10 h-10 rounded-xl bg-purple-500/15 flex items-center justify-center">
-              <Sparkles size={18} className="text-purple-400" />
-            </div>
-            <p className="text-white font-medium text-sm">Advisor</p>
-            <p className="text-[#AAB4C3] text-[11px]">AI financial guidance</p>
-          </button>
-        </div>
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        <button onClick={() => navigate('/services')} className="vantoris-card p-4 text-left hover:border-brass/30 transition-all">
+          <div className="w-10 h-10 rounded-xl bg-brass/15 flex items-center justify-center mb-2">
+            <Briefcase size={20} className="text-brass" />
+          </div>
+          <p className="text-white font-medium text-sm">Services</p>
+          <p className="text-[#AAB4C3] text-xs">Accounts & cards</p>
+        </button>
+        <button onClick={() => navigate('/advisor')} className="vantoris-card p-4 text-left hover:border-brass/30 transition-all">
+          <div className="w-10 h-10 rounded-xl bg-purple-500/15 flex items-center justify-center mb-2">
+            <Sparkles size={20} className="text-purple-400" />
+          </div>
+          <p className="text-white font-medium text-sm">Advisor</p>
+          <p className="text-[#AAB4C3] text-xs">AI guidance</p>
+        </button>
       </div>
 
       {/* My Accounts */}
@@ -286,6 +277,27 @@ export default function Home() {
             </div>
           ))
         )}
+      </div>
+
+      {/* Support */}
+      <div className="mb-6">
+        <h3 className="text-white font-semibold text-sm mb-3">Support</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <a href="mailto:support@vantoris.com" className="vantoris-card p-4 text-left hover:border-brass/30 transition-all">
+            <div className="w-10 h-10 rounded-xl bg-blue-500/15 flex items-center justify-center mb-2">
+              <Mail size={20} className="text-blue-400" />
+            </div>
+            <p className="text-white font-medium text-sm">Email</p>
+            <p className="text-[#AAB4C3] text-xs">support@vantoris.com</p>
+          </a>
+          <a href="https://wa.me/18005551234" target="_blank" rel="noopener noreferrer" className="vantoris-card p-4 text-left hover:border-brass/30 transition-all">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center mb-2">
+              <MessageCircle size={20} className="text-emerald-400" />
+            </div>
+            <p className="text-white font-medium text-sm">WhatsApp</p>
+            <p className="text-[#AAB4C3] text-xs">Chat with us</p>
+          </a>
+        </div>
       </div>
     </div>
   );
