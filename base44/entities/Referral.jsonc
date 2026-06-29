@@ -1,0 +1,34 @@
+{
+  "name": "Referral",
+  "type": "object",
+  "properties": {
+    "referrer_id": {
+      "type": "string",
+      "description": "The member who shared the referral link"
+    },
+    "referred_id": {
+      "type": "string",
+      "description": "The new member who signed up using the referral"
+    },
+    "referred_email": {
+      "type": "string",
+      "description": "Email of the referred member at time of signup"
+    },
+    "referred_name": {
+      "type": "string",
+      "description": "Display name of the referred member"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "completed"
+      ],
+      "default": "completed"
+    }
+  },
+  "required": [
+    "referrer_id",
+    "referred_id"
+  ]
+}

@@ -24,6 +24,7 @@ import Services from './pages/Services';
 import Messages from './pages/Messages';
 import Profile from './pages/Profile';
 import MemberDocuments from './pages/MemberDocuments';
+import MemberAdvisor from './pages/MemberAdvisor';
 
 // Admin pages (Operations Center)
 import AdminOverview from './pages/admin/AdminOverview';
@@ -49,6 +50,7 @@ import AuditLogs from './pages/operations/AuditLogs';
 import ActivityTimeline from './pages/operations/ActivityTimeline';
 import VerificationRequests from './pages/operations/VerificationRequests';
 import ServiceRequests from './pages/operations/ServiceRequests';
+import Referrals from './pages/operations/Referrals';
 import Configuration from './pages/operations/Configuration';
 import ApiManagement from './pages/operations/ApiManagement';
 import Integrations from './pages/operations/Integrations';
@@ -100,6 +102,7 @@ const AuthenticatedApp = () => {
           <Route path="/messages" element={<Messages />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/documents" element={<MemberDocuments />} />
+          <Route path="/advisor" element={<MemberAdvisor />} />
         </Route>
 
         {/* Non-layout member routes */}
@@ -120,6 +123,7 @@ const AuthenticatedApp = () => {
             <Route path="/operations/withdrawals" element={<AdminWithdrawals />} />
             <Route path="/operations/verification-requests" element={<VerificationRequests />} />
             <Route path="/operations/service-requests" element={<ServiceRequests />} />
+            <Route path="/operations/referrals" element={<Referrals />} />
             <Route path="/operations/assistant" element={<AdminAgent />} />
             <Route path="/operations/organizations" element={<Organizations />} />
             <Route path="/operations/finance" element={<Finance />} />

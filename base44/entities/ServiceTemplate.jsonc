@@ -1,0 +1,28 @@
+{
+  "name": "ServiceTemplate",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Short label for the template"
+    },
+    "body": {
+      "type": "string",
+      "description": "Pre-written response text for quick replies"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "approval",
+        "rejection",
+        "info",
+        "general"
+      ],
+      "default": "general"
+    }
+  },
+  "required": [
+    "title",
+    "body"
+  ]
+}

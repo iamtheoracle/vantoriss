@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,8 @@ import GoogleIcon from "@/components/GoogleIcon";
 import { toast } from "@/components/ui/use-toast";
 
 export default function Register() {
+  const [searchParams] = useSearchParams();
+  const refCode = searchParams.get("ref") || "";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -44,6 +46,25 @@ export default function Register() {
       const result = await base44.auth.verifyOtp({ email, otpCode });
       if (result?.access_token) {
         base44.auth.setToken(result.access_token);
+      }
+      // Track referral if invite code was used
+      if (refCode) {
+        try {
+          const me = await base44.auth.me();
+          const referrers = await base44.entities.User.filter({ referral_code: refCode });
+          if (referrers.length > 0) {
+            const referrer = referrers[0];
+            await base44.entities.Referral.create({
+              referrer_id: referrer.id,
+              referred_id: me.id,
+              referred_email: email,
+              referred_name: me.full_name || "",
+              status: "completed",
+            });
+          }
+        } catch (refErr) {
+          console.error("Referral tracking failed:", refErr);
+        }
       }
       window.location.href = "/";
     } catch (err) {
