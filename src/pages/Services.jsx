@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Users, Building2, CreditCard, TrendingUp, Check, Clock } from 'lucide-react';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useToast } from '@/components/ui/use-toast';
 
 const services = [
   { type: 'Joint Account', icon: Users, desc: 'Add a joint account with another member', color: 'bg-brass/15 text-brass' },
@@ -17,39 +18,60 @@ export default function Services() {
   const [showRequest, setShowRequest] = useState(null);
   const [details, setDetails] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [me, setMe] = useState(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     loadRequests();
   }, []);
 
   async function loadRequests() {
-    const me = await base44.auth.me();
-    const reqs = await base44.entities.ServiceRequest.filter({ user_id: me.id }, '-created_date');
+    const user = await base44.auth.me();
+    setMe(user);
+    const reqs = await base44.entities.ServiceRequest.filter({ user_id: user.id }, '-created_date');
     setRequests(reqs);
     setLoading(false);
   }
 
   async function handleSubmit() {
     setSubmitting(true);
+    const serviceType = showRequest;
+    const reqDetails = details;
+    const tempId = `temp-${Date.now()}`;
+    // Optimistic: add to list immediately
+    setRequests(prev => [{
+      id: tempId,
+      user_id: me?.id,
+      service_type: serviceType,
+      details: reqDetails,
+      status: 'pending',
+      created_date: new Date().toISOString(),
+      _optimistic: true,
+    }, ...prev]);
+    setShowRequest(null);
+    setDetails('');
+    setSubmitting(false);
+
     try {
-      const me = await base44.auth.me();
-      await base44.entities.ServiceRequest.create({
-        user_id: me.id,
-        service_type: showRequest,
-        details,
+      const user = me || await base44.auth.me();
+      const created = await base44.entities.ServiceRequest.create({
+        user_id: user.id,
+        service_type: serviceType,
+        details: reqDetails,
         status: 'pending',
       });
+      setRequests(prev => prev.map(r => r.id === tempId ? created : r));
       await base44.entities.Notification.create({
-        user_id: me.id,
+        user_id: user.id,
         title: 'Service Requested',
-        message: `Your request for ${showRequest} has been submitted for review.`,
+        message: `Your request for ${serviceType} has been submitted for review.`,
         type: 'info',
       });
-      setShowRequest(null);
-      setDetails('');
-      loadRequests();
-    } catch (e) { console.error(e); }
-    setSubmitting(false);
+    } catch (e) {
+      console.error(e);
+      setRequests(prev => prev.filter(r => r.id !== tempId));
+      toast({ title: 'Failed to submit request', description: 'Please try again.', variant: 'destructive' });
+    }
   }
 
   if (loading) {
@@ -94,10 +116,11 @@ export default function Services() {
           <h3 className="text-white font-semibold text-sm mb-3">My Requests</h3>
           <div className="space-y-2">
             {requests.map(req => (
-              <div key={req.id} className="vantoris-card p-4 flex items-center justify-between">
+              <div key={req.id} className={`vantoris-card p-4 flex items-center justify-between ${req._optimistic ? 'opacity-70' : ''}`}>
                 <div>
                   <p className="text-white text-sm font-medium">{req.service_type}</p>
-                  <p className="text-[#AAB4C3] text-xs">
+                  <p className="text-[#AAB4C3] text-xs flex items-center gap-1.5">
+                    {req._optimistic && <span className="inline-block w-3 h-3 border border-brass/30 border-t-brass rounded-full animate-spin" />}
                     {new Date(req.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </p>
                 </div>

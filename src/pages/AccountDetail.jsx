@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowUpRight, ArrowDownLeft, TrendingUp, Download, FileText 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import { useToast } from '@/components/ui/use-toast';
 
 const WITHDRAWAL_METHODS = ['Bank Transfer', 'Wire Transfer', 'Crypto Withdrawal', 'Internal Transfer'];
 
@@ -21,12 +22,16 @@ export default function AccountDetail() {
   const [showStatement, setShowStatement] = useState(false);
   const [stmtRange, setStmtRange] = useState({ from: '', to: '' });
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const { toast } = useToast();
 
   const loadData = useCallback(async () => {
-    const [acct, txns] = await Promise.all([
+    const [user, acct, txns] = await Promise.all([
+      base44.auth.me(),
       base44.entities.Account.get(id),
       base44.entities.Transaction.filter({ account_id: id }, '-created_date', 50),
     ]);
+    setCurrentUser(user);
     setAccount(acct);
     setTransactions(txns);
   }, [id]);
@@ -38,27 +43,35 @@ export default function AccountDetail() {
   const { containerProps, PullIndicator } = usePullToRefresh(loadData);
 
   async function handleWithdraw() {
-    setSubmitting(true);
+    const formData = { ...wForm };
+    const amount = parseFloat(formData.amount);
+    // Optimistic: close dialog immediately
+    setShowWithdraw(false);
+    setWForm({ amount: '', method: 'Bank Transfer', notes: '' });
+
+    const pendingToast = toast({ title: 'Submitting withdrawal...', description: `${formatCurrency(amount)} via ${formData.method}` });
+
     try {
-      const me = await base44.auth.me();
+      const user = currentUser || await base44.auth.me();
       await base44.entities.WithdrawalRequest.create({
         account_id: id,
-        user_id: me.id,
-        amount: parseFloat(wForm.amount),
-        method: wForm.method,
-        notes: wForm.notes,
+        user_id: user.id,
+        amount: amount,
+        method: formData.method,
+        notes: formData.notes,
         status: 'pending',
       });
       await base44.entities.Notification.create({
-        user_id: me.id,
+        user_id: user.id,
         title: 'Withdrawal Requested',
-        message: `Your withdrawal request of ${formatCurrency(parseFloat(wForm.amount))} is pending review.`,
+        message: `Your withdrawal request of ${formatCurrency(amount)} is pending review.`,
         type: 'info',
       });
-      setShowWithdraw(false);
-      setWForm({ amount: '', method: 'Bank Transfer', notes: '' });
-    } catch (e) { console.error(e); }
-    setSubmitting(false);
+      pendingToast.update({ title: 'Withdrawal submitted', description: `${formatCurrency(amount)} is pending review.` });
+    } catch (e) {
+      console.error(e);
+      pendingToast.update({ title: 'Withdrawal failed', description: 'Please try again.', variant: 'destructive' });
+    }
   }
 
   async function generateStatement() {
