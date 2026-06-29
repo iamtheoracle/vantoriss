@@ -4,10 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import ShieldLogo from '@/components/vantoris/ShieldLogo';
 import DeleteAccountDialog from '@/components/vantoris/DeleteAccountDialog';
 import { hasOperationsAccess, getRoleLabel } from '@/lib/operationsAccess';
-import { User, Mail, Shield, LogOut, FileText, Trash2, Copy, Check, Gift, Sparkles } from 'lucide-react';
+import { formatCurrency } from '@/lib/formatCurrency';
+import { User, Mail, Shield, LogOut, FileText, Trash2, Copy, Check, Gift, Sparkles, Wallet, Briefcase, Bell, Users, Building2, Globe, ChevronRight } from 'lucide-react';
+
+const ACCOUNT_ICONS = { Personal: User, Joint: Users, Business: Building2, Organization: Globe };
 
 export default function Profile() {
   const [user, setUser] = useState(null);
+  const [accounts, setAccounts] = useState([]);
   const [showDelete, setShowDelete] = useState(false);
   const [copied, setCopied] = useState(false);
   const [referralLink, setReferralLink] = useState('');
@@ -16,14 +20,19 @@ export default function Profile() {
   useEffect(() => {
     async function load() {
       const me = await base44.auth.me();
-      // Generate referral code if missing
-      if (me && !me.referral_code) {
+      if (me && me.role === 'user' && !me.referral_code) {
         const code = generateReferralCode(me.id);
         await base44.auth.updateMe({ referral_code: code });
         me.referral_code = code;
       }
       setUser(me);
       setReferralLink(`${window.location.origin}/register?ref=${me.referral_code || ''}`);
+      if (me.role === 'user') {
+        try {
+          const accts = await base44.entities.Account.filter({ user_id: me.id }, '-created_date');
+          setAccounts(accts);
+        } catch (e) { console.error(e); }
+      }
     }
     load();
   }, []);
@@ -79,50 +88,110 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* AI Advisor */}
-      <button
-        onClick={() => navigate('/advisor')}
-        className="vantoris-card p-4 w-full flex items-center gap-3 hover:border-brass/30 transition-all mb-3"
-      >
-        <Sparkles size={18} className="text-brass" />
-        <span className="text-white text-sm font-medium">Vantoris Advisor</span>
-      </button>
-
-      {/* My Documents */}
-      <button
-        onClick={() => navigate('/documents')}
-        className="vantoris-card p-4 w-full flex items-center gap-3 hover:border-brass/30 transition-all mb-3"
-      >
-        <FileText size={18} className="text-[#AAB4C3]" />
-        <span className="text-white text-sm font-medium">My Documents</span>
-      </button>
-
-      {/* Referral Program */}
-      <div className="vantoris-card p-4 mb-3">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 rounded-xl bg-brass/15 flex items-center justify-center">
-            <Gift size={18} className="text-brass" />
-          </div>
-          <div>
-            <p className="text-white text-sm font-medium">Refer a Friend</p>
-            <p className="text-[#AAB4C3] text-xs">Share your invite link</p>
-          </div>
+      {/* My Accounts — members only */}
+      {user.role === 'user' && (
+        <div className="mb-6">
+          <h3 className="text-white font-semibold text-sm mb-3">My Accounts</h3>
+          {accounts.length === 0 ? (
+            <button
+              onClick={() => navigate('/accounts')}
+              className="vantoris-card p-4 w-full flex items-center gap-3 hover:border-brass/30 transition-all"
+            >
+              <Wallet size={18} className="text-[#AAB4C3]" />
+              <span className="text-[#AAB4C3] text-sm">No accounts yet — View Accounts</span>
+            </button>
+          ) : (
+            <div className="space-y-2">
+              {accounts.map(acct => {
+                const Icon = ACCOUNT_ICONS[acct.account_type] || Wallet;
+                return (
+                  <button
+                    key={acct.id}
+                    onClick={() => navigate(`/accounts/${acct.id}`)}
+                    className="vantoris-card p-4 w-full flex items-center gap-3 hover:border-brass/30 transition-all"
+                  >
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${acct.status === 'frozen' ? 'bg-crimson/15' : 'bg-brass/15'}`}>
+                      <Icon size={18} className={acct.status === 'frozen' ? 'text-red-400' : 'text-brass'} />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="text-white text-sm font-medium">{acct.account_name || acct.account_type}</p>
+                      <p className="text-[#AAB4C3] text-xs">{acct.account_type} · {acct.account_number}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-white font-semibold text-sm">{formatCurrency(acct.balance || 0)}</p>
+                      {acct.status !== 'active' && <p className="text-red-400 text-xs capitalize">{acct.status}</p>}
+                    </div>
+                    <ChevronRight size={16} className="text-[#AAB4C3]" />
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
-        <div className="flex items-center gap-2 bg-[#0E1A2B] rounded-xl px-3 py-2.5 border border-[#242D38]">
-          <span className="text-[#AAB4C3] text-xs flex-1 truncate selectable-content">{referralLink}</span>
+      )}
+
+      {/* Member Quick Links — members only */}
+      {user.role === 'user' && (
+        <>
           <button
-            onClick={() => {
-              navigator.clipboard.writeText(referralLink);
-              setCopied(true);
-              setTimeout(() => setCopied(false), 2000);
-            }}
-            className="flex items-center gap-1 px-3 py-1.5 bg-brass/15 text-brass rounded-lg text-xs font-medium hover:bg-brass/25 transition-all flex-shrink-0"
+            onClick={() => navigate('/advisor')}
+            className="vantoris-card p-4 w-full flex items-center gap-3 hover:border-brass/30 transition-all mb-3"
           >
-            {copied ? <Check size={12} /> : <Copy size={12} />}
-            {copied ? 'Copied' : 'Copy'}
+            <Sparkles size={18} className="text-brass" />
+            <span className="text-white text-sm font-medium">Vantoris Advisor</span>
           </button>
+          <button
+            onClick={() => navigate('/services')}
+            className="vantoris-card p-4 w-full flex items-center gap-3 hover:border-brass/30 transition-all mb-3"
+          >
+            <Briefcase size={18} className="text-[#AAB4C3]" />
+            <span className="text-white text-sm font-medium">Services</span>
+          </button>
+          <button
+            onClick={() => navigate('/messages')}
+            className="vantoris-card p-4 w-full flex items-center gap-3 hover:border-brass/30 transition-all mb-3"
+          >
+            <Bell size={18} className="text-[#AAB4C3]" />
+            <span className="text-white text-sm font-medium">Messages</span>
+          </button>
+          <button
+            onClick={() => navigate('/documents')}
+            className="vantoris-card p-4 w-full flex items-center gap-3 hover:border-brass/30 transition-all mb-3"
+          >
+            <FileText size={18} className="text-[#AAB4C3]" />
+            <span className="text-white text-sm font-medium">My Documents</span>
+          </button>
+        </>
+      )}
+
+      {/* Referral Program — members only */}
+      {user.role === 'user' && (
+        <div className="vantoris-card p-4 mb-3">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-brass/15 flex items-center justify-center">
+              <Gift size={18} className="text-brass" />
+            </div>
+            <div>
+              <p className="text-white text-sm font-medium">Refer a Friend</p>
+              <p className="text-[#AAB4C3] text-xs">Share your invite link</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 bg-[#0E1A2B] rounded-xl px-3 py-2.5 border border-[#242D38]">
+            <span className="text-[#AAB4C3] text-xs flex-1 truncate selectable-content">{referralLink}</span>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(referralLink);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }}
+              className="flex items-center gap-1 px-3 py-1.5 bg-brass/15 text-brass rounded-lg text-xs font-medium hover:bg-brass/25 transition-all flex-shrink-0"
+            >
+              {copied ? <Check size={12} /> : <Copy size={12} />}
+              {copied ? 'Copied' : 'Copy'}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Operations Center access — discreet, role-gated */}
       {hasOperationsAccess(user.role) && (
