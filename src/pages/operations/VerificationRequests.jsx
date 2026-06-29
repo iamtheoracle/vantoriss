@@ -49,9 +49,10 @@ export default function VerificationRequests() {
     else setSelectedIds(pendingReqs.map(r => r.id));
   }
 
-  async function approveOne(req, notes) {
+  async function approveOne(req, notes, balanceOverride) {
     const account = getAccount(req.account_id);
-    const newBalance = (account?.balance || 0) + Math.abs(req.amount);
+    const currentBalance = balanceOverride !== undefined ? balanceOverride : (account?.balance || 0);
+    const newBalance = currentBalance + Math.abs(req.amount);
     await base44.entities.Transaction.create({
       account_id: req.account_id,
       type: req.method === 'Opening Contribution' ? 'opening_balance' : 'deposit',
@@ -82,7 +83,7 @@ export default function VerificationRequests() {
       details: `Request ID: ${req.id}, Notes: ${notes || 'None'}`,
       account_id: req.account_id,
       amount: Math.abs(req.amount),
-      balance_before: account?.balance || 0,
+      balance_before: currentBalance,
       balance_after: newBalance,
       target_user_id: req.user_id,
     });
@@ -133,30 +134,46 @@ export default function VerificationRequests() {
   async function handleBulkApprove() {
     if (selectedIds.length === 0) return;
     setSubmitting(true);
-    try {
-      for (const id of selectedIds) {
-        const req = requests.find(r => r.id === id);
-        if (req) await approveOne(req, 'Bulk approved');
+    const balanceMap = {};
+    let ok = 0, fail = 0;
+    for (const id of selectedIds) {
+      const req = requests.find(r => r.id === id);
+      if (!req) continue;
+      try {
+        const acct = getAccount(req.account_id);
+        const baseBalance = balanceMap[req.account_id] !== undefined ? balanceMap[req.account_id] : (acct?.balance || 0);
+        await approveOne(req, 'Bulk approved', baseBalance);
+        balanceMap[req.account_id] = baseBalance + Math.abs(req.amount);
+        ok++;
+      } catch (e) {
+        console.error('Bulk approve failed for', id, e);
+        fail++;
       }
-      setSelectedIds([]);
-      setBulkMode(false);
-      loadData();
-    } catch (e) { console.error(e); }
+    }
+    setSelectedIds([]);
+    setBulkMode(false);
+    loadData();
     setSubmitting(false);
   }
 
   async function handleBulkReject() {
     if (selectedIds.length === 0) return;
     setSubmitting(true);
-    try {
-      for (const id of selectedIds) {
-        const req = requests.find(r => r.id === id);
-        if (req) await rejectOne(req, 'Bulk rejected');
+    let ok = 0, fail = 0;
+    for (const id of selectedIds) {
+      const req = requests.find(r => r.id === id);
+      if (!req) continue;
+      try {
+        await rejectOne(req, 'Bulk rejected');
+        ok++;
+      } catch (e) {
+        console.error('Bulk reject failed for', id, e);
+        fail++;
       }
-      setSelectedIds([]);
-      setBulkMode(false);
-      loadData();
-    } catch (e) { console.error(e); }
+    }
+    setSelectedIds([]);
+    setBulkMode(false);
+    loadData();
     setSubmitting(false);
   }
 

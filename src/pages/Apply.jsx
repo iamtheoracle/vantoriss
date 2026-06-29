@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import ShieldLogo from '@/components/vantoris/ShieldLogo';
+import { hasOperationsAccess } from '@/lib/operationsAccess';
 import { ArrowLeft, User, Users, Building2, Landmark, Check } from 'lucide-react';
 
 const accountTypes = [
@@ -22,6 +23,10 @@ export default function Apply() {
   useEffect(() => {
     async function prefill() {
       const me = await base44.auth.me();
+      if (hasOperationsAccess(me.role)) {
+        navigate('/operations', { replace: true });
+        return;
+      }
       setForm(f => ({ ...f, full_name: me.full_name || '', email: me.email || '' }));
     }
     prefill();

@@ -5,6 +5,7 @@ import StatusBadge from '@/components/vantoris/StatusBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Check, X, CheckSquare, Square, Mail, Clock } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
+import { hasOperationsAccess } from '@/lib/operationsAccess';
 
 export default function AdminApplications() {
   const [applications, setApplications] = useState([]);
@@ -78,6 +79,8 @@ export default function AdminApplications() {
       for (const id of selectedIds) {
         const app = applications.find(a => a.id === id);
         if (!app) continue;
+        const applicant = await base44.entities.User.get(app.user_id);
+        if (hasOperationsAccess(applicant?.role)) continue;
         const acctNum = generateAccountNumber();
         const account = await base44.entities.Account.create({
           user_id: app.user_id,
@@ -145,6 +148,12 @@ export default function AdminApplications() {
     if (!selected) return;
     setSubmitting(true);
     try {
+      const applicant = await base44.entities.User.get(selected.user_id);
+      if (hasOperationsAccess(applicant?.role)) {
+        setAdminNotes('Cannot approve — this user has an administrative role and cannot hold investment accounts.');
+        setSubmitting(false);
+        return;
+      }
       const acctNum = generateAccountNumber();
       const balance = parseFloat(openingBalance) || 0;
 
