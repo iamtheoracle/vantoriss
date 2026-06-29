@@ -33,19 +33,16 @@ export default function AdminOverview() {
 
       setStats({ members: memberCount, pendingApps, pendingWithdrawals, totalBalance });
 
-      // Quick Review: 3 oldest pending applications
       const oldestApps = apps
         .filter(a => a.application_status === 'pending')
         .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
         .slice(0, 3);
-      // Quick Review: 2 most recent pending withdrawals
       const recentWithdrawals = withdrawals
         .filter(w => w.status === 'pending')
         .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
         .slice(0, 2);
       setQuickReview({ oldestApps, recentWithdrawals });
 
-      // Build recent queue from apps, withdrawals
       const recent = [
         ...apps.filter(a => a.application_status === 'pending').map(a => ({
           id: a.id, type: 'Application', name: a.full_name, detail: a.account_type,
@@ -71,58 +68,60 @@ export default function AdminOverview() {
 
   const statCards = [
     { label: 'Total Members', value: stats.members, icon: Users, color: 'text-blue-400', bg: 'bg-blue-500/15' },
-    { label: 'Pending Applications', value: stats.pendingApps, icon: FileText, color: 'text-brass', bg: 'bg-brass/15' },
+    { label: 'Pending Apps', value: stats.pendingApps, icon: FileText, color: 'text-brass', bg: 'bg-brass/15' },
     { label: 'Pending Withdrawals', value: stats.pendingWithdrawals, icon: ArrowDownToLine, color: 'text-red-400', bg: 'bg-crimson/15' },
     { label: 'Total Balance (AUM)', value: formatCurrency(stats.totalBalance), icon: Wallet, color: 'text-emerald-400', bg: 'bg-olive/20', large: true },
   ];
 
   return (
     <div>
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Operations Center</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-white">Operations Center</h1>
           <p className="text-[#AAB4C3] text-sm">System overview and pending actions</p>
         </div>
         <DailyEmailSummary />
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
+      {/* Stats Grid — responsive: 2 cols phone, 2 cols tablet portrait, 4 cols desktop */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 lg:mb-8">
         {statCards.map(card => {
           const Icon = card.icon;
           return (
-            <div key={card.label} className="vantoris-card p-5">
-              <div className="flex items-center justify-between mb-3">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${card.bg}`}>
-                  <Icon size={20} className={card.color} />
+            <div key={card.label} className="vantoris-card p-4 sm:p-5">
+              <div className="flex items-center justify-between mb-2 sm:mb-3">
+                <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center ${card.bg}`}>
+                  <Icon size={18} className={card.color} />
                 </div>
               </div>
-              <p className={`font-bold ${card.large ? 'text-2xl' : 'text-3xl'} text-white`}>
+              <p className={`font-bold text-white ${card.large ? 'text-lg sm:text-2xl' : 'text-xl sm:text-3xl'} leading-tight break-words`}>
                 {card.value}
               </p>
-              <p className="text-[#AAB4C3] text-xs mt-1">{card.label}</p>
+              <p className="text-[#AAB4C3] text-[11px] sm:text-xs mt-1">{card.label}</p>
             </div>
           );
         })}
       </div>
 
       {/* AUM Chart */}
-      <div className="mb-8">
+      <div className="mb-6 lg:mb-8">
         <AumChart />
       </div>
 
       {/* Quick Review */}
-      <div className="mb-8">
+      <div className="mb-6 lg:mb-8">
         <QuickReview oldestApps={quickReview.oldestApps} recentWithdrawals={quickReview.recentWithdrawals} />
       </div>
 
       {/* Recent Queue */}
-      <div className="vantoris-card p-5">
+      <div className="vantoris-card p-4 sm:p-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-white font-semibold">Recent Queue</h3>
           <span className="text-[#AAB4C3] text-xs">{recentItems.length} pending items</span>
         </div>
-        <div className="overflow-x-auto">
+
+        {/* Desktop / Tablet Table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[#242D38]">
@@ -161,6 +160,30 @@ export default function AdminOverview() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Cards */}
+        <div className="md:hidden space-y-2">
+          {recentItems.map(item => (
+            <div key={item.id} className="border border-[#242D38]/40 rounded-xl p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className={`px-2 py-1 rounded text-xs font-medium ${
+                  item.type === 'Application' ? 'bg-brass/10 text-brass' : 'bg-crimson/10 text-red-400'
+                }`}>
+                  {item.type}
+                </span>
+                <StatusBadge status={item.status} />
+              </div>
+              <p className="text-white font-medium text-sm">{item.name}</p>
+              <p className="text-[#AAB4C3] text-xs">{item.detail}</p>
+              <p className="text-[#AAB4C3]/50 text-[10px] mt-1">
+                {new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              </p>
+            </div>
+          ))}
+          {recentItems.length === 0 && (
+            <div className="py-8 text-center text-[#AAB4C3] text-sm">No pending items</div>
+          )}
         </div>
       </div>
     </div>
