@@ -23,25 +23,29 @@
     {
       "entity_name": "ServiceRequest",
       "allowed_operations": [
-        "read"
+        "read",
+        "create"
       ]
     },
     {
       "entity_name": "WithdrawalRequest",
       "allowed_operations": [
-        "read"
+        "read",
+        "create"
       ]
     },
     {
       "entity_name": "VerificationRequest",
       "allowed_operations": [
-        "read"
+        "read",
+        "create"
       ]
     },
     {
       "entity_name": "MessageThread",
       "allowed_operations": [
-        "read"
+        "read",
+        "create"
       ]
     },
     {
@@ -53,19 +57,22 @@
     {
       "entity_name": "Notification",
       "allowed_operations": [
-        "read"
+        "read",
+        "update"
       ]
     },
     {
       "entity_name": "Document",
       "allowed_operations": [
-        "read"
+        "read",
+        "create"
       ]
     },
     {
       "entity_name": "Referral",
       "allowed_operations": [
-        "read"
+        "read",
+        "create"
       ]
     }
   ],
