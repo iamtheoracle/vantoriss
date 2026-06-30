@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
-import { Users, Search, Plus, Wallet, Download, StickyNote, UserPlus, Trash2 } from 'lucide-react';
+import { Users, Search, Plus, Wallet, Download, StickyNote, UserPlus, Trash2, History } from 'lucide-react';
+import MemberActivityFeed from '@/components/vantoris/MemberActivityFeed';
 import { generateAccountNumber } from '@/lib/formatCurrency';
 import { logAuditEntry } from '@/lib/auditLogger';
 import { exportToCsv } from '@/lib/exportCsv';
@@ -26,6 +27,7 @@ export default function AdminMembers() {
   const [showInvite, setShowInvite] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [activityMember, setActivityMember] = useState(null);
 
   useEffect(() => { loadData(); }, []);
 
@@ -240,6 +242,13 @@ export default function AdminMembers() {
                         <StickyNote size={12} /> Notes
                       </button>
                       <button
+                        onClick={() => setActivityMember(member)}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-[#242D38] text-[#AAB4C3] rounded-lg text-xs font-medium hover:bg-[#242D38]/80 hover:text-white transition-all"
+                        title="View activity timeline"
+                      >
+                        <History size={12} /> Activity
+                      </button>
+                      <button
                         onClick={() => setDeleteTarget(member)}
                         className="p-1.5 text-red-400/60 hover:text-red-400 hover:bg-crimson/10 rounded-lg transition-all"
                         title="Delete member"
@@ -287,6 +296,9 @@ export default function AdminMembers() {
                 </button>
                 <button onClick={() => { setNotesMember(member); setNotesText(member.admin_notes || ''); }} className={`flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-medium ${member.admin_notes ? 'bg-brass/25 text-brass' : 'bg-[#242D38] text-[#AAB4C3]'}`}>
                   <StickyNote size={12} /> Notes
+                </button>
+                <button onClick={() => setActivityMember(member)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-[#242D38] text-[#AAB4C3] rounded-lg text-xs font-medium">
+                  <History size={12} /> Activity
                 </button>
                 <button onClick={() => setDeleteTarget(member)} className="flex items-center justify-center gap-1 px-3 py-2 bg-crimson/10 text-red-400 rounded-lg text-xs font-medium">
                   <Trash2 size={12} />
@@ -403,6 +415,23 @@ export default function AdminMembers() {
               >
                 {savingNotes ? 'Saving...' : 'Save Notes'}
               </button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Activity Timeline Dialog */}
+      <Dialog open={!!activityMember} onOpenChange={() => setActivityMember(null)}>
+        <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <History size={18} className="text-brass" />
+              Activity Timeline — {activityMember?.full_name}
+            </DialogTitle>
+          </DialogHeader>
+          {activityMember && (
+            <div className="mt-2">
+              <MemberActivityFeed memberId={activityMember.id} />
             </div>
           )}
         </DialogContent>
