@@ -19,6 +19,9 @@ export default function ServiceRequests() {
   const [showTemplates, setShowTemplates] = useState(false);
   const [newTemplate, setNewTemplate] = useState({ title: '', body: '', category: 'general' });
   const [savingTemplate, setSavingTemplate] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [serviceTypeFilter, setServiceTypeFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('-created_date');
 
   useEffect(() => { loadData(); }, []);
 
@@ -99,6 +102,20 @@ export default function ServiceRequests() {
     );
   }
 
+  // Filtered requests
+  let filteredRequests = requests;
+  if (statusFilter !== 'all') {
+    filteredRequests = filteredRequests.filter(r => r.status === statusFilter);
+  }
+  if (serviceTypeFilter !== 'all') {
+    filteredRequests = filteredRequests.filter(r => r.service_type === serviceTypeFilter);
+  }
+  if (sortBy === '-created_date') {
+    filteredRequests.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+  } else if (sortBy === 'created_date') {
+    filteredRequests.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+  }
+
   // Analytics data
   const statusData = [
     { name: 'Pending', value: requests.filter(r => r.status === 'pending').length, fill: '#B08D57' },
@@ -166,6 +183,39 @@ export default function ServiceRequests() {
           )}
         </div>
       </div>
+
+      {/* Filters & Sorting */}
+      <div className="flex flex-wrap items-center gap-3 mb-6">
+        <select
+          value={statusFilter}
+          onChange={e => setStatusFilter(e.target.value)}
+          className="bg-[#242D38] border border-[#242D38] rounded-lg px-3 py-2 text-white text-xs focus:border-brass/50 focus:outline-none"
+        >
+          <option value="all">All Statuses</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+        <select
+          value={serviceTypeFilter}
+          onChange={e => setServiceTypeFilter(e.target.value)}
+          className="bg-[#242D38] border border-[#242D38] rounded-lg px-3 py-2 text-white text-xs focus:border-brass/50 focus:outline-none"
+        >
+          <option value="all">All Services</option>
+          {[...new Set(requests.map(r => r.service_type))].map(type => (
+            <option key={type} value={type}>{type}</option>
+          ))}
+        </select>
+        <select
+          value={sortBy}
+          onChange={e => setSortBy(e.target.value)}
+          className="bg-[#242D38] border border-[#242D38] rounded-lg px-3 py-2 text-white text-xs focus:border-brass/50 focus:outline-none"
+        >
+          <option value="-created_date">Newest First</option>
+          <option value="created_date">Oldest First</option>
+        </select>
+        <span className="text-[#AAB4C3] text-xs ml-auto">{filteredRequests.length} / {requests.length}</span>
+      </div>
       <div className="vantoris-card overflow-hidden">
         <table className="w-full text-sm">
           <thead>
@@ -179,7 +229,7 @@ export default function ServiceRequests() {
             </tr>
           </thead>
           <tbody>
-            {requests.map(req => {
+            {filteredRequests.map(req => {
               const user = getUser(req.user_id);
               return (
                 <tr key={req.id} className="border-b border-[#242D38]/40 hover:bg-[#242D38]/20 transition-all">
@@ -203,8 +253,8 @@ export default function ServiceRequests() {
                 </tr>
               );
             })}
-            {requests.length === 0 && (
-              <tr><td colSpan={6} className="py-12 text-center text-[#AAB4C3]">No service requests</td></tr>
+            {filteredRequests.length === 0 && (
+              <tr><td colSpan={6} className="py-12 text-center text-[#AAB4C3]">{requests.length === 0 ? 'No service requests' : 'No requests match filters'}</td></tr>
             )}
           </tbody>
         </table>
