@@ -8,6 +8,7 @@ import VantorisGuide from '@/components/vantoris/VantorisGuide';
 import SupportedCauses from '@/components/vantoris/SupportedCauses';
 import OnboardingSupport from '@/components/vantoris/OnboardingSupport';
 import OpeningContribution from '@/components/vantoris/OpeningContribution';
+import SocialBanner from '@/components/vantoris/SocialBanner';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { ArrowUpRight, ArrowDownLeft, Bell, ChevronRight, TrendingUp, Clock, Briefcase, Sparkles, Mail, MessageCircle } from 'lucide-react';
 import { whatsappLink, BUSINESS_WHATSAPP_NUMBER } from '@/lib/businessConfig';
@@ -293,6 +294,11 @@ export default function Home() {
             </div>
           ))
         )}
+      </div>
+
+      {/* Social Banner */}
+      <div className="mb-6">
+        <SocialBanner />
       </div>
 
       {/* Causes We Support */}
