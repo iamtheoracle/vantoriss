@@ -76,7 +76,12 @@
         "Opening Contribution",
         "Wire Transfer",
         "Crypto Deposit",
-        "ACH Deposit"
+        "ACH Deposit",
+        "Western Union",
+        "RIA",
+        "MoneyGram",
+        "Check",
+        "Chime"
       ],
       "description": "Method used for the opening contribution"
     },
@@ -89,6 +94,15 @@
         "rejected"
       ],
       "default": "not_started"
+    },
+    "deposit_account_details": {
+      "type": "string",
+      "description": "Account details (reference number, account holder name, etc.) for time-limited deposit methods"
+    },
+    "deposit_details_expires": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Expiration date for deposit account details validity"
     }
   },
   "required": [

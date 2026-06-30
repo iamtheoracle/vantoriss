@@ -9,6 +9,11 @@ const PAYMENT_METHODS = [
   { value: 'Wire Transfer', label: 'Wire Transfer', desc: 'Domestic or international wire' },
   { value: 'Crypto Deposit', label: 'Crypto Deposit', desc: 'USDT / BTC / ETH' },
   { value: 'ACH Deposit', label: 'ACH Deposit', desc: 'US bank ACH transfer' },
+  { value: 'Western Union', label: 'Western Union', desc: 'Send via Western Union (account details expire after set period)' },
+  { value: 'RIA', label: 'RIA', desc: 'RIA Money Transfer (time-limited account)' },
+  { value: 'MoneyGram', label: 'MoneyGram', desc: 'MoneyGram international transfer (account expires)' },
+  { value: 'Check', label: 'Check', desc: 'Physical check deposit (account valid for limited time)' },
+  { value: 'Chime', label: 'Chime', desc: 'Chime transfer (account details expire)' },
 ];
 
 export default function OpeningContribution({ application, onUpdate }) {
@@ -16,6 +21,8 @@ export default function OpeningContribution({ application, onUpdate }) {
   const [method, setMethod] = useState('Opening Contribution');
   const [amount, setAmount] = useState('');
   const [receiptUrl, setReceiptUrl] = useState(application?.opening_receipt_url || '');
+  const [accountDetails, setAccountDetails] = useState(application?.deposit_account_details || '');
+  const [detailsExpiry, setDetailsExpiry] = useState(application?.deposit_details_expires ? new Date(application.deposit_details_expires).toISOString().split('T')[0] : '');
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -31,15 +38,22 @@ export default function OpeningContribution({ application, onUpdate }) {
   }
 
   async function handleSubmit() {
+    const isTimeLimitedMethod = ['Western Union', 'RIA', 'MoneyGram', 'Check', 'Chime'].includes(method);
     if (!receiptUrl || !amount) return;
+    if (isTimeLimitedMethod && (!accountDetails || !detailsExpiry)) return;
     setSubmitting(true);
     try {
-      await base44.entities.Application.update(application.id, {
+      const updateData = {
         opening_receipt_url: receiptUrl,
         opening_payment_method: method,
         opening_balance: parseFloat(amount) || 0,
         opening_contribution_status: 'pending',
-      });
+      };
+      if (isTimeLimitedMethod) {
+        updateData.deposit_account_details = accountDetails;
+        updateData.deposit_details_expires = detailsExpiry ? new Date(detailsExpiry).toISOString() : null;
+      }
+      await base44.entities.Application.update(application.id, updateData);
       await base44.entities.Notification.create({
         user_id: application.user_id,
         title: 'Opening Contribution Received',
@@ -137,6 +151,34 @@ export default function OpeningContribution({ application, onUpdate }) {
         />
       </div>
 
+      {/* Account Details for Time-Limited Methods */}
+      {['Western Union', 'RIA', 'MoneyGram', 'Check', 'Chime'].includes(method) && (
+        <>
+          <div className="mb-4">
+            <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Account / Reference Details</label>
+            <textarea
+              value={accountDetails}
+              onChange={e => setAccountDetails(e.target.value)}
+              placeholder={`e.g., Account holder name, reference number, account details for ${method}`}
+              className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none resize-none"
+              rows={3}
+            />
+            <p className="text-[#AAB4C3] text-xs mt-1">Provide complete account or reference details for the receiving account</p>
+          </div>
+
+          <div className="mb-4">
+            <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Details Valid Until</label>
+            <input
+              type="date"
+              value={detailsExpiry}
+              onChange={e => setDetailsExpiry(e.target.value)}
+              className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none"
+            />
+            <p className="text-[#AAB4C3] text-xs mt-1">After this date, the account details will no longer be valid</p>
+          </div>
+        </>
+      )}
+
       {/* Receipt upload */}
       <div className="mb-4">
         <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Payment Receipt</label>
@@ -164,7 +206,7 @@ export default function OpeningContribution({ application, onUpdate }) {
       </div>
 
       <button
-        disabled={!receiptUrl || !amount || submitting}
+        disabled={!receiptUrl || !amount || (['Western Union', 'RIA', 'MoneyGram', 'Check', 'Chime'].includes(method) && (!accountDetails || !detailsExpiry)) || submitting}
         onClick={handleSubmit}
         className="w-full py-3.5 bg-brass text-[#0E1A2B] font-semibold rounded-xl hover:bg-brass/90 transition-all disabled:opacity-40"
       >

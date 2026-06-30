@@ -19,7 +19,12 @@
         "Opening Contribution",
         "Wire Transfer",
         "Crypto Deposit",
-        "ACH Deposit"
+        "ACH Deposit",
+        "Western Union",
+        "RIA",
+        "MoneyGram",
+        "Check",
+        "Chime"
       ]
     },
     "reference": {
@@ -37,6 +42,15 @@
     },
     "admin_notes": {
       "type": "string"
+    },
+    "deposit_account_details": {
+      "type": "string",
+      "description": "Account details provided for deposit"
+    },
+    "deposit_details_expires": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this deposit account details are no longer valid"
     }
   },
   "required": [
