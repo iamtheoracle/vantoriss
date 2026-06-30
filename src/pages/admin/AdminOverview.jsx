@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { Users, FileText, ArrowDownToLine, Wallet, TrendingUp, Clock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import AumChart from '@/components/vantoris/AumChart';
 import QuickReview from '@/components/vantoris/QuickReview';
 import DailyEmailSummary from '@/components/vantoris/DailyEmailSummary';
 
 export default function AdminOverview() {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({ members: 0, pendingApps: 0, pendingWithdrawals: 0, totalBalance: 0 });
   const [recentItems, setRecentItems] = useState([]);
   const [quickReview, setQuickReview] = useState({ oldestApps: [], recentWithdrawals: [] });
@@ -67,10 +69,10 @@ export default function AdminOverview() {
   }
 
   const statCards = [
-    { label: 'Total Members', value: stats.members, icon: Users, color: 'text-blue-400', bg: 'bg-blue-500/15' },
-    { label: 'Pending Apps', value: stats.pendingApps, icon: FileText, color: 'text-brass', bg: 'bg-brass/15' },
-    { label: 'Pending Withdrawals', value: stats.pendingWithdrawals, icon: ArrowDownToLine, color: 'text-red-400', bg: 'bg-crimson/15' },
-    { label: 'Total Balance (AUM)', value: formatCurrency(stats.totalBalance), icon: Wallet, color: 'text-emerald-400', bg: 'bg-olive/20', large: true },
+    { label: 'Total Members', value: stats.members, icon: Users, color: 'text-blue-400', bg: 'bg-blue-500/15', path: '/operations/members' },
+    { label: 'Pending Apps', value: stats.pendingApps, icon: FileText, color: 'text-brass', bg: 'bg-brass/15', path: '/operations/applications' },
+    { label: 'Pending Withdrawals', value: stats.pendingWithdrawals, icon: ArrowDownToLine, color: 'text-red-400', bg: 'bg-crimson/15', path: '/operations/withdrawals' },
+    { label: 'Total Balance (AUM)', value: formatCurrency(stats.totalBalance), icon: Wallet, color: 'text-emerald-400', bg: 'bg-olive/20', large: true, path: '/operations/finance' },
   ];
 
   return (
@@ -88,7 +90,11 @@ export default function AdminOverview() {
         {statCards.map(card => {
           const Icon = card.icon;
           return (
-            <div key={card.label} className="vantoris-card p-4 sm:p-5">
+            <button
+              key={card.label}
+              onClick={() => navigate(card.path)}
+              className="vantoris-card p-4 sm:p-5 text-left hover:border-brass/30 transition-all"
+            >
               <div className="flex items-center justify-between mb-2 sm:mb-3">
                 <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center ${card.bg}`}>
                   <Icon size={18} className={card.color} />
@@ -98,7 +104,7 @@ export default function AdminOverview() {
                 {card.value}
               </p>
               <p className="text-[#AAB4C3] text-[11px] sm:text-xs mt-1">{card.label}</p>
-            </div>
+            </button>
           );
         })}
       </div>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ShieldCheck, Plus, Search, Mail, Phone, Building2, BadgeCheck } from 'lucide-react';
+import { ShieldCheck, Plus, Search, Mail, Phone, Building2, BadgeCheck, Trash2 } from 'lucide-react';
 
 const ROLES = [
   'Super Administrator', 'Administrator', 'Executive', 'Operations Manager',
@@ -100,6 +100,14 @@ export default function OperationalProfiles() {
   async function updateStatus(profile, status) {
     try {
       await base44.entities.OperationalProfile.update(profile.id, { status });
+      loadData();
+    } catch (e) { console.error(e); }
+  }
+
+  async function handleDeleteProfile(profile) {
+    if (!confirm(`Delete operational profile for ${profile.full_name}? This cannot be undone.`)) return;
+    try {
+      await base44.entities.OperationalProfile.delete(profile.id);
       loadData();
     } catch (e) { console.error(e); }
   }
@@ -204,9 +212,14 @@ export default function OperationalProfiles() {
                   {profile.mfa_status === 'Enabled' && <BadgeCheck size={12} className="inline ml-1 text-emerald-400" />}
                 </td>
                 <td className="px-5 py-4">
-                  <button onClick={() => openEdit(profile)} className="px-3 py-1.5 bg-brass/15 text-brass rounded-lg text-xs font-medium hover:bg-brass/25 transition-all">
-                    Edit
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => openEdit(profile)} className="px-3 py-1.5 bg-brass/15 text-brass rounded-lg text-xs font-medium hover:bg-brass/25 transition-all">
+                      Edit
+                    </button>
+                    <button onClick={() => handleDeleteProfile(profile)} className="p-1.5 text-red-400/60 hover:text-red-400 hover:bg-crimson/10 rounded-lg transition-all" title="Delete profile">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -238,9 +251,14 @@ export default function OperationalProfiles() {
             <p className="text-white text-xs">{profile.position || '—'} · {profile.department || ''}</p>
             {profile.work_email && <p className="text-[#AAB4C3] text-xs mt-1">{profile.work_email}</p>}
             {profile.work_phone && <p className="text-[#AAB4C3] text-xs">{profile.work_phone}</p>}
-            <button onClick={() => openEdit(profile)} className="w-full mt-3 py-2 bg-brass/15 text-brass rounded-lg text-xs font-medium">
-              Edit Profile
-            </button>
+            <div className="flex gap-2 mt-3">
+              <button onClick={() => openEdit(profile)} className="flex-1 py-2 bg-brass/15 text-brass rounded-lg text-xs font-medium">
+                Edit Profile
+              </button>
+              <button onClick={() => handleDeleteProfile(profile)} className="px-3 py-2 bg-crimson/10 text-red-400 rounded-lg text-xs font-medium">
+                <Trash2 size={14} />
+              </button>
+            </div>
           </div>
         ))}
         {filtered.length === 0 && <p className="text-center text-[#AAB4C3] py-8">No operational profiles found</p>}

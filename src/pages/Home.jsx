@@ -4,6 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '@/lib/formatCurrency';
 import ShieldLogo from '@/components/vantoris/ShieldLogo';
 import StatusBadge from '@/components/vantoris/StatusBadge';
+import VantorisGuide from '@/components/vantoris/VantorisGuide';
+import SupportedCauses from '@/components/vantoris/SupportedCauses';
+import OnboardingSupport from '@/components/vantoris/OnboardingSupport';
+import OpeningContribution from '@/components/vantoris/OpeningContribution';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { ArrowUpRight, ArrowDownLeft, Bell, ChevronRight, TrendingUp, Clock, Briefcase, Sparkles, Mail, MessageCircle } from 'lucide-react';
 import { whatsappLink, BUSINESS_WHATSAPP_NUMBER } from '@/lib/businessConfig';
@@ -85,6 +89,7 @@ export default function Home() {
             Apply for Membership
           </button>
         </div>
+        <OnboardingSupport />
       </div>
     );
   }
@@ -119,6 +124,13 @@ export default function Home() {
               Complete Identity Verification
             </button>
           )}
+          {application.kyc_status === 'approved' && (
+            <OpeningContribution
+              application={application}
+              onUpdate={() => loadData()}
+            />
+          )}
+          <OnboardingSupport />
         </div>
       </div>
     );
@@ -137,6 +149,7 @@ export default function Home() {
           <h2 className="text-xl font-bold text-white mb-2">Application Not Approved</h2>
           <p className="text-[#AAB4C3] text-sm mb-4">{application.admin_notes || 'Your application was not approved at this time.'}</p>
         </div>
+        <OnboardingSupport />
       </div>
     );
   }
@@ -282,25 +295,14 @@ export default function Home() {
         )}
       </div>
 
-      {/* Support */}
+      {/* Causes We Support */}
       <div className="mb-6">
-        <h3 className="text-white font-semibold text-sm mb-3">Support</h3>
-        <div className="grid grid-cols-2 gap-3">
-          <a href="mailto:support@vantoris.com" className="vantoris-card p-4 text-left hover:border-brass/30 transition-all">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/15 flex items-center justify-center mb-2">
-              <Mail size={20} className="text-blue-400" />
-            </div>
-            <p className="text-white font-medium text-sm">Email</p>
-            <p className="text-[#AAB4C3] text-xs">support@vantoris.com</p>
-          </a>
-          <a href={whatsappLinkFromConfig(whatsappNumber, 'Hello Vantoris Support, I need assistance.')} target="_blank" rel="noopener noreferrer" className="vantoris-card p-4 text-left hover:border-brass/30 transition-all">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center mb-2">
-              <MessageCircle size={20} className="text-emerald-400" />
-            </div>
-            <p className="text-white font-medium text-sm">WhatsApp</p>
-            <p className="text-[#AAB4C3] text-xs">Chat with us</p>
-          </a>
-        </div>
+        <SupportedCauses />
+      </div>
+
+      {/* Vantoris Guide */}
+      <div className="mb-6">
+        <VantorisGuide />
       </div>
     </div>
   );

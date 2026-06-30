@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { formatCurrency, generateAccountNumber } from '@/lib/formatCurrency';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Check, X, CheckSquare, Square, Mail, Clock } from 'lucide-react';
+import { Check, X, CheckSquare, Square, Mail, Clock, FileText, ExternalLink } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
 import { hasOperationsAccess } from '@/lib/operationsAccess';
 
@@ -187,6 +187,7 @@ export default function AdminApplications() {
         application_status: 'approved',
         admin_notes: adminNotes,
         opening_balance: balance,
+        opening_contribution_status: 'approved',
       });
 
       // Notify member

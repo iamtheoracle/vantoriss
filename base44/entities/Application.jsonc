@@ -65,6 +65,30 @@
     },
     "address": {
       "type": "string"
+    },
+    "opening_receipt_url": {
+      "type": "string",
+      "description": "URL of the uploaded opening contribution payment receipt"
+    },
+    "opening_payment_method": {
+      "type": "string",
+      "enum": [
+        "Opening Contribution",
+        "Wire Transfer",
+        "Crypto Deposit",
+        "ACH Deposit"
+      ],
+      "description": "Method used for the opening contribution"
+    },
+    "opening_contribution_status": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "not_started"
     }
   },
   "required": [

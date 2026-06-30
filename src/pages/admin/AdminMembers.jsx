@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
-import { Users, Search, Plus, Wallet, Download, StickyNote } from 'lucide-react';
+import { Users, Search, Plus, Wallet, Download, StickyNote, UserPlus, Trash2 } from 'lucide-react';
 import { generateAccountNumber } from '@/lib/formatCurrency';
 import { logAuditEntry } from '@/lib/auditLogger';
 import { exportToCsv } from '@/lib/exportCsv';
 import { sendTransactionEmail } from '@/lib/transactionEmails';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import InviteUserDialog from '@/components/vantoris/InviteUserDialog';
 
 const ACCOUNT_TYPES = ['Personal', 'Joint', 'Business', 'Organization'];
 
@@ -22,6 +23,9 @@ export default function AdminMembers() {
   const [notesMember, setNotesMember] = useState(null);
   const [notesText, setNotesText] = useState('');
   const [savingNotes, setSavingNotes] = useState(false);
+  const [showInvite, setShowInvite] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => { loadData(); }, []);
 
@@ -33,6 +37,29 @@ export default function AdminMembers() {
     setUsers(u);
     setAccounts(a);
     setLoading(false);
+  }
+
+  async function handleDeleteMember() {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      // Delete member's accounts and transactions first
+      const memberAccts = accounts.filter(a => a.user_id === deleteTarget.id);
+      for (const acct of memberAccts) {
+        await base44.entities.Transaction.deleteMany({ account_id: acct.id });
+        await base44.entities.Account.delete(acct.id);
+      }
+      await base44.entities.User.delete(deleteTarget.id);
+      await logAuditEntry({
+        action_type: 'account_status_changed',
+        description: `Deleted member ${deleteTarget.full_name} (${deleteTarget.email})`,
+        details: 'Member account and all associated data removed',
+        target_user_id: deleteTarget.id,
+      });
+      setDeleteTarget(null);
+      loadData();
+    } catch (e) { console.error(e); }
+    setDeleting(false);
   }
 
   if (loading) {
@@ -141,7 +168,7 @@ export default function AdminMembers() {
       <h1 className="text-2xl font-bold text-white mb-1">Members</h1>
       <p className="text-[#AAB4C3] text-sm mb-6">{members.length} registered members</p>
 
-      {/* Search + Export */}
+      {/* Search + Actions */}
       <div className="flex items-center gap-3 mb-6">
         <div className="relative flex-1">
           <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#AAB4C3]" />
@@ -153,10 +180,16 @@ export default function AdminMembers() {
           />
         </div>
         <button
+          onClick={() => setShowInvite(true)}
+          className="flex items-center gap-1.5 px-4 py-3 bg-brass text-[#0E1A2B] rounded-xl text-xs font-semibold hover:bg-brass/90 transition-all whitespace-nowrap"
+        >
+          <UserPlus size={14} /> Invite
+        </button>
+        <button
           onClick={handleExportMembers}
           className="flex items-center gap-1.5 px-4 py-3 bg-olive/15 text-emerald-400 rounded-xl text-xs font-medium hover:bg-olive/25 transition-all whitespace-nowrap"
         >
-          <Download size={14} /> Export CSV
+          <Download size={14} /> Export
         </button>
       </div>
 
@@ -206,6 +239,13 @@ export default function AdminMembers() {
                       >
                         <StickyNote size={12} /> Notes
                       </button>
+                      <button
+                        onClick={() => setDeleteTarget(member)}
+                        className="p-1.5 text-red-400/60 hover:text-red-400 hover:bg-crimson/10 rounded-lg transition-all"
+                        title="Delete member"
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -247,6 +287,9 @@ export default function AdminMembers() {
                 </button>
                 <button onClick={() => { setNotesMember(member); setNotesText(member.admin_notes || ''); }} className={`flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-medium ${member.admin_notes ? 'bg-brass/25 text-brass' : 'bg-[#242D38] text-[#AAB4C3]'}`}>
                   <StickyNote size={12} /> Notes
+                </button>
+                <button onClick={() => setDeleteTarget(member)} className="flex items-center justify-center gap-1 px-3 py-2 bg-crimson/10 text-red-400 rounded-lg text-xs font-medium">
+                  <Trash2 size={12} />
                 </button>
               </div>
             </div>
@@ -360,6 +403,42 @@ export default function AdminMembers() {
               >
                 {savingNotes ? 'Saving...' : 'Save Notes'}
               </button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <InviteUserDialog open={showInvite} onOpenChange={setShowInvite} onInvited={loadData} />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+        <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Trash2 size={18} className="text-red-400" /> Delete Member
+            </DialogTitle>
+          </DialogHeader>
+          {deleteTarget && (
+            <div className="space-y-4 mt-2">
+              <p className="text-[#AAB4C3] text-sm">
+                Are you sure you want to permanently delete <span className="text-white font-medium">{deleteTarget.full_name}</span> ({deleteTarget.email})?
+                This will also remove all their accounts, transactions, and associated data. This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleDeleteMember}
+                  disabled={deleting}
+                  className="flex-1 py-3 bg-crimson text-white font-semibold rounded-xl disabled:opacity-40 flex items-center justify-center gap-2"
+                >
+                  <Trash2 size={16} /> {deleting ? 'Deleting...' : 'Delete Permanently'}
+                </button>
+                <button
+                  onClick={() => setDeleteTarget(null)}
+                  className="px-6 py-3 bg-[#242D38] text-[#AAB4C3] rounded-xl text-sm font-medium hover:text-white"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           )}
         </DialogContent>
