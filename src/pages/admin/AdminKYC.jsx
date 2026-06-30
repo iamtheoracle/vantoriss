@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Check, X, FileText, ExternalLink, BellRing, Trash2 } from 'lucide-react';
+import { Check, X, FileText, ExternalLink, BellRing, Trash2, CheckSquare, Square } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
 
 export default function AdminKYC() {
@@ -13,6 +13,8 @@ export default function AdminKYC() {
   const [submitting, setSubmitting] = useState(false);
   const [sendingReminders, setSendingReminders] = useState(false);
   const [reminderResult, setReminderResult] = useState(null);
+  const [bulkMode, setBulkMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
 
   useEffect(() => { loadApps(); }, []);
 
@@ -103,6 +105,75 @@ export default function AdminKYC() {
     setSendingReminders(false);
   }
 
+  function toggleSelect(id) {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.length === kycApps.length) setSelectedIds([]);
+    else setSelectedIds(kycApps.map(a => a.id));
+  }
+
+  async function approveOne(app) {
+    await base44.entities.Application.update(app.id, { kyc_status: 'approved' });
+    await base44.entities.Notification.create({
+      user_id: app.user_id,
+      title: 'KYC Approved',
+      message: 'Your identity verification has been approved. Your application is now under final review.',
+      type: 'success',
+    });
+    await logAuditEntry({
+      action_type: 'kyc_approved',
+      description: `KYC approved for ${app.full_name}`,
+      target_user_id: app.user_id,
+    });
+  }
+
+  async function rejectOne(app) {
+    await base44.entities.Application.update(app.id, { kyc_status: 'rejected' });
+    await base44.entities.Notification.create({
+      user_id: app.user_id,
+      title: 'KYC Review Required',
+      message: 'Your identity verification requires additional attention. Please review the feedback and resubmit.',
+      type: 'warning',
+    });
+    await logAuditEntry({
+      action_type: 'kyc_rejected',
+      description: `KYC rejected for ${app.full_name}`,
+      target_user_id: app.user_id,
+    });
+  }
+
+  async function handleBulkApprove() {
+    if (selectedIds.length === 0) return;
+    setSubmitting(true);
+    for (const id of selectedIds) {
+      const app = applications.find(a => a.id === id);
+      if (app) {
+        try { await approveOne(app); } catch (e) { console.error('Bulk approve failed for', id, e); }
+      }
+    }
+    setSelectedIds([]);
+    setBulkMode(false);
+    loadApps();
+    setSubmitting(false);
+  }
+
+  async function handleBulkReject() {
+    if (selectedIds.length === 0) return;
+    setSubmitting(true);
+    for (const id of selectedIds) {
+      const app = applications.find(a => a.id === id);
+      if (app) {
+        try { await rejectOne(app); } catch (e) { console.error('Bulk reject failed for', id, e); }
+      }
+    }
+    setSelectedIds([]);
+    setBulkMode(false);
+    loadApps();
+    setSubmitting(false);
+  }
+
   const kycApps = applications.filter(a => a.kyc_status !== 'approved');
 
   if (loading) {
@@ -116,27 +187,56 @@ export default function AdminKYC() {
       <h1 className="text-2xl font-bold text-white mb-1">KYC Review</h1>
       <p className="text-[#AAB4C3] text-sm mb-6">Verify member identity documents</p>
 
-      <div className="flex items-center gap-3 mb-6">
-        <button
-          onClick={handleSendKycReminders}
-          disabled={sendingReminders}
-          className="flex items-center gap-2 px-4 py-2.5 bg-brass/15 text-brass rounded-xl text-sm font-medium hover:bg-brass/25 transition-all disabled:opacity-40"
-        >
-          <BellRing size={16} /> {sendingReminders ? 'Sending...' : 'Send KYC Reminders'}
-        </button>
-        {reminderResult && (
-          <span className="text-[#AAB4C3] text-sm">
-            {reminderResult.sent > 0
-              ? `✓ Sent ${reminderResult.sent} reminder${reminderResult.sent > 1 ? 's' : ''} to members with pending KYC >3 days`
-              : 'No stale KYC applications found'}
-          </span>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleSendKycReminders}
+            disabled={sendingReminders}
+            className="flex items-center gap-2 px-4 py-2.5 bg-brass/15 text-brass rounded-xl text-sm font-medium hover:bg-brass/25 transition-all disabled:opacity-40"
+          >
+            <BellRing size={16} /> {sendingReminders ? 'Sending...' : 'Send KYC Reminders'}
+          </button>
+          {reminderResult && (
+            <span className="text-[#AAB4C3] text-sm">
+              {reminderResult.sent > 0
+                ? `✓ Sent ${reminderResult.sent} reminder${reminderResult.sent > 1 ? 's' : ''}`
+                : 'No stale KYC applications found'}
+            </span>
+          )}
+        </div>
+        {kycApps.length > 0 && (
+          <button
+            onClick={() => { setBulkMode(!bulkMode); setSelectedIds([]); }}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-medium transition-all ${bulkMode ? 'bg-brass/15 text-brass' : 'bg-[#242D38] text-[#AAB4C3] hover:text-white'}`}
+          >
+            <CheckSquare size={14} /> Bulk Review
+          </button>
         )}
       </div>
+
+      {bulkMode && selectedIds.length > 0 && (
+        <div className="flex items-center gap-3 mb-4 p-4 bg-brass/10 rounded-lg border border-brass/20">
+          <span className="text-[#AAB4C3] text-xs">{selectedIds.length} selected</span>
+          <button onClick={handleBulkApprove} disabled={submitting} className="flex items-center gap-1.5 px-4 py-2 bg-olive text-white rounded-xl text-xs font-semibold hover:bg-olive/80 transition-all disabled:opacity-40">
+            <Check size={14} /> Bulk Approve ({selectedIds.length})
+          </button>
+          <button onClick={handleBulkReject} disabled={submitting} className="flex items-center gap-1.5 px-4 py-2 bg-crimson text-white rounded-xl text-xs font-semibold hover:bg-crimson/80 transition-all disabled:opacity-40">
+            <X size={14} /> Bulk Reject ({selectedIds.length})
+          </button>
+        </div>
+      )}
 
       <div className="vantoris-card overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[#242D38] bg-[#1a2535]">
+              {bulkMode && (
+                <th className="px-3 py-3 w-10">
+                  <button onClick={toggleSelectAll} className="text-[#AAB4C3] hover:text-brass">
+                    {selectedIds.length === kycApps.length && kycApps.length > 0 ? <CheckSquare size={16} className="text-brass" /> : <Square size={16} />}
+                  </button>
+                </th>
+              )}
               <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3">Applicant</th>
               <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3">Type</th>
               <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3">Documents</th>
@@ -146,7 +246,14 @@ export default function AdminKYC() {
           </thead>
           <tbody>
             {kycApps.map(app => (
-              <tr key={app.id} className="border-b border-[#242D38]/40 hover:bg-[#242D38]/20 transition-all">
+              <tr key={app.id} className={`border-b border-[#242D38]/40 hover:bg-[#242D38]/20 transition-all ${selectedIds.includes(app.id) ? 'bg-brass/5' : ''}`}>
+                {bulkMode && (
+                  <td className="px-3 py-4">
+                    <button onClick={() => toggleSelect(app.id)} className="text-[#AAB4C3] hover:text-brass">
+                      {selectedIds.includes(app.id) ? <CheckSquare size={16} className="text-brass" /> : <Square size={16} />}
+                    </button>
+                  </td>
+                )}
                 <td className="px-5 py-4">
                   <p className="text-white font-medium">{app.full_name}</p>
                   <p className="text-[#AAB4C3] text-xs">{app.email}</p>
@@ -157,24 +264,30 @@ export default function AdminKYC() {
                 </td>
                 <td className="px-5 py-4"><StatusBadge status={app.kyc_status} /></td>
                 <td className="px-5 py-4">
-                  <button
-                    onClick={() => setSelected(app)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                      app.kyc_status === 'rejected'
-                        ? 'bg-crimson/15 text-red-400 hover:bg-crimson/25'
-                        : app.kyc_status === 'not_started'
-                          ? 'bg-olive/15 text-emerald-400 hover:bg-olive/25'
-                          : 'bg-brass/15 text-brass hover:bg-brass/25'
-                    }`}
-                  >
-                    {app.kyc_status === 'rejected' ? 'Re-review' : app.kyc_status === 'not_started' ? 'Force Approve' : 'Review'}
-                  </button>
+                  {bulkMode ? (
+                    <button onClick={() => toggleSelect(app.id)} className="text-[#AAB4C3] hover:text-brass">
+                      {selectedIds.includes(app.id) ? <CheckSquare size={16} className="text-brass" /> : <Square size={16} />}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setSelected(app)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        app.kyc_status === 'rejected'
+                          ? 'bg-crimson/15 text-red-400 hover:bg-crimson/25'
+                          : app.kyc_status === 'not_started'
+                            ? 'bg-olive/15 text-emerald-400 hover:bg-olive/25'
+                            : 'bg-brass/15 text-brass hover:bg-brass/25'
+                      }`}
+                    >
+                      {app.kyc_status === 'rejected' ? 'Re-review' : app.kyc_status === 'not_started' ? 'Force Approve' : 'Review'}
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
             {kycApps.length === 0 && (
               <tr>
-                <td colSpan={5} className="py-12 text-center text-[#AAB4C3]">No KYC submissions to review</td>
+                <td colSpan={bulkMode ? 6 : 5} className="py-12 text-center text-[#AAB4C3]">No KYC submissions to review</td>
               </tr>
             )}
           </tbody>
