@@ -6,6 +6,7 @@ import InternalComments from '@/components/vantoris/InternalComments';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Check, X, Wrench, FileText, Plus, Trash2, MessageSquare } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function ServiceRequests() {
   const [requests, setRequests] = useState([]);
@@ -98,6 +99,22 @@ export default function ServiceRequests() {
     );
   }
 
+  // Analytics data
+  const statusData = [
+    { name: 'Pending', value: requests.filter(r => r.status === 'pending').length, fill: '#B08D57' },
+    { name: 'Approved', value: requests.filter(r => r.status === 'approved').length, fill: '#22c55e' },
+    { name: 'Rejected', value: requests.filter(r => r.status === 'rejected').length, fill: '#ef4444' },
+  ];
+
+  const serviceTypeData = {};
+  requests.forEach(req => {
+    serviceTypeData[req.service_type] = (serviceTypeData[req.service_type] || 0) + 1;
+  });
+  const serviceChartData = Object.entries(serviceTypeData).map(([type, count]) => ({
+    name: type,
+    count,
+  }));
+
   return (
     <OperationsPageLayout title="Service Requests" description="Review member service and product requests" icon={Wrench}
       actions={
@@ -109,6 +126,46 @@ export default function ServiceRequests() {
         </button>
       }
     >
+      {/* Analytics Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Status Distribution */}
+        <div className="vantoris-card p-6">
+          <h3 className="text-white font-semibold text-lg mb-4">Status Distribution</h3>
+          {statusData.some(d => d.value > 0) ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie data={statusData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={2} dataKey="value">
+                  {statusData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={{ backgroundColor: '#0E1A2B', border: '1px solid #242D38', borderRadius: '8px' }} />
+                <Legend verticalAlign="bottom" height={36} />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-[#AAB4C3] text-center py-12">No requests yet</p>
+          )}
+        </div>
+
+        {/* Requests by Service Type */}
+        <div className="vantoris-card p-6">
+          <h3 className="text-white font-semibold text-lg mb-4">Requests by Service Type</h3>
+          {serviceChartData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={serviceChartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#242D38" />
+                <XAxis dataKey="name" stroke="#AAB4C3" />
+                <YAxis stroke="#AAB4C3" />
+                <Tooltip contentStyle={{ backgroundColor: '#0E1A2B', border: '1px solid #242D38', borderRadius: '8px' }} />
+                <Bar dataKey="count" fill="#B08D57" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-[#AAB4C3] text-center py-12">No requests yet</p>
+          )}
+        </div>
+      </div>
       <div className="vantoris-card overflow-hidden">
         <table className="w-full text-sm">
           <thead>
