@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import MemberRoute from '@/components/MemberRoute';
 import PageTransition from './components/vantoris/PageTransition';
 
 // Layouts & Guards (non-lazy — needed for route structure)
@@ -102,22 +103,24 @@ const AuthenticatedApp = () => {
         </Route>
 
         <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
-          {/* Member routes */}
-          <Route element={<MemberLayout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/accounts" element={<Accounts />} />
-            <Route path="/accounts/:id" element={<AccountDetail />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/documents" element={<MemberDocuments />} />
-            <Route path="/advisor" element={<MemberAdvisor />} />
-          </Route>
+          {/* Member routes — staff/admins are redirected to Operations */}
+          <Route element={<MemberRoute />}>
+            <Route element={<MemberLayout />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/accounts" element={<Accounts />} />
+              <Route path="/accounts/:id" element={<AccountDetail />} />
+              <Route path="/services" element={<Services />} />
+              <Route path="/messages" element={<Messages />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/documents" element={<MemberDocuments />} />
+              <Route path="/advisor" element={<MemberAdvisor />} />
+            </Route>
 
-          {/* Non-layout member routes */}
-          <Route element={<PageTransition />}>
-            <Route path="/apply" element={<Apply />} />
-            <Route path="/apply/kyc" element={<ApplyKYC />} />
+            {/* Non-layout member routes */}
+            <Route element={<PageTransition />}>
+              <Route path="/apply" element={<Apply />} />
+              <Route path="/apply/kyc" element={<ApplyKYC />} />
+            </Route>
           </Route>
 
           {/* Backward-compatible redirect */}
