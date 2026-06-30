@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Check, X, FileText, ExternalLink, BellRing } from 'lucide-react';
+import { Check, X, FileText, ExternalLink, BellRing, Trash2 } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
 
 export default function AdminKYC() {
@@ -42,6 +42,35 @@ export default function AdminKYC() {
         action_type: status === 'approved' ? 'kyc_approved' : 'kyc_rejected',
         description: `KYC ${status} for ${selected.full_name}`,
         details: `Notes: ${notes || 'None'}`,
+        target_user_id: selected.user_id,
+      });
+      setSelected(null);
+      setNotes('');
+      loadApps();
+    } catch (e) { console.error(e); }
+    setSubmitting(false);
+  }
+
+  async function handleDeleteKyc() {
+    if (!selected) return;
+    setSubmitting(true);
+    try {
+      await base44.entities.Application.update(selected.id, {
+        kyc_status: 'not_started',
+        kyc_documents: [],
+        kyc_notes: notes || 'Documents cleared by admin. Please re-upload valid identity documents.',
+      });
+      await base44.entities.Notification.create({
+        user_id: selected.user_id,
+        title: 'KYC Documents Reset',
+        message: 'Your submitted identity documents were not accepted and have been cleared. Please re-upload valid documents to continue your verification.',
+        type: 'action',
+        link: '/apply/kyc',
+      });
+      await logAuditEntry({
+        action_type: 'kyc_rejected',
+        description: `KYC documents deleted/reset for ${selected.full_name}`,
+        details: `Documents cleared by admin. Notes: ${notes || 'None'}`,
         target_user_id: selected.user_id,
       });
       setSelected(null);
@@ -128,12 +157,16 @@ export default function AdminKYC() {
                 </td>
                 <td className="px-5 py-4"><StatusBadge status={app.kyc_status} /></td>
                 <td className="px-5 py-4">
-                  {app.kyc_status === 'pending' && (
+                  {(app.kyc_status === 'pending' || app.kyc_status === 'rejected') && (
                     <button
                       onClick={() => setSelected(app)}
-                      className="px-3 py-1.5 bg-brass/15 text-brass rounded-lg text-xs font-medium hover:bg-brass/25 transition-all"
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        app.kyc_status === 'rejected'
+                          ? 'bg-crimson/15 text-red-400 hover:bg-crimson/25'
+                          : 'bg-brass/15 text-brass hover:bg-brass/25'
+                      }`}
                     >
-                      Review
+                      {app.kyc_status === 'rejected' ? 'Re-review' : 'Review'}
                     </button>
                   )}
                 </td>
@@ -193,6 +226,16 @@ export default function AdminKYC() {
                   rows={3}
                 />
               </div>
+
+              {selected.kyc_status === 'rejected' && (selected.kyc_documents || []).length > 0 && (
+                <button
+                  onClick={handleDeleteKyc}
+                  disabled={submitting}
+                  className="w-full py-2.5 border border-crimson/40 text-red-400 rounded-xl flex items-center justify-center gap-2 hover:bg-crimson/10 transition-all disabled:opacity-40 text-xs font-medium"
+                >
+                  <Trash2 size={14} /> Delete Documents &amp; Reset
+                </button>
+              )}
 
               <div className="flex gap-3">
                 <button
