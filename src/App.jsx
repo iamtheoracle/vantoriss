@@ -54,6 +54,7 @@ const Transfers = React.lazy(() => import('./pages/operations/Transfers'));
 const OperationsDocuments = React.lazy(() => import('./pages/operations/OperationsDocuments'));
 const Cards = React.lazy(() => import('./pages/operations/Cards'));
 const WalletAssignment = React.lazy(() => import('./pages/operations/WalletAssignment'));
+const ResponseTemplates = React.lazy(() => import('./pages/operations/ResponseTemplates'));
 const AccountAssignment = React.lazy(() => import('./pages/operations/AccountAssignment'));
 const Reports = React.lazy(() => import('./pages/operations/Reports'));
 const ExecutiveReports = React.lazy(() => import('./pages/operations/ExecutiveReports'));
@@ -147,6 +148,7 @@ const AuthenticatedApp = () => {
               <Route path="/operations/service-requests" element={<ServiceRequests />} />
               <Route path="/operations/member-messages" element={<MemberMessages />} />
               <Route path="/operations/referrals" element={<Referrals />} />
+              <Route path="/operations/response-templates" element={<ResponseTemplates />} />
               <Route path="/operations/assistant" element={<AdminAgent />} />
               <Route path="/operations/organizations" element={<Organizations />} />
               <Route path="/operations/finance" element={<Finance />} />
