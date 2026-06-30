@@ -103,7 +103,7 @@ export default function AdminKYC() {
     setSendingReminders(false);
   }
 
-  const kycApps = applications.filter(a => a.kyc_status === 'pending' || a.kyc_status === 'approved' || a.kyc_status === 'rejected');
+  const kycApps = applications.filter(a => a.kyc_status !== 'approved');
 
   if (loading) {
     return <div className="flex items-center justify-center h-96">
@@ -157,18 +157,18 @@ export default function AdminKYC() {
                 </td>
                 <td className="px-5 py-4"><StatusBadge status={app.kyc_status} /></td>
                 <td className="px-5 py-4">
-                  {(app.kyc_status === 'pending' || app.kyc_status === 'rejected') && (
-                    <button
-                      onClick={() => setSelected(app)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                        app.kyc_status === 'rejected'
-                          ? 'bg-crimson/15 text-red-400 hover:bg-crimson/25'
+                  <button
+                    onClick={() => setSelected(app)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      app.kyc_status === 'rejected'
+                        ? 'bg-crimson/15 text-red-400 hover:bg-crimson/25'
+                        : app.kyc_status === 'not_started'
+                          ? 'bg-olive/15 text-emerald-400 hover:bg-olive/25'
                           : 'bg-brass/15 text-brass hover:bg-brass/25'
-                      }`}
-                    >
-                      {app.kyc_status === 'rejected' ? 'Re-review' : 'Review'}
-                    </button>
-                  )}
+                    }`}
+                  >
+                    {app.kyc_status === 'rejected' ? 'Re-review' : app.kyc_status === 'not_started' ? 'Force Approve' : 'Review'}
+                  </button>
                 </td>
               </tr>
             ))}

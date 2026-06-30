@@ -5,7 +5,8 @@ import ShieldLogo from '@/components/vantoris/ShieldLogo';
 import DeleteAccountDialog from '@/components/vantoris/DeleteAccountDialog';
 import { hasOperationsAccess, getRoleLabel } from '@/lib/operationsAccess';
 import { formatCurrency } from '@/lib/formatCurrency';
-import { User, Mail, Shield, LogOut, FileText, Trash2, Copy, Check, Gift, Sparkles, Wallet, Briefcase, Bell, Users, Building2, Globe, ChevronRight, MessageCircle } from 'lucide-react';
+import { User, Mail, Shield, LogOut, FileText, Trash2, Copy, Check, Gift, Sparkles, Wallet, Briefcase, Bell, Users, Building2, Globe, ChevronRight, MessageCircle, ShieldCheck } from 'lucide-react';
+import StatusBadge from '@/components/vantoris/StatusBadge';
 import { whatsappLink, BUSINESS_WHATSAPP_DISPLAY, BUSINESS_WHATSAPP_NUMBER } from '@/lib/businessConfig';
 import { useWhatsAppConfig, whatsappLinkFromConfig } from '@/hooks/useWhatsAppConfig';
 
@@ -18,6 +19,7 @@ export default function Profile() {
   const [showDelete, setShowDelete] = useState(false);
   const [copied, setCopied] = useState(false);
   const [referralLink, setReferralLink] = useState('');
+  const [application, setApplication] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,6 +36,10 @@ export default function Profile() {
         try {
           const accts = await base44.entities.Account.filter({ user_id: me.id }, '-created_date');
           setAccounts(accts);
+        } catch (e) { console.error(e); }
+        try {
+          const apps = await base44.entities.Application.filter({ user_id: me.id });
+          if (apps[0]) setApplication(apps[0]);
         } catch (e) { console.error(e); }
       }
     }
@@ -129,6 +135,44 @@ export default function Profile() {
                 );
               })}
             </div>
+          )}
+        </div>
+      )}
+
+      {/* Identity Verification Status — members only */}
+      {user.role === 'user' && application && (
+        <div className="vantoris-card p-4 mb-3">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-brass/15 flex items-center justify-center">
+              <Shield size={18} className="text-brass" />
+            </div>
+            <div className="flex-1">
+              <p className="text-white text-sm font-medium">Identity Verification</p>
+              <p className="text-[#AAB4C3] text-xs">KYC / KYB status</p>
+            </div>
+            <StatusBadge status={application.kyc_status} />
+          </div>
+          {application.kyc_status === 'rejected' && (
+            <button
+              onClick={() => navigate('/apply/kyc')}
+              className="w-full py-2.5 bg-brass/15 text-brass rounded-xl text-sm font-medium hover:bg-brass/25 transition-all flex items-center justify-center gap-2"
+            >
+              <ShieldCheck size={16} /> Resubmit Documents
+            </button>
+          )}
+          {application.kyc_status === 'not_started' && (
+            <button
+              onClick={() => navigate('/apply/kyc')}
+              className="w-full py-2.5 bg-brass text-[#0E1A2B] rounded-xl text-sm font-semibold hover:bg-brass/90 transition-all flex items-center justify-center gap-2"
+            >
+              <ShieldCheck size={16} /> Complete Verification
+            </button>
+          )}
+          {application.kyc_status === 'pending' && (
+            <p className="text-[#AAB4C3] text-xs text-center">Your documents are under review.</p>
+          )}
+          {application.kyc_status === 'approved' && (
+            <p className="text-emerald-400 text-xs text-center">Your identity has been verified.</p>
           )}
         </div>
       )}

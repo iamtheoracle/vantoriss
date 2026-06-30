@@ -15,7 +15,10 @@ export default function ApplyKYC() {
     async function load() {
       const me = await base44.auth.me();
       const apps = await base44.entities.Application.filter({ user_id: me.id });
-      if (apps[0]) setApplication(apps[0]);
+      if (apps[0]) {
+        setApplication(apps[0]);
+        setDocuments(apps[0].kyc_documents || []);
+      }
     }
     load();
   }, []);
@@ -70,6 +73,11 @@ export default function ApplyKYC() {
 
       <h1 className="text-2xl font-bold text-white mb-1">Identity Verification</h1>
       <p className="text-[#AAB4C3] text-sm mb-6">Upload the required documents to verify your identity.</p>
+      {application?.kyc_status === 'rejected' && (
+        <div className="vantoris-card p-3 mb-4 border-crimson/30 bg-crimson/5">
+          <p className="text-red-400 text-xs">Your previous submission was rejected. Please re-upload valid documents to continue.</p>
+        </div>
+      )}
 
       <div className="vantoris-card p-5 mb-4">
         <h3 className="text-white font-medium text-sm mb-3">Required Documents</h3>
@@ -97,6 +105,12 @@ export default function ApplyKYC() {
             <div key={i} className="flex items-center gap-2 py-2 border-b border-[#242D38]/40 last:border-0">
               <Check size={14} className="text-emerald-400" />
               <span className="text-[#AAB4C3] text-xs truncate flex-1">Document {i + 1}</span>
+              <button
+                onClick={() => setDocuments(prev => prev.filter((_, idx) => idx !== i))}
+                className="text-red-400/70 hover:text-red-400 text-xs"
+              >
+                Remove
+              </button>
             </div>
           ))}
         </div>

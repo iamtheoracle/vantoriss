@@ -28,16 +28,19 @@ export default function AdminMembers() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [activityMember, setActivityMember] = useState(null);
+  const [referrals, setReferrals] = useState([]);
 
   useEffect(() => { loadData(); }, []);
 
   async function loadData() {
-    const [u, a] = await Promise.all([
+    const [u, a, refs] = await Promise.all([
       base44.entities.User.list('-created_date', 50),
       base44.entities.Account.list('-created_date', 50),
+      base44.entities.Referral.list('-created_date', 200),
     ]);
     setUsers(u);
     setAccounts(a);
+    setReferrals(refs);
     setLoading(false);
   }
 
@@ -165,6 +168,15 @@ export default function AdminMembers() {
     (m.email || '').toLowerCase().includes(search.toLowerCase())
   );
 
+  const referrerMap = {};
+  referrals.forEach(r => { if (r.referred_id) referrerMap[r.referred_id] = r.referrer_id; });
+  function getReferrerName(userId) {
+    const rid = referrerMap[userId];
+    if (!rid) return null;
+    const refUser = users.find(u => u.id === rid);
+    return refUser?.full_name || null;
+  }
+
   return (
     <div>
       <h1 className="text-2xl font-bold text-white mb-1">Members</h1>
@@ -201,6 +213,7 @@ export default function AdminMembers() {
             <tr className="border-b border-[#242D38] bg-[#1a2535]">
               <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3">Member</th>
               <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3">Email</th>
+              <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3">Referred By</th>
               <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3">Accounts</th>
               <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3">Total Balance</th>
               <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3">Joined</th>
@@ -222,6 +235,13 @@ export default function AdminMembers() {
                     </div>
                   </td>
                   <td className="px-5 py-4 text-[#AAB4C3]">{member.email}</td>
+                  <td className="px-5 py-4">
+                    {getReferrerName(member.id) ? (
+                      <span className="text-brass text-xs font-medium">{getReferrerName(member.id)}</span>
+                    ) : (
+                      <span className="text-[#AAB4C3]/40 text-xs">—</span>
+                    )}
+                  </td>
                   <td className="px-5 py-4 text-white">{memberAccts.length}</td>
                   <td className="px-5 py-4 text-white font-medium">{formatCurrency(totalBal)}</td>
                   <td className="px-5 py-4 text-[#AAB4C3] text-xs">
@@ -262,7 +282,7 @@ export default function AdminMembers() {
             })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="py-12 text-center text-[#AAB4C3]">No members found</td>
+                <td colSpan={7} className="py-12 text-center text-[#AAB4C3]">No members found</td>
               </tr>
             )}
           </tbody>
@@ -285,6 +305,9 @@ export default function AdminMembers() {
                   <p className="text-[#AAB4C3] text-xs">{member.email}</p>
                 </div>
               </div>
+              {getReferrerName(member.id) && (
+                <p className="text-brass text-xs">Referred by {getReferrerName(member.id)}</p>
+              )}
               <div className="flex items-center justify-between text-xs">
                 <span className="text-[#AAB4C3]">{memberAccts.length} accounts</span>
                 <span className="text-white font-medium">{formatCurrency(totalBal)}</span>
