@@ -127,8 +127,9 @@ export default function AdminOverview() {
         </div>
 
         {/* Desktop / Tablet Table */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full text-sm">
+         <div className="hidden md:block">
+           <div className="overflow-x-auto">
+           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[#242D38]">
                 <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider py-3 pr-4">Type</th>
@@ -165,8 +166,9 @@ export default function AdminOverview() {
                 </tr>
               )}
             </tbody>
-          </table>
-        </div>
+            </table>
+            </div>
+            </div>
 
         {/* Mobile Cards */}
         <div className="md:hidden space-y-2">

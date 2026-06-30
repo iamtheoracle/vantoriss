@@ -183,7 +183,7 @@ export default function AdminMembers() {
       <p className="text-[#AAB4C3] text-sm mb-6">{members.length} registered members</p>
 
       {/* Search + Actions */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
         <div className="relative flex-1">
           <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#AAB4C3]" />
           <input
@@ -193,21 +193,23 @@ export default function AdminMembers() {
             className="w-full bg-[#242D38] border border-[#242D38] rounded-xl pl-10 pr-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none"
           />
         </div>
-        <button
-          onClick={() => setShowInvite(true)}
-          className="flex items-center gap-1.5 px-4 py-3 bg-brass text-[#0E1A2B] rounded-xl text-xs font-semibold hover:bg-brass/90 transition-all whitespace-nowrap"
-        >
-          <UserPlus size={14} /> Invite
-        </button>
-        <button
-          onClick={handleExportMembers}
-          className="flex items-center gap-1.5 px-4 py-3 bg-olive/15 text-emerald-400 rounded-xl text-xs font-medium hover:bg-olive/25 transition-all whitespace-nowrap"
-        >
-          <Download size={14} /> Export
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowInvite(true)}
+            className="flex items-center justify-center gap-1.5 px-4 py-3 bg-brass text-[#0E1A2B] rounded-xl text-xs font-semibold hover:bg-brass/90 transition-all whitespace-nowrap"
+          >
+            <UserPlus size={14} /> Invite
+          </button>
+          <button
+            onClick={handleExportMembers}
+            className="flex items-center justify-center gap-1.5 px-4 py-3 bg-olive/15 text-emerald-400 rounded-xl text-xs font-medium hover:bg-olive/25 transition-all whitespace-nowrap"
+          >
+            <Download size={14} /> Export
+          </button>
+        </div>
       </div>
 
-      <div className="hidden md:block vantoris-card overflow-hidden">
+      <div className="hidden md:block vantoris-card overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[#242D38] bg-[#1a2535]">

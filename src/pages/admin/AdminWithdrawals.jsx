@@ -207,21 +207,21 @@ export default function AdminWithdrawals() {
 
       {/* Bulk Action Bar */}
       {pendingWds.length > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4">
           <button
             onClick={() => { setBulkMode(!bulkMode); setSelectedIds([]); }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all ${bulkMode ? 'bg-brass/15 text-brass' : 'bg-[#242D38] text-[#AAB4C3] hover:text-white'}`}
+            className={`flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all ${bulkMode ? 'bg-brass/15 text-brass' : 'bg-[#242D38] text-[#AAB4C3] hover:text-white'}`}
           >
             <CheckSquare size={14} /> Bulk Select
           </button>
           {bulkMode && selectedIds.length > 0 && (
             <div className="flex items-center gap-3">
               <span className="text-[#AAB4C3] text-xs">{selectedIds.length} selected</span>
-              <button onClick={handleBulkPay} disabled={submitting} className="flex items-center gap-1.5 px-4 py-2 bg-olive text-white rounded-xl text-xs font-semibold hover:bg-olive/80 transition-all disabled:opacity-40">
-                <Check size={14} /> Bulk Pay ({selectedIds.length})
+              <button onClick={handleBulkPay} disabled={submitting} className="flex items-center justify-center gap-1.5 px-4 py-2 bg-olive text-white rounded-xl text-xs font-semibold hover:bg-olive/80 transition-all disabled:opacity-40 whitespace-nowrap">
+                <Check size={14} /> Pay
               </button>
-              <button onClick={handleBulkReject} disabled={submitting} className="flex items-center gap-1.5 px-4 py-2 bg-crimson text-white rounded-xl text-xs font-semibold hover:bg-crimson/80 transition-all disabled:opacity-40">
-                <X size={14} /> Bulk Reject ({selectedIds.length})
+              <button onClick={handleBulkReject} disabled={submitting} className="flex items-center justify-center gap-1.5 px-4 py-2 bg-crimson text-white rounded-xl text-xs font-semibold hover:bg-crimson/80 transition-all disabled:opacity-40 whitespace-nowrap">
+                <X size={14} /> Reject
               </button>
             </div>
           )}
@@ -229,7 +229,7 @@ export default function AdminWithdrawals() {
       )}
 
       {/* Desktop Table */}
-      <div className="hidden md:block vantoris-card overflow-hidden">
+      <div className="hidden md:block vantoris-card overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[#242D38] bg-[#1a2535]">

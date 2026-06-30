@@ -188,14 +188,14 @@ export default function AdminKYC() {
       <h1 className="text-2xl font-bold text-white mb-1">KYC Review</h1>
       <p className="text-[#AAB4C3] text-sm mb-6">Verify member identity documents</p>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-3">
           <button
             onClick={handleSendKycReminders}
             disabled={sendingReminders}
-            className="flex items-center gap-2 px-4 py-2.5 bg-brass/15 text-brass rounded-xl text-sm font-medium hover:bg-brass/25 transition-all disabled:opacity-40"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-brass/15 text-brass rounded-xl text-sm font-medium hover:bg-brass/25 transition-all disabled:opacity-40 whitespace-nowrap"
           >
-            <BellRing size={16} /> {sendingReminders ? 'Sending...' : 'Send KYC Reminders'}
+            <BellRing size={16} /> {sendingReminders ? 'Sending...' : 'Send Reminders'}
           </button>
           {reminderResult && (
             <span className="text-[#AAB4C3] text-sm">
@@ -208,7 +208,7 @@ export default function AdminKYC() {
         {kycApps.length > 0 && (
           <button
             onClick={() => { setBulkMode(!bulkMode); setSelectedIds([]); }}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-medium transition-all ${bulkMode ? 'bg-brass/15 text-brass' : 'bg-[#242D38] text-[#AAB4C3] hover:text-white'}`}
+            className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-medium transition-all whitespace-nowrap ${bulkMode ? 'bg-brass/15 text-brass' : 'bg-[#242D38] text-[#AAB4C3] hover:text-white'}`}
           >
             <CheckSquare size={14} /> Bulk Review
           </button>
@@ -216,18 +216,18 @@ export default function AdminKYC() {
       </div>
 
       {bulkMode && selectedIds.length > 0 && (
-        <div className="flex items-center gap-3 mb-4 p-4 bg-brass/10 rounded-lg border border-brass/20">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-4 p-4 bg-brass/10 rounded-lg border border-brass/20">
           <span className="text-[#AAB4C3] text-xs">{selectedIds.length} selected</span>
-          <button onClick={handleBulkApprove} disabled={submitting} className="flex items-center gap-1.5 px-4 py-2 bg-olive text-white rounded-xl text-xs font-semibold hover:bg-olive/80 transition-all disabled:opacity-40">
-            <Check size={14} /> Bulk Approve ({selectedIds.length})
+          <button onClick={handleBulkApprove} disabled={submitting} className="flex items-center justify-center gap-1.5 px-4 py-2 bg-olive text-white rounded-xl text-xs font-semibold hover:bg-olive/80 transition-all disabled:opacity-40 whitespace-nowrap">
+            <Check size={14} /> Approve
           </button>
-          <button onClick={handleBulkReject} disabled={submitting} className="flex items-center gap-1.5 px-4 py-2 bg-crimson text-white rounded-xl text-xs font-semibold hover:bg-crimson/80 transition-all disabled:opacity-40">
-            <X size={14} /> Bulk Reject ({selectedIds.length})
+          <button onClick={handleBulkReject} disabled={submitting} className="flex items-center justify-center gap-1.5 px-4 py-2 bg-crimson text-white rounded-xl text-xs font-semibold hover:bg-crimson/80 transition-all disabled:opacity-40 whitespace-nowrap">
+            <X size={14} /> Reject
           </button>
         </div>
       )}
 
-      <div className="vantoris-card overflow-hidden">
+      <div className="vantoris-card overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[#242D38] bg-[#1a2535]">

@@ -255,30 +255,30 @@ export default function AdminApplications() {
       <h1 className="text-2xl font-bold text-white mb-1">Applications</h1>
       <p className="text-[#AAB4C3] text-sm mb-6">Review and approve member applications</p>
 
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
         <button
           onClick={handleSendReminders}
           disabled={sendingReminders}
-          className="flex items-center gap-2 px-4 py-2.5 bg-brass/15 text-brass rounded-xl text-sm font-medium hover:bg-brass/25 transition-all disabled:opacity-40"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-brass/15 text-brass rounded-xl text-sm font-medium hover:bg-brass/25 transition-all disabled:opacity-40 whitespace-nowrap"
         >
-          <Mail size={16} /> {sendingReminders ? 'Sending...' : 'Send Incomplete Application Reminders'}
+          <Mail size={16} /> {sendingReminders ? 'Sending...' : 'Send Reminders'}
         </button>
         {reminderResult && (
           <span className="text-[#AAB4C3] text-sm">
             {reminderResult.sent > 0
-              ? `✓ Sent ${reminderResult.sent} reminder${reminderResult.sent > 1 ? 's' : ''} to members with incomplete applications (>48h)`
-              : 'No incomplete applications found (48h+)'}
+              ? `✓ Sent ${reminderResult.sent} reminder${reminderResult.sent > 1 ? 's' : ''}`
+              : 'No stale applications found'}
           </span>
         )}
       </div>
 
       {/* Bulk Action Bar */}
       {bulkEligible.length > 0 && (
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-3">
             <button
               onClick={() => { setBulkMode(!bulkMode); setSelectedIds([]); }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
+              className={`flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
                 bulkMode ? 'bg-brass/15 text-brass' : 'bg-[#242D38] text-[#AAB4C3] hover:text-white'
               }`}
             >
@@ -293,23 +293,23 @@ export default function AdminApplications() {
               <button
                 onClick={handleBulkApprove}
                 disabled={submitting}
-                className="flex items-center gap-1.5 px-4 py-2 bg-olive text-white rounded-xl text-xs font-semibold hover:bg-olive/80 transition-all disabled:opacity-40"
+                className="flex items-center justify-center gap-1.5 px-4 py-2 bg-olive text-white rounded-xl text-xs font-semibold hover:bg-olive/80 transition-all disabled:opacity-40 whitespace-nowrap"
               >
-                <Check size={14} /> Bulk Approve ({selectedIds.length})
+                <Check size={14} /> Approve
               </button>
               <button
                 onClick={handleBulkReject}
                 disabled={submitting}
-                className="flex items-center gap-1.5 px-4 py-2 bg-crimson text-white rounded-xl text-xs font-semibold hover:bg-crimson/80 transition-all disabled:opacity-40"
+                className="flex items-center justify-center gap-1.5 px-4 py-2 bg-crimson text-white rounded-xl text-xs font-semibold hover:bg-crimson/80 transition-all disabled:opacity-40 whitespace-nowrap"
               >
-                <X size={14} /> Bulk Reject ({selectedIds.length})
+                <X size={14} /> Reject
               </button>
             </div>
           )}
         </div>
       )}
 
-      <div className="hidden md:block vantoris-card overflow-hidden">
+      <div className="hidden md:block vantoris-card overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[#242D38] bg-[#1a2535]">

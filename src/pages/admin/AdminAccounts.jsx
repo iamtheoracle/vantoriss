@@ -540,7 +540,7 @@ export default function AdminAccounts() {
         </button>
       </div>
 
-      <div className="hidden md:block vantoris-card overflow-hidden">
+      <div className="hidden md:block vantoris-card overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[#242D38] bg-[#1a2535]">
