@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
-import { Users, FileText, ArrowDownToLine, Wallet, TrendingUp, Clock } from 'lucide-react';
+import { Users, FileText, ArrowDownToLine, Wallet } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import AumChart from '@/components/vantoris/AumChart';
 import QuickReview from '@/components/vantoris/QuickReview';
 import DailyEmailSummary from '@/components/vantoris/DailyEmailSummary';
+import QuickActionsMenu from '@/components/vantoris/QuickActionsMenu';
+import ReportingDashboard from '@/components/vantoris/ReportingDashboard';
 
 export default function AdminOverview() {
   const navigate = useNavigate();
@@ -77,12 +79,15 @@ export default function AdminOverview() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row items-start justify-between gap-4 mb-6">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-white">Operations Center</h1>
           <p className="text-[#AAB4C3] text-sm">System overview and pending actions</p>
         </div>
-        <DailyEmailSummary />
+        <div className="flex items-center gap-3">
+          <QuickActionsMenu onActionComplete={loadData} />
+          <DailyEmailSummary />
+        </div>
       </div>
 
       {/* Stats Grid — responsive: 2 cols phone, 2 cols tablet portrait, 4 cols desktop */}
@@ -109,9 +114,10 @@ export default function AdminOverview() {
         })}
       </div>
 
-      {/* AUM Chart */}
+      {/* Reporting Dashboard */}
       <div className="mb-6 lg:mb-8">
-        <AumChart />
+        <h2 className="text-white font-semibold text-lg mb-4">Platform Analytics</h2>
+        <ReportingDashboard />
       </div>
 
       {/* Quick Review */}
