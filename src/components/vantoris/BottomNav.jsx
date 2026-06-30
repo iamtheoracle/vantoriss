@@ -1,11 +1,12 @@
 import React, { useContext } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Wallet, Bell, User } from 'lucide-react';
+import { Home, Wallet, Bell, User, MessageSquare } from 'lucide-react';
 import { TabHistoryContext } from '@/lib/TabHistoryContext';
 
 const navItems = [
   { label: 'Home', path: '/', icon: Home },
   { label: 'Accounts', path: '/accounts', icon: Wallet },
+  { label: 'Guide', path: '/advisor/home', icon: MessageSquare },
   { label: 'Messages', path: '/messages', icon: Bell },
   { label: 'Profile', path: '/profile', icon: User },
 ];

@@ -23,6 +23,7 @@ const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = React.lazy(() => import('./pages/ResetPassword'));
 
 // Lazy-loaded pages — Member
+const AIAssistantHome = React.lazy(() => import('./pages/AIAssistantHome'));
 const Home = React.lazy(() => import('./pages/Home'));
 const Apply = React.lazy(() => import('./pages/Apply'));
 const ApplyKYC = React.lazy(() => import('./pages/ApplyKYC'));
@@ -109,6 +110,7 @@ const AuthenticatedApp = () => {
           <Route element={<MemberRoute />}>
             <Route element={<MemberLayout />}>
               <Route path="/" element={<Home />} />
+              <Route path="/advisor/home" element={<AIAssistantHome />} />
               <Route path="/accounts" element={<Accounts />} />
               <Route path="/accounts/:id" element={<AccountDetail />} />
               <Route path="/services" element={<Services />} />
@@ -117,6 +119,7 @@ const AuthenticatedApp = () => {
               <Route path="/documents" element={<MemberDocuments />} />
               <Route path="/advisor" element={<MemberAdvisor />} />
               <Route path="/trading" element={<Trading />} />
+              <Route path="/guide" element={<MemberAdvisor />} />
             </Route>
 
             {/* Non-layout member routes */}
