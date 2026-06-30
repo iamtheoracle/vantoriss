@@ -4,7 +4,7 @@ import { formatCurrency } from '@/lib/formatCurrency';
 import { exportToCsv } from '@/lib/exportCsv';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Plus, Search, Download, History, Pencil, ArrowLeft, ScrollText, Mail } from 'lucide-react';
+import { Plus, Search, Download, History, Pencil, ArrowLeft, ScrollText, Mail, Lock, Unlock, Upload } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
 import { sendTransactionEmail } from '@/lib/transactionEmails';
 
@@ -21,6 +21,10 @@ export default function AdminAccounts() {
   const [editingTxn, setEditingTxn] = useState(null);
   const [exporting, setExporting] = useState(false);
   const [auditLogs, setAuditLogs] = useState([]);
+  const [toggleFreezeAccount, setToggleFreezeAccount] = useState(null);
+  const [freezing, setFreezing] = useState(false);
+  const [showImport, setShowImport] = useState(false);
+  const [importing, setImporting] = useState(false);
 
   useEffect(() => { loadAccounts(); }, []);
 
@@ -187,6 +191,101 @@ export default function AdminAccounts() {
     setExporting(false);
   }
 
+  async function handleToggleFreeze(account) {
+    setToggleFreezeAccount(account);
+    setFreezing(true);
+    try {
+      const newStatus = account.status === 'frozen' ? 'active' : 'frozen';
+      await base44.entities.Account.update(account.id, { status: newStatus });
+      
+      // Log in audit trail
+      await logAuditEntry({
+        action_type: 'account_status_changed',
+        description: `Account ${newStatus === 'frozen' ? 'FROZEN' : 'UNFROZEN'}: ${account.account_name}`,
+        details: `Account disabled for ${newStatus === 'frozen' ? 'trading and withdrawals' : 'all operations'}`,
+        account_id: account.id,
+        target_user_id: account.user_id,
+      });
+
+      // Notify member
+      await base44.entities.Notification.create({
+        user_id: account.user_id,
+        title: newStatus === 'frozen' ? 'Account Frozen' : 'Account Unfrozen',
+        message: newStatus === 'frozen'
+          ? `Your ${account.account_name} account has been frozen and is now unavailable for trading and withdrawals.`
+          : `Your ${account.account_name} account has been unfrozen and is now available for use.`,
+        type: newStatus === 'frozen' ? 'warning' : 'success',
+      });
+
+      setToggleFreezeAccount(null);
+      loadAccounts();
+      if (viewingHistory) viewHistory({ ...viewingHistory, status: newStatus });
+    } catch (e) { console.error(e); }
+    setFreezing(false);
+  }
+
+  async function handleImportTransactions(file) {
+    if (!file) return;
+    setImporting(true);
+    try {
+      const text = await file.text();
+      const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+      
+      if (lines.length < 2) {
+        alert('CSV must have header row and at least one transaction');
+        setImporting(false);
+        return;
+      }
+
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+      const dateIdx = headers.indexOf('date');
+      const typeIdx = headers.indexOf('type');
+      const descIdx = headers.indexOf('description');
+      const refIdx = headers.indexOf('reference');
+      const amountIdx = headers.indexOf('amount');
+      const accountIdx = headers.indexOf('account_number');
+
+      if (dateIdx === -1 || typeIdx === -1 || amountIdx === -1 || accountIdx === -1) {
+        alert('CSV must have columns: date, type, amount, account_number (description and reference optional)');
+        setImporting(false);
+        return;
+      }
+
+      let imported = 0;
+      for (let i = 1; i < lines.length; i++) {
+        const parts = lines[i].split(',').map(p => p.trim());
+        const accountNum = parts[accountIdx];
+        const account = accounts.find(a => a.account_number === accountNum);
+        if (!account) {
+          console.warn(`Account ${accountNum} not found, skipping row ${i}`);
+          continue;
+        }
+
+        const txnData = {
+          account_id: account.id,
+          type: parts[typeIdx],
+          amount: parseFloat(parts[amountIdx]),
+          description: descIdx >= 0 ? parts[descIdx] || '' : '',
+          reference: refIdx >= 0 ? parts[refIdx] || '' : '',
+          balance_after: account.balance,
+          created_by_admin: true,
+          transaction_date: dateIdx >= 0 ? parts[dateIdx] : undefined,
+        };
+
+        await base44.entities.Transaction.create(txnData);
+        imported++;
+      }
+
+      alert(`Successfully imported ${imported} transactions`);
+      setShowImport(false);
+      loadAccounts();
+    } catch (e) {
+      console.error(e);
+      alert('Error importing: ' + e.message);
+    }
+    setImporting(false);
+  }
+
   if (loading) {
     return <div className="flex items-center justify-center h-96">
       <div className="w-8 h-8 border-2 border-brass/30 border-t-brass rounded-full animate-spin" />
@@ -227,9 +326,30 @@ export default function AdminAccounts() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-white font-semibold text-lg">Transaction History</h2>
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+          <div>
+            <h2 className="text-white font-semibold text-lg">Transaction History</h2>
+            <div className="flex items-center gap-2 mt-1">
+              {viewingHistory.status === 'frozen' && (
+                <span className="flex items-center gap-1 px-2.5 py-1 bg-crimson/15 text-red-400 rounded-lg text-xs font-medium">
+                  <Lock size={12} /> Account Frozen
+                </span>
+              )}
+            </div>
+          </div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => handleToggleFreeze(viewingHistory)}
+              disabled={freezing}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
+                viewingHistory.status === 'frozen'
+                  ? 'bg-olive/15 text-emerald-400 hover:bg-olive/25'
+                  : 'bg-crimson/15 text-red-400 hover:bg-crimson/25'
+              } disabled:opacity-40`}
+            >
+              {viewingHistory.status === 'frozen' ? <Unlock size={14} /> : <Lock size={14} />}
+              {freezing ? 'Processing...' : viewingHistory.status === 'frozen' ? 'Unfreeze' : 'Freeze Account'}
+            </button>
             <button
               onClick={() => { setShowTxn(viewingHistory); setTxnForm({ type: 'deposit', amount: '', description: '', reference: '', transaction_date: '' }); }}
               className="flex items-center gap-1.5 px-4 py-2 bg-brass/15 text-brass rounded-xl text-xs font-medium hover:bg-brass/25 transition-all"
@@ -411,6 +531,15 @@ export default function AdminAccounts() {
         />
       </div>
 
+      <div className="flex justify-end mb-6">
+        <button
+          onClick={() => setShowImport(true)}
+          className="flex items-center gap-1.5 px-4 py-2.5 bg-olive/15 text-emerald-400 rounded-xl text-xs font-medium hover:bg-olive/25 transition-all"
+        >
+          <Upload size={14} /> Import CSV
+        </button>
+      </div>
+
       <div className="hidden md:block vantoris-card overflow-hidden">
         <table className="w-full text-sm">
           <thead>
@@ -488,6 +617,55 @@ export default function AdminAccounts() {
             <DialogTitle className="text-white">Add Transaction</DialogTitle>
           </DialogHeader>
           {showTxn && <TransactionForm txnForm={txnForm} setTxnForm={setTxnForm} submitting={submitting} onSubmit={handleAddTransaction} account={showTxn} />}
+        </DialogContent>
+      </Dialog>
+
+      {/* CSV Import Dialog */}
+      <Dialog open={showImport} onOpenChange={setShowImport}>
+        <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Upload size={18} className="text-olive" /> Import Transactions
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="vantoris-card p-4 bg-olive/5 border border-olive/20">
+              <p className="text-[#AAB4C3] text-xs mb-2"><strong>CSV Format Required:</strong></p>
+              <p className="text-[#AAB4C3] text-xs font-mono">date,type,description,reference,amount,account_number</p>
+              <p className="text-[#AAB4C3] text-xs mt-2 mb-1"><strong>Example:</strong></p>
+              <p className="text-[#AAB4C3] text-xs font-mono">2025-01-15,deposit,Wire deposit,WT-001,5000,ACC-00001</p>
+              <p className="text-[#AAB4C3] text-xs mt-2">• Date: YYYY-MM-DD format</p>
+              <p className="text-[#AAB4C3] text-xs">• Type: deposit, withdrawal, or adjustment</p>
+              <p className="text-[#AAB4C3] text-xs">• Amount: positive number (signs added automatically)</p>
+            </div>
+            <div>
+              <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-2 block">Select CSV File</label>
+              <input
+                type="file"
+                accept=".csv"
+                onChange={e => {
+                  if (e.target.files?.[0]) {
+                    handleImportTransactions(e.target.files[0]);
+                  }
+                }}
+                disabled={importing}
+                className="w-full px-4 py-3 bg-[#242D38] border border-[#242D38] rounded-xl text-[#AAB4C3] text-sm focus:border-olive/50 focus:outline-none disabled:opacity-40 cursor-pointer"
+              />
+            </div>
+            {importing && (
+              <div className="flex items-center gap-2 text-olive text-xs">
+                <div className="w-4 h-4 border-2 border-olive/30 border-t-olive rounded-full animate-spin" />
+                <span>Importing transactions...</span>
+              </div>
+            )}
+            <button
+              onClick={() => setShowImport(false)}
+              disabled={importing}
+              className="w-full py-2.5 bg-[#242D38] text-[#AAB4C3] rounded-xl text-sm font-medium hover:text-white transition-all disabled:opacity-40"
+            >
+              Close
+            </button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

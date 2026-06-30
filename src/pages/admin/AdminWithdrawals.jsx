@@ -19,21 +19,35 @@ export default function AdminWithdrawals() {
   const [submitting, setSubmitting] = useState(false);
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
+  const [limits, setLimits] = useState([]);
 
   useEffect(() => { loadData(); }, []);
 
   async function loadData() {
-    const [wds, accts] = await Promise.all([
+    const [wds, accts, lmts] = await Promise.all([
       base44.entities.WithdrawalRequest.list('-created_date', 100),
       base44.entities.Account.list('-created_date', 100),
+      base44.entities.WithdrawalLimit.list('-created_date', 10),
     ]);
     setWithdrawals(wds);
     setAccounts(accts);
+    setLimits(lmts);
     setFilteredWithdrawals(wds);
     setLoading(false);
   }
 
   function getAccount(id) { return accounts.find(a => a.id === id); }
+  
+  function checkWithdrawalLimit(acct, amount) {
+    if (!acct) return null;
+    const limit = limits.find(l => l.account_type === acct.account_type && l.enabled);
+    if (!limit) return null;
+    const violations = [];
+    if (limit.single_limit && amount > limit.single_limit) {
+      violations.push(`Exceeds single limit: ${formatCurrency(limit.single_limit)}`);
+    }
+    return violations.length > 0 ? violations : null;
+  }
 
   function handleFilter({ dateRange, category }) {
     let filtered = [...withdrawals];
@@ -240,20 +254,27 @@ export default function AdminWithdrawals() {
               const isPending = wd.status === 'pending';
               return (
                 <tr key={wd.id} className={`border-b border-[#242D38]/40 hover:bg-[#242D38]/20 transition-all ${selectedIds.includes(wd.id) ? 'bg-brass/5' : ''}`}>
-                  {bulkMode && (
-                    <td className="px-3 py-4">
-                      {isPending ? (
-                        <button onClick={() => toggleSelect(wd.id)} className="text-[#AAB4C3] hover:text-brass">
-                          {selectedIds.includes(wd.id) ? <CheckSquare size={16} className="text-brass" /> : <Square size={16} />}
-                        </button>
-                      ) : <span className="inline-block w-4" />}
+                    {bulkMode && (
+                      <td className="px-3 py-4">
+                        {isPending ? (
+                          <button onClick={() => toggleSelect(wd.id)} className="text-[#AAB4C3] hover:text-brass">
+                            {selectedIds.includes(wd.id) ? <CheckSquare size={16} className="text-brass" /> : <Square size={16} />}
+                          </button>
+                        ) : <span className="inline-block w-4" />}
+                      </td>
+                    )}
+                    <td className="px-5 py-4">
+                      <p className="text-white font-medium">{acct?.account_name || '—'}</p>
+                      <p className="text-[#AAB4C3] text-xs font-mono">{acct?.account_number || '—'}</p>
                     </td>
-                  )}
-                  <td className="px-5 py-4">
-                    <p className="text-white font-medium">{acct?.account_name || '—'}</p>
-                    <p className="text-[#AAB4C3] text-xs font-mono">{acct?.account_number || '—'}</p>
-                  </td>
-                  <td className="px-5 py-4 text-red-400 font-semibold">{formatCurrency(Math.abs(wd.amount))}</td>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-2">
+                        <span className="text-red-400 font-semibold">{formatCurrency(Math.abs(wd.amount))}</span>
+                        {checkWithdrawalLimit(acct, Math.abs(wd.amount)) && (
+                          <span className="px-2 py-0.5 bg-crimson/20 text-red-400 rounded text-[10px] font-semibold">FLAG</span>
+                        )}
+                      </div>
+                    </td>
                   <td className="px-5 py-4 text-white">{wd.method}</td>
                   <td className="px-5 py-4 text-[#AAB4C3] text-xs">
                     {new Date(wd.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
@@ -303,7 +324,12 @@ export default function AdminWithdrawals() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-white text-xs">{wd.method}</span>
-                <span className="text-red-400 font-semibold text-sm">{formatCurrency(Math.abs(wd.amount))}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-red-400 font-semibold text-sm">{formatCurrency(Math.abs(wd.amount))}</span>
+                  {checkWithdrawalLimit(acct, Math.abs(wd.amount)) && (
+                    <span className="px-2 py-0.5 bg-crimson/20 text-red-400 rounded text-[10px] font-semibold">FLAG</span>
+                  )}
+                </div>
               </div>
               <p className="text-[#AAB4C3]/50 text-[10px]">
                 {new Date(wd.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
@@ -342,6 +368,14 @@ export default function AdminWithdrawals() {
                 </div>
                 {selected.notes && (
                   <p className="text-[#AAB4C3] text-xs mt-2 pt-2 border-t border-[#242D38]">Notes: {selected.notes}</p>
+                )}
+                {checkWithdrawalLimit(getAccount(selected.account_id), Math.abs(selected.amount)) && (
+                  <div className="mt-3 pt-3 border-t border-[#242D38]">
+                    <p className="text-red-400 text-xs font-semibold mb-1">⚠️ Limit Violation:</p>
+                    {checkWithdrawalLimit(getAccount(selected.account_id), Math.abs(selected.amount)).map((v, i) => (
+                      <p key={i} className="text-red-400/80 text-xs">{v}</p>
+                    ))}
+                  </div>
                 )}
               </div>
               <div>
