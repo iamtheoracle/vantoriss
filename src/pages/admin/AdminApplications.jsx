@@ -443,6 +443,44 @@ export default function AdminApplications() {
                 {selected.business_name && <p className="text-[#AAB4C3] text-xs">Business: {selected.business_name}</p>}
                 {selected.address && <p className="text-[#AAB4C3] text-xs">Address: {selected.address}</p>}
               </div>
+              {selected.opening_receipt_url && (
+                <div className="vantoris-card p-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <FileText size={14} className="text-brass" />
+                    <p className="text-white text-sm font-medium">Opening Contribution Receipt</p>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-[#AAB4C3]">Amount</span>
+                    <span className="text-white font-medium">{formatCurrency(selected.opening_balance || 0)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-[#AAB4C3]">Method</span>
+                    <span className="text-white font-medium">{selected.opening_payment_method || '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-[#AAB4C3]">Status</span>
+                    <span className={`font-medium ${
+                      selected.opening_contribution_status === 'approved' ? 'text-emerald-400' :
+                      selected.opening_contribution_status === 'rejected' ? 'text-red-400' :
+                      selected.opening_contribution_status === 'pending' ? 'text-brass' :
+                      'text-[#AAB4C3]'
+                    }`}>
+                      {selected.opening_contribution_status === 'approved' ? 'Verified' :
+                       selected.opening_contribution_status === 'rejected' ? 'Rejected' :
+                       selected.opening_contribution_status === 'pending' ? 'Pending Verification' :
+                       'Not Submitted'}
+                    </span>
+                  </div>
+                  <a
+                    href={selected.opening_receipt_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-brass text-xs font-medium hover:underline mt-1"
+                  >
+                    <ExternalLink size={12} /> View Receipt
+                  </a>
+                </div>
+              )}
               <div>
                 <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Opening Balance (USD)</label>
                 <input
