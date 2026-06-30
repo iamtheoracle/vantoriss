@@ -42,9 +42,9 @@ export default function AdminWithdrawals() {
     else setSelectedIds(pendingWds.map(w => w.id));
   }
 
-  async function payOne(wd, notes) {
+  async function payOne(wd, notes, startingBalance) {
     const account = getAccount(wd.account_id);
-    const currentBalance = account?.balance || 0;
+    const currentBalance = startingBalance !== undefined ? startingBalance : (account?.balance || 0);
     const newBalance = currentBalance - Math.abs(wd.amount);
     await base44.entities.Transaction.create({
       account_id: wd.account_id,
@@ -135,7 +135,7 @@ export default function AdminWithdrawals() {
       try {
         const acct = getAccount(wd.account_id);
         const baseBalance = balanceMap[wd.account_id] !== undefined ? balanceMap[wd.account_id] : (acct?.balance || 0);
-        await payOne({ ...wd, account_id: wd.account_id }, 'Bulk approved');
+        await payOne(wd, 'Bulk approved', baseBalance);
         balanceMap[wd.account_id] = baseBalance - Math.abs(wd.amount);
       } catch (e) { console.error('Bulk pay failed for', id, e); }
     }
