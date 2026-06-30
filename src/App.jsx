@@ -45,6 +45,7 @@ const AdminWithdrawals = React.lazy(() => import('./pages/admin/AdminWithdrawals
 const AdminAgent = React.lazy(() => import('./pages/admin/AdminAgent'));
 
 // Lazy-loaded pages — Operations Center
+const WithdrawalLimits = React.lazy(() => import('./pages/operations/WithdrawalLimits'));
 const Organizations = React.lazy(() => import('./pages/operations/Organizations'));
 const Finance = React.lazy(() => import('./pages/operations/Finance'));
 const Deposits = React.lazy(() => import('./pages/operations/Deposits'));
@@ -138,6 +139,7 @@ const AuthenticatedApp = () => {
               <Route path="/operations/operational-profiles" element={<OperationalProfiles />} />
               <Route path="/operations/accounts" element={<AdminAccounts />} />
               <Route path="/operations/withdrawals" element={<AdminWithdrawals />} />
+              <Route path="/operations/withdrawal-limits" element={<WithdrawalLimits />} />
               <Route path="/operations/verification-requests" element={<VerificationRequests />} />
               <Route path="/operations/service-requests" element={<ServiceRequests />} />
               <Route path="/operations/member-messages" element={<MemberMessages />} />

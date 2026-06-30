@@ -2,11 +2,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useParams, useNavigate } from 'react-router-dom';
 import { formatCurrency } from '@/lib/formatCurrency';
-import { ArrowLeft, ArrowUpRight, ArrowDownLeft, TrendingUp, Download, FileText } from 'lucide-react';
+import { ArrowLeft, ArrowUpRight, ArrowDownLeft, TrendingUp, Download, FileText, Snowflake, Upload } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { useToast } from '@/components/ui/use-toast';
+import TransactionFilters from '@/components/TransactionFilters';
 
 const WITHDRAWAL_METHODS = ['Bank Transfer', 'Wire Transfer', 'Crypto Withdrawal', 'Internal Transfer'];
 
@@ -24,6 +25,9 @@ export default function AccountDetail() {
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const { toast } = useToast();
+  const [filteredTransactions, setFilteredTransactions] = useState([]);
+  const [showImport, setShowImport] = useState(false);
+  const [importFile, setImportFile] = useState(null);
 
   const loadData = useCallback(async () => {
     const [user, acct, txns] = await Promise.all([
@@ -39,6 +43,54 @@ export default function AccountDetail() {
   useEffect(() => {
     loadData().catch(e => console.error(e)).finally(() => setLoading(false));
   }, [loadData]);
+
+  useEffect(() => {
+    setFilteredTransactions(transactions);
+  }, [transactions]);
+
+  function handleFilter({ dateRange, category }) {
+    let filtered = [...transactions];
+    if (dateRange) {
+      filtered = filtered.filter(t => {
+        const txDate = new Date(t.transaction_date || t.created_date);
+        return txDate >= dateRange.start && txDate <= dateRange.end;
+      });
+    }
+    if (category) {
+      filtered = filtered.filter(t => t.type === category);
+    }
+    setFilteredTransactions(filtered);
+  }
+
+  async function handleImportHistory() {
+    if (!importFile) return;
+    try {
+      const text = await importFile.text();
+      const rows = text.split('\n').filter(r => r.trim());
+      const imported = [];
+      for (const row of rows) {
+        const [date, desc, type, amt, ref] = row.split(',').map(s => s.trim());
+        if (!amt || !type) continue;
+        const txn = await base44.entities.Transaction.create({
+          account_id: id,
+          type: type || 'adjustment',
+          amount: parseFloat(amt),
+          description: desc || 'Imported transaction',
+          reference: ref || '',
+          transaction_date: date || new Date().toISOString(),
+          created_by_admin: false,
+        });
+        imported.push(txn);
+      }
+      toast({ title: 'Success', description: `Imported ${imported.length} historical transactions` });
+      setShowImport(false);
+      setImportFile(null);
+      loadData();
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Import failed', description: 'Check CSV format (date, description, type, amount, reference)', variant: 'destructive' });
+    }
+  }
 
   const { containerProps, PullIndicator } = usePullToRefresh(loadData);
 
@@ -313,37 +365,73 @@ export default function AccountDetail() {
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3 mb-6">
+      <div className="grid grid-cols-2 gap-3 mb-6">
         <button
           onClick={() => setShowWithdraw(true)}
-          className="flex-1 py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl text-sm hover:bg-brass/90 transition-all flex items-center justify-center gap-2"
+          className="py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl text-sm hover:bg-brass/90 transition-all flex items-center justify-center gap-2"
         >
           <ArrowUpRight size={16} />
           Withdraw
         </button>
         <button
           onClick={() => setShowStatement(true)}
-          className="flex-1 py-3 bg-[#242D38] text-white font-medium rounded-xl text-sm hover:bg-[#2a3340] transition-all flex items-center justify-center gap-2"
+          className="py-3 bg-[#242D38] text-white font-medium rounded-xl text-sm hover:bg-[#2a3340] transition-all flex items-center justify-center gap-2"
         >
           <Download size={16} />
           Statement
         </button>
       </div>
 
+      {/* Admin: Freeze Account & Import History */}
+      {currentUser?.role === 'admin' && (
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          <button
+            onClick={async () => {
+              await base44.entities.Account.update(id, { status: account.status === 'frozen' ? 'active' : 'frozen' });
+              loadData();
+            }}
+            className={`py-3 font-semibold rounded-xl text-sm transition-all flex items-center justify-center gap-2 ${
+              account.status === 'frozen'
+                ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
+                : 'bg-crimson/20 text-red-400 hover:bg-crimson/30'
+            }`}
+          >
+            <Snowflake size={16} />
+            {account.status === 'frozen' ? 'Unfreeze' : 'Freeze'}
+          </button>
+          <button
+            onClick={() => setShowImport(true)}
+            className="py-3 bg-[#242D38] text-white font-medium rounded-xl text-sm hover:bg-[#2a3340] transition-all flex items-center justify-center gap-2"
+          >
+            <Upload size={16} />
+            Import History
+          </button>
+        </div>
+      )}
+      {account.status === 'frozen' && currentUser?.role !== 'admin' && (
+        <div className="bg-crimson/15 border border-crimson/30 rounded-xl p-3 mb-6 flex gap-2">
+          <Snowflake size={16} className="text-red-400 flex-shrink-0 mt-0.5" />
+          <p className="text-red-400 text-xs">This account is currently frozen and cannot process transactions.</p>
+        </div>
+      )}
+
       {/* Transaction History */}
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-white font-semibold text-sm">Transaction History</h3>
-        <span className="text-[#AAB4C3] text-xs">{transactions.length} records</span>
+        <div className="flex items-center gap-2">
+          <TransactionFilters onFilter={handleFilter} />
+          <span className="text-[#AAB4C3] text-xs">{filteredTransactions.length}/{transactions.length}</span>
+        </div>
       </div>
 
-      {transactions.length === 0 ? (
+      {filteredTransactions.length === 0 ? (
         <div className="vantoris-card p-6 text-center">
           <FileText size={24} className="text-[#AAB4C3] mx-auto mb-2" />
-          <p className="text-[#AAB4C3] text-sm">No transactions yet</p>
+          <p className="text-[#AAB4C3] text-sm">{transactions.length === 0 ? 'No transactions yet' : 'No transactions match filters'}</p>
         </div>
       ) : (
         <div className="space-y-0">
-          {transactions.map(txn => (
+          {filteredTransactions.map(txn => (
             <div key={txn.id} className="flex items-center justify-between py-3.5 border-b border-[#242D38]/60 last:border-0">
               <div className="flex items-center gap-3">
                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
@@ -466,6 +554,42 @@ export default function AccountDetail() {
               className="w-full py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl disabled:opacity-40"
             >
               {generatingPdf ? 'Generating...' : 'Download PDF'}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Import Historical Transactions Dialog */}
+      <Dialog open={showImport} onOpenChange={setShowImport}>
+        <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Upload size={18} className="text-brass" />
+              Import Transaction History
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <p className="text-[#AAB4C3] text-sm">Upload a CSV file with historical transactions from your old account. Format: date, description, type, amount, reference</p>
+            <div className="bg-[#242D38] border-2 border-dashed border-[#242D38] rounded-lg p-6 text-center cursor-pointer hover:border-brass/50 transition-all">
+              <input
+                type="file"
+                accept=".csv"
+                onChange={e => setImportFile(e.target.files?.[0] || null)}
+                className="hidden"
+                id="import-file"
+              />
+              <label htmlFor="import-file" className="cursor-pointer">
+                <Upload size={24} className="text-brass mx-auto mb-2" />
+                <p className="text-white text-sm font-medium">{importFile ? importFile.name : 'Click to upload CSV'}</p>
+                <p className="text-[#AAB4C3] text-xs mt-1">or drag and drop</p>
+              </label>
+            </div>
+            <button
+              onClick={handleImportHistory}
+              disabled={!importFile}
+              className="w-full py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl disabled:opacity-40"
+            >
+              Import Transactions
             </button>
           </div>
         </DialogContent>

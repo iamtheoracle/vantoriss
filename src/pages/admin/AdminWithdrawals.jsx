@@ -7,10 +7,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { CheckSquare, Square, Check, X, ArrowUpRight, CheckCircle2 } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
 import { sendTransactionEmail } from '@/lib/transactionEmails';
+import TransactionFilters from '@/components/TransactionFilters';
 
 export default function AdminWithdrawals() {
   const [withdrawals, setWithdrawals] = useState([]);
   const [accounts, setAccounts] = useState([]);
+  const [filteredWithdrawals, setFilteredWithdrawals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
   const [adminNotes, setAdminNotes] = useState('');
@@ -27,10 +29,22 @@ export default function AdminWithdrawals() {
     ]);
     setWithdrawals(wds);
     setAccounts(accts);
+    setFilteredWithdrawals(wds);
     setLoading(false);
   }
 
   function getAccount(id) { return accounts.find(a => a.id === id); }
+
+  function handleFilter({ dateRange, category }) {
+    let filtered = [...withdrawals];
+    if (dateRange) {
+      filtered = filtered.filter(w => {
+        const wDate = new Date(w.created_date);
+        return wDate >= dateRange.start && wDate <= dateRange.end;
+      });
+    }
+    setFilteredWithdrawals(filtered);
+  }
 
   const pendingWds = withdrawals.filter(w => w.status === 'pending');
 
@@ -171,6 +185,12 @@ export default function AdminWithdrawals() {
 
   return (
     <OperationsPageLayout title="Withdrawals" description="Review and process withdrawal requests" icon={ArrowUpRight}>
+      {/* Filter Bar */}
+      <div className="mb-4 flex items-center gap-3">
+        <TransactionFilters onFilter={handleFilter} />
+        <span className="text-[#AAB4C3] text-xs">{filteredWithdrawals.length}/{withdrawals.length}</span>
+      </div>
+
       {/* Bulk Action Bar */}
       {pendingWds.length > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -215,7 +235,7 @@ export default function AdminWithdrawals() {
             </tr>
           </thead>
           <tbody>
-            {withdrawals.map(wd => {
+            {filteredWithdrawals.map(wd => {
               const acct = getAccount(wd.account_id);
               const isPending = wd.status === 'pending';
               return (
@@ -254,8 +274,8 @@ export default function AdminWithdrawals() {
                 </tr>
               );
             })}
-            {withdrawals.length === 0 && (
-              <tr><td colSpan={bulkMode ? 7 : 6} className="py-12 text-center text-[#AAB4C3]">No withdrawal requests</td></tr>
+            {filteredWithdrawals.length === 0 && (
+              <tr><td colSpan={bulkMode ? 7 : 6} className="py-12 text-center text-[#AAB4C3]">{withdrawals.length === 0 ? 'No withdrawal requests' : 'No withdrawals match filters'}</td></tr>
             )}
           </tbody>
         </table>
@@ -263,7 +283,7 @@ export default function AdminWithdrawals() {
 
       {/* Mobile Cards */}
       <div className="md:hidden space-y-3">
-        {withdrawals.map(wd => {
+        {filteredWithdrawals.map(wd => {
           const acct = getAccount(wd.account_id);
           const isPending = wd.status === 'pending';
           return (
@@ -296,7 +316,7 @@ export default function AdminWithdrawals() {
             </div>
           );
         })}
-        {withdrawals.length === 0 && <p className="text-center text-[#AAB4C3] py-8">No withdrawal requests</p>}
+        {filteredWithdrawals.length === 0 && <p className="text-center text-[#AAB4C3] py-8">{withdrawals.length === 0 ? 'No withdrawal requests' : 'No withdrawals match filters'}</p>}
       </div>
 
       {/* Review Dialog */}

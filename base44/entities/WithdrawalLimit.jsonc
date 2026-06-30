@@ -1,0 +1,35 @@
+{
+  "name": "WithdrawalLimit",
+  "type": "object",
+  "properties": {
+    "account_type": {
+      "type": "string",
+      "enum": [
+        "Personal",
+        "Joint",
+        "Business",
+        "Organization"
+      ],
+      "description": "Account type this limit applies to"
+    },
+    "daily_limit": {
+      "type": "number",
+      "description": "Maximum withdrawal amount per day (USD)"
+    },
+    "monthly_limit": {
+      "type": "number",
+      "description": "Maximum withdrawal amount per month (USD)"
+    },
+    "single_limit": {
+      "type": "number",
+      "description": "Maximum withdrawal amount per single request (USD)"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "account_type"
+  ]
+}

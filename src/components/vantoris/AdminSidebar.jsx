@@ -33,6 +33,7 @@ const sections = [
       { label: 'Finance Overview', path: '/operations/finance', icon: DollarSign },
       { label: 'Deposits', path: '/operations/deposits', icon: ArrowDownToLine },
       { label: 'Withdrawals', path: '/operations/withdrawals', icon: ArrowUpRight },
+      { label: 'Withdrawal Limits', path: '/operations/withdrawal-limits', icon: ShieldCheck },
       { label: 'Verification Requests', path: '/operations/verification-requests', icon: ShieldCheck },
       { label: 'Transfers', path: '/operations/transfers', icon: ArrowLeftRight },
       { label: 'Accounts', path: '/operations/accounts', icon: Wallet },
