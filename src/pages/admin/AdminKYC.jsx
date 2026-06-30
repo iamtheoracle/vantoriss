@@ -110,8 +110,9 @@ export default function AdminKYC() {
   }
 
   function toggleSelectAll() {
-    if (selectedIds.length === kycApps.length) setSelectedIds([]);
-    else setSelectedIds(kycApps.map(a => a.id));
+    const pendingApps = applications.filter(a => a.kyc_status !== 'approved');
+    if (selectedIds.length === pendingApps.length) setSelectedIds([]);
+    else setSelectedIds(pendingApps.map(a => a.id));
   }
 
   async function approveOne(app) {

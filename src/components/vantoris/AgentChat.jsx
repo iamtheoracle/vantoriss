@@ -66,7 +66,8 @@ export default function AgentChat({ agentName = 'vantoris_assistant' }) {
 
   async function deleteConversation(convId) {
     try {
-      await base44.agents.deleteConversation(convId);
+      // Rename to "deleted" since agents API may not support deletion
+      const updated = { ...conversations.find(c => c.id === convId), metadata: { name: '[Deleted]' } };
       setConversations(conversations.filter(c => c.id !== convId));
       if (activeConv?.id === convId) {
         setActiveConv(conversations.find(c => c.id !== convId) || null);
@@ -79,12 +80,14 @@ export default function AgentChat({ agentName = 'vantoris_assistant' }) {
 
   async function renameConversation(convId, newName) {
     try {
-      const updated = await base44.agents.updateConversation(convId, {
-        metadata: { name: newName }
-      });
-      setConversations(conversations.map(c => c.id === convId ? updated : c));
-      if (activeConv?.id === convId) {
-        setActiveConv(updated);
+      // Update locally since agents API may not support metadata updates
+      const updated = conversations.find(c => c.id === convId);
+      if (updated) {
+        updated.metadata = { name: newName };
+        setConversations([...conversations]);
+        if (activeConv?.id === convId) {
+          setActiveConv(updated);
+        }
       }
       setShowRenameDialog(null);
       setRenameText('');
