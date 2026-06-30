@@ -2,6 +2,7 @@ import React from 'react';
 import { TabHistoryProvider } from '@/lib/TabHistoryContext';
 import PageTransition from './PageTransition';
 import BottomNav from './BottomNav';
+import WhatsAppFloatingButton from './WhatsAppFloatingButton';
 
 export default function MemberLayout() {
   return (
@@ -11,6 +12,7 @@ export default function MemberLayout() {
           <PageTransition />
         </div>
         <BottomNav />
+        <WhatsAppFloatingButton />
       </div>
     </TabHistoryProvider>
   );

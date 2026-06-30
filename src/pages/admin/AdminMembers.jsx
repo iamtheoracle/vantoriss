@@ -56,9 +56,9 @@ export default function AdminMembers() {
       }
       await base44.entities.User.delete(deleteTarget.id);
       await logAuditEntry({
-        action_type: 'account_status_changed',
+        action_type: 'account_deleted',
         description: `Deleted member ${deleteTarget.full_name} (${deleteTarget.email})`,
-        details: 'Member account and all associated data removed',
+        details: `Email: ${deleteTarget.email} | All accounts, transactions, and associated data permanently removed`,
         target_user_id: deleteTarget.id,
       });
       setDeleteTarget(null);
