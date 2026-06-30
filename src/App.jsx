@@ -33,6 +33,7 @@ const Messages = React.lazy(() => import('./pages/Messages'));
 const Profile = React.lazy(() => import('./pages/Profile'));
 const MemberDocuments = React.lazy(() => import('./pages/MemberDocuments'));
 const MemberAdvisor = React.lazy(() => import('./pages/MemberAdvisor'));
+const Trading = React.lazy(() => import('./pages/Trading'));
 
 // Lazy-loaded pages — Admin (Operations Center)
 const AdminOverview = React.lazy(() => import('./pages/admin/AdminOverview'));
@@ -114,6 +115,7 @@ const AuthenticatedApp = () => {
               <Route path="/profile" element={<Profile />} />
               <Route path="/documents" element={<MemberDocuments />} />
               <Route path="/advisor" element={<MemberAdvisor />} />
+              <Route path="/trading" element={<Trading />} />
             </Route>
 
             {/* Non-layout member routes */}

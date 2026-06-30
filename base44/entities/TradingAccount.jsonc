@@ -1,0 +1,85 @@
+{
+  "name": "TradingAccount",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Member who owns this trading account"
+    },
+    "account_number": {
+      "type": "string",
+      "description": "Unique trading account identifier"
+    },
+    "account_name": {
+      "type": "string",
+      "description": "Display name (e.g., 'Forex Trading Account')"
+    },
+    "account_type": {
+      "type": "string",
+      "enum": [
+        "Forex",
+        "Stocks",
+        "Crypto",
+        "Mixed"
+      ],
+      "default": "Mixed"
+    },
+    "balance": {
+      "type": "number",
+      "default": 0,
+      "description": "Current trading account balance"
+    },
+    "equity": {
+      "type": "number",
+      "default": 0,
+      "description": "Current account equity"
+    },
+    "margin_used": {
+      "type": "number",
+      "default": 0,
+      "description": "Margin currently in use"
+    },
+    "margin_available": {
+      "type": "number",
+      "default": 0,
+      "description": "Available margin for trading"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "frozen",
+        "closed"
+      ],
+      "default": "active"
+    },
+    "leverage": {
+      "type": "number",
+      "default": 1,
+      "description": "Trading leverage ratio"
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "Bybit",
+        "MetaTrader",
+        "Internal"
+      ],
+      "default": "Internal",
+      "description": "Trading platform provider"
+    },
+    "platform_account_id": {
+      "type": "string",
+      "description": "External account ID on the trading platform"
+    },
+    "created_date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "user_id",
+    "account_number",
+    "account_type"
+  ]
+}
