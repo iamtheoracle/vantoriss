@@ -170,7 +170,8 @@
     "refund-policy",
     "brand-voice",
     "member-support",
-    "banking-knowledge"
+    "banking-knowledge",
+    "security-and-compliance"
   ],
   "selected_workspace_skill_ids": [],
   "model": "gpt_5_5",
