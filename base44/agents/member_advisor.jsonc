@@ -167,7 +167,8 @@
   "app_user_connector_configs": [],
   "selected_skill_names": [
     "documentation-and-audit",
-    "member-support"
+    "member-support",
+    "relationship-management"
   ],
   "selected_workspace_skill_ids": [],
   "model": "gpt_5_5",
