@@ -154,7 +154,8 @@
     "documentation-and-audit",
     "member-support",
     "problem-resolution",
-    "relationship-management"
+    "relationship-management",
+    "security-and-compliance"
   ],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
