@@ -223,7 +223,8 @@
   "selected_skill_names": [
     "documentation-and-audit",
     "banking-operations",
-    "transaction-processing"
+    "transaction-processing",
+    "account-management"
   ],
   "selected_workspace_skill_ids": [],
   "model": "gpt_5_5",
