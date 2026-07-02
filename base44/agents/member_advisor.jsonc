@@ -174,7 +174,8 @@
     "security-and-compliance",
     "vantoris-brand",
     "transaction-intelligence",
-    "documentation-and-audit"
+    "documentation-and-audit",
+    "approval-flow"
   ],
   "selected_workspace_skill_ids": [],
   "model": "gpt_5_5",
