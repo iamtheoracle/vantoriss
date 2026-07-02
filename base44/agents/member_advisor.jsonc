@@ -6,7 +6,8 @@
       "entity_name": "Account",
       "allowed_operations": [
         "read",
-        "create"
+        "create",
+        "update"
       ]
     },
     {
@@ -20,48 +21,57 @@
     {
       "entity_name": "Application",
       "allowed_operations": [
-        "read"
+        "read",
+        "create",
+        "update"
       ]
     },
     {
       "entity_name": "ServiceRequest",
       "allowed_operations": [
         "read",
-        "create"
+        "create",
+        "update"
       ]
     },
     {
       "entity_name": "WithdrawalRequest",
       "allowed_operations": [
         "read",
-        "create"
+        "create",
+        "update"
       ]
     },
     {
       "entity_name": "VerificationRequest",
       "allowed_operations": [
         "read",
-        "create"
+        "create",
+        "update"
       ]
     },
     {
       "entity_name": "MessageThread",
       "allowed_operations": [
         "read",
-        "create"
+        "create",
+        "update"
       ]
     },
     {
       "entity_name": "ThreadMessage",
       "allowed_operations": [
-        "read"
+        "read",
+        "create",
+        "update"
       ]
     },
     {
       "entity_name": "Notification",
       "allowed_operations": [
         "read",
-        "update"
+        "update",
+        "create"
       ]
     },
     {
@@ -75,7 +85,20 @@
       "entity_name": "Referral",
       "allowed_operations": [
         "read",
-        "create"
+        "create",
+        "update"
+      ]
+    },
+    {
+      "entity_name": "OperationalProfile",
+      "allowed_operations": [
+        "read"
+      ]
+    },
+    {
+      "entity_name": "TradingAccount",
+      "allowed_operations": [
+        "read"
       ]
     }
   ],
