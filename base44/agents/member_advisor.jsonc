@@ -172,7 +172,8 @@
     "banking-knowledge",
     "transaction-intelligence",
     "statement-analysis",
-    "security-and-compliance"
+    "security-and-compliance",
+    "approval-workflow"
   ],
   "selected_workspace_skill_ids": [],
   "model": "gpt_5_5",
