@@ -173,7 +173,8 @@
     "vantoris-brand",
     "transaction-intelligence",
     "documentation-and-audit",
-    "approval-workflow"
+    "approval-workflow",
+    "communication-and-brand"
   ],
   "selected_workspace_skill_ids": [],
   "model": "gpt_5_5",
