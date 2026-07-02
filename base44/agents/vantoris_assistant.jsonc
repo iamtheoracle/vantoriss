@@ -153,11 +153,7 @@
     "communication-and-brand",
     "documentation-and-audit",
     "member-support",
-    "problem-resolution",
-    "relationship-management",
-    "security-and-compliance",
-    "statement-analysis",
-    "transaction-intelligence"
+    "problem-resolution"
   ],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
