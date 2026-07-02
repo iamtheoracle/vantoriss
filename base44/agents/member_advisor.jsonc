@@ -174,7 +174,8 @@
     "documentation-and-audit",
     "approval-workflow",
     "communication-and-brand",
-    "statement-analysis"
+    "statement-analysis",
+    "problem-resolution"
   ],
   "selected_workspace_skill_ids": [],
   "model": "gpt_5_5",
