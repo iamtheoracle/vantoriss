@@ -171,7 +171,8 @@
     "brand-voice",
     "member-support",
     "banking-knowledge",
-    "security-and-compliance"
+    "security-and-compliance",
+    "approval-workflow"
   ],
   "selected_workspace_skill_ids": [],
   "model": "gpt_5_5",
