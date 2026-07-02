@@ -227,7 +227,8 @@
     "account-management",
     "payment-services",
     "card-management",
-    "compliance-and-risk"
+    "compliance-and-risk",
+    "fraud-monitoring"
   ],
   "selected_workspace_skill_ids": [],
   "model": "gpt_5_5",
