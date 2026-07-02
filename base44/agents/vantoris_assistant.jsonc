@@ -155,7 +155,8 @@
     "member-support",
     "problem-resolution",
     "relationship-management",
-    "security-and-compliance"
+    "security-and-compliance",
+    "statement-analysis"
   ],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
