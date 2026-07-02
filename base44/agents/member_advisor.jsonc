@@ -168,7 +168,8 @@
   "selected_skill_names": [
     "support-escalation",
     "refund-policy",
-    "brand-voice"
+    "brand-voice",
+    "member-support"
   ],
   "selected_workspace_skill_ids": [],
   "model": "gpt_5_5",
