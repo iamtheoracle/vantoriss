@@ -224,7 +224,8 @@
     "documentation-and-audit",
     "banking-operations",
     "transaction-processing",
-    "account-management"
+    "account-management",
+    "payment-services"
   ],
   "selected_workspace_skill_ids": [],
   "model": "gpt_5_5",
