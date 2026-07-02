@@ -170,7 +170,8 @@
     "member-support",
     "relationship-management",
     "banking-knowledge",
-    "transaction-intelligence"
+    "transaction-intelligence",
+    "statement-analysis"
   ],
   "selected_workspace_skill_ids": [],
   "model": "gpt_5_5",
