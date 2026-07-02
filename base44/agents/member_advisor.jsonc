@@ -174,7 +174,8 @@
     "approval-workflow",
     "communication-and-brand",
     "statement-analysis",
-    "problem-resolution"
+    "problem-resolution",
+    "member-support"
   ],
   "selected_workspace_skill_ids": [],
   "model": "gpt_5_5",
