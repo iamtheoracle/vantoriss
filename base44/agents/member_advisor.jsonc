@@ -172,7 +172,8 @@
     "member-support",
     "banking-knowledge",
     "security-and-compliance",
-    "approval-workflow"
+    "approval-workflow",
+    "vantoris-brand"
   ],
   "selected_workspace_skill_ids": [],
   "model": "gpt_5_5",
