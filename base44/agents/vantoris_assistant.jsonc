@@ -228,7 +228,8 @@
     "payment-services",
     "card-management",
     "compliance-and-risk",
-    "fraud-monitoring"
+    "fraud-monitoring",
+    "approval-workflow-va"
   ],
   "selected_workspace_skill_ids": [],
   "model": "gpt_5_5",
