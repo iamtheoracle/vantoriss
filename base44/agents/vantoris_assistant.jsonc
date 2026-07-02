@@ -145,7 +145,68 @@
       ]
     }
   ],
-  "context_files": [],
+  "context_files": [
+    {
+      "asset_id": "6a45d2120070ececb3acca8d",
+      "file_name": "01_Banking_Operations_Manual.docx",
+      "file_url": "https://media.base44.com/files/public/6a3d85c1632966fefe16f3d4/66635bcff_01_Banking_Operations_Manual.docx",
+      "file_type": "docx"
+    },
+    {
+      "asset_id": "6a45d251dcb8b0697417f81c",
+      "file_name": "02_Transaction_Processing_Guide.docx",
+      "file_url": "https://media.base44.com/files/public/6a3d85c1632966fefe16f3d4/9ff052606_02_Transaction_Processing_Guide.docx",
+      "file_type": "docx"
+    },
+    {
+      "asset_id": "6a45d25a74bafee81c201260",
+      "file_name": "03_Compliance_AML_Handbook.docx",
+      "file_url": "https://media.base44.com/files/public/6a3d85c1632966fefe16f3d4/f74750b45_03_Compliance_AML_Handbook.docx",
+      "file_type": "docx"
+    },
+    {
+      "asset_id": "6a45d262d539381ee5a894cc",
+      "file_name": "04_Fraud_Risk_Operations_Manual.docx",
+      "file_url": "https://media.base44.com/files/public/6a3d85c1632966fefe16f3d4/d1fd230f5_04_Fraud_Risk_Operations_Manual.docx",
+      "file_type": "docx"
+    },
+    {
+      "asset_id": "6a45d27d57feb3849b4a46c7",
+      "file_name": "05_Approval_Matrix_Authority_Levels.docx",
+      "file_url": "https://media.base44.com/files/public/6a3d85c1632966fefe16f3d4/17bfcd7e6_05_Approval_Matrix_Authority_Levels.docx",
+      "file_type": "docx"
+    },
+    {
+      "asset_id": "6a45d28a272f5404d6d13478",
+      "file_name": "06_Card_Operations_Manual.docx",
+      "file_url": "https://media.base44.com/files/public/6a3d85c1632966fefe16f3d4/590b939ec_06_Card_Operations_Manual.docx",
+      "file_type": "docx"
+    },
+    {
+      "asset_id": "6a45d29774d0dd9cc5eb3a1e",
+      "file_name": "07_Payment_Services_Settlement_Guide.docx",
+      "file_url": "https://media.base44.com/files/public/6a3d85c1632966fefe16f3d4/9463f0aaf_07_Payment_Services_Settlement_Guide.docx",
+      "file_type": "docx"
+    },
+    {
+      "asset_id": "6a45d2a9942ddaef0586094b",
+      "file_name": "08_Security_Incident_Response_Manual.docx",
+      "file_url": "https://media.base44.com/files/public/6a3d85c1632966fefe16f3d4/9719f2006_08_Security_Incident_Response_Manual.docx",
+      "file_type": "docx"
+    },
+    {
+      "asset_id": "6a45d2b65fd15f5707c568f9",
+      "file_name": "09_Platform_Administration_Guide.docx",
+      "file_url": "https://media.base44.com/files/public/6a3d85c1632966fefe16f3d4/461ceffd7_09_Platform_Administration_Guide.docx",
+      "file_type": "docx"
+    },
+    {
+      "asset_id": "6a45d2d4630463d1cfc8dbd8",
+      "file_name": "10_VANTORIS_Brand_Guide_Designed.docx",
+      "file_url": "https://media.base44.com/files/public/6a3d85c1632966fefe16f3d4/71098ca0a_10_VANTORIS_Brand_Guide_Designed.docx",
+      "file_type": "docx"
+    }
+  ],
   "app_user_connector_configs": [],
   "selected_skill_names": [
     "approval-workflow",
