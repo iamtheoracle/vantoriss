@@ -152,7 +152,12 @@
     "banking-knowledge",
     "communication-and-brand",
     "documentation-and-audit",
-    "member-support"
+    "member-support",
+    "problem-resolution",
+    "relationship-management",
+    "security-and-compliance",
+    "statement-analysis",
+    "transaction-intelligence"
   ],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
