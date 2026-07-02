@@ -173,7 +173,8 @@
     "transaction-intelligence",
     "documentation-and-audit",
     "approval-workflow",
-    "communication-and-brand"
+    "communication-and-brand",
+    "statement-analysis"
   ],
   "selected_workspace_skill_ids": [],
   "model": "gpt_5_5",
