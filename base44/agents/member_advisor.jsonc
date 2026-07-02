@@ -171,7 +171,8 @@
     "relationship-management",
     "banking-knowledge",
     "transaction-intelligence",
-    "statement-analysis"
+    "statement-analysis",
+    "security-and-compliance"
   ],
   "selected_workspace_skill_ids": [],
   "model": "gpt_5_5",
