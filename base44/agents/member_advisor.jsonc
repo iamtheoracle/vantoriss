@@ -169,8 +169,7 @@
     "security-and-compliance",
     "transaction-intelligence",
     "documentation-and-audit",
-    "statement-analysis",
-    "relationship-management"
+    "statement-analysis"
   ],
   "selected_workspace_skill_ids": [],
   "model": "gpt_5_5",
