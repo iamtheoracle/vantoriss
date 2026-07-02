@@ -225,7 +225,8 @@
     "banking-operations",
     "transaction-processing",
     "account-management",
-    "payment-services"
+    "payment-services",
+    "card-management"
   ],
   "selected_workspace_skill_ids": [],
   "model": "gpt_5_5",
