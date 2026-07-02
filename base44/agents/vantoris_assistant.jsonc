@@ -32,8 +32,7 @@
       "allowed_operations": [
         "read",
         "update",
-        "create",
-        "delete"
+        "create"
       ]
     },
     {
@@ -64,7 +63,8 @@
       "entity_name": "ThreadMessage",
       "allowed_operations": [
         "read",
-        "create"
+        "create",
+        "update"
       ]
     },
     {
@@ -72,8 +72,7 @@
       "allowed_operations": [
         "read",
         "create",
-        "update",
-        "delete"
+        "update"
       ]
     },
     {
@@ -103,45 +102,58 @@
     {
       "entity_name": "Referral",
       "allowed_operations": [
-        "read"
+        "read",
+        "update",
+        "create"
       ]
     },
     {
       "entity_name": "InternalComment",
       "allowed_operations": [
         "read",
-        "create"
+        "create",
+        "update"
       ]
     },
     {
       "entity_name": "ServiceTemplate",
       "allowed_operations": [
         "read",
-        "create"
+        "create",
+        "update"
       ]
     },
     {
       "entity_name": "WithdrawalLimit",
       "allowed_operations": [
-        "read"
+        "read",
+        "update",
+        "create"
       ]
     },
     {
       "entity_name": "AppConfiguration",
       "allowed_operations": [
-        "read"
+        "read",
+        "update",
+        "create",
+        "delete"
       ]
     },
     {
       "entity_name": "TradingAccount",
       "allowed_operations": [
-        "read"
+        "read",
+        "update",
+        "create"
       ]
     },
     {
       "entity_name": "OperationalProfile",
       "allowed_operations": [
-        "read"
+        "read",
+        "update",
+        "create"
       ]
     }
   ],
