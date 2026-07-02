@@ -169,7 +169,8 @@
     "documentation-and-audit",
     "member-support",
     "relationship-management",
-    "banking-knowledge"
+    "banking-knowledge",
+    "transaction-intelligence"
   ],
   "selected_workspace_skill_ids": [],
   "model": "gpt_5_5",
