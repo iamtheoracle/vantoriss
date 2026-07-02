@@ -168,7 +168,8 @@
   "selected_skill_names": [
     "documentation-and-audit",
     "member-support",
-    "relationship-management"
+    "relationship-management",
+    "banking-knowledge"
   ],
   "selected_workspace_skill_ids": [],
   "model": "gpt_5_5",
