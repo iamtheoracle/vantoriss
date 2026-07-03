@@ -39,6 +39,22 @@
         "read",
         "update"
       ]
+    },
+    {
+      "entity_name": "Notification",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update"
+      ]
+    },
+    {
+      "entity_name": "Referral",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update"
+      ]
     }
   ],
   "context_files": [],
