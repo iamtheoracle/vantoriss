@@ -220,9 +220,7 @@
     }
   ],
   "app_user_connector_configs": [],
-  "selected_skill_names": [
-    "fraud-monitoring"
-  ],
+  "selected_skill_names": [],
   "selected_workspace_skill_ids": [],
   "model": "gpt_5_5",
   "whatsapp_greeting": "Hello! I'm the VANTORIS Guide, your AI assistant. How can I help you today?",
