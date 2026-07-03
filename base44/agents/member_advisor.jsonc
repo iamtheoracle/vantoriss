@@ -71,6 +71,14 @@
         "create",
         "update"
       ]
+    },
+    {
+      "entity_name": "ThreadMessage",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update"
+      ]
     }
   ],
   "context_files": [],
