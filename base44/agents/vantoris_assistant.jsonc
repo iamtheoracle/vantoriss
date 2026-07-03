@@ -166,7 +166,8 @@
     "kyc-kyb-management",
     "referral-membership-management",
     "investment-premium-management",
-    "fraud-risk-monitoring"
+    "fraud-risk-monitoring",
+    "reporting-audit-management"
   ],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
