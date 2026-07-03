@@ -7,6 +7,22 @@
       "allowed_operations": [
         "read"
       ]
+    },
+    {
+      "entity_name": "Application",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update"
+      ]
+    },
+    {
+      "entity_name": "Document",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update"
+      ]
     }
   ],
   "context_files": [],
