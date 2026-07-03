@@ -55,6 +55,14 @@
         "read",
         "update"
       ]
+    },
+    {
+      "entity_name": "MessageThread",
+      "allowed_operations": [
+        "create",
+        "read",
+        "update"
+      ]
     }
   ],
   "context_files": [],
