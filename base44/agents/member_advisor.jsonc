@@ -106,8 +106,7 @@
   "app_user_connector_configs": [],
   "selected_skill_names": [
     "transaction-intelligence",
-    "statement-analysis",
-    "security-and-compliance"
+    "statement-analysis"
   ],
   "selected_workspace_skill_ids": [],
   "model": "gpt_5_5",
