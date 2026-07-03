@@ -163,7 +163,8 @@
     "operational-workflow-management",
     "application-account-management",
     "payment-verification",
-    "kyc-kyb-management"
+    "kyc-kyb-management",
+    "referral-membership-management"
   ],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
