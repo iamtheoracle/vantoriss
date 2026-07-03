@@ -63,6 +63,14 @@
         "read",
         "update"
       ]
+    },
+    {
+      "entity_name": "Transaction",
+      "allowed_operations": [
+        "read",
+        "create",
+        "update"
+      ]
     }
   ],
   "context_files": [],
