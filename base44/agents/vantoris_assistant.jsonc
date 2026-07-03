@@ -165,7 +165,8 @@
     "payment-verification",
     "kyc-kyb-management",
     "referral-membership-management",
-    "investment-premium-management"
+    "investment-premium-management",
+    "fraud-risk-monitoring"
   ],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
