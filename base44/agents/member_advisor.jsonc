@@ -124,7 +124,8 @@
     "investment-financial-services",
     "member-support",
     "security-fraud-protection",
-    "knowledge-policy-guidance"
+    "knowledge-policy-guidance",
+    "conversation-workflow-management"
   ],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
