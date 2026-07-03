@@ -101,10 +101,10 @@
   "telegram_greeting": "",
   "line_greeting": "",
   "memory_config": {
-    "enabled": false,
-    "scope": "both",
+    "enabled": true,
+    "scope": "user",
     "include_other_conversation_context": false,
-    "instructions": null
+    "instructions": "Maintain conversation continuity by remembering relevant member information, active workflows, completed steps, pending requirements, and preferences while protecting member privacy and following official VANTORIS security policies.\n\nREMEMBER\n\n\u2022 Member name\n\n\u2022 Preferred name\n\n\u2022 Preferred language\n\n\u2022 Current application\n\n\u2022 Selected account type\n\n\u2022 Referral Code\n\n\u2022 Referral Link\n\n\u2022 Current workflow stage\n\n\u2022 Completed onboarding steps\n\n\u2022 Outstanding requirements\n\n\u2022 Membership Activation Deposit status\n\n\u2022 Uploaded payment receipt\n\n\u2022 Payment verification request status\n\n\u2022 Identity verification status\n\n\u2022 Uploaded documents\n\n\u2022 Joint Account request\n\n\u2022 Premium Membership status\n\n\u2022 Investment request status\n\n\u2022 Open service requests\n\n\u2022 Open support requests\n\n\u2022 Recent conversations\n\n\u2022 Current case number\n\n\u2022 Current application number\n\n\u2022 Current ticket number\n\n\u2022 Current verification request\n\n\u2022 Current notification status\n\n\u2022 Preferred communication method\n\n\u2022 Previous guidance already provided\n\nNEVER REMEMBER\n\n\u2022 Passwords\n\n\u2022 PINs\n\n\u2022 One-time verification codes\n\n\u2022 Full Social Security Numbers\n\n\u2022 Card PINs\n\n\u2022 Security answers\n\n\u2022 Authentication tokens\n\n\u2022 API keys\n\n\u2022 Internal credentials\n\nAlways request sensitive information through official secure VANTORIS workflows when required."
   },
   "allow_anonymous_access": false,
   "name": "member_advisor"
