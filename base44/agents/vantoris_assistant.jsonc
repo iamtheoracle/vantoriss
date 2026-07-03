@@ -168,7 +168,8 @@
     "investment-premium-management",
     "fraud-risk-monitoring",
     "reporting-audit-management",
-    "notifications-communications"
+    "notifications-communications",
+    "operational-intelligence"
   ],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
