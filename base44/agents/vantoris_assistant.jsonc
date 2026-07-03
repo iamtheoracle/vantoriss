@@ -164,7 +164,8 @@
     "application-account-management",
     "payment-verification",
     "kyc-kyb-management",
-    "referral-membership-management"
+    "referral-membership-management",
+    "investment-premium-management"
   ],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
