@@ -160,7 +160,8 @@
   "context_files": [],
   "app_user_connector_configs": [],
   "selected_skill_names": [
-    "operational-workflow-management"
+    "operational-workflow-management",
+    "application-account-management"
   ],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
