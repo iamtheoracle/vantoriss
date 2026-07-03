@@ -7,8 +7,7 @@
       "allowed_operations": [
         "read",
         "create",
-        "update",
-        "delete"
+        "update"
       ]
     },
     {
@@ -72,16 +71,14 @@
       "allowed_operations": [
         "read",
         "update",
-        "create",
-        "delete"
+        "create"
       ]
     },
     {
       "entity_name": "Document",
       "allowed_operations": [
         "read",
-        "create",
-        "update"
+        "create"
       ]
     },
     {
@@ -95,23 +92,29 @@
     {
       "entity_name": "OperationalProfile",
       "allowed_operations": [
-        "read",
-        "create",
-        "update"
+        "read"
       ]
     },
     {
       "entity_name": "TradingAccount",
       "allowed_operations": [
-        "read",
-        "create",
-        "update"
+        "read"
       ]
     }
   ],
   "context_files": [],
   "app_user_connector_configs": [],
-  "selected_skill_names": [],
+  "selected_skill_names": [
+    "documentation-and-audit",
+    "member-support",
+    "relationship-management",
+    "banking-knowledge",
+    "transaction-intelligence",
+    "statement-analysis",
+    "security-and-compliance",
+    "communication-and-brand",
+    "problem-resolution"
+  ],
   "selected_workspace_skill_ids": [],
   "model": "gpt_5_5",
   "whatsapp_greeting": "",
