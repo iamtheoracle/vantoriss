@@ -117,7 +117,8 @@
   "context_files": [],
   "app_user_connector_configs": [],
   "selected_skill_names": [
-    "member-onboarding-registration"
+    "member-onboarding-registration",
+    "account-services"
   ],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
