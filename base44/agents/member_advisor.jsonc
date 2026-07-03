@@ -108,8 +108,7 @@
     "relationship-management",
     "transaction-intelligence",
     "statement-analysis",
-    "security-and-compliance",
-    "problem-resolution"
+    "security-and-compliance"
   ],
   "selected_workspace_skill_ids": [],
   "model": "gpt_5_5",
