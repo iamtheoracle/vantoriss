@@ -170,7 +170,7 @@
   ],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
-  "whatsapp_greeting": "Hello! I'm the VANTORIS Guide, your AI assistant. How can I help you today?",
+  "whatsapp_greeting": "Welcome to the VANTORIS Operations Center.\n\nI'm the VANTORIS Operations Agent, your secure AI operations assistant for authorized personnel. I can help coordinate applications, account operations, Membership Activation Deposits, payment verification, KYC and KYB workflows, referrals, Premium Membership, investments, service requests, notifications, reporting, and operational workflows using verified platform information.\n\nHow can I assist you today?",
   "telegram_greeting": "Welcome to VANTORIS Guide! I'm here to assist with KYC, accounts, transactions, and more.",
   "line_greeting": "Welcome to VANTORIS. I'm your AI assistant. What would you like help with?",
   "memory_config": {
