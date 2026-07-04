@@ -14,16 +14,15 @@
       "entity_name": "Account",
       "allowed_operations": [
         "read",
-        "update",
-        "create"
+        "update"
       ]
     },
     {
       "entity_name": "Transaction",
       "allowed_operations": [
         "read",
-        "create",
-        "update"
+        "update",
+        "create"
       ]
     },
     {
