@@ -135,8 +135,7 @@
       "allowed_operations": [
         "read",
         "update",
-        "create",
-        "delete"
+        "create"
       ]
     },
     {
