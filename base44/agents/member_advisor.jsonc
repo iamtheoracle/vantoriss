@@ -81,7 +81,68 @@
       ]
     }
   ],
-  "context_files": [],
+  "context_files": [
+    {
+      "asset_id": "6a49093c1b0482a9602668b7",
+      "file_name": "VANTORIS_KnowledgeHub_Vol01_Institution_Overview.docx",
+      "file_url": "https://media.base44.com/files/public/6a3d85c1632966fefe16f3d4/eeec1c4b6_VANTORIS_KnowledgeHub_Vol01_Institution_Overview.docx",
+      "file_type": "docx"
+    },
+    {
+      "asset_id": "6a49093d633f4b3a3da7d67b",
+      "file_name": "VANTORIS_KnowledgeHub_Vol03_Account_Banking_Services_Manual.docx",
+      "file_url": "https://media.base44.com/files/public/6a3d85c1632966fefe16f3d4/f2d344011_VANTORIS_KnowledgeHub_Vol03_Account_Banking_Services_Manual.docx",
+      "file_type": "docx"
+    },
+    {
+      "asset_id": "6a49093fe2b909fc558e4637",
+      "file_name": "VANTORIS_KnowledgeHub_Vol10_FAQ_Support_Handbook.docx",
+      "file_url": "https://media.base44.com/files/public/6a3d85c1632966fefe16f3d4/ba9118d1c_VANTORIS_KnowledgeHub_Vol10_FAQ_Support_Handbook.docx",
+      "file_type": "docx"
+    },
+    {
+      "asset_id": "6a490940e204f4298ea4d30e",
+      "file_name": "VANTORIS_KnowledgeHub_Vol05_KYC_KYB_Policy_Manual.docx",
+      "file_url": "https://media.base44.com/files/public/6a3d85c1632966fefe16f3d4/c37d28a17_VANTORIS_KnowledgeHub_Vol05_KYC_KYB_Policy_Manual.docx",
+      "file_type": "docx"
+    },
+    {
+      "asset_id": "6a4909412039b7ac3b9db057",
+      "file_name": "VANTORIS_KnowledgeHub_Vol08_Security_Fraud_Operations_Manual.docx",
+      "file_url": "https://media.base44.com/files/public/6a3d85c1632966fefe16f3d4/979e3ad5b_VANTORIS_KnowledgeHub_Vol08_Security_Fraud_Operations_Manual.docx",
+      "file_type": "docx"
+    },
+    {
+      "asset_id": "6a490942078e530903f4e7e0",
+      "file_name": "VANTORIS_KnowledgeHub_Vol06_Payments_Transfers_Manual.docx",
+      "file_url": "https://media.base44.com/files/public/6a3d85c1632966fefe16f3d4/4f6ec67d7_VANTORIS_KnowledgeHub_Vol06_Payments_Transfers_Manual.docx",
+      "file_type": "docx"
+    },
+    {
+      "asset_id": "6a4909441842e31e4af419a0",
+      "file_name": "VANTORIS_KnowledgeHub_Vol04_Operations_Center_Manual.docx",
+      "file_url": "https://media.base44.com/files/public/6a3d85c1632966fefe16f3d4/1369bb7fc_VANTORIS_KnowledgeHub_Vol04_Operations_Center_Manual.docx",
+      "file_type": "docx"
+    },
+    {
+      "asset_id": "6a490946057cce6eee67318c",
+      "file_name": "VANTORIS_KnowledgeHub_Vol09_Staff_Handbook.docx",
+      "file_url": "https://media.base44.com/files/public/6a3d85c1632966fefe16f3d4/ab0c85c43_VANTORIS_KnowledgeHub_Vol09_Staff_Handbook.docx",
+      "file_type": "docx"
+    },
+    {
+      "asset_id": "6a4909471f258718cf5087b5",
+      "file_name": "VANTORIS_KnowledgeHub_Vol07_Premium_Membership_Investment_Manual.docx",
+      "file_url": "https://media.base44.com/files/public/6a3d85c1632966fefe16f3d4/40f5f0a2f_VANTORIS_KnowledgeHub_Vol07_Premium_Membership_Investment_Manual.docx",
+      "file_type": "docx"
+    },
+    {
+      "asset_id": "6a490949057cce6eee673192",
+      "file_name": "VANTORIS_KnowledgeHub_Vol02_Member_Onboarding_Registration_Manual.docx",
+      "file_url": "https://media.base44.com/files/public/6a3d85c1632966fefe16f3d4/5e5162bf5_VANTORIS_KnowledgeHub_Vol02_Member_Onboarding_Registration_Manual.docx",
+      "file_type": "docx"
+    }
+  ],
   "app_user_connector_configs": [],
   "selected_skill_names": [
     "member-onboarding-registration",
