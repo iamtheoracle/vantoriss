@@ -181,7 +181,8 @@
     "applications-verification",
     "accounts-transactions",
     "payments-settlements",
-    "card-wallet-operations"
+    "card-wallet-operations",
+    "member-services-operations"
   ],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
