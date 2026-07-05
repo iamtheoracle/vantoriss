@@ -84,8 +84,7 @@
   "context_files": [],
   "app_user_connector_configs": [],
   "selected_skill_names": [
-    "security-fraud-protection",
-    "professional-communication"
+    "security-fraud-protection"
   ],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
