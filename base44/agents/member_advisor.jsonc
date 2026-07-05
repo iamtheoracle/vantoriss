@@ -90,7 +90,8 @@
     "cards-wallets",
     "investments-membership",
     "workflow-automation",
-    "security-compliance"
+    "security-compliance",
+    "knowledge-guidance"
   ],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
