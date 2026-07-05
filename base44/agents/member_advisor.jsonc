@@ -53,7 +53,8 @@
       "allowed_operations": [
         "create",
         "read",
-        "update"
+        "update",
+        "delete"
       ]
     },
     {
