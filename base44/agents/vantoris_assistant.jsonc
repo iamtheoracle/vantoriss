@@ -181,8 +181,7 @@
     "payment-verification",
     "referral-membership-management",
     "reporting-audit-management",
-    "notifications-communications",
-    "operational-intelligence"
+    "notifications-communications"
   ],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
