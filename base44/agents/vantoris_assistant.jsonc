@@ -180,7 +180,8 @@
     "member-operations",
     "applications-verification",
     "accounts-transactions",
-    "payments-settlements"
+    "payments-settlements",
+    "card-wallet-operations"
   ],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
