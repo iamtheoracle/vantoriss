@@ -185,7 +185,8 @@
     "member-services-operations",
     "operations-workflow-engine",
     "risk-security-compliance",
-    "operations-knowledge-center"
+    "operations-knowledge-center",
+    "operations-command-center"
   ],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
