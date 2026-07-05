@@ -179,7 +179,8 @@
   "selected_skill_names": [
     "member-operations",
     "applications-verification",
-    "accounts-transactions"
+    "accounts-transactions",
+    "payments-settlements"
   ],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
