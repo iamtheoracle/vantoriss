@@ -183,7 +183,8 @@
     "payments-settlements",
     "card-wallet-operations",
     "member-services-operations",
-    "operations-workflow-engine"
+    "operations-workflow-engine",
+    "risk-security-compliance"
   ],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
