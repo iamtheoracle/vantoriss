@@ -176,9 +176,7 @@
   ],
   "context_files": [],
   "app_user_connector_configs": [],
-  "selected_skill_names": [
-    "notifications-communications"
-  ],
+  "selected_skill_names": [],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
   "whatsapp_greeting": "Welcome to the VANTORIS Operations Center.\n\nI'm the VANTORIS Operations Agent, your secure AI operations assistant for authorized personnel. I can help coordinate applications, account operations, Membership Activation Deposits, payment verification, KYC and KYB workflows, referrals, Premium Membership, investments, service requests, notifications, reporting, and operational workflows using verified platform information.\n\nHow can I assist you today?",
