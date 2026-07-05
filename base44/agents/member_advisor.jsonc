@@ -86,7 +86,8 @@
   "selected_skill_names": [
     "member-onboarding",
     "member-banking",
-    "payments-transfers"
+    "payments-transfers",
+    "cards-wallets"
   ],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
