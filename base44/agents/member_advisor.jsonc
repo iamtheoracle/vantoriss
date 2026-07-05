@@ -83,9 +83,7 @@
   ],
   "context_files": [],
   "app_user_connector_configs": [],
-  "selected_skill_names": [
-    "security-fraud-protection"
-  ],
+  "selected_skill_names": [],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
   "whatsapp_greeting": "Welcome to VANTORIS.\n\nI'm the VANTORIS Member Advisor, your official AI banking assistant. I'm here to help you with account applications, Membership Activation Deposits, account services, Premium Membership, cards, statements, domestic and international transfers, investment requests, referrals, and general banking enquiries.\n\nFor your security, some services require identity verification, payment verification, or review by our Operations Team before they can be completed.\n\nEvery interaction is handled in accordance with official VANTORIS policies, security standards, and the VANTORIS Financial Trust Command.\n\nHow may I assist you today?",
