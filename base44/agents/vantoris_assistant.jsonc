@@ -178,7 +178,6 @@
   "app_user_connector_configs": [],
   "selected_skill_names": [
     "operational-workflow-management",
-    "application-account-management",
     "payment-verification",
     "kyc-kyb-management",
     "referral-membership-management",
