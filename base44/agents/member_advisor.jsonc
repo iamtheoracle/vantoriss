@@ -84,7 +84,6 @@
   "context_files": [],
   "app_user_connector_configs": [],
   "selected_skill_names": [
-    "member-onboarding-registration",
     "payments-transfers",
     "member-support",
     "security-fraud-protection",
