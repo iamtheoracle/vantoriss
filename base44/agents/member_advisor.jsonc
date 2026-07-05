@@ -92,7 +92,8 @@
     "workflow-automation",
     "security-compliance",
     "knowledge-guidance",
-    "platform-intelligence"
+    "platform-intelligence",
+    "member-profile-support"
   ],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
