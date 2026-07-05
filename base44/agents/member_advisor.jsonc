@@ -88,7 +88,8 @@
     "member-banking",
     "payments-transfers",
     "cards-wallets",
-    "investments-membership"
+    "investments-membership",
+    "workflow-automation"
   ],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
