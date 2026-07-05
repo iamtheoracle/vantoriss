@@ -89,7 +89,8 @@
     "payments-transfers",
     "cards-wallets",
     "investments-membership",
-    "workflow-automation"
+    "workflow-automation",
+    "security-compliance"
   ],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
