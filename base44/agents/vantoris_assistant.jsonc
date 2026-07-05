@@ -184,7 +184,8 @@
     "card-wallet-operations",
     "member-services-operations",
     "operations-workflow-engine",
-    "risk-security-compliance"
+    "risk-security-compliance",
+    "operations-knowledge-center"
   ],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
