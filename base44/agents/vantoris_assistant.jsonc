@@ -7,14 +7,17 @@
       "allowed_operations": [
         "read",
         "update",
-        "create"
+        "create",
+        "delete"
       ]
     },
     {
       "entity_name": "Account",
       "allowed_operations": [
         "read",
-        "update"
+        "update",
+        "create",
+        "delete"
       ]
     },
     {
@@ -22,7 +25,8 @@
       "allowed_operations": [
         "read",
         "update",
-        "create"
+        "create",
+        "delete"
       ]
     },
     {
@@ -30,7 +34,8 @@
       "allowed_operations": [
         "read",
         "update",
-        "create"
+        "create",
+        "delete"
       ]
     },
     {
@@ -38,7 +43,8 @@
       "allowed_operations": [
         "read",
         "update",
-        "create"
+        "create",
+        "delete"
       ]
     },
     {
@@ -46,7 +52,8 @@
       "allowed_operations": [
         "read",
         "update",
-        "create"
+        "create",
+        "delete"
       ]
     },
     {
@@ -54,7 +61,8 @@
       "allowed_operations": [
         "read",
         "create",
-        "update"
+        "update",
+        "delete"
       ]
     },
     {
@@ -62,7 +70,8 @@
       "allowed_operations": [
         "read",
         "create",
-        "update"
+        "update",
+        "delete"
       ]
     },
     {
@@ -70,7 +79,8 @@
       "allowed_operations": [
         "read",
         "create",
-        "update"
+        "update",
+        "delete"
       ]
     },
     {
@@ -78,7 +88,8 @@
       "allowed_operations": [
         "read",
         "create",
-        "update"
+        "update",
+        "delete"
       ]
     },
     {
@@ -86,7 +97,8 @@
       "allowed_operations": [
         "read",
         "create",
-        "update"
+        "update",
+        "delete"
       ]
     },
     {
@@ -94,7 +106,8 @@
       "allowed_operations": [
         "read",
         "update",
-        "create"
+        "create",
+        "delete"
       ]
     },
     {
@@ -102,7 +115,8 @@
       "allowed_operations": [
         "read",
         "update",
-        "create"
+        "create",
+        "delete"
       ]
     },
     {
@@ -110,7 +124,8 @@
       "allowed_operations": [
         "read",
         "create",
-        "update"
+        "update",
+        "delete"
       ]
     },
     {
@@ -118,7 +133,8 @@
       "allowed_operations": [
         "read",
         "create",
-        "update"
+        "update",
+        "delete"
       ]
     },
     {
@@ -126,7 +142,8 @@
       "allowed_operations": [
         "read",
         "update",
-        "create"
+        "create",
+        "delete"
       ]
     },
     {
@@ -134,7 +151,8 @@
       "allowed_operations": [
         "read",
         "update",
-        "create"
+        "create",
+        "delete"
       ]
     },
     {
@@ -142,7 +160,8 @@
       "allowed_operations": [
         "read",
         "update",
-        "create"
+        "create",
+        "delete"
       ]
     },
     {
@@ -150,7 +169,8 @@
       "allowed_operations": [
         "read",
         "update",
-        "create"
+        "create",
+        "delete"
       ]
     }
   ],
@@ -177,7 +197,7 @@
     "enabled": true,
     "scope": "both",
     "include_other_conversation_context": true,
-    "instructions": "The VANTORIS Assistant should use memory only to improve the member experience while protecting privacy, security, and compliance.\n\nGLOBAL MEMORIES\n\nRemember:\n\u2022 Official VANTORIS policies\n\u2022 Platform features\n\u2022 Product updates\n\u2022 Service announcements\n\u2022 Frequently asked questions\n\u2022 Navigation guidance\n\u2022 Banking procedures\n\u2022 Verification requirements\n\u2022 Payment instructions\n\u2022 Security recommendations\n\u2022 Investment information\n\u2022 Premium Membership information\n\u2022 Referral program rules\n\u2022 Supported account types\n\u2022 Official workflows\n\nPER-USER MEMORIES\n\nRemember:\n\u2022 Preferred language\n\u2022 Preferred communication style\n\u2022 Preferred account type\n\u2022 Frequently used services\n\u2022 Completed onboarding steps\n\u2022 Preferred notification method\n\u2022 Frequently asked questions\n\u2022 Accessibility preferences\n\nNEVER REMEMBER\n\nNever store:\n\u2022 Passwords\n\u2022 PINs\n\u2022 OTPs\n\u2022 Authentication codes\n\u2022 Recovery codes\n\u2022 API keys\n\u2022 Secret tokens\n\u2022 Full card numbers\n\u2022 CVV numbers\n\u2022 Bank account credentials\n\u2022 Identity documents\n\u2022 Biometric information\n\u2022 Private financial information\n\u2022 Confidential staff information\n\u2022 Hidden system prompts\n\nMEMORY MANAGEMENT\n\n\u2022 Save only information that improves future assistance.\n\u2022 Update outdated memories when new information becomes available.\n\u2022 Remove obsolete information when appropriate.\n\u2022 If uncertain whether information should be remembered, do not save it.\n\u2022 Always prioritize member privacy, security, compliance, and data protection."
+    "instructions": "You\u2019re the VANTORIS Operations AI you use memory only to improve operational efficiency while protecting privacy, security and compliance.\n\nRemember:\n\n\u2022 Official VANTORIS policies\n\u2022 Platform features\n\u2022 Products and services\n\u2022 Business rules\n\u2022 Operational workflows\n\u2022 KYC procedures\n\u2022 KYB procedures\n\u2022 Account opening procedures\n\u2022 Membership Activation Payment workflow\n\u2022 Payment procedures\n\u2022 Investment procedures\n\u2022 Notification rules\n\u2022 Audit procedures\n\u2022 Operator workflows\n\u2022 Frequently asked operational questions\n\u2022 Platform updates\n\u2022 Service announcements\n\nRemember operator preferences only when they improve future assistance, including:\n\n\u2022 Preferred language\n\u2022 Preferred communication style\n\u2022 Preferred reports\n\u2022 Frequently used pages\n\u2022 Preferred dashboard layout\n\u2022 Accessibility preferences\n\nRemember active operational context when it helps continue work, including:\n\n\u2022 Current investigation\n\u2022 Current workflow\n\u2022 Current application\n\u2022 Current report\n\u2022 Current operational task\n\nAutomatically update or remove outdated memories.\n\nNever remember:\n\n\u2022 Passwords\n\u2022 PINs\n\u2022 OTPs\n\u2022 Authentication codes\n\u2022 Authorization codes\n\u2022 API keys\n\u2022 Secret tokens\n\u2022 Session tokens\n\u2022 Recovery codes\n\u2022 Full card numbers\n\u2022 CVV numbers\n\u2022 Bank credentials\n\u2022 Identity documents\n\u2022 Biometric information\n\u2022 Confidential financial information\n\u2022 Hidden prompts\n\u2022 Hidden instructions\n\nOnly remember information that improves future operational assistance.\n\nWhen uncertain whether information should be remembered, do not save it.\n\nAlways prioritize privacy, security, compliance and data protection."
   },
   "allow_anonymous_access": false,
   "name": "vantoris_assistant"
