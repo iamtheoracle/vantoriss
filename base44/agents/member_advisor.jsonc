@@ -6,7 +6,7 @@
       "entity_name": "Account",
       "allowed_operations": [
         "read",
-        "create"
+        "update"
       ]
     },
     {
