@@ -8,7 +8,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { CheckSquare, Square, Check, X, ShieldCheck, Mail } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
 import { sendTransactionEmail } from '@/lib/transactionEmails';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function VerificationRequests() {
   const [requests, setRequests] = useState([]);
@@ -188,87 +187,8 @@ export default function VerificationRequests() {
     );
   }
 
-  // Analytics data
-  const statusData = [
-    { name: 'Pending', value: requests.filter(r => r.status === 'pending').length, fill: '#B08D57' },
-    { name: 'Approved', value: requests.filter(r => r.status === 'approved').length, fill: '#22c55e' },
-    { name: 'Rejected', value: requests.filter(r => r.status === 'rejected').length, fill: '#ef4444' },
-  ];
-
-  const methodData = {};
-  requests.forEach(req => {
-    methodData[req.method] = (methodData[req.method] || 0) + 1;
-  });
-  const methodChartData = Object.entries(methodData).map(([method, count]) => ({
-    name: method,
-    count,
-  }));
-
-  const totalAmount = requests.reduce((sum, r) => sum + (Math.abs(r.amount) || 0), 0);
-  const approvedAmount = requests.filter(r => r.status === 'approved').reduce((sum, r) => sum + (Math.abs(r.amount) || 0), 0);
-  const pendingAmount = requests.filter(r => r.status === 'pending').reduce((sum, r) => sum + (Math.abs(r.amount) || 0), 0);
-
   return (
     <OperationsPageLayout title="Verification Requests" description="Review and process funding submissions" icon={ShieldCheck}>
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className="vantoris-card p-4">
-          <p className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-2">Total Amount</p>
-          <p className="text-white font-bold text-2xl">{formatCurrency(totalAmount)}</p>
-          <p className="text-[#AAB4C3] text-xs mt-1">{requests.length} requests</p>
-        </div>
-        <div className="vantoris-card p-4">
-          <p className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-2">Pending Amount</p>
-          <p className="text-brass font-bold text-2xl">{formatCurrency(pendingAmount)}</p>
-          <p className="text-[#AAB4C3] text-xs mt-1">{pendingReqs.length} waiting</p>
-        </div>
-        <div className="vantoris-card p-4">
-          <p className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-2">Approved Amount</p>
-          <p className="text-emerald-400 font-bold text-2xl">{formatCurrency(approvedAmount)}</p>
-        </div>
-      </div>
-
-      {/* Analytics Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Status Distribution */}
-        <div className="vantoris-card p-6">
-          <h3 className="text-white font-semibold text-lg mb-4">Status Distribution</h3>
-          {statusData.some(d => d.value > 0) ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie data={statusData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={2} dataKey="value">
-                  {statusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={{ backgroundColor: '#0E1A2B', border: '1px solid #242D38', borderRadius: '8px' }} />
-                <Legend verticalAlign="bottom" height={36} />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <p className="text-[#AAB4C3] text-center py-12">No requests yet</p>
-          )}
-        </div>
-
-        {/* Requests by Method */}
-        <div className="vantoris-card p-6">
-          <h3 className="text-white font-semibold text-lg mb-4">Requests by Method</h3>
-          {methodChartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={methodChartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#242D38" />
-                <XAxis dataKey="name" stroke="#AAB4C3" angle={-45} textAnchor="end" height={100} />
-                <YAxis stroke="#AAB4C3" />
-                <Tooltip contentStyle={{ backgroundColor: '#0E1A2B', border: '1px solid #242D38', borderRadius: '8px' }} />
-                <Bar dataKey="count" fill="#B08D57" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <p className="text-[#AAB4C3] text-center py-12">No requests yet</p>
-          )}
-        </div>
-      </div>
-
       {/* Bulk Action Bar */}
       {pendingReqs.length > 0 && (
         <div className="flex items-center justify-between mb-4">

@@ -6,7 +6,6 @@ import InternalComments from '@/components/vantoris/InternalComments';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Check, X, Wrench, FileText, Plus, Trash2, MessageSquare } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function ServiceRequests() {
   const [requests, setRequests] = useState([]);
@@ -19,9 +18,6 @@ export default function ServiceRequests() {
   const [showTemplates, setShowTemplates] = useState(false);
   const [newTemplate, setNewTemplate] = useState({ title: '', body: '', category: 'general' });
   const [savingTemplate, setSavingTemplate] = useState(false);
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [serviceTypeFilter, setServiceTypeFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('-created_date');
 
   useEffect(() => { loadData(); }, []);
 
@@ -102,36 +98,6 @@ export default function ServiceRequests() {
     );
   }
 
-  // Filtered requests
-  let filteredRequests = requests;
-  if (statusFilter !== 'all') {
-    filteredRequests = filteredRequests.filter(r => r.status === statusFilter);
-  }
-  if (serviceTypeFilter !== 'all') {
-    filteredRequests = filteredRequests.filter(r => r.service_type === serviceTypeFilter);
-  }
-  if (sortBy === '-created_date') {
-    filteredRequests.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
-  } else if (sortBy === 'created_date') {
-    filteredRequests.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
-  }
-
-  // Analytics data
-  const statusData = [
-    { name: 'Pending', value: requests.filter(r => r.status === 'pending').length, fill: '#B08D57' },
-    { name: 'Approved', value: requests.filter(r => r.status === 'approved').length, fill: '#22c55e' },
-    { name: 'Rejected', value: requests.filter(r => r.status === 'rejected').length, fill: '#ef4444' },
-  ];
-
-  const serviceTypeData = {};
-  requests.forEach(req => {
-    serviceTypeData[req.service_type] = (serviceTypeData[req.service_type] || 0) + 1;
-  });
-  const serviceChartData = Object.entries(serviceTypeData).map(([type, count]) => ({
-    name: type,
-    count,
-  }));
-
   return (
     <OperationsPageLayout title="Service Requests" description="Review member service and product requests" icon={Wrench}
       actions={
@@ -143,79 +109,6 @@ export default function ServiceRequests() {
         </button>
       }
     >
-      {/* Analytics Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Status Distribution */}
-        <div className="vantoris-card p-6">
-          <h3 className="text-white font-semibold text-lg mb-4">Status Distribution</h3>
-          {statusData.some(d => d.value > 0) ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie data={statusData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={2} dataKey="value">
-                  {statusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={{ backgroundColor: '#0E1A2B', border: '1px solid #242D38', borderRadius: '8px' }} />
-                <Legend verticalAlign="bottom" height={36} />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <p className="text-[#AAB4C3] text-center py-12">No requests yet</p>
-          )}
-        </div>
-
-        {/* Requests by Service Type */}
-        <div className="vantoris-card p-6">
-          <h3 className="text-white font-semibold text-lg mb-4">Requests by Service Type</h3>
-          {serviceChartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={serviceChartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#242D38" />
-                <XAxis dataKey="name" stroke="#AAB4C3" />
-                <YAxis stroke="#AAB4C3" />
-                <Tooltip contentStyle={{ backgroundColor: '#0E1A2B', border: '1px solid #242D38', borderRadius: '8px' }} />
-                <Bar dataKey="count" fill="#B08D57" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <p className="text-[#AAB4C3] text-center py-12">No requests yet</p>
-          )}
-        </div>
-      </div>
-
-      {/* Filters & Sorting */}
-      <div className="flex flex-wrap items-center gap-3 mb-6">
-        <select
-          value={statusFilter}
-          onChange={e => setStatusFilter(e.target.value)}
-          className="bg-[#242D38] border border-[#242D38] rounded-lg px-3 py-2 text-white text-xs focus:border-brass/50 focus:outline-none"
-        >
-          <option value="all">All Statuses</option>
-          <option value="pending">Pending</option>
-          <option value="approved">Approved</option>
-          <option value="rejected">Rejected</option>
-        </select>
-        <select
-          value={serviceTypeFilter}
-          onChange={e => setServiceTypeFilter(e.target.value)}
-          className="bg-[#242D38] border border-[#242D38] rounded-lg px-3 py-2 text-white text-xs focus:border-brass/50 focus:outline-none"
-        >
-          <option value="all">All Services</option>
-          {[...new Set(requests.map(r => r.service_type))].map(type => (
-            <option key={type} value={type}>{type}</option>
-          ))}
-        </select>
-        <select
-          value={sortBy}
-          onChange={e => setSortBy(e.target.value)}
-          className="bg-[#242D38] border border-[#242D38] rounded-lg px-3 py-2 text-white text-xs focus:border-brass/50 focus:outline-none"
-        >
-          <option value="-created_date">Newest First</option>
-          <option value="created_date">Oldest First</option>
-        </select>
-        <span className="text-[#AAB4C3] text-xs ml-auto">{filteredRequests.length} / {requests.length}</span>
-      </div>
       <div className="vantoris-card overflow-hidden">
         <table className="w-full text-sm">
           <thead>
@@ -229,7 +122,7 @@ export default function ServiceRequests() {
             </tr>
           </thead>
           <tbody>
-            {filteredRequests.map(req => {
+            {requests.map(req => {
               const user = getUser(req.user_id);
               return (
                 <tr key={req.id} className="border-b border-[#242D38]/40 hover:bg-[#242D38]/20 transition-all">
@@ -253,8 +146,8 @@ export default function ServiceRequests() {
                 </tr>
               );
             })}
-            {filteredRequests.length === 0 && (
-              <tr><td colSpan={6} className="py-12 text-center text-[#AAB4C3]">{requests.length === 0 ? 'No service requests' : 'No requests match filters'}</td></tr>
+            {requests.length === 0 && (
+              <tr><td colSpan={6} className="py-12 text-center text-[#AAB4C3]">No service requests</td></tr>
             )}
           </tbody>
         </table>
