@@ -98,3 +98,4 @@ const WITHDRAWAL_METHODS = [
 const DESTINATIONS = [
   { id: 'saved-bank', title: 'Saved U.S. Bank', detail: 'Chase Checking ending 4821', type: 'Saved banks' },
   { id: 'linked-account', title: 'Linked BOA Account', detail: 'Personal Savings ending 0188', type: 'Linked accounts' },
+  
