@@ -1,60 +1,76 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, Mail, Sparkles } from 'lucide-react';
+import { Mail, MessageCircle, Sparkles } from 'lucide-react';
 import { useWhatsAppConfig, whatsappLinkFromConfig } from '@/hooks/useWhatsAppConfig';
-import { SUPPORT_EMAIL, BUSINESS_WHATSAPP_DISPLAY } from '@/lib/businessConfig';
+import { BUSINESS_WHATSAPP_DISPLAY, SUPPORT_EMAIL } from '@/lib/businessConfig';
+
+function SupportCard({ icon: Icon, title, detail, tone = 'blue', ...props }) {
+  const toneClass =
+    tone === 'green'
+      ? 'bg-[#E7F8F1] text-[#12805C] group-hover:bg-[#12805C]'
+      : tone === 'red'
+        ? 'bg-[#FCE7EA] text-[#E31837] group-hover:bg-[#E31837]'
+        : 'bg-[#E7EEF9] text-[#012169] group-hover:bg-[#012169]';
+
+  const Component = props.href ? 'a' : 'button';
+
+  return (
+    <Component
+      {...props}
+      className="group rounded-lg border border-[#D8DEE8] bg-white p-4 text-left shadow-sm transition hover:border-[#012169] hover:bg-[#F8FAFC]"
+    >
+      <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-lg transition group-hover:text-white ${toneClass}`}>
+        <Icon size={18} />
+      </div>
+      <p className="text-sm font-bold text-[#071A33]">{title}</p>
+      <p className="mt-1 break-words text-xs text-[#5B6472]">{detail}</p>
+    </Component>
+  );
+}
 
 export default function OnboardingSupport() {
   const whatsappNumber = useWhatsAppConfig();
   const navigate = useNavigate();
 
   return (
-    <div className="mt-5">
-      <p className="text-white font-semibold text-sm mb-3">Need help? We're here for you</p>
-      <div className="grid grid-cols-2 gap-3">
-        <button
+    <section className="mt-5">
+      <div className="mb-3">
+        <p className="text-sm font-bold text-[#071A33]">Need help? We are here for you</p>
+        <p className="mt-1 text-xs text-[#5B6472]">Get onboarding support from BOA through your preferred channel.</p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <SupportCard
+          type="button"
+          icon={Sparkles}
+          title="BOA Guide"
+          detail="AI onboarding assistant"
+          tone="red"
           onClick={() => navigate('/advisor')}
-          className="vantoris-card p-4 text-left hover:border-brass/30 transition-all"
-        >
-          <div className="w-9 h-9 rounded-xl bg-purple-500/15 flex items-center justify-center mb-2">
-            <Sparkles size={18} className="text-purple-400" />
-          </div>
-          <p className="text-white font-medium text-sm">Vantoris Guide</p>
-          <p className="text-[#AAB4C3] text-xs">AI onboarding assistant</p>
-        </button>
-        <a
-          href={whatsappLinkFromConfig(whatsappNumber, 'Hello Vantoris, I need help with my onboarding.')}
+        />
+        <SupportCard
+          icon={MessageCircle}
+          title="WhatsApp"
+          detail="Chat with support"
+          tone="green"
+          href={whatsappLinkFromConfig(whatsappNumber, 'Hello BOA, I need help with my onboarding.')}
           target="_blank"
           rel="noopener noreferrer"
-          className="vantoris-card p-4 text-left hover:border-emerald-500/30 transition-all"
-        >
-          <div className="w-9 h-9 rounded-xl bg-emerald-500/15 flex items-center justify-center mb-2">
-            <MessageCircle size={18} className="text-emerald-400" />
-          </div>
-          <p className="text-white font-medium text-sm">WhatsApp</p>
-          <p className="text-[#AAB4C3] text-xs">Chat with support</p>
-        </a>
-        <a
+        />
+        <SupportCard
+          icon={Mail}
+          title="Email"
+          detail={SUPPORT_EMAIL}
           href={`mailto:${SUPPORT_EMAIL}`}
-          className="vantoris-card p-4 text-left hover:border-blue-500/30 transition-all"
-        >
-          <div className="w-9 h-9 rounded-xl bg-blue-500/15 flex items-center justify-center mb-2">
-            <Mail size={18} className="text-blue-400" />
-          </div>
-          <p className="text-white font-medium text-sm">Email</p>
-          <p className="text-[#AAB4C3] text-xs">{SUPPORT_EMAIL}</p>
-        </a>
-        <a
+        />
+        <SupportCard
+          icon={MessageCircle}
+          title="Call Us"
+          detail={BUSINESS_WHATSAPP_DISPLAY}
+          tone="red"
           href={`tel:${BUSINESS_WHATSAPP_DISPLAY.replace(/[^0-9+]/g, '')}`}
-          className="vantoris-card p-4 text-left hover:border-brass/30 transition-all"
-        >
-          <div className="w-9 h-9 rounded-xl bg-brass/15 flex items-center justify-center mb-2">
-            <MessageCircle size={18} className="text-brass" />
-          </div>
-          <p className="text-white font-medium text-sm">Call Us</p>
-          <p className="text-[#AAB4C3] text-xs">{BUSINESS_WHATSAPP_DISPLAY}</p>
-        </a>
+        />
       </div>
-    </div>
+    </section>
   );
 }
