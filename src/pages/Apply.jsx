@@ -113,3 +113,99 @@ export default function Apply() {
             const Icon = accountType.icon;
             const selected = selectedType === accountType.type;
             return (
+              <button
+                type="button"
+                key={accountType.type}
+                onClick={() => setSelectedType(accountType.type)}
+                className={`w-full rounded-lg border p-4 text-left transition ${
+                  selected
+                    ? 'border-[#B08D57] bg-[#F5EFE5]'
+                    : 'border-[#D8DEE8] bg-white hover:border-[#B08D57]/40 hover:bg-[#F8FAFC]'
+                }`}
+              >
+                <div className="flex items-center gap-4">
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${selected ? 'bg-[#B08D57] text-white' : 'bg-[#E7EEF9] text-[#012169]'}`}>
+                    <Icon size={20} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-[#071A33]">{accountType.type} Account</p>
+                    <p className="text-xs text-[#5B6472]">{accountType.desc}</p>
+                  </div>
+                  {selected && (
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#B08D57]">
+                      <Check size={12} className="text-[#071A33]" />
+                    </div>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+          <button
+            type="button"
+            disabled={!selectedType}
+            onClick={() => setStep(2)}
+            className="mt-4 w-full rounded-lg bg-[#B08D57] py-3.5 font-bold text-[#071A33] transition disabled:opacity-40"
+          >
+            Continue
+          </button>
+        </div>
+      )}
+
+      {step === 2 && (
+        <div className="space-y-4">
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#5B6472]">Full Name</label>
+            <input
+              value={form.full_name}
+              onChange={e => setForm({ ...form, full_name: e.target.value })}
+              className={fieldClass()}
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#5B6472]">Email</label>
+            <input
+              value={form.email}
+              onChange={e => setForm({ ...form, email: e.target.value })}
+              className={fieldClass()}
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#5B6472]">Phone</label>
+            <input
+              value={form.phone}
+              onChange={e => setForm({ ...form, phone: e.target.value })}
+              className={fieldClass()}
+              placeholder="+1 (000) 000-0000"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#5B6472]">Address</label>
+            <input
+              value={form.address}
+              onChange={e => setForm({ ...form, address: e.target.value })}
+              className={fieldClass()}
+            />
+          </div>
+          {(selectedType === 'Business' || selectedType === 'Organization') && (
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#5B6472]">Business / Organization Name</label>
+              <input
+                value={form.business_name}
+                onChange={e => setForm({ ...form, business_name: e.target.value })}
+                className={fieldClass()}
+              />
+            </div>
+          )}
+          <button
+            type="button"
+            disabled={!form.full_name || !form.email || submitting}
+            onClick={handleSubmit}
+            className="mt-2 w-full rounded-lg bg-[#B08D57] py-3.5 font-bold text-[#071A33] transition disabled:opacity-40"
+          >
+            {submitting ? 'Submitting...' : 'Submit Application'}
+          </button>
+        </div>
+      )}
+    </main>
+  );
+}
