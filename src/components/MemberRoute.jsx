@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { hasOperationsAccess } from '@/lib/operationsAccess';
@@ -8,15 +8,29 @@ export default function MemberRoute() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    base44.auth.me()
-      .then(u => { setUser(u); setLoading(false); })
-      .catch(() => setLoading(false));
+    let mounted = true;
+
+    base44.auth
+      .me()
+      .then(currentUser => {
+        if (mounted) setUser(currentUser);
+      })
+      .catch(() => {
+        if (mounted) setUser(null);
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   if (loading) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-[#0E1A2B]">
-        <div className="w-8 h-8 border-2 border-brass/30 border-t-brass rounded-full animate-spin" />
+      <div className="fixed inset-0 flex items-center justify-center bg-[#F8FAFC]">
+        <div className="h-9 w-9 animate-spin rounded-full border-2 border-[#D8DEE8] border-t-[#E31837]" />
       </div>
     );
   }
