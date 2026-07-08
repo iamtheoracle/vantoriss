@@ -13,7 +13,6 @@ import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { ArrowUpRight, ArrowDownLeft, Bell, ChevronRight, TrendingUp, Clock, Briefcase, Sparkles, Mail, MessageCircle } from 'lucide-react';
 import { whatsappLink, BUSINESS_WHATSAPP_NUMBER } from '@/lib/businessConfig';
 import { useWhatsAppConfig, whatsappLinkFromConfig } from '@/hooks/useWhatsAppConfig';
-
 export default function Home() {
   const whatsappNumber = useWhatsAppConfig();
   const [user, setUser] = useState(null);
@@ -23,7 +22,6 @@ export default function Home() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
   const loadData = useCallback(async () => {
     const me = await base44.auth.me();
     setUser(me);
@@ -35,7 +33,6 @@ export default function Home() {
     setApplication(apps[0] || null);
     setAccounts(accts);
     setNotifications(notifs);
-
     if (accts.length > 0) {
       const txns = await base44.entities.Transaction.filter(
         { account_id: accts.map(a => a.id) },
@@ -45,13 +42,10 @@ export default function Home() {
       setTransactions(txns);
     }
   }, []);
-
   useEffect(() => {
     loadData().catch(e => console.error(e)).finally(() => setLoading(false));
   }, [loadData]);
-
   const { containerProps, PullIndicator } = usePullToRefresh(loadData);
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -59,14 +53,12 @@ export default function Home() {
       </div>
     );
   }
-
   const totalBalance = accounts.reduce((sum, a) => sum + (a.balance || 0), 0);
   const pendingWithdrawals = transactions.filter(t => t.type === 'withdrawal').length;
   const firstName = user?.full_name?.split(' ')[0] || 'Member';
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
   const unreadCount = notifications.filter(n => !n.read).length;
-
   // If no application yet, show onboarding prompt
   if (!application) {
     return (
@@ -94,7 +86,6 @@ export default function Home() {
       </div>
     );
   }
-
   // If application pending or KYC not approved
   if (application.application_status === 'pending') {
     return (
@@ -136,7 +127,6 @@ export default function Home() {
       </div>
     );
   }
-
   if (application.application_status === 'rejected') {
     return (
       <div className="px-5 pt-6">
@@ -154,7 +144,6 @@ export default function Home() {
       </div>
     );
   }
-
   // Approved member dashboard
   return (
     <div className="px-5 pt-6 vantoris-scroll" {...containerProps}>
@@ -177,7 +166,6 @@ export default function Home() {
           )}
         </button>
       </div>
-
       {/* Total Balance Card */}
       <div className="vantoris-card p-6 mb-5 relative overflow-hidden">
         <div className="vantoris-balance-glow absolute inset-0" />
@@ -189,7 +177,6 @@ export default function Home() {
           <p className="text-[#AAB4C3] text-xs">{accounts.length} {accounts.length === 1 ? 'Account' : 'Accounts'}</p>
         </div>
       </div>
-
       {/* Quick Stats */}
       <div className="grid grid-cols-2 gap-3 mb-6">
         <div className="vantoris-card p-4">
@@ -211,7 +198,6 @@ export default function Home() {
           <p className="text-[#AAB4C3] text-[11px]">Unread Messages</p>
         </div>
       </div>
-
       {/* Quick Access */}
       <div className="grid grid-cols-2 gap-3 mb-6">
         <button onClick={() => navigate('/services')} className="vantoris-card p-4 text-left hover:border-brass/30 transition-all">
@@ -229,7 +215,6 @@ export default function Home() {
           <p className="text-[#AAB4C3] text-xs">AI guidance</p>
         </button>
       </div>
-
       {/* My Accounts */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-3">
@@ -253,7 +238,6 @@ export default function Home() {
           </button>
         ))}
       </div>
-
       {/* Recent Activity */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-3">
@@ -295,17 +279,14 @@ export default function Home() {
           ))
         )}
       </div>
-
       {/* Social Banner */}
       <div className="mb-6">
         <SocialBanner />
       </div>
-
       {/* Causes We Support */}
       <div className="mb-6">
         <SupportedCauses />
       </div>
-
       {/* Vantoris Guide */}
       <div className="mb-6">
         <VantorisGuide />
