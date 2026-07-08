@@ -17,7 +17,12 @@
         "Bank Transfer",
         "Wire Transfer",
         "Crypto Withdrawal",
-        "Internal Transfer"
+        "Internal Transfer",
+        "ACH Transfer",
+        "Domestic Wire",
+        "International Wire",
+        "External Linked Bank",
+        "Check by Mail"
       ]
     },
     "notes": {
