@@ -1,203 +1,193 @@
-function ChartPanel({ title, children }) {
-  return (
-    <section className="rounded-lg border border-[#D8DEE8] bg-white p-5 shadow-sm">
-      <h3 className="mb-4 text-base font-semibold text-[#071A33]">{title}</h3>
-      {children}
-    </section>
-  );
-}
-
-function EmptyChart({ label }) {
-  return (
-    <div className="flex h-[250px] items-center justify-center rounded-md border border-dashed border-[#D8DEE8] bg-[#F8FAFC]">
-      <p className="text-sm font-medium text-[#6B7280]">{label}</p>
-    </div>
-  );
-}
+import React, { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { formatCurrency } from '@/lib/formatCurrency';
 
 export default function ReportingDashboard() {
-  const [data, setData] = useState(emptyReport);
+  const [data, setData] = useState({
+    aumTrend: [],
+    memberGrowth: [],
+    txnVolume: [],
+    accountStatusBreakdown: [],
+    topMetrics: { aum: 0, avgBalance: 0, activeCount: 0, totalTxns: 0 }
+  });
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
 
-  useEffect(() => {
-    let mounted = true;
+  useEffect(() => { loadReportData(); }, []);
 
-    async function loadReportData() {
-      setLoading(true);
-      setError('');
+  async function loadReportData() {
+    try {
+      const [users, accounts, transactions] = await Promise.all([
+        base44.entities.User.list('-created_date', 200),
+        base44.entities.Account.list('-created_date', 200),
+        base44.entities.Transaction.list('-created_date', 300),
+      ]);
 
-      try {
-        const [users, accounts, transactions] = await Promise.all([
-          base44.entities.User.list('-created_date', 200),
-          base44.entities.Account.list('-created_date', 200),
-          base44.entities.Transaction.list('-created_date', 300),
-        ]);
+      const memberUsers = users.filter(u => u.role === 'user');
+      const totalAum = accounts.reduce((sum, a) => sum + (a.balance || 0), 0);
+      const avgBalance = memberUsers.length > 0 ? totalAum / memberUsers.length : 0;
+      const activeCount = accounts.filter(a => a.status === 'active').length;
+      const frozenCount = accounts.filter(a => a.status === 'frozen').length;
 
-        if (!mounted) return;
+      // Member growth trend (last 30 days, by week)
+      const today = new Date();
+      const memberGrowthData = [];
+      for (let i = 3; i >= 0; i--) {
+        const weekStart = new Date(today);
+        weekStart.setDate(weekStart.getDate() - (i * 7 + 7));
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 7);
 
-        const memberUsers = users.filter(user => user.role === 'user');
-        const totalAum = accounts.reduce((sum, account) => sum + Number(account.balance || 0), 0);
-        const avgBalance = memberUsers.length > 0 ? totalAum / memberUsers.length : 0;
-        const activeCount = accounts.filter(account => account.status === 'active').length;
-        const frozenCount = accounts.filter(account => account.status === 'frozen').length;
+        const weekMembers = memberUsers.filter(u => {
+          const created = new Date(u.created_date);
+          return created >= weekStart && created <= weekEnd;
+        }).length;
 
-        const txnCounts = transactions.reduce((acc, transaction) => {
-          const type = formatTransactionType(transaction.type);
-          acc[type] = (acc[type] || 0) + 1;
-          return acc;
-        }, {});
-
-        setData({
-          aumTrend: buildAumTrend(totalAum),
-          memberGrowth: buildMemberGrowth(memberUsers),
-          txnVolume: Object.entries(txnCounts).map(([name, value]) => ({ name, value })),
-          accountStatusBreakdown: [
-            { name: 'Active', value: activeCount, fill: BOA_COLORS.success },
-            { name: 'Frozen', value: frozenCount, fill: BOA_COLORS.red },
-          ],
-          topMetrics: {
-            aum: totalAum,
-            avgBalance,
-            activeCount,
-            frozenCount,
-            totalTxns: transactions.length,
-          },
+        memberGrowthData.push({
+          week: `Week ${4 - i}`,
+          members: weekMembers,
         });
-      } catch (err) {
-        console.error(err);
-        if (mounted) setError('Unable to load reporting data.');
-      } finally {
-        if (mounted) setLoading(false);
       }
-    }
 
-    loadReportData();
+      // Transaction volume by type
+      const txnByType = {};
+      transactions.forEach(t => {
+        txnByType[t.type] = (txnByType[t.type] || 0) + 1;
+      });
+      const txnVolumeData = Object.entries(txnByType).map(([type, count]) => ({
+        name: type.replace('_', ' '),
+        value: count,
+      }));
 
-    return () => {
-      mounted = false;
-    };
-  }, []);
+      // Account status breakdown
+      const accountStatusData = [
+        { name: 'Active', value: activeCount, fill: '#4ade80' },
+        { name: 'Frozen', value: frozenCount, fill: '#ef4444' },
+      ];
 
-  const tooltipStyle = useMemo(
-    () => ({
-      backgroundColor: BOA_COLORS.surface,
-      border: `1px solid ${BOA_COLORS.border}`,
-      borderRadius: 8,
-      color: BOA_COLORS.ink,
-      boxShadow: '0 12px 30px rgba(15, 23, 42, 0.14)',
-    }),
-    []
-  );
+      // AUM trend (simulated historical data)
+      const aumTrendData = [
+        { month: 'Jan', aum: totalAum * 0.6 },
+        { month: 'Feb', aum: totalAum * 0.7 },
+        { month: 'Mar', aum: totalAum * 0.8 },
+        { month: 'Apr', aum: totalAum * 0.9 },
+        { month: 'May', aum: totalAum * 0.95 },
+        { month: 'Jun', aum: totalAum },
+      ];
+
+      setData({
+        aumTrend: aumTrendData,
+        memberGrowth: memberGrowthData,
+        txnVolume: txnVolumeData,
+        accountStatusBreakdown: accountStatusData,
+        topMetrics: { aum: totalAum, avgBalance, activeCount, totalTxns: transactions.length }
+      });
+    } catch (e) { console.error(e); }
+    setLoading(false);
+  }
 
   if (loading) {
     return (
-      <div className="flex h-96 items-center justify-center bg-[#F8FAFC]">
-        <div className="h-9 w-9 animate-spin rounded-full border-2 border-[#D8DEE8] border-t-[#E31837]" />
+      <div className="flex items-center justify-center h-96">
+        <div className="w-8 h-8 border-2 border-brass/30 border-t-brass rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen space-y-6 bg-[#F8FAFC] p-4 sm:p-6">
-      <header className="flex flex-col gap-3 border-b border-[#D8DEE8] pb-5 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#E31837]">BOA Reporting</p>
-          <h1 className="mt-2 text-2xl font-bold text-[#071A33]">Executive Dashboard</h1>
+    <div className="space-y-6">
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="vantoris-card p-5">
+          <p className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-2">Total AUM</p>
+          <p className="text-white font-bold text-2xl">{formatCurrency(data.topMetrics.aum)}</p>
         </div>
-        <div className="rounded-md bg-[#012169] px-4 py-2 text-sm font-semibold text-white">
-          Assets, members, and transaction health
+        <div className="vantoris-card p-5">
+          <p className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-2">Avg Balance / Member</p>
+          <p className="text-white font-bold text-2xl">{formatCurrency(data.topMetrics.avgBalance)}</p>
         </div>
-      </header>
-
-      {error && (
-        <div className="rounded-lg border border-[#F4A7B2] bg-[#FCE7EA] px-4 py-3 text-sm font-semibold text-[#7F1020]">
-          {error}
+        <div className="vantoris-card p-5">
+          <p className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-2">Active Accounts</p>
+          <p className="text-white font-bold text-2xl">{data.topMetrics.activeCount}</p>
         </div>
-      )}
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Total AUM" value={formatCurrency(data.topMetrics.aum)} tone="red" />
-        <MetricCard label="Avg Balance / Member" value={formatCurrency(data.topMetrics.avgBalance)} />
-        <MetricCard label="Active Accounts" value={data.topMetrics.activeCount.toLocaleString()} />
-        <MetricCard label="Total Transactions" value={data.topMetrics.totalTxns.toLocaleString()} tone="red" />
+        <div className="vantoris-card p-5">
+          <p className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-2">Total Transactions</p>
+          <p className="text-white font-bold text-2xl">{data.topMetrics.totalTxns}</p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <ChartPanel title="AUM Trend">
+      {/* Charts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* AUM Trend */}
+        <div className="vantoris-card p-5">
+          <h3 className="text-white font-semibold mb-4">AUM Trend</h3>
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={data.aumTrend}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-              <XAxis dataKey="month" stroke={BOA_COLORS.muted} />
-              <YAxis stroke={BOA_COLORS.muted} tickFormatter={value => formatCurrency(value)} width={90} />
-              <Tooltip contentStyle={tooltipStyle} formatter={value => formatCurrency(value)} />
-              <Line
-                type="monotone"
-                dataKey="aum"
-                name="AUM"
-                stroke={BOA_COLORS.red}
-                strokeWidth={3}
-                dot={{ fill: BOA_COLORS.red, strokeWidth: 0, r: 4 }}
-              />
+              <CartesianGrid strokeDasharray="3 3" stroke="#242D38" />
+              <XAxis dataKey="month" stroke="#AAB4C3" />
+              <YAxis stroke="#AAB4C3" />
+              <Tooltip contentStyle={{ backgroundColor: '#0E1A2B', border: '1px solid #242D38' }} />
+              <Line type="monotone" dataKey="aum" stroke="#B08D57" strokeWidth={2} dot={{ fill: '#B08D57' }} />
             </LineChart>
           </ResponsiveContainer>
-        </ChartPanel>
+        </div>
 
-        <ChartPanel title="Member Growth (Last 30 Days)">
+        {/* Member Growth */}
+        <div className="vantoris-card p-5">
+          <h3 className="text-white font-semibold mb-4">Member Growth (Last 30 Days)</h3>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={data.memberGrowth}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-              <XAxis dataKey="week" stroke={BOA_COLORS.muted} />
-              <YAxis stroke={BOA_COLORS.muted} allowDecimals={false} />
-              <Tooltip contentStyle={tooltipStyle} />
-              <Bar dataKey="members" name="Members" fill={BOA_COLORS.blue} radius={[6, 6, 0, 0]} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#242D38" />
+              <XAxis dataKey="week" stroke="#AAB4C3" />
+              <YAxis stroke="#AAB4C3" />
+              <Tooltip contentStyle={{ backgroundColor: '#0E1A2B', border: '1px solid #242D38' }} />
+              <Bar dataKey="members" fill="#4ade80" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-        </ChartPanel>
+        </div>
 
-        <ChartPanel title="Account Status Breakdown">
-          {data.accountStatusBreakdown.some(item => item.value > 0) ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie
-                  data={data.accountStatusBreakdown}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={62}
-                  outerRadius={96}
-                  paddingAngle={4}
-                  dataKey="value"
-                >
-                  {data.accountStatusBreakdown.map(entry => (
-                    <Cell key={entry.name} fill={entry.fill} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={tooltipStyle} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <EmptyChart label="No account status data" />
-          )}
-        </ChartPanel>
+        {/* Account Status */}
+        <div className="vantoris-card p-5">
+          <h3 className="text-white font-semibold mb-4">Account Status Breakdown</h3>
+          <ResponsiveContainer width="100%" height={250}>
+            <PieChart>
+              <Pie
+                data={data.accountStatusBreakdown}
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={100}
+                paddingAngle={5}
+                dataKey="value"
+              >
+                {data.accountStatusBreakdown.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                ))}
+              </Pie>
+              <Tooltip contentStyle={{ backgroundColor: '#0E1A2B', border: '1px solid #242D38' }} />
+              <Legend wrapperStyle={{ color: '#AAB4C3' }} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
 
-        <ChartPanel title="Transaction Volume by Type">
+        {/* Transaction Volume */}
+        <div className="vantoris-card p-5">
+          <h3 className="text-white font-semibold mb-4">Transaction Volume by Type</h3>
           {data.txnVolume.length > 0 ? (
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={data.txnVolume}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                <XAxis dataKey="name" stroke={BOA_COLORS.muted} />
-                <YAxis stroke={BOA_COLORS.muted} allowDecimals={false} />
-                <Tooltip contentStyle={tooltipStyle} />
-                <Bar dataKey="value" name="Transactions" fill={BOA_COLORS.red} radius={[6, 6, 0, 0]} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#242D38" />
+                <XAxis dataKey="name" stroke="#AAB4C3" />
+                <YAxis stroke="#AAB4C3" />
+                <Tooltip contentStyle={{ backgroundColor: '#0E1A2B', border: '1px solid #242D38' }} />
+                <Bar dataKey="value" fill="#B08D57" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <EmptyChart label="No transaction data" />
+            <p className="text-[#AAB4C3] text-center py-8">No transaction data</p>
           )}
-        </ChartPanel>
+        </div>
       </div>
     </div>
   );
 }
-
