@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sparkles, LifeBuoy, BookOpen, Send } from 'lucide-react';
+import { Sparkles, LifeBuoy, ArrowLeftRight, Send } from 'lucide-react';
 import { useWhatsAppConfig, whatsappLinkFromConfig } from '@/hooks/useWhatsAppConfig';
 
 const actions = [
   { label: 'Support', icon: LifeBuoy },
   { label: 'Advisor', icon: Sparkles },
-  { label: 'Guide', icon: BookOpen },
-  { label: 'Zelle', icon: Send, comingSoon: true },
+  { label: 'Transfer', icon: ArrowLeftRight },
+  { label: 'Zelle', icon: Send },
 ];
 
 export default function FloatingCommandDock() {
@@ -17,7 +17,6 @@ export default function FloatingCommandDock() {
   const [pressed, setPressed] = useState(null);
 
   function handleAction(action) {
-    if (action.comingSoon) return;
     if (action.label === 'Support') {
       window.open(
         whatsappLinkFromConfig(whatsappNumber, 'Hello Vantoris Support, I have a question regarding my account.'),
@@ -26,7 +25,8 @@ export default function FloatingCommandDock() {
       return;
     }
     if (action.label === 'Advisor') { navigate('/advisor'); return; }
-    if (action.label === 'Guide') { navigate('/advisor/home'); return; }
+    if (action.label === 'Transfer') { navigate('/move-money'); return; }
+    if (action.label === 'Zelle') { navigate('/move-money?tab=zelle'); return; }
   }
 
   return (
@@ -52,12 +52,7 @@ export default function FloatingCommandDock() {
               style={{ background: isPressed ? 'rgba(255,255,255,0.12)' : 'transparent' }}
             >
               <Icon size={18} strokeWidth={2} className="text-white" />
-              <div className="flex items-center gap-1">
-                <span className="text-white text-[10px] font-semibold">{action.label}</span>
-                {action.comingSoon && (
-                  <span className="text-[7px] text-white/60 uppercase tracking-wider font-bold bg-white/10 px-1 py-0.5 rounded">Soon</span>
-                )}
-              </div>
+              <span className="text-white text-[10px] font-semibold">{action.label}</span>
             </motion.button>
           );
         })}

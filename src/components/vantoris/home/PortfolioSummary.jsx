@@ -37,7 +37,7 @@ export default function PortfolioSummary({ tradingAccounts = [] }) {
           <Briefcase size={15} className="text-brass" />
           <h3 className="text-foreground font-semibold text-sm">Portfolio Summary</h3>
         </div>
-        <button onClick={() => navigate('/trading')} className="text-brass text-xs font-medium flex items-center gap-0.5">
+        <button onClick={() => navigate('/investments')} className="text-brass text-xs font-medium flex items-center gap-0.5">
           View All <ChevronRight size={12} />
         </button>
       </div>
@@ -99,7 +99,7 @@ export default function PortfolioSummary({ tradingAccounts = [] }) {
 
           {hasCrypto && (
             <button
-              onClick={() => navigate('/trading')}
+              onClick={() => navigate('/investments')}
               className="mt-3 w-full flex items-center justify-between p-2.5 rounded-xl bg-champagne/[0.06] hover:bg-champagne/[0.1] transition-all border border-champagne/10"
             >
               <div className="flex items-center gap-2">

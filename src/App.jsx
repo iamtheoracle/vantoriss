@@ -35,6 +35,9 @@ const Profile = React.lazy(() => import('./pages/Profile'));
 const MemberDocuments = React.lazy(() => import('./pages/MemberDocuments'));
 const MemberAdvisor = React.lazy(() => import('./pages/MemberAdvisor'));
 const Trading = React.lazy(() => import('./pages/Trading'));
+const MoveMoney = React.lazy(() => import('./pages/MoveMoney'));
+const Investments = React.lazy(() => import('./pages/Investments'));
+const More = React.lazy(() => import('./pages/More'));
 const TransactionDispute = React.lazy(() => import('./pages/TransactionDispute'));
 
 // Lazy-loaded pages — Admin (Operations Center)
@@ -123,6 +126,9 @@ const AuthenticatedApp = () => {
               <Route path="/documents" element={<MemberDocuments />} />
               <Route path="/advisor" element={<MemberAdvisor />} />
               <Route path="/trading" element={<Trading />} />
+              <Route path="/move-money" element={<MoveMoney />} />
+              <Route path="/investments" element={<Investments />} />
+              <Route path="/more" element={<More />} />
               <Route path="/transaction-dispute" element={<TransactionDispute />} />
               <Route path="/guide" element={<MemberAdvisor />} />
             </Route>

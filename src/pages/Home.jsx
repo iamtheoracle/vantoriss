@@ -3,8 +3,6 @@ import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import ShieldLogo from '@/components/vantoris/ShieldLogo';
 import StatusBadge from '@/components/vantoris/StatusBadge';
-import VantorisGuide from '@/components/vantoris/VantorisGuide';
-import SupportedCauses from '@/components/vantoris/SupportedCauses';
 import OnboardingSupport from '@/components/vantoris/OnboardingSupport';
 import OpeningContribution from '@/components/vantoris/OpeningContribution';
 import SocialBanner from '@/components/vantoris/SocialBanner';
@@ -247,14 +245,6 @@ export default function Home() {
       {/* === Zone 3: Supporting Content === */}
       <div className="mb-5">
         <SocialBanner />
-      </div>
-
-      <div className="mb-5">
-        <SupportedCauses />
-      </div>
-
-      <div className="mb-5">
-        <VantorisGuide />
       </div>
     </div>
   );
