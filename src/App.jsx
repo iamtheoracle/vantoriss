@@ -39,6 +39,7 @@ const MoveMoney = React.lazy(() => import('./pages/MoveMoney'));
 const Investments = React.lazy(() => import('./pages/Investments'));
 const More = React.lazy(() => import('./pages/More'));
 const TransactionDispute = React.lazy(() => import('./pages/TransactionDispute'));
+const BrandIdentity = React.lazy(() => import('./pages/BrandIdentity'));
 
 // Lazy-loaded pages — Admin (Operations Center)
 const AdminOverview = React.lazy(() => import('./pages/admin/AdminOverview'));
@@ -107,6 +108,7 @@ const AuthenticatedApp = () => {
       <Routes>
         <Route element={<PageTransition />}>
           <Route path="/login" element={<Login />} />
+          <Route path="/brand" element={<BrandIdentity />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />

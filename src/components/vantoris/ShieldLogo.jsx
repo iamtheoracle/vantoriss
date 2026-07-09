@@ -1,12 +1,15 @@
 import React from 'react';
+import VantorisMonogram from '@/components/vantoris/brand/VantorisMonogram';
 
-export default function ShieldLogo({ size = 40, className = '' }) {
+export default function ShieldLogo({ size = 40, className = '', variant = 'metallic', theme }) {
+  // Auto-detect: dark backgrounds get the gold/dark treatment by default for premium feel
+  const resolvedTheme = theme || 'light';
   return (
-    <img
-      src="https://media.base44.com/images/public/6a3d85c1632966fefe16f3d4/90bb62306_image.png"
-      alt="Vantoris"
+    <VantorisMonogram
+      size={size}
+      variant={variant}
+      theme={resolvedTheme}
       className={className}
-      style={{ width: size, height: size, objectFit: 'contain' }}
     />
   );
 }
