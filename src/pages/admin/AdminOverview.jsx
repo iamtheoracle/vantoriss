@@ -4,12 +4,12 @@ import { formatCurrency } from '@/lib/formatCurrency';
 import { Users, FileText, ArrowDownToLine, Wallet, Briefcase } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import StatusBadge from '@/components/vantoris/StatusBadge';
-import AumChart from '@/components/vantoris/AumChart';
 import QuickReview from '@/components/vantoris/QuickReview';
 import DailyEmailSummary from '@/components/vantoris/DailyEmailSummary';
 import QuickActionsMenu from '@/components/vantoris/QuickActionsMenu';
 import ReportingDashboard from '@/components/vantoris/ReportingDashboard';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
+import PremiumStatCard from '@/components/vantoris/PremiumStatCard';
 
 export default function AdminOverview() {
   const navigate = useNavigate();
@@ -73,13 +73,6 @@ export default function AdminOverview() {
     );
   }
 
-  const statCards = [
-    { label: 'Total Members', value: stats.members, icon: Users, color: 'text-blue-400', bg: 'bg-blue-500/15', path: '/operations/members' },
-    { label: 'Pending Apps', value: stats.pendingApps, icon: FileText, color: 'text-brass', bg: 'bg-brass/15', path: '/operations/applications' },
-    { label: 'Pending Withdrawals', value: stats.pendingWithdrawals, icon: ArrowDownToLine, color: 'text-red-400', bg: 'bg-crimson/15', path: '/operations/withdrawals' },
-    { label: 'Total Balance (AUM)', value: formatCurrency(stats.totalBalance), icon: Wallet, color: 'text-emerald-400', bg: 'bg-olive/20', large: true, path: '/operations/finance' },
-  ];
-
   return (
     <OperationsPageLayout
       title="Operations Dashboard"
@@ -93,39 +86,56 @@ export default function AdminOverview() {
         </div>
       }
     >
+      {/* Stat Grid — Hero AUM + critical ops metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 lg:mb-8">
-        {statCards.map(card => {
-          const Icon = card.icon;
-          return (
-            <button
-              key={card.label}
-              onClick={() => navigate(card.path)}
-              className="vantoris-card p-4 sm:p-5 text-left hover:border-brass/30 transition-all"
-            >
-              <div className="flex items-center justify-between mb-2 sm:mb-3">
-                <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center ${card.bg}`}>
-                  <Icon size={18} className={card.color} />
-                </div>
-              </div>
-              <p className={`font-bold text-white ${card.large ? 'text-lg sm:text-2xl' : 'text-xl sm:text-3xl'} leading-tight break-words`}>
-                {card.value}
-              </p>
-              <p className="text-[#AAB4C3] text-[11px] sm:text-xs mt-1">{card.label}</p>
-            </button>
-          );
-        })}
+        <PremiumStatCard
+          hero
+          label="Assets Under Management"
+          value={formatCurrency(stats.totalBalance)}
+          sublabel="Total across all member accounts"
+          icon={Wallet}
+          accent="brass"
+          onClick={() => navigate('/operations/finance')}
+        />
+        <PremiumStatCard
+          label="Total Members"
+          value={stats.members}
+          icon={Users}
+          accent="blue"
+          onClick={() => navigate('/operations/members')}
+        />
+        <PremiumStatCard
+          label="Pending Applications"
+          value={stats.pendingApps}
+          icon={FileText}
+          accent="gold"
+          onClick={() => navigate('/operations/applications')}
+        />
+        <PremiumStatCard
+          label="Pending Withdrawals"
+          value={stats.pendingWithdrawals}
+          icon={ArrowDownToLine}
+          accent="crimson"
+          onClick={() => navigate('/operations/withdrawals')}
+        />
       </div>
 
-      <div className="mb-6 lg:mb-8">
-        <h2 className="text-white font-semibold text-base mb-4">Platform Analytics</h2>
-        <ReportingDashboard />
+      {/* Analytics + Quick Review */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-6 lg:mb-8">
+        <div className="xl:col-span-2">
+          <div className="flex items-center gap-2 mb-3">
+            <Briefcase size={16} className="text-brass" />
+            <h2 className="text-white font-semibold text-sm">Platform Analytics</h2>
+          </div>
+          <ReportingDashboard />
+        </div>
+        <div>
+          <QuickReview oldestApps={quickReview.oldestApps} recentWithdrawals={quickReview.recentWithdrawals} />
+        </div>
       </div>
 
-      <div className="mb-6 lg:mb-8">
-        <QuickReview oldestApps={quickReview.oldestApps} recentWithdrawals={quickReview.recentWithdrawals} />
-      </div>
-
-      <div className="vantoris-card p-4 sm:p-5">
+      {/* Recent Queue */}
+      <div className="vantoris-glass p-4 sm:p-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-white font-semibold text-sm">Recent Queue</h3>
           <span className="text-[#AAB4C3] text-xs">{recentItems.length} pending items</span>
@@ -135,7 +145,7 @@ export default function AdminOverview() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[#242D38]">
+                <tr className="border-b border-white/[0.06]">
                   <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider py-3 pr-4">Type</th>
                   <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider py-3 pr-4">Details</th>
                   <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider py-3 pr-4">Submitted</th>
@@ -144,7 +154,7 @@ export default function AdminOverview() {
               </thead>
               <tbody>
                 {recentItems.map(item => (
-                  <tr key={item.id} className="border-b border-[#242D38]/40 last:border-0 hover:bg-[#242D38]/30 transition-all">
+                  <tr key={item.id} className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.03] transition-all">
                     <td className="py-3 pr-4">
                       <span className={`px-2 py-1 rounded text-xs font-medium ${
                         item.type === 'Application' ? 'bg-brass/10 text-brass' : 'bg-crimson/10 text-red-400'
@@ -176,7 +186,7 @@ export default function AdminOverview() {
 
         <div className="md:hidden space-y-2">
           {recentItems.map(item => (
-            <div key={item.id} className="border border-[#242D38]/40 rounded-xl p-3">
+            <div key={item.id} className="border border-white/[0.06] rounded-xl p-3 bg-white/[0.02]">
               <div className="flex items-center justify-between mb-2">
                 <span className={`px-2 py-1 rounded text-xs font-medium ${
                   item.type === 'Application' ? 'bg-brass/10 text-brass' : 'bg-crimson/10 text-red-400'

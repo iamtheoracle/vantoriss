@@ -15,8 +15,6 @@ import {
   WORKSPACE_LABELS, getRoleLabel,
 } from '@/lib/operationsAccess';
 
-// ---- Navigation definitions per workspace ----
-
 const WORKSPACE_CONFIG = {
   executive: {
     icon: Crown,
@@ -173,7 +171,6 @@ export default function AdminSidebar({ user, activeWorkspace, onWorkspaceChange,
 
   function handleWorkspaceSelect(ws) {
     onWorkspaceChange?.(ws);
-    // Navigate to the workspace's default page
     const wsConfig = WORKSPACE_CONFIG[ws];
     if (wsConfig?.sections[0]?.items[0]) {
       navigate(wsConfig.sections[0].items[0].path);
@@ -181,19 +178,19 @@ export default function AdminSidebar({ user, activeWorkspace, onWorkspaceChange,
   }
 
   return (
-    <aside className="flex flex-col h-full w-64 bg-[#111C2D] border-r border-[#242D38]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+    <aside className="vantoris-glass-sidebar flex flex-col h-full w-64 border-r border-white/[0.06]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
       {/* Brand header */}
-      <div className="p-5 flex items-center gap-3 flex-shrink-0 border-b border-[#242D38]" style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 1.25rem)' }}>
+      <div className="px-5 py-4 flex items-center gap-3 flex-shrink-0 border-b border-white/[0.06]" style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 1rem)' }}>
         <ShieldLogo size={32} />
         <div className="min-w-0">
-          <h1 className="text-white font-bold text-base tracking-widest leading-tight">VANTORIS</h1>
-          <p className="text-[#AAB4C3] text-[9px] tracking-[0.18em] uppercase">Operations Center</p>
+          <h1 className="text-white font-bold text-base tracking-[0.2em] leading-tight">VANTORIS</h1>
+          <p className="text-[#AAB4C3]/60 text-[9px] tracking-[0.18em] uppercase">Command Center</p>
         </div>
       </div>
 
       {/* Workspace selector tabs */}
       {availableWorkspaces.length > 1 && (
-        <div className="p-2.5 flex-shrink-0 border-b border-[#242D38]">
+        <div className="p-2 flex-shrink-0 border-b border-white/[0.06]">
           <div className="grid grid-cols-3 gap-1">
             {availableWorkspaces.map(ws => {
               const wsConfig = WORKSPACE_CONFIG[ws];
@@ -205,8 +202,8 @@ export default function AdminSidebar({ user, activeWorkspace, onWorkspaceChange,
                   onClick={() => handleWorkspaceSelect(ws)}
                   className={`flex flex-col items-center gap-1 py-2.5 rounded-lg transition-all text-[10px] font-semibold ${
                     isActive
-                      ? `${wsConfig.bg} ${wsConfig.accent}`
-                      : 'text-[#AAB4C3] hover:bg-[#242D38]/60 hover:text-white'
+                      ? `${wsConfig.bg} ${wsConfig.accent} shadow-sm`
+                      : 'text-[#AAB4C3] hover:bg-white/[0.06] hover:text-white'
                   }`}
                   title={WORKSPACE_LABELS[ws]}
                 >
@@ -220,11 +217,11 @@ export default function AdminSidebar({ user, activeWorkspace, onWorkspaceChange,
       )}
 
       {/* Navigation sections */}
-      <nav className="flex-1 px-3 overflow-y-auto overflow-x-hidden py-3">
+      <nav className="flex-1 px-2.5 overflow-y-auto overflow-x-hidden py-3 vantoris-scroll">
         {config.sections.map((section, sIdx) => (
           <div key={sIdx} className="mb-4">
             {section.label && (
-              <p className="text-[#AAB4C3]/50 text-[10px] font-semibold uppercase tracking-wider px-3 mb-1.5">
+              <p className="text-[#AAB4C3]/40 text-[10px] font-semibold uppercase tracking-[0.12em] px-3 mb-1.5">
                 {section.label}
               </p>
             )}
@@ -240,8 +237,8 @@ export default function AdminSidebar({ user, activeWorkspace, onWorkspaceChange,
                   onClick={onNavigate}
                   className={`flex items-center gap-3 px-3 py-2 rounded-lg mb-0.5 transition-all duration-200 text-sm font-medium ${
                     isActive
-                      ? 'bg-brass/15 text-brass'
-                      : 'text-[#AAB4C3] hover:bg-[#242D38]/60 hover:text-white'
+                      ? 'bg-brass/12 text-brass shadow-sm border-l-2 border-brass'
+                      : 'text-[#AAB4C3] hover:bg-white/[0.05] hover:text-white'
                   }`}
                 >
                   <Icon size={15} className="flex-shrink-0" />
@@ -255,16 +252,16 @@ export default function AdminSidebar({ user, activeWorkspace, onWorkspaceChange,
       </nav>
 
       {/* User footer */}
-      <div className="p-3 border-t border-[#242D38] flex-shrink-0">
-        <div className="flex items-center gap-2.5 px-2 py-2 rounded-lg bg-[#242D38]/40">
-          <div className="w-8 h-8 rounded-full bg-brass/20 flex items-center justify-center flex-shrink-0">
+      <div className="p-2.5 border-t border-white/[0.06] flex-shrink-0">
+        <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl bg-white/[0.04] border border-white/[0.04]">
+          <div className="w-8 h-8 rounded-full bg-brass/20 border border-brass/30 flex items-center justify-center flex-shrink-0">
             <span className="text-brass text-xs font-bold">
               {(user?.full_name || 'A').charAt(0).toUpperCase()}
             </span>
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-white text-xs font-medium truncate">{user?.full_name || 'Administrator'}</p>
-            <p className="text-[#AAB4C3] text-[10px]">{getRoleLabel(user?.role)}</p>
+            <p className="text-[#AAB4C3]/60 text-[10px]">{getRoleLabel(user?.role)}</p>
           </div>
         </div>
       </div>

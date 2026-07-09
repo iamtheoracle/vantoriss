@@ -116,12 +116,114 @@
   box-shadow: 0 0 40px rgba(176, 141, 87, 0.08), 0 0 80px rgba(176, 141, 87, 0.04);
 }
 .vantoris-card {
-  background: #242D38;
+  background: rgba(30, 39, 53, 0.55);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
   border: 1px solid rgba(176, 141, 87, 0.1);
   border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 .vantoris-balance-glow {
   background: radial-gradient(ellipse at 50% 50%, rgba(176, 141, 87, 0.12) 0%, transparent 70%);
+}
+
+/* Liquid Glass surfaces */
+.vantoris-glass {
+  background: rgba(30, 39, 53, 0.55);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(176, 141, 87, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+.vantoris-glass-flat {
+  background: rgba(30, 39, 53, 0.35);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 14px;
+}
+.vantoris-glass-header {
+  background: rgba(10, 14, 24, 0.82);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid rgba(176, 141, 87, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+.vantoris-glass-sidebar {
+  background: rgba(12, 18, 30, 0.9);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+}
+.vantoris-glass-dropdown {
+  background: rgba(15, 22, 36, 0.97);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(176, 141, 87, 0.12);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+}
+
+/* Premium shadows */
+.vantoris-shadow-premium {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24), 0 2px 8px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+.vantoris-shadow-float {
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.32), 0 4px 16px rgba(0, 0, 0, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.vantoris-shadow-glow {
+  box-shadow: 0 0 0 1px rgba(176, 141, 87, 0.15), 0 8px 32px rgba(176, 141, 87, 0.08);
+}
+
+/* Premium gradient surfaces */
+.vantoris-surface-gradient {
+  background: linear-gradient(145deg, rgba(36, 45, 56, 0.7) 0%, rgba(30, 39, 53, 0.5) 100%);
+}
+.vantoris-hero-gradient {
+  background: linear-gradient(135deg, rgba(176, 141, 87, 0.1) 0%, rgba(30, 39, 53, 0.4) 50%, rgba(14, 26, 43, 0.2) 100%);
+}
+.vantoris-mesh-bg {
+  background-color: #0B0F18;
+  background-image:
+    radial-gradient(at 20% 0%, rgba(176, 141, 87, 0.04) 0px, transparent 50%),
+    radial-gradient(at 80% 100%, rgba(126, 184, 159, 0.03) 0px, transparent 50%);
+}
+
+/* Animations */
+@keyframes vantoris-fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes vantoris-scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes vantoris-shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+.vantoris-animate-fade-up {
+  animation: vantoris-fade-up 0.4s ease-out forwards;
+}
+.vantoris-animate-scale-in {
+  animation: vantoris-scale-in 0.3s ease-out forwards;
+}
+
+/* Premium card hover */
+.vantoris-card-hover {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.vantoris-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.32), 0 4px 16px rgba(0, 0, 0, 0.16);
+  border-color: rgba(176, 141, 87, 0.2);
+}
+
+/* Shimmer skeleton */
+.vantoris-shimmer {
+  background: linear-gradient(90deg, rgba(36, 45, 56, 0.4) 25%, rgba(48, 58, 72, 0.6) 50%, rgba(36, 45, 56, 0.4) 75%);
+  background-size: 1000px 100%;
+  animation: vantoris-shimmer 2s infinite linear;
 }
 
 /* Mobile Select Bottom Sheet */

@@ -18,7 +18,6 @@ export default function AdminLayout() {
     base44.auth.me()
       .then(u => {
         setUser(u);
-        // Restore workspace from localStorage or use default
         const saved = localStorage.getItem('vantoris_workspace');
         if (saved) {
           setActiveWorkspace(saved);
@@ -40,14 +39,14 @@ export default function AdminLayout() {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#0E1A2B]">
+      <div className="flex items-center justify-center min-h-screen vantoris-mesh-bg">
         <div className="w-8 h-8 border-2 border-brass/30 border-t-brass rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0E1A2B] flex">
+    <div className="min-h-screen vantoris-mesh-bg flex">
       {/* Desktop sidebar — fixed */}
       <div className="hidden lg:flex fixed left-0 top-0 bottom-0 z-40">
         <AdminSidebar
@@ -59,7 +58,7 @@ export default function AdminLayout() {
 
       {/* Mobile drawer */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="bg-[#111C2D] border-[#242D38] p-0 w-72" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+        <SheetContent side="left" className="vantoris-glass-sidebar p-0 w-72" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
           <AdminSidebar
             user={user}
             activeWorkspace={activeWorkspace}
