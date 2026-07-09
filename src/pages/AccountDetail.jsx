@@ -6,12 +6,18 @@ import {
   ArrowDownLeft,
   ArrowLeft,
   ArrowUpRight,
+  Check,
+  ChevronRight,
+  Copy,
   Download,
   FileText,
   Snowflake,
   TrendingUp,
   Upload,
+  ShieldCheck,
 } from 'lucide-react';
+import SecurityPinModal from '@/components/vantoris/SecurityPinModal';
+import StatusBadge from '@/components/vantoris/StatusBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
@@ -96,8 +102,12 @@ export default function AccountDetail() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showWithdraw, setShowWithdraw] = useState(false);
+  const [wStep, setWStep] = useState(1); // 1=details, 2=review, 3=pin
   const [wForm, setWForm] = useState({ amount: '', method: 'ACH Transfer', notes: '' });
   const [submitting, setSubmitting] = useState(false);
+  const [showPin, setShowPin] = useState(false);
+  const [copiedField, setCopiedField] = useState('');
+  const [pendingWithdrawals, setPendingWithdrawals] = useState(0);
   const [showStatement, setShowStatement] = useState(false);
   const [stmtRange, setStmtRange] = useState({ from: '', to: '' });
   const [generatingPdf, setGeneratingPdf] = useState(false);
@@ -108,14 +118,16 @@ export default function AccountDetail() {
   const [importFile, setImportFile] = useState(null);
 
   const loadData = useCallback(async () => {
-    const [user, acct, txns] = await Promise.all([
+    const [user, acct, txns, pendingWds] = await Promise.all([
       base44.auth.me(),
       base44.entities.Account.get(id),
       base44.entities.Transaction.filter({ account_id: id }, '-created_date', 50),
+      base44.entities.WithdrawalRequest.filter({ account_id: id, status: 'pending' }),
     ]);
     setCurrentUser(user);
     setAccount(acct);
     setTransactions(txns);
+    setPendingWithdrawals(pendingWds.reduce((sum, w) => sum + (w.amount || 0), 0));
   }, [id]);
 
   useEffect(() => {
@@ -172,10 +184,18 @@ export default function AccountDetail() {
 
   const { containerProps, PullIndicator } = usePullToRefresh(loadData);
 
-  async function handleWithdraw() {
+  function copyToClipboard(text, field) {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(''), 2000);
+  }
+
+  async function handlePinVerified() {
+    setShowPin(false);
     const formData = { ...wForm };
     const amount = parseFloat(formData.amount);
     setShowWithdraw(false);
+    setWStep(1);
     setWForm({ amount: '', method: 'ACH Transfer', notes: '' });
 
     const pendingToast = toast({ title: 'Submitting withdrawal...', description: `${formatCurrency(amount)} via ${formData.method}` });
@@ -417,10 +437,45 @@ export default function AccountDetail() {
       <div className="vantoris-card p-6 mb-5 relative overflow-hidden">
         <div className="vantoris-balance-glow absolute inset-0" />
         <div className="relative z-10">
-          <p className="text-[#AAB4C3] text-xs">{account.account_name}</p>
-          <p className="text-[#AAB4C3]/60 text-[11px] mb-2">{account.account_number}</p>
-          <p className="text-[#AAB4C3] text-[10px] uppercase tracking-widest mb-1">Available Balance</p>
-          <h2 className="text-4xl font-bold text-white tracking-tight">{formatCurrency(account.balance)}</h2>
+          <div className="flex items-start justify-between mb-3">
+            <div>
+              <p className="text-[#AAB4C3] text-xs">{account.account_name}</p>
+              <p className="text-[#AAB4C3]/60 text-[10px]">{account.account_type} · {account.status === 'active' ? 'Active' : account.status}</p>
+            </div>
+            <StatusBadge status={account.status} />
+          </div>
+          {/* Masked account & routing numbers with copy */}
+          <div className="flex flex-col gap-1.5 mb-4">
+            <button
+              onClick={() => copyToClipboard(account.account_number || '', 'acct')}
+              className="flex items-center gap-2 text-left"
+            >
+              <span className="text-[#AAB4C3]/60 text-[11px]">Acct</span>
+              <span className="text-[#AAB4C3] text-[11px] font-mono">••••{(account.account_number || '').slice(-4)}</span>
+              {copiedField === 'acct' ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} className="text-[#AAB4C3]/40" />}
+            </button>
+            <button
+              onClick={() => copyToClipboard('021000021', 'rout')}
+              className="flex items-center gap-2 text-left"
+            >
+              <span className="text-[#AAB4C3]/60 text-[11px]">Routing</span>
+              <span className="text-[#AAB4C3] text-[11px] font-mono">021000021</span>
+              {copiedField === 'rout' ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} className="text-[#AAB4C3]/40" />}
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-[#AAB4C3] text-[10px] uppercase tracking-widest mb-1">Available</p>
+              <h2 className="text-2xl font-bold text-white tracking-tight">{formatCurrency(account.balance - pendingWithdrawals)}</h2>
+            </div>
+            <div>
+              <p className="text-[#AAB4C3] text-[10px] uppercase tracking-widest mb-1">Current</p>
+              <h2 className="text-2xl font-bold text-white tracking-tight">{formatCurrency(account.balance)}</h2>
+              {pendingWithdrawals > 0 && (
+                <p className="text-brass/70 text-[10px] mt-0.5">{formatCurrency(pendingWithdrawals)} pending</p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -528,71 +583,148 @@ export default function AccountDetail() {
         </div>
       )}
 
-      {/* Withdrawal Dialog */}
-      <Dialog open={showWithdraw} onOpenChange={setShowWithdraw}>
+      {/* Withdrawal Dialog — Multi-Step */}
+      <Dialog open={showWithdraw} onOpenChange={(val) => { setShowWithdraw(val); if (!val) setWStep(1); }}>
         <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-md max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white">Request Withdrawal</DialogTitle>
+            <DialogTitle className="text-white">{wStep === 1 ? 'Request Withdrawal' : 'Review & Authorize'}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 mt-2">
-            <div>
-              <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Amount (USD)</label>
-              <input
-                type="number"
-                value={wForm.amount}
-                onChange={e => setWForm({ ...wForm, amount: e.target.value })}
-                className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none"
-                placeholder="0.00"
-              />
-            </div>
-            <div>
-              <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Method</label>
-              <Select
-                value={wForm.method}
-                onValueChange={val => setWForm({ ...wForm, method: val })}
-              >
-                <SelectTrigger className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none h-auto">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-[#242D38] border-[#242D38] max-h-60">
-                  {WITHDRAWAL_METHODS.map(method => (
-                    <SelectItem key={method.value} value={method.value} className="text-white focus:bg-brass/15 focus:text-brass">
-                      {method.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {selectedMethod && (
-                <div className="mt-2 vantoris-card p-3 space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 bg-brass/15 text-brass rounded text-[10px] font-semibold">{selectedMethod.speed}</span>
-                    <span className="text-[#AAB4C3] text-xs">{selectedMethod.time}</span>
-                  </div>
-                  <p className="text-white text-xs"><span className="text-[#AAB4C3]">Fee:</span> {selectedMethod.fee}</p>
-                  <p className="text-white text-xs"><span className="text-[#AAB4C3]">Limit:</span> {selectedMethod.limit}</p>
-                  <p className="text-[#AAB4C3] text-[11px]">{selectedMethod.availability}</p>
-                </div>
-              )}
-            </div>
-            <div>
-              <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Notes</label>
-              <textarea
-                value={wForm.notes}
-                onChange={e => setWForm({ ...wForm, notes: e.target.value })}
-                className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none resize-none"
-                rows={3}
-              />
-            </div>
-            <button
-              disabled={!wForm.amount || parseFloat(wForm.amount) <= 0 || submitting}
-              onClick={handleWithdraw}
-              className="w-full py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl disabled:opacity-40"
-            >
-              {submitting ? 'Submitting...' : 'Submit Request'}
-            </button>
+
+          {/* Step indicator */}
+          <div className="flex items-center gap-2 mb-2">
+            {[1, 2].map(s => (
+              <div key={s} className={`h-1 flex-1 rounded-full transition ${s <= wStep ? 'bg-brass' : 'bg-[#242D38]'}`} />
+            ))}
           </div>
+
+          {wStep === 1 && (
+            <div className="space-y-4 mt-2">
+              <div>
+                <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Amount (USD)</label>
+                <input
+                  type="number"
+                  value={wForm.amount}
+                  onChange={e => setWForm({ ...wForm, amount: e.target.value })}
+                  className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none"
+                  placeholder="0.00"
+                />
+                {wForm.amount && parseFloat(wForm.amount) > 0 && (
+                  <p className="text-[#AAB4C3] text-[11px] mt-1">Available: {formatCurrency(account.balance - pendingWithdrawals)}</p>
+                )}
+              </div>
+              <div>
+                <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Method</label>
+                <Select
+                  value={wForm.method}
+                  onValueChange={val => setWForm({ ...wForm, method: val })}
+                >
+                  <SelectTrigger className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none h-auto">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#242D38] border-[#242D38] max-h-60">
+                    {WITHDRAWAL_METHODS.map(method => (
+                      <SelectItem key={method.value} value={method.value} className="text-white focus:bg-brass/15 focus:text-brass">
+                        {method.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedMethod && (
+                  <div className="mt-2 vantoris-card p-3 space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 bg-brass/15 text-brass rounded text-[10px] font-semibold">{selectedMethod.speed}</span>
+                      <span className="text-[#AAB4C3] text-xs">{selectedMethod.time}</span>
+                    </div>
+                    <p className="text-white text-xs"><span className="text-[#AAB4C3]">Fee:</span> {selectedMethod.fee}</p>
+                    <p className="text-white text-xs"><span className="text-[#AAB4C3]">Limit:</span> {selectedMethod.limit}</p>
+                    <p className="text-[#AAB4C3] text-[11px]">{selectedMethod.availability}</p>
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Notes</label>
+                <textarea
+                  value={wForm.notes}
+                  onChange={e => setWForm({ ...wForm, notes: e.target.value })}
+                  className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none resize-none"
+                  rows={3}
+                />
+              </div>
+              <button
+                disabled={!wForm.amount || parseFloat(wForm.amount) <= 0 || submitting}
+                onClick={() => setWStep(2)}
+                className="w-full py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl disabled:opacity-40"
+              >
+                Review
+              </button>
+            </div>
+          )}
+
+          {wStep === 2 && (
+            <div className="space-y-4 mt-2">
+              <div className="vantoris-card p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-[#AAB4C3] text-xs">From</span>
+                  <span className="text-white text-sm font-medium">{account.account_name}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[#AAB4C3] text-xs">Amount</span>
+                  <span className="text-white text-lg font-bold">{formatCurrency(parseFloat(wForm.amount) || 0)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[#AAB4C3] text-xs">Method</span>
+                  <span className="text-white text-sm">{selectedMethod?.title || wForm.method}</span>
+                </div>
+                {selectedMethod && (
+                  <>
+                    <div className="flex justify-between items-center">
+                      <span className="text-[#AAB4C3] text-xs">Processing Time</span>
+                      <span className="text-[#AAB4C3] text-xs">{selectedMethod.time}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-[#AAB4C3] text-xs">Fee</span>
+                      <span className="text-[#AAB4C3] text-xs">{selectedMethod.fee}</span>
+                    </div>
+                  </>
+                )}
+                {wForm.notes && (
+                  <div className="flex justify-between items-start">
+                    <span className="text-[#AAB4C3] text-xs">Notes</span>
+                    <span className="text-white text-xs text-right max-w-[60%]">{wForm.notes}</span>
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center gap-2 bg-brass/5 border border-brass/15 rounded-xl p-3">
+                <ShieldCheck size={16} className="text-brass flex-shrink-0" />
+                <p className="text-[#AAB4C3] text-[11px]">This transaction requires PIN verification for security.</p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setWStep(1)}
+                  className="flex-1 py-3 bg-[#242D38] text-white font-medium rounded-xl hover:bg-[#2a3340] transition-all"
+                >
+                  Back
+                </button>
+                <button
+                  onClick={() => setShowPin(true)}
+                  className="flex-1 py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl hover:bg-brass/90 transition-all"
+                >
+                  Authorize & Submit
+                </button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
+
+      {/* Security PIN Modal */}
+      <SecurityPinModal
+        open={showPin}
+        onVerified={handlePinVerified}
+        onClose={() => setShowPin(false)}
+        title="Authorize Withdrawal"
+        description={`Enter your 6-digit PIN to authorize ${formatCurrency(parseFloat(wForm.amount) || 0)} withdrawal.`}
+      />
 
       {/* Statement Dialog */}
       <Dialog open={showStatement} onOpenChange={setShowStatement}>
