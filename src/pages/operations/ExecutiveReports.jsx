@@ -1,16 +1,16 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
 import PremiumStatCard from '@/components/vantoris/PremiumStatCard';
 import GlassTooltip from '@/components/vantoris/widgets/GlassTooltip';
 import { exportToCsv } from '@/lib/exportCsv';
 import {
-  TrendingUp, Wallet, Users, ArrowDownToLine, ArrowUpRight,
+  TrendingUp, Wallet, Users, ArrowDownToLine,
   Download, Activity, BarChart3, Crown,
 } from 'lucide-react';
 
