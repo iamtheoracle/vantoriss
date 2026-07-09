@@ -13,38 +13,38 @@ export default function ProfileSection({ title, icon: Icon, children, delay = 0 
       {title && (
         <div className="flex items-center gap-2 mb-2.5 px-1">
           {Icon && <Icon size={14} className="text-brass" />}
-          <h3 className="text-white font-semibold text-xs uppercase tracking-[0.12em]">{title}</h3>
+          <h3 className="text-foreground font-semibold text-xs uppercase tracking-[0.12em]">{title}</h3>
         </div>
       )}
-      <div className="vantoris-glass-flat rounded-2xl overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
         {children}
       </div>
     </motion.div>
   );
 }
 
-export function ProfileRow({ icon: Icon, iconColor = 'text-[#AAB4C3]', iconBg = 'bg-white/[0.04]', label, value, onClick, rightElement, danger }) {
+export function ProfileRow({ icon: Icon, iconColor = 'text-brass', iconBg = 'bg-brass/10', label, value, onClick, rightElement, danger }) {
   const Tag = onClick ? 'button' : 'div';
   return (
     <Tag
       onClick={onClick}
-      className={`w-full flex items-center gap-3 p-3.5 text-left transition-all ${onClick ? 'hover:bg-white/[0.03]' : ''} ${danger ? 'hover:bg-crimson/5' : ''}`}
+      className={`w-full flex items-center gap-3 p-3.5 text-left transition-all ${onClick ? 'hover:bg-slate-50' : ''} ${danger ? 'hover:bg-crimson/5' : ''}`}
     >
       {Icon && (
-        <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${iconBg}`}>
-          <Icon size={16} className={danger ? 'text-red-400' : iconColor} />
+        <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${danger ? 'bg-crimson/10' : iconBg}`}>
+          <Icon size={16} className={danger ? 'text-crimson' : iconColor} />
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <p className="text-[#AAB4C3] text-[10px] uppercase tracking-wider font-medium">{label}</p>
-        {value && <p className={`text-sm font-medium ${danger ? 'text-red-400' : 'text-white'} truncate`}>{value}</p>}
+        <p className="text-gray text-[10px] uppercase tracking-wider font-medium">{label}</p>
+        {value && <p className={`text-sm font-medium ${danger ? 'text-crimson' : 'text-foreground'} truncate`}>{value}</p>}
       </div>
       {rightElement}
-      {onClick && <ChevronRight size={16} className={danger ? 'text-red-400/50' : 'text-[#AAB4C3]/50'} />}
+      {onClick && <ChevronRight size={16} className={danger ? 'text-crimson/50' : 'text-gray/40'} />}
     </Tag>
   );
 }
 
 export function ProfileDivider() {
-  return <div className="vantoris-divider mx-3.5" />;
+  return <div className="mx-3.5 h-px bg-slate-200" />;
 }
