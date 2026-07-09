@@ -4,8 +4,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { useSessionTimeout } from '@/hooks/useSessionTimeout';
 import PageTransition from './PageTransition';
 import BottomNav from './BottomNav';
-import WhatsAppFloatingButton from './WhatsAppFloatingButton';
-import FloatingActionButton from './FloatingActionButton';
+import FloatingCommandDock from './FloatingCommandDock';
 import SessionTimeoutModal from './SessionTimeoutModal';
 
 export default function MemberLayout() {
@@ -24,8 +23,7 @@ export default function MemberLayout() {
           <PageTransition />
         </div>
         <BottomNav />
-        <FloatingActionButton />
-        <WhatsAppFloatingButton />
+        <FloatingCommandDock />
         <SessionTimeoutModal
           show={showWarning}
           onExtend={extendSession}

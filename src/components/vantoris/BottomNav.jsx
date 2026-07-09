@@ -17,7 +17,7 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 bg-[#0E1A2B] border-t border-[#242D38]/80 backdrop-blur-xl"
+      className="fixed bottom-0 left-0 right-0 z-50 vantoris-glass-nav"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
@@ -30,12 +30,15 @@ export default function BottomNav() {
             <Link
               key={item.path}
               to={getTabPath(item.path)}
-              className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all duration-200 ${
+              className={`relative flex flex-col items-center gap-0.5 px-3.5 py-1.5 rounded-2xl transition-all duration-300 ${
                 isActive ? 'text-brass' : 'text-[#AAB4C3] hover:text-white'
               }`}
             >
-              <Icon size={20} strokeWidth={isActive ? 2.2 : 1.5} />
-              <span className="text-[10px] font-medium tracking-wide">{item.label}</span>
+              {isActive && (
+                <span className="absolute inset-0 rounded-2xl bg-brass/10" />
+              )}
+              <Icon size={20} strokeWidth={isActive ? 2.4 : 1.5} className="relative z-10" />
+              <span className="relative z-10 text-[10px] font-semibold tracking-wide">{item.label}</span>
             </Link>
           );
         })}
