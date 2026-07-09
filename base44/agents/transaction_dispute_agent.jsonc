@@ -62,7 +62,7 @@
   "model": "automatic",
   "memory_config": {
     "enabled": true,
-    "scope": "conversation",
+    "scope": "user",
     "include_other_conversation_context": false,
     "instructions": "Remember the specific discrepancy being investigated and any findings from the current conversation. Do not store sensitive financial data across sessions."
   },
