@@ -23,6 +23,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { useToast } from '@/components/ui/use-toast';
 import TransactionFilters from '@/components/TransactionFilters';
+import MonthlySummary from '@/components/vantoris/home/MonthlySummary';
 
 const WITHDRAWAL_METHODS = [
   {
@@ -428,19 +429,19 @@ export default function AccountDetail() {
   return (
     <div className="px-5 pt-6 vantoris-scroll" {...containerProps}>
       <PullIndicator />
-      <button onClick={() => navigate('/accounts')} className="flex items-center gap-2 text-[#AAB4C3] text-sm mb-6">
+      <button onClick={() => navigate('/accounts')} className="flex items-center gap-2 text-gray text-sm mb-6">
         <ArrowLeft size={18} />
         <span>Back</span>
       </button>
 
       {/* Balance Card */}
-      <div className="vantoris-card p-6 mb-5 relative overflow-hidden">
+      <div className="vantoris-glass-premium p-6 mb-5 relative overflow-hidden">
         <div className="vantoris-balance-glow absolute inset-0" />
         <div className="relative z-10">
           <div className="flex items-start justify-between mb-3">
             <div>
-              <p className="text-[#AAB4C3] text-xs">{account.account_name}</p>
-              <p className="text-[#AAB4C3]/60 text-[10px]">{account.account_type} · {account.status === 'active' ? 'Active' : account.status}</p>
+              <p className="text-gray text-xs">{account.account_name}</p>
+              <p className="text-gray/60 text-[10px]">{account.account_type} · {account.status === 'active' ? 'Active' : account.status}</p>
             </div>
             <StatusBadge status={account.status} />
           </div>
@@ -450,29 +451,29 @@ export default function AccountDetail() {
               onClick={() => copyToClipboard(account.account_number || '', 'acct')}
               className="flex items-center gap-2 text-left"
             >
-              <span className="text-[#AAB4C3]/60 text-[11px]">Acct</span>
-              <span className="text-[#AAB4C3] text-[11px] font-mono">••••{(account.account_number || '').slice(-4)}</span>
-              {copiedField === 'acct' ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} className="text-[#AAB4C3]/40" />}
+              <span className="text-gray/60 text-[11px]">Acct</span>
+              <span className="text-gray text-[11px] font-mono">••••{(account.account_number || '').slice(-4)}</span>
+              {copiedField === 'acct' ? <Check size={11} className="text-mint" /> : <Copy size={11} className="text-gray/40" />}
             </button>
             <button
               onClick={() => copyToClipboard('021000021', 'rout')}
               className="flex items-center gap-2 text-left"
             >
-              <span className="text-[#AAB4C3]/60 text-[11px]">Routing</span>
-              <span className="text-[#AAB4C3] text-[11px] font-mono">021000021</span>
-              {copiedField === 'rout' ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} className="text-[#AAB4C3]/40" />}
+              <span className="text-gray/60 text-[11px]">Routing</span>
+              <span className="text-gray text-[11px] font-mono">021000021</span>
+              {copiedField === 'rout' ? <Check size={11} className="text-mint" /> : <Copy size={11} className="text-gray/40" />}
             </button>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-[#AAB4C3] text-[10px] uppercase tracking-widest mb-1">Available</p>
-              <h2 className="text-2xl font-bold text-white tracking-tight">{formatCurrency(account.balance - pendingWithdrawals)}</h2>
+              <p className="text-gray text-[10px] uppercase tracking-widest mb-1">Available</p>
+              <h2 className="text-2xl font-bold text-foreground tracking-tight">{formatCurrency(account.balance - pendingWithdrawals)}</h2>
             </div>
             <div>
-              <p className="text-[#AAB4C3] text-[10px] uppercase tracking-widest mb-1">Current</p>
-              <h2 className="text-2xl font-bold text-white tracking-tight">{formatCurrency(account.balance)}</h2>
+              <p className="text-gray text-[10px] uppercase tracking-widest mb-1">Current</p>
+              <h2 className="text-2xl font-bold text-foreground tracking-tight">{formatCurrency(account.balance)}</h2>
               {pendingWithdrawals > 0 && (
-                <p className="text-brass/70 text-[10px] mt-0.5">{formatCurrency(pendingWithdrawals)} pending</p>
+                <p className="text-brass text-[10px] mt-0.5">{formatCurrency(pendingWithdrawals)} pending</p>
               )}
             </div>
           </div>
@@ -483,14 +484,14 @@ export default function AccountDetail() {
       <div className="grid grid-cols-2 gap-3 mb-6">
         <button
           onClick={() => setShowWithdraw(true)}
-          className="py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl text-sm hover:bg-brass/90 transition-all flex items-center justify-center gap-2"
+          className="py-3 bg-brass text-foreground font-semibold rounded-xl text-sm hover:bg-brass/90 transition-all flex items-center justify-center gap-2"
         >
           <ArrowUpRight size={16} />
           Withdraw
         </button>
         <button
           onClick={() => setShowStatement(true)}
-          className="py-3 bg-[#242D38] text-white font-medium rounded-xl text-sm hover:bg-[#2a3340] transition-all flex items-center justify-center gap-2"
+          className="py-3 bg-slate-100 text-foreground font-medium rounded-xl text-sm hover:bg-slate-200 transition-all flex items-center justify-center gap-2"
         >
           <Download size={16} />
           Statement
@@ -507,8 +508,8 @@ export default function AccountDetail() {
             }}
             className={`py-3 font-semibold rounded-xl text-sm transition-all flex items-center justify-center gap-2 ${
               account.status === 'frozen'
-                ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
-                : 'bg-crimson/20 text-red-400 hover:bg-crimson/30'
+                ? 'bg-mint/10 text-mint hover:bg-mint/20'
+                : 'bg-crimson/10 text-crimson hover:bg-crimson/20'
             }`}
           >
             <Snowflake size={16} />
@@ -516,7 +517,7 @@ export default function AccountDetail() {
           </button>
           <button
             onClick={() => setShowImport(true)}
-            className="py-3 bg-[#242D38] text-white font-medium rounded-xl text-sm hover:bg-[#2a3340] transition-all flex items-center justify-center gap-2"
+            className="py-3 bg-slate-100 text-foreground font-medium rounded-xl text-sm hover:bg-slate-200 transition-all flex items-center justify-center gap-2"
           >
             <Upload size={16} />
             Import History
@@ -524,11 +525,14 @@ export default function AccountDetail() {
         </div>
       )}
       {account.status === 'frozen' && currentUser?.role !== 'admin' && (
-        <div className="bg-crimson/15 border border-crimson/30 rounded-xl p-3 mb-6 flex gap-2">
-          <Snowflake size={16} className="text-red-400 flex-shrink-0 mt-0.5" />
-          <p className="text-red-400 text-xs">This account is currently frozen and cannot process transactions.</p>
+        <div className="bg-crimson/10 border border-crimson/20 rounded-xl p-3 mb-6 flex gap-2">
+          <Snowflake size={16} className="text-crimson flex-shrink-0 mt-0.5" />
+          <p className="text-crimson text-xs">This account is currently frozen and cannot process transactions.</p>
         </div>
       )}
+
+      {/* Monthly Summary */}
+      <MonthlySummary transactions={transactions} />
 
       {/* Transaction History */}
       <div className="flex items-center justify-between mb-3">
@@ -585,45 +589,45 @@ export default function AccountDetail() {
 
       {/* Withdrawal Dialog — Multi-Step */}
       <Dialog open={showWithdraw} onOpenChange={(val) => { setShowWithdraw(val); if (!val) setWStep(1); }}>
-        <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-md max-h-[85vh] overflow-y-auto">
+        <DialogContent className="bg-white border-slate-200 max-w-md max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white">{wStep === 1 ? 'Request Withdrawal' : 'Review & Authorize'}</DialogTitle>
+            <DialogTitle className="text-foreground">{wStep === 1 ? 'Request Withdrawal' : 'Review & Authorize'}</DialogTitle>
           </DialogHeader>
 
           {/* Step indicator */}
           <div className="flex items-center gap-2 mb-2">
             {[1, 2].map(s => (
-              <div key={s} className={`h-1 flex-1 rounded-full transition ${s <= wStep ? 'bg-brass' : 'bg-[#242D38]'}`} />
+              <div key={s} className={`h-1 flex-1 rounded-full transition ${s <= wStep ? 'bg-brass' : 'bg-slate-50'}`} />
             ))}
           </div>
 
           {wStep === 1 && (
             <div className="space-y-4 mt-2">
               <div>
-                <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Amount (USD)</label>
+                <label className="text-gray text-xs uppercase tracking-wider mb-1.5 block">Amount (USD)</label>
                 <input
                   type="number"
                   value={wForm.amount}
                   onChange={e => setWForm({ ...wForm, amount: e.target.value })}
-                  className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-foreground text-sm focus:border-brass/50 focus:outline-none"
                   placeholder="0.00"
                 />
                 {wForm.amount && parseFloat(wForm.amount) > 0 && (
-                  <p className="text-[#AAB4C3] text-[11px] mt-1">Available: {formatCurrency(account.balance - pendingWithdrawals)}</p>
+                  <p className="text-gray text-[11px] mt-1">Available: {formatCurrency(account.balance - pendingWithdrawals)}</p>
                 )}
               </div>
               <div>
-                <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Method</label>
+                <label className="text-gray text-xs uppercase tracking-wider mb-1.5 block">Method</label>
                 <Select
                   value={wForm.method}
                   onValueChange={val => setWForm({ ...wForm, method: val })}
                 >
-                  <SelectTrigger className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none h-auto">
+                  <SelectTrigger className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-foreground text-sm focus:border-brass/50 focus:outline-none h-auto">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#242D38] border-[#242D38] max-h-60">
+                  <SelectContent className="bg-slate-50 border-slate-200 max-h-60">
                     {WITHDRAWAL_METHODS.map(method => (
-                      <SelectItem key={method.value} value={method.value} className="text-white focus:bg-brass/15 focus:text-brass">
+                      <SelectItem key={method.value} value={method.value} className="text-foreground focus:bg-brass/15 focus:text-brass">
                         {method.title}
                       </SelectItem>
                     ))}
@@ -633,27 +637,27 @@ export default function AccountDetail() {
                   <div className="mt-2 vantoris-card p-3 space-y-1.5">
                     <div className="flex items-center gap-2">
                       <span className="px-2 py-0.5 bg-brass/15 text-brass rounded text-[10px] font-semibold">{selectedMethod.speed}</span>
-                      <span className="text-[#AAB4C3] text-xs">{selectedMethod.time}</span>
+                      <span className="text-gray text-xs">{selectedMethod.time}</span>
                     </div>
-                    <p className="text-white text-xs"><span className="text-[#AAB4C3]">Fee:</span> {selectedMethod.fee}</p>
-                    <p className="text-white text-xs"><span className="text-[#AAB4C3]">Limit:</span> {selectedMethod.limit}</p>
-                    <p className="text-[#AAB4C3] text-[11px]">{selectedMethod.availability}</p>
+                    <p className="text-foreground text-xs"><span className="text-gray">Fee:</span> {selectedMethod.fee}</p>
+                    <p className="text-foreground text-xs"><span className="text-gray">Limit:</span> {selectedMethod.limit}</p>
+                    <p className="text-gray text-[11px]">{selectedMethod.availability}</p>
                   </div>
                 )}
               </div>
               <div>
-                <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Notes</label>
+                <label className="text-gray text-xs uppercase tracking-wider mb-1.5 block">Notes</label>
                 <textarea
                   value={wForm.notes}
                   onChange={e => setWForm({ ...wForm, notes: e.target.value })}
-                  className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none resize-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-foreground text-sm focus:border-brass/50 focus:outline-none resize-none"
                   rows={3}
                 />
               </div>
               <button
                 disabled={!wForm.amount || parseFloat(wForm.amount) <= 0 || submitting}
                 onClick={() => setWStep(2)}
-                className="w-full py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl disabled:opacity-40"
+                className="w-full py-3 bg-brass text-white font-semibold rounded-xl disabled:opacity-40"
               >
                 Review
               </button>
@@ -664,50 +668,50 @@ export default function AccountDetail() {
             <div className="space-y-4 mt-2">
               <div className="vantoris-card p-4 space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-[#AAB4C3] text-xs">From</span>
-                  <span className="text-white text-sm font-medium">{account.account_name}</span>
+                  <span className="text-gray text-xs">From</span>
+                  <span className="text-foreground text-sm font-medium">{account.account_name}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[#AAB4C3] text-xs">Amount</span>
-                  <span className="text-white text-lg font-bold">{formatCurrency(parseFloat(wForm.amount) || 0)}</span>
+                  <span className="text-gray text-xs">Amount</span>
+                  <span className="text-foreground text-lg font-bold">{formatCurrency(parseFloat(wForm.amount) || 0)}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[#AAB4C3] text-xs">Method</span>
-                  <span className="text-white text-sm">{selectedMethod?.title || wForm.method}</span>
+                  <span className="text-gray text-xs">Method</span>
+                  <span className="text-foreground text-sm">{selectedMethod?.title || wForm.method}</span>
                 </div>
                 {selectedMethod && (
                   <>
                     <div className="flex justify-between items-center">
-                      <span className="text-[#AAB4C3] text-xs">Processing Time</span>
-                      <span className="text-[#AAB4C3] text-xs">{selectedMethod.time}</span>
+                      <span className="text-gray text-xs">Processing Time</span>
+                      <span className="text-gray text-xs">{selectedMethod.time}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-[#AAB4C3] text-xs">Fee</span>
-                      <span className="text-[#AAB4C3] text-xs">{selectedMethod.fee}</span>
+                      <span className="text-gray text-xs">Fee</span>
+                      <span className="text-gray text-xs">{selectedMethod.fee}</span>
                     </div>
                   </>
                 )}
                 {wForm.notes && (
                   <div className="flex justify-between items-start">
-                    <span className="text-[#AAB4C3] text-xs">Notes</span>
-                    <span className="text-white text-xs text-right max-w-[60%]">{wForm.notes}</span>
+                    <span className="text-gray text-xs">Notes</span>
+                    <span className="text-foreground text-xs text-right max-w-[60%]">{wForm.notes}</span>
                   </div>
                 )}
               </div>
               <div className="flex items-center gap-2 bg-brass/5 border border-brass/15 rounded-xl p-3">
                 <ShieldCheck size={16} className="text-brass flex-shrink-0" />
-                <p className="text-[#AAB4C3] text-[11px]">This transaction requires PIN verification for security.</p>
+                <p className="text-gray text-[11px]">This transaction requires PIN verification for security.</p>
               </div>
               <div className="flex gap-3">
                 <button
                   onClick={() => setWStep(1)}
-                  className="flex-1 py-3 bg-[#242D38] text-white font-medium rounded-xl hover:bg-[#2a3340] transition-all"
+                  className="flex-1 py-3 bg-slate-50 text-foreground font-medium rounded-xl hover:bg-slate-200 transition-all"
                 >
                   Back
                 </button>
                 <button
                   onClick={() => setShowPin(true)}
-                  className="flex-1 py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl hover:bg-brass/90 transition-all"
+                  className="flex-1 py-3 bg-brass text-white font-semibold rounded-xl hover:bg-brass/90 transition-all"
                 >
                   Authorize & Submit
                 </button>
@@ -728,33 +732,33 @@ export default function AccountDetail() {
 
       {/* Statement Dialog */}
       <Dialog open={showStatement} onOpenChange={setShowStatement}>
-        <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-sm">
+        <DialogContent className="bg-white border-slate-200 max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-white">Download Statement</DialogTitle>
+            <DialogTitle className="text-foreground">Download Statement</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-2">
             <div>
-              <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">From Date</label>
+              <label className="text-gray text-xs uppercase tracking-wider mb-1.5 block">From Date</label>
               <input
                 type="date"
                 value={stmtRange.from}
                 onChange={e => setStmtRange({ ...stmtRange, from: e.target.value })}
-                className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-foreground text-sm focus:border-brass/50 focus:outline-none"
               />
             </div>
             <div>
-              <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">To Date</label>
+              <label className="text-gray text-xs uppercase tracking-wider mb-1.5 block">To Date</label>
               <input
                 type="date"
                 value={stmtRange.to}
                 onChange={e => setStmtRange({ ...stmtRange, to: e.target.value })}
-                className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-foreground text-sm focus:border-brass/50 focus:outline-none"
               />
             </div>
             <button
               onClick={generateStatement}
               disabled={generatingPdf}
-              className="w-full py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl disabled:opacity-40"
+              className="w-full py-3 bg-brass text-white font-semibold rounded-xl disabled:opacity-40"
             >
               {generatingPdf ? 'Generating...' : 'Download PDF'}
             </button>
@@ -764,16 +768,16 @@ export default function AccountDetail() {
 
       {/* Import Historical Transactions Dialog */}
       <Dialog open={showImport} onOpenChange={setShowImport}>
-        <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-md">
+        <DialogContent className="bg-white border-slate-200 max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2">
+            <DialogTitle className="text-foreground flex items-center gap-2">
               <Upload size={18} className="text-brass" />
               Import Transaction History
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-2">
-            <p className="text-[#AAB4C3] text-sm">Upload a CSV file with historical transactions from your old account. Format: date, description, type, amount, reference</p>
-            <div className="bg-[#242D38] border-2 border-dashed border-[#242D38] rounded-lg p-6 text-center cursor-pointer hover:border-brass/50 transition-all">
+            <p className="text-gray text-sm">Upload a CSV file with historical transactions from your old account. Format: date, description, type, amount, reference</p>
+            <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-lg p-6 text-center cursor-pointer hover:border-brass/50 transition-all">
               <input
                 type="file"
                 accept=".csv"
@@ -783,14 +787,14 @@ export default function AccountDetail() {
               />
               <label htmlFor="import-file" className="cursor-pointer">
                 <Upload size={24} className="text-brass mx-auto mb-2" />
-                <p className="text-white text-sm font-medium">{importFile ? importFile.name : 'Click to upload CSV'}</p>
-                <p className="text-[#AAB4C3] text-xs mt-1">or drag and drop</p>
+                <p className="text-foreground text-sm font-medium">{importFile ? importFile.name : 'Click to upload CSV'}</p>
+                <p className="text-gray text-xs mt-1">or drag and drop</p>
               </label>
             </div>
             <button
               onClick={handleImportHistory}
               disabled={!importFile}
-              className="w-full py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl disabled:opacity-40"
+              className="w-full py-3 bg-brass text-white font-semibold rounded-xl disabled:opacity-40"
             >
               Import Transactions
             </button>
