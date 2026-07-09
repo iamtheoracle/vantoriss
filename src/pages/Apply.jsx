@@ -21,6 +21,7 @@ export default function Apply() {
   const [form, setForm] = useState({ full_name: '', email: '', phone: '', address: '', business_name: '' });
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,6 +31,11 @@ export default function Apply() {
       const me = await base44.auth.me();
       if (hasOperationsAccess(me.role)) {
         navigate('/operations', { replace: true });
+        return;
+      }
+      const existing = await base44.entities.Application.filter({ user_id: me.id });
+      if (existing.length > 0 && mounted) {
+        navigate('/', { replace: true });
         return;
       }
       if (mounted) setForm(current => ({ ...current, full_name: me.full_name || '', email: me.email || '' }));
@@ -66,6 +72,7 @@ export default function Apply() {
       setDone(true);
     } catch (error) {
       console.error(error);
+      setSubmitError(error.message || 'Failed to submit application. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -153,6 +160,11 @@ export default function Apply() {
 
       {step === 2 && (
         <div className="space-y-4">
+          {submitError && (
+            <div className="rounded-lg border border-[#F4A7B2] bg-[#FCE7EA] p-3 text-sm font-medium text-[#7F1020]">
+              {submitError}
+            </div>
+          )}
           <div>
             <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#5B6472]">Full Name</label>
             <input

@@ -9,19 +9,31 @@ export default function ApplyKYC() {
   const [documents, setDocuments] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
     async function load() {
-      const me = await base44.auth.me();
-      const apps = await base44.entities.Application.filter({ user_id: me.id });
-      if (apps[0]) {
-        setApplication(apps[0]);
-        setDocuments(apps[0].kyc_documents || []);
+      try {
+        const me = await base44.auth.me();
+        const apps = await base44.entities.Application.filter({ user_id: me.id });
+        if (apps[0]) {
+          setApplication(apps[0]);
+          setDocuments(apps[0].kyc_documents || []);
+        } else {
+          navigate('/apply', { replace: true });
+          return;
+        }
+      } catch (e) {
+        console.error(e);
+        setError('Unable to load your application. Please try again.');
+      } finally {
+        setLoading(false);
       }
     }
     load();
-  }, []);
+  }, [navigate]);
 
   async function handleUpload(e) {
     const file = e.target.files[0];
@@ -30,7 +42,10 @@ export default function ApplyKYC() {
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       setDocuments(prev => [...prev, file_url]);
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error(err);
+      setError('File upload failed. Please try again.');
+    }
     setUploading(false);
   }
 
@@ -43,8 +58,19 @@ export default function ApplyKYC() {
         kyc_documents: documents,
       });
       setDone(true);
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+      setError('Failed to submit documents. Please try again.');
+    }
     setSubmitting(false);
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-8 h-8 border-2 border-brass/30 border-t-brass rounded-full animate-spin" />
+      </div>
+    );
   }
 
   if (done) {
@@ -73,6 +99,11 @@ export default function ApplyKYC() {
 
       <h1 className="text-2xl font-bold text-white mb-1">Identity Verification</h1>
       <p className="text-[#AAB4C3] text-sm mb-6">Upload the required documents to verify your identity.</p>
+      {error && (
+        <div className="vantoris-card p-3 mb-4 border-crimson/30 bg-crimson/5">
+          <p className="text-red-400 text-xs">{error}</p>
+        </div>
+      )}
       {application?.kyc_status === 'rejected' && (
         <div className="vantoris-card p-3 mb-4 border-crimson/30 bg-crimson/5">
           <p className="text-red-400 text-xs">Your previous submission was rejected. Please re-upload valid documents to continue.</p>

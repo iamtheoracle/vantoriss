@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import { Send, Bot, User, Loader2, ChevronDown, ChevronRight, Search, Trash2, Edit2, Pin, Menu, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
-export default function AgentChat({ agentName = 'vantoris_assistant' }) {
+export default function AgentChat({ agentName = 'vantoris_assistant', title = 'Vantoris AI Assistant', subtitle = 'Platform-wide operations', suggestions = null, inputPlaceholder = 'Ask about members, applications, KYC status, account balances...' }) {
   const [conversations, setConversations] = useState([]);
   const [activeConv, setActiveConv] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -249,8 +249,8 @@ export default function AgentChat({ agentName = 'vantoris_assistant' }) {
                 <Bot size={16} className="text-brass" />
               </div>
               <div className="min-w-0">
-                <h3 className="text-white font-bold text-sm truncate">Vantoris AI Assistant</h3>
-                <p className="text-[#AAB4C3] text-xs">Platform-wide operations</p>
+                <h3 className="text-white font-bold text-sm truncate">{title}</h3>
+                <p className="text-[#AAB4C3] text-xs">{subtitle}</p>
               </div>
             </div>
           </div>
@@ -274,12 +274,12 @@ export default function AgentChat({ agentName = 'vantoris_assistant' }) {
                 I have full access to your Vantoris platform. Ask me about members, accounts, applications, withdrawals, KYC status, and more.
               </p>
               <div className="space-y-2 w-full max-w-sm">
-                {[
+                {(suggestions || [
                   'Show me pending applications',
                   'What is the total AUM?',
                   'List the top 10 accounts by balance',
                   'How many members completed KYC?',
-                ].map((suggestion) => (
+                ]).map((suggestion) => (
                   <button
                     key={suggestion}
                     onClick={() => setInput(suggestion)}
@@ -310,7 +310,7 @@ export default function AgentChat({ agentName = 'vantoris_assistant' }) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask about members, applications, KYC status, account balances..."
+              placeholder={inputPlaceholder}
               className="flex-1 bg-[#242D38] border border-[#242D38] rounded-lg px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none resize-none max-h-24 selectable-content"
               rows={1}
             />

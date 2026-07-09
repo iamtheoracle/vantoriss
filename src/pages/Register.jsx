@@ -80,10 +80,12 @@ export default function Register() {
     try {
       const result = await base44.auth.verifyOtp({ email, otpCode });
 
-      if (result?.access_token) {
-        base44.auth.setToken(result.access_token);
+      if (!result?.access_token) {
+        setError('Verification completed but no session token was returned. Please try again or contact support.');
+        return;
       }
 
+      base44.auth.setToken(result.access_token);
       await trackReferral();
       window.location.href = '/';
     } catch (err) {

@@ -10,7 +10,7 @@ import OnboardingSupport from '@/components/vantoris/OnboardingSupport';
 import OpeningContribution from '@/components/vantoris/OpeningContribution';
 import SocialBanner from '@/components/vantoris/SocialBanner';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
-import { ArrowUpRight, ArrowDownLeft, Bell, ChevronRight, TrendingUp, Clock, Briefcase, Sparkles, Mail, MessageCircle } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, Bell, ChevronRight, TrendingUp, Clock, Briefcase, Sparkles, Mail, MessageCircle, AlertCircle } from 'lucide-react';
 import { whatsappLink, BUSINESS_WHATSAPP_NUMBER } from '@/lib/businessConfig';
 import { useWhatsAppConfig, whatsappLinkFromConfig } from '@/hooks/useWhatsAppConfig';
 export default function Home() {
@@ -21,6 +21,7 @@ export default function Home() {
   const [application, setApplication] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const navigate = useNavigate();
   const loadData = useCallback(async () => {
     const me = await base44.auth.me();
@@ -43,13 +44,39 @@ export default function Home() {
     }
   }, []);
   useEffect(() => {
-    loadData().catch(e => console.error(e)).finally(() => setLoading(false));
+    loadData().catch(e => {
+      console.error(e);
+      setLoadError('Unable to load your dashboard. Please check your connection and try again.');
+    }).finally(() => setLoading(false));
   }, [loadData]);
+
+  function retryLoad() {
+    setLoadError('');
+    setLoading(true);
+    loadData().catch(e => {
+      console.error(e);
+      setLoadError('Unable to load your dashboard. Please check your connection and try again.');
+    }).finally(() => setLoading(false));
+  }
   const { containerProps, PullIndicator } = usePullToRefresh(loadData);
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="w-8 h-8 border-2 border-brass/30 border-t-brass rounded-full animate-spin" />
+      </div>
+    );
+  }
+  if (loadError) {
+    return (
+      <div className="px-5 pt-6 min-h-screen flex flex-col items-center justify-center">
+        <div className="vantoris-card p-8 text-center w-full max-w-sm">
+          <AlertCircle size={32} className="text-red-400 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-white mb-2">Something went wrong</h2>
+          <p className="text-[#AAB4C3] text-sm mb-6">{loadError}</p>
+          <button onClick={retryLoad} className="w-full py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl hover:bg-brass/90 transition-all">
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
@@ -242,6 +269,7 @@ export default function Home() {
       <div className="mb-6">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-white font-semibold text-sm">Recent Activity</h3>
+          <button onClick={() => navigate('/transaction-dispute')} className="text-brass text-xs font-medium">Report Discrepancy</button>
         </div>
         {transactions.length === 0 ? (
           <p className="text-[#AAB4C3] text-sm text-center py-6">No transactions yet</p>
