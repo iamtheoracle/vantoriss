@@ -10,7 +10,7 @@ import OnboardingSupport from '@/components/vantoris/OnboardingSupport';
 import OpeningContribution from '@/components/vantoris/OpeningContribution';
 import SocialBanner from '@/components/vantoris/SocialBanner';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
-import { ArrowUpRight, ArrowDownLeft, Bell, ChevronRight, TrendingUp, Clock, Briefcase, Sparkles, Mail, MessageCircle, AlertCircle } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, Bell, ChevronRight, TrendingUp, Clock, Briefcase, Sparkles, Mail, MessageCircle, AlertCircle, ArrowLeftRight, Download, FileText, Banknote, CreditCard, Shield } from 'lucide-react';
 import { whatsappLink, BUSINESS_WHATSAPP_NUMBER } from '@/lib/businessConfig';
 import { useWhatsAppConfig, whatsappLinkFromConfig } from '@/hooks/useWhatsAppConfig';
 export default function Home() {
@@ -204,6 +204,60 @@ export default function Home() {
           <p className="text-[#AAB4C3] text-xs">{accounts.length} {accounts.length === 1 ? 'Account' : 'Accounts'}</p>
         </div>
       </div>
+      {/* Quick Actions */}
+      <div className="mb-6">
+        <h3 className="text-white font-semibold text-sm mb-3">Quick Actions</h3>
+        <div className="grid grid-cols-4 gap-2">
+          <button onClick={() => navigate('/accounts')} className="vantoris-card p-3 flex flex-col items-center gap-1.5 hover:border-brass/30 transition-all">
+            <div className="w-9 h-9 rounded-xl bg-blue-500/15 flex items-center justify-center">
+              <ArrowLeftRight size={16} className="text-blue-400" />
+            </div>
+            <span className="text-[#AAB4C3] text-[10px] font-medium">Transfer</span>
+          </button>
+          <button onClick={() => navigate('/services')} className="vantoris-card p-3 flex flex-col items-center gap-1.5 hover:border-brass/30 transition-all">
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/15 flex items-center justify-center">
+              <Download size={16} className="text-emerald-400" />
+            </div>
+            <span className="text-[#AAB4C3] text-[10px] font-medium">Deposit</span>
+          </button>
+          <button onClick={() => navigate('/documents')} className="vantoris-card p-3 flex flex-col items-center gap-1.5 hover:border-brass/30 transition-all">
+            <div className="w-9 h-9 rounded-xl bg-purple-500/15 flex items-center justify-center">
+              <FileText size={16} className="text-purple-400" />
+            </div>
+            <span className="text-[#AAB4C3] text-[10px] font-medium">Statements</span>
+          </button>
+          <button onClick={() => navigate('/services')} className="vantoris-card p-3 flex flex-col items-center gap-1.5 hover:border-brass/30 transition-all">
+            <div className="w-9 h-9 rounded-xl bg-orange-500/15 flex items-center justify-center">
+              <Banknote size={16} className="text-orange-400" />
+            </div>
+            <span className="text-[#AAB4C3] text-[10px] font-medium">Pay Bills</span>
+          </button>
+          <button onClick={() => navigate('/services')} className="vantoris-card p-3 flex flex-col items-center gap-1.5 hover:border-brass/30 transition-all">
+            <div className="w-9 h-9 rounded-xl bg-cyan-500/15 flex items-center justify-center">
+              <CreditCard size={16} className="text-cyan-400" />
+            </div>
+            <span className="text-[#AAB4C3] text-[10px] font-medium">Cards</span>
+          </button>
+          <button onClick={() => navigate('/services')} className="vantoris-card p-3 flex flex-col items-center gap-1.5 hover:border-brass/30 transition-all">
+            <div className="w-9 h-9 rounded-xl bg-brass/15 flex items-center justify-center">
+              <Briefcase size={16} className="text-brass" />
+            </div>
+            <span className="text-[#AAB4C3] text-[10px] font-medium">Services</span>
+          </button>
+          <button onClick={() => navigate('/advisor')} className="vantoris-card p-3 flex flex-col items-center gap-1.5 hover:border-brass/30 transition-all">
+            <div className="w-9 h-9 rounded-xl bg-pink-500/15 flex items-center justify-center">
+              <Sparkles size={16} className="text-pink-400" />
+            </div>
+            <span className="text-[#AAB4C3] text-[10px] font-medium">Advisor</span>
+          </button>
+          <button onClick={() => navigate('/profile')} className="vantoris-card p-3 flex flex-col items-center gap-1.5 hover:border-brass/30 transition-all">
+            <div className="w-9 h-9 rounded-xl bg-red-500/15 flex items-center justify-center">
+              <Shield size={16} className="text-red-400" />
+            </div>
+            <span className="text-[#AAB4C3] text-[10px] font-medium">Security</span>
+          </button>
+        </div>
+      </div>
       {/* Quick Stats */}
       <div className="grid grid-cols-2 gap-3 mb-6">
         <div className="vantoris-card p-4">
@@ -224,23 +278,6 @@ export default function Home() {
           <p className="text-white font-semibold text-lg">{unreadCount}</p>
           <p className="text-[#AAB4C3] text-[11px]">Unread Messages</p>
         </div>
-      </div>
-      {/* Quick Access */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        <button onClick={() => navigate('/services')} className="vantoris-card p-4 text-left hover:border-brass/30 transition-all">
-          <div className="w-10 h-10 rounded-xl bg-brass/15 flex items-center justify-center mb-2">
-            <Briefcase size={20} className="text-brass" />
-          </div>
-          <p className="text-white font-medium text-sm">Services</p>
-          <p className="text-[#AAB4C3] text-xs">Accounts & cards</p>
-        </button>
-        <button onClick={() => navigate('/advisor')} className="vantoris-card p-4 text-left hover:border-brass/30 transition-all">
-          <div className="w-10 h-10 rounded-xl bg-purple-500/15 flex items-center justify-center mb-2">
-            <Sparkles size={20} className="text-purple-400" />
-          </div>
-          <p className="text-white font-medium text-sm">Advisor</p>
-          <p className="text-[#AAB4C3] text-xs">AI guidance</p>
-        </button>
       </div>
       {/* My Accounts */}
       <div className="mb-6">
@@ -265,10 +302,10 @@ export default function Home() {
           </button>
         ))}
       </div>
-      {/* Recent Activity */}
+      {/* Recent Transactions */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-white font-semibold text-sm">Recent Activity</h3>
+          <h3 className="text-white font-semibold text-sm">Recent Transactions</h3>
           <button onClick={() => navigate('/transaction-dispute')} className="text-brass text-xs font-medium">Report Discrepancy</button>
         </div>
         {transactions.length === 0 ? (

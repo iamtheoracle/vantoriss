@@ -1,10 +1,22 @@
 import React from 'react';
 import { TabHistoryProvider } from '@/lib/TabHistoryContext';
+import { useAuth } from '@/lib/AuthContext';
+import { useSessionTimeout } from '@/hooks/useSessionTimeout';
 import PageTransition from './PageTransition';
 import BottomNav from './BottomNav';
 import WhatsAppFloatingButton from './WhatsAppFloatingButton';
+import FloatingActionButton from './FloatingActionButton';
+import SessionTimeoutModal from './SessionTimeoutModal';
 
 export default function MemberLayout() {
+  const { logout } = useAuth();
+
+  const handleTimeout = () => {
+    logout(true);
+  };
+
+  const { showWarning, extendSession, logoutNow } = useSessionTimeout(handleTimeout);
+
   return (
     <TabHistoryProvider>
       <div className="min-h-screen bg-[#0E1A2B] vantoris-scroll" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 5rem)' }}>
@@ -12,7 +24,13 @@ export default function MemberLayout() {
           <PageTransition />
         </div>
         <BottomNav />
+        <FloatingActionButton />
         <WhatsAppFloatingButton />
+        <SessionTimeoutModal
+          show={showWarning}
+          onExtend={extendSession}
+          onLogout={logoutNow}
+        />
       </div>
     </TabHistoryProvider>
   );
