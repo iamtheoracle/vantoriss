@@ -1,29 +1,30 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, MessageCircle, Sparkles } from 'lucide-react';
+import { Mail, MessageCircle, Sparkles, Phone } from 'lucide-react';
 import { useWhatsAppConfig, whatsappLinkFromConfig } from '@/hooks/useWhatsAppConfig';
 import { BUSINESS_WHATSAPP_DISPLAY, SUPPORT_EMAIL } from '@/lib/businessConfig';
 
-function SupportCard({ icon: Icon, title, detail, tone = 'blue', ...props }) {
-  const toneClass =
-    tone === 'green'
-      ? 'bg-[#E7F8F1] text-[#12805C] group-hover:bg-[#12805C]'
-      : tone === 'red'
-        ? 'bg-[#FCE7EA] text-[#E31837] group-hover:bg-[#E31837]'
-        : 'bg-[#E7EEF9] text-[#012169] group-hover:bg-[#012169]';
+const TONES = {
+  blue: { icon: 'text-brass', bg: 'bg-brass/12' },
+  green: { icon: 'text-mint', bg: 'bg-mint/12' },
+  champagne: { icon: 'text-champagne', bg: 'bg-champagne/12' },
+  gray: { icon: 'text-gray', bg: 'bg-white/[0.06]' },
+};
 
+function SupportCard({ icon: Icon, title, detail, tone = 'blue', ...props }) {
+  const t = TONES[tone] || TONES.blue;
   const Component = props.href ? 'a' : 'button';
 
   return (
     <Component
       {...props}
-      className="group rounded-lg border border-[#D8DEE8] bg-white p-4 text-left shadow-sm transition hover:border-[#012169] hover:bg-[#F8FAFC]"
+      className="vantoris-glass-flat p-4 text-left hover:border-brass/20 transition-all"
     >
-      <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-lg transition group-hover:text-white ${toneClass}`}>
-        <Icon size={18} />
+      <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${t.bg}`}>
+        <Icon size={18} className={t.icon} />
       </div>
-      <p className="text-sm font-bold text-[#071A33]">{title}</p>
-      <p className="mt-1 break-words text-xs text-[#5B6472]">{detail}</p>
+      <p className="text-sm font-bold text-white">{title}</p>
+      <p className="mt-1 break-words text-xs text-gray">{detail}</p>
     </Component>
   );
 }
@@ -35,17 +36,17 @@ export default function OnboardingSupport() {
   return (
     <section className="mt-5">
       <div className="mb-3">
-        <p className="text-sm font-bold text-[#071A33]">Need help? We are here for you</p>
-        <p className="mt-1 text-xs text-[#5B6472]">Get onboarding support from BOA through your preferred channel.</p>
+        <p className="text-sm font-bold text-white">Need help? We are here for you</p>
+        <p className="mt-1 text-xs text-gray">Get onboarding support from Vantoris through your preferred channel.</p>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <SupportCard
           type="button"
           icon={Sparkles}
-          title="BOA Guide"
+          title="Vantoris Advisor"
           detail="AI onboarding assistant"
-          tone="red"
+          tone="blue"
           onClick={() => navigate('/advisor')}
         />
         <SupportCard
@@ -53,7 +54,7 @@ export default function OnboardingSupport() {
           title="WhatsApp"
           detail="Chat with support"
           tone="green"
-          href={whatsappLinkFromConfig(whatsappNumber, 'Hello BOA, I need help with my onboarding.')}
+          href={whatsappLinkFromConfig(whatsappNumber, 'Hello Vantoris, I need help with my onboarding.')}
           target="_blank"
           rel="noopener noreferrer"
         />
@@ -61,13 +62,14 @@ export default function OnboardingSupport() {
           icon={Mail}
           title="Email"
           detail={SUPPORT_EMAIL}
+          tone="champagne"
           href={`mailto:${SUPPORT_EMAIL}`}
         />
         <SupportCard
-          icon={MessageCircle}
+          icon={Phone}
           title="Call Us"
           detail={BUSINESS_WHATSAPP_DISPLAY}
-          tone="red"
+          tone="gray"
           href={`tel:${BUSINESS_WHATSAPP_DISPLAY.replace(/[^0-9+]/g, '')}`}
         />
       </div>

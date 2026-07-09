@@ -11,8 +11,7 @@ export default function BalanceHero({ totalBalance, availableBalance, pendingBal
       transition={{ duration: 0.4 }}
       className="vantoris-balance-hero p-6 mb-4 relative overflow-hidden"
     >
-      {/* Decorative gradient orbs */}
-      <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-brass/[0.06] blur-3xl" />
+      <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-brass/[0.08] blur-3xl" />
       <div className="absolute -bottom-8 -left-8 w-32 h-32 rounded-full bg-mint/[0.04] blur-2xl" />
 
       <div className="relative z-10">
@@ -21,10 +20,10 @@ export default function BalanceHero({ totalBalance, availableBalance, pendingBal
             <div className="w-8 h-8 rounded-xl bg-brass/15 flex items-center justify-center">
               <Wallet size={15} className="text-brass" />
             </div>
-            <span className="text-[#AAB4C3] text-xs uppercase tracking-[0.15em] font-semibold">Total Balance</span>
+            <span className="text-gray text-xs uppercase tracking-[0.15em] font-semibold">Current Balance</span>
           </div>
           <button onClick={onToggleBalance} className="p-1.5 rounded-lg hover:bg-white/[0.06] transition-all">
-            {hideBalance ? <EyeOff size={16} className="text-[#AAB4C3]" /> : <Eye size={16} className="text-[#AAB4C3]" />}
+            {hideBalance ? <EyeOff size={16} className="text-gray" /> : <Eye size={16} className="text-gray" />}
           </button>
         </div>
 
@@ -32,20 +31,19 @@ export default function BalanceHero({ totalBalance, availableBalance, pendingBal
           <h2 className="text-4xl font-bold text-white tracking-tight">
             {hideBalance ? '••••••••' : formatCurrency(totalBalance)}
           </h2>
-          <p className="text-[#AAB4C3] text-xs mt-1">{accountCount} {accountCount === 1 ? 'Account' : 'Accounts'} · Updated just now</p>
+          <p className="text-gray text-xs mt-1">{accountCount} {accountCount === 1 ? 'Account' : 'Accounts'} · Updated just now</p>
         </div>
 
-        {/* Balance breakdown */}
         <div className="grid grid-cols-2 gap-3 pt-4 border-t border-white/[0.06]">
           <div>
-            <p className="text-[#AAB4C3]/70 text-[10px] uppercase tracking-wider font-medium mb-0.5">Available</p>
+            <p className="text-gray/70 text-[10px] uppercase tracking-wider font-medium mb-0.5">Available</p>
             <p className="text-white font-semibold text-sm">
               {hideBalance ? '••••••' : formatCurrency(availableBalance)}
             </p>
           </div>
           <div>
-            <p className="text-[#AAB4C3]/70 text-[10px] uppercase tracking-wider font-medium mb-0.5">Pending</p>
-            <p className="text-brass font-semibold text-sm">
+            <p className="text-gray/70 text-[10px] uppercase tracking-wider font-medium mb-0.5">Pending</p>
+            <p className="text-champagne font-semibold text-sm">
               {hideBalance ? '••••••' : formatCurrency(pendingBalance)}
             </p>
           </div>

@@ -8,8 +8,9 @@ export default function AIRecommendations({ unreadCount }) {
   const insights = [
     unreadCount > 0
       ? { icon: Bell, color: 'text-brass', bg: 'bg-brass/12', text: `You have ${unreadCount} unread message${unreadCount > 1 ? 's' : ''} requiring attention.` }
-      : { icon: ShieldCheck, color: 'text-mint', bg: 'bg-mint/12', text: 'Your accounts are secure and monitored 24/7.' },
-  ];
+      : null,
+    { icon: ShieldCheck, color: 'text-mint', bg: 'bg-mint/12', text: 'Your accounts are secure and monitored 24/7 by Vantoris Security.' },
+  ].filter(Boolean);
 
   return (
     <div className="vantoris-glass-flat p-4 mb-4">
@@ -18,7 +19,7 @@ export default function AIRecommendations({ unreadCount }) {
           <div className="w-7 h-7 rounded-lg bg-brass/12 flex items-center justify-center">
             <Sparkles size={14} className="text-brass" />
           </div>
-          <h3 className="text-white font-semibold text-sm">AI Insights</h3>
+          <h3 className="text-white font-semibold text-sm">AI Insights & Security</h3>
         </div>
         <button onClick={() => navigate('/advisor')} className="text-brass text-xs font-medium flex items-center gap-0.5">
           Ask Advisor <ChevronRight size={12} />
@@ -38,7 +39,7 @@ export default function AIRecommendations({ unreadCount }) {
               <div className={`w-8 h-8 rounded-lg ${insight.bg} flex items-center justify-center flex-shrink-0`}>
                 <Icon size={14} className={insight.color} />
               </div>
-              <p className="text-[#AAB4C3] text-xs leading-relaxed flex-1">{insight.text}</p>
+              <p className="text-gray text-xs leading-relaxed flex-1">{insight.text}</p>
             </motion.div>
           );
         })}

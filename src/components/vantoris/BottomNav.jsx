@@ -31,7 +31,7 @@ export default function BottomNav() {
               key={item.path}
               to={getTabPath(item.path)}
               className={`relative flex flex-col items-center gap-0.5 px-3.5 py-1.5 rounded-2xl transition-all duration-300 ${
-                isActive ? 'text-brass' : 'text-[#AAB4C3] hover:text-white'
+                isActive ? 'text-brass' : 'text-gray hover:text-white'
               }`}
             >
               {isActive && (

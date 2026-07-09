@@ -2,19 +2,20 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
-  ArrowLeftRight, Download, FileText, Banknote,
-  CreditCard, Briefcase, Sparkles, Shield,
+  ArrowLeftRight, Download, FileText,
+  CreditCard, TrendingUp, Sparkles,
+  Bell, User,
 } from 'lucide-react';
 
 const actions = [
-  { label: 'Transfer', icon: ArrowLeftRight, path: '/accounts', color: 'text-blue-400', bg: 'bg-blue-500/12' },
-  { label: 'Deposit', icon: Download, path: '/services', color: 'text-emerald-400', bg: 'bg-emerald-500/12' },
-  { label: 'Statements', icon: FileText, path: '/documents', color: 'text-purple-400', bg: 'bg-purple-500/12' },
-  { label: 'Pay Bills', icon: Banknote, path: '/services', color: 'text-orange-400', bg: 'bg-orange-500/12' },
+  { label: 'Transfer', icon: ArrowLeftRight, path: '/accounts', color: 'text-brass', bg: 'bg-brass/12' },
+  { label: 'Deposit', icon: Download, path: '/services', color: 'text-mint', bg: 'bg-mint/12' },
+  { label: 'Trade', icon: TrendingUp, path: '/trading', color: 'text-champagne', bg: 'bg-champagne/12' },
   { label: 'Cards', icon: CreditCard, path: '/services', color: 'text-cyan-400', bg: 'bg-cyan-500/12' },
-  { label: 'Services', icon: Briefcase, path: '/services', color: 'text-brass', bg: 'bg-brass/12' },
-  { label: 'Advisor', icon: Sparkles, path: '/advisor', color: 'text-pink-400', bg: 'bg-pink-500/12' },
-  { label: 'Security', icon: Shield, path: '/profile', color: 'text-red-400', bg: 'bg-red-500/12' },
+  { label: 'Statements', icon: FileText, path: '/documents', color: 'text-purple-400', bg: 'bg-purple-500/12' },
+  { label: 'Messages', icon: Bell, path: '/messages', color: 'text-blue-400', bg: 'bg-blue-500/12' },
+  { label: 'Advisor', icon: Sparkles, path: '/advisor', color: 'text-brass', bg: 'bg-brass/12' },
+  { label: 'Profile', icon: User, path: '/profile', color: 'text-gray', bg: 'bg-white/[0.06]' },
 ];
 
 export default function QuickActions() {
@@ -39,7 +40,7 @@ export default function QuickActions() {
               <div className={`w-9 h-9 rounded-xl ${action.bg} flex items-center justify-center`}>
                 <Icon size={16} className={action.color} />
               </div>
-              <span className="text-[#AAB4C3] text-[10px] font-medium">{action.label}</span>
+              <span className="text-gray text-[10px] font-medium">{action.label}</span>
             </motion.button>
           );
         })}

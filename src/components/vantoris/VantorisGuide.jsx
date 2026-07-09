@@ -13,32 +13,32 @@ export default function VantorisGuide() {
       icon: Sparkles,
       label: 'Vantoris Advisor',
       desc: 'AI-guided onboarding & account help',
-      color: 'text-purple-400',
-      bg: 'bg-purple-500/15',
+      color: 'text-brass',
+      bg: 'bg-brass/12',
       onClick: () => navigate('/advisor'),
     },
     {
       icon: MessageCircle,
       label: 'WhatsApp Support',
       desc: `Chat · ${BUSINESS_WHATSAPP_DISPLAY}`,
-      color: 'text-emerald-400',
-      bg: 'bg-emerald-500/15',
+      color: 'text-mint',
+      bg: 'bg-mint/12',
       href: whatsappLinkFromConfig(whatsappNumber, 'Hello Vantoris Support, I need guidance.'),
     },
     {
       icon: Mail,
       label: 'Email Us',
       desc: SUPPORT_EMAIL,
-      color: 'text-blue-400',
-      bg: 'bg-blue-500/15',
+      color: 'text-champagne',
+      bg: 'bg-champagne/12',
       href: `mailto:${SUPPORT_EMAIL}`,
     },
     {
       icon: Phone,
       label: 'Call Support',
       desc: BUSINESS_WHATSAPP_DISPLAY,
-      color: 'text-brass',
-      bg: 'bg-brass/15',
+      color: 'text-gray',
+      bg: 'bg-white/[0.06]',
       href: `tel:${BUSINESS_WHATSAPP_DISPLAY.replace(/[^0-9+]/g, '')}`,
     },
   ];
@@ -58,18 +58,18 @@ export default function VantorisGuide() {
                 <Icon size={20} className={g.color} />
               </div>
               <p className="text-white font-medium text-sm">{g.label}</p>
-              <p className="text-[#AAB4C3] text-xs">{g.desc}</p>
+              <p className="text-gray text-xs">{g.desc}</p>
             </>
           );
           if (g.href) {
             return (
-              <a key={i} href={g.href} target="_blank" rel="noopener noreferrer" className="vantoris-card p-4 text-left hover:border-brass/30 transition-all">
+              <a key={i} href={g.href} target="_blank" rel="noopener noreferrer" className="vantoris-glass-flat p-4 text-left hover:border-brass/25 transition-all">
                 {content}
               </a>
             );
           }
           return (
-            <button key={i} onClick={g.onClick} className="vantoris-card p-4 text-left hover:border-brass/30 transition-all">
+            <button key={i} onClick={g.onClick} className="vantoris-glass-flat p-4 text-left hover:border-brass/25 transition-all">
               {content}
             </button>
           );

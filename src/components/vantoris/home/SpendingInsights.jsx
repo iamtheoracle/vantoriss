@@ -1,9 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { formatCurrency } from '@/lib/formatCurrency';
-import { TrendingUp, TrendingDown, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, ArrowDownLeft, ArrowUpRight, Clock } from 'lucide-react';
 
-export default function SpendingInsights({ transactions }) {
+export default function SpendingInsights({ transactions, upcomingWithdrawals = [] }) {
   const deposits = transactions
     .filter(t => t.type === 'deposit' || t.type === 'opening_balance')
     .reduce((s, t) => s + Math.abs(t.amount || 0), 0);
@@ -47,29 +47,55 @@ export default function SpendingInsights({ transactions }) {
             <ArrowDownLeft size={14} className="text-mint" />
           </div>
           <div>
-            <p className="text-[#AAB4C3]/70 text-[10px] uppercase tracking-wider">Inflows</p>
+            <p className="text-gray/70 text-[10px] uppercase tracking-wider">Inflows</p>
             <p className="text-mint font-semibold text-sm">{formatCurrency(deposits)}</p>
           </div>
         </div>
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-crimson/10 flex items-center justify-center">
-            <ArrowUpRight size={14} className="text-red-400" />
+            <ArrowUpRight size={14} className="text-crimson" />
           </div>
           <div>
-            <p className="text-[#AAB4C3]/70 text-[10px] uppercase tracking-wider">Outflows</p>
-            <p className="text-red-400 font-semibold text-sm">{formatCurrency(withdrawals)}</p>
+            <p className="text-gray/70 text-[10px] uppercase tracking-wider">Outflows</p>
+            <p className="text-crimson font-semibold text-sm">{formatCurrency(withdrawals)}</p>
           </div>
         </div>
       </div>
 
       {/* Net flow */}
       <div className="flex items-center justify-between pt-3 border-t border-white/[0.05]">
-        <span className="text-[#AAB4C3] text-xs">Net Position</span>
+        <span className="text-gray text-xs">Net Position</span>
         <div className="flex items-center gap-1.5">
-          {netFlow >= 0 ? <TrendingUp size={14} className="text-mint" /> : <TrendingDown size={14} className="text-red-400" />}
-          <span className={`font-bold text-sm ${netFlow >= 0 ? 'text-mint' : 'text-red-400'}`}>{formatCurrency(netFlow)}</span>
+          {netFlow >= 0 ? <TrendingUp size={14} className="text-mint" /> : <TrendingDown size={14} className="text-crimson" />}
+          <span className={`font-bold text-sm ${netFlow >= 0 ? 'text-mint' : 'text-crimson'}`}>{formatCurrency(netFlow)}</span>
         </div>
       </div>
+
+      {/* Upcoming Payments / Scheduled Transfers */}
+      {upcomingWithdrawals.length > 0 && (
+        <div className="mt-4 pt-3 border-t border-white/[0.05]">
+          <div className="flex items-center gap-1.5 mb-2">
+            <Clock size={12} className="text-champagne" />
+            <p className="text-gray/70 text-[10px] uppercase tracking-wider font-medium">Upcoming & Scheduled</p>
+          </div>
+          <div className="space-y-2">
+            {upcomingWithdrawals.slice(0, 3).map((wr, idx) => (
+              <div key={wr.id || idx} className="flex items-center justify-between">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-6 h-6 rounded-lg bg-champagne/10 flex items-center justify-center flex-shrink-0">
+                    <ArrowUpRight size={11} className="text-champagne" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-white text-xs font-medium truncate">{wr.method || 'Transfer'}</p>
+                    <p className="text-gray/50 text-[10px]">Pending approval</p>
+                  </div>
+                </div>
+                <p className="text-champagne font-semibold text-xs flex-shrink-0">{formatCurrency(wr.amount)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

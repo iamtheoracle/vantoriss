@@ -33,12 +33,12 @@ export default function Accounts() {
   return (
     <div className="px-5 pt-6">
       <h1 className="text-2xl font-bold text-white mb-1">Accounts</h1>
-      <p className="text-[#AAB4C3] text-sm mb-6">Total Balance: <span className="text-white font-semibold">{formatCurrency(totalBalance)}</span></p>
+      <p className="text-gray text-sm mb-6">Total Balance: <span className="text-white font-semibold">{formatCurrency(totalBalance)}</span></p>
 
       {/* Filter tabs */}
       <div className="flex gap-2 mb-6 overflow-x-auto">
         {['All', 'Personal', 'Joint', 'Business', 'Organization'].map(tab => (
-          <span key={tab} className="px-3 py-1.5 rounded-full text-xs font-medium bg-[#242D38] text-[#AAB4C3] whitespace-nowrap">
+          <span key={tab} className="px-3 py-1.5 rounded-full text-xs font-medium bg-slate/50 text-gray whitespace-nowrap">
             {tab}
           </span>
         ))}
@@ -46,9 +46,9 @@ export default function Accounts() {
 
       {accounts.length === 0 ? (
         <div className="vantoris-card p-8 text-center">
-          <Wallet size={32} className="text-[#AAB4C3] mx-auto mb-3" />
+          <Wallet size={32} className="text-gray mx-auto mb-3" />
           <p className="text-white font-medium mb-1">No Accounts Yet</p>
-          <p className="text-[#AAB4C3] text-sm">Your accounts will appear here once approved.</p>
+          <p className="text-gray text-sm">Your accounts will appear here once approved.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -65,7 +65,7 @@ export default function Accounts() {
                   </div>
                   <div>
                     <p className="text-white font-medium">{account.account_name}</p>
-                    <p className="text-[#AAB4C3] text-xs">{account.account_number}</p>
+                    <p className="text-gray text-xs font-mono">{account.account_number}</p>
                   </div>
                 </div>
                 <ChevronRight size={18} className="text-[#AAB4C3]" />

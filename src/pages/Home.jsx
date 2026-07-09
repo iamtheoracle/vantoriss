@@ -17,11 +17,14 @@ import AccountCarousel from '@/components/vantoris/home/AccountCarousel';
 import RecentActivity from '@/components/vantoris/home/RecentActivity';
 import SpendingInsights from '@/components/vantoris/home/SpendingInsights';
 import AIRecommendations from '@/components/vantoris/home/AIRecommendations';
+import PortfolioSummary from '@/components/vantoris/home/PortfolioSummary';
 
 export default function Home() {
   const [user, setUser] = useState(null);
   const [accounts, setAccounts] = useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [tradingAccounts, setTradingAccounts] = useState([]);
+  const [pendingWithdrawals, setPendingWithdrawals] = useState([]);
   const [application, setApplication] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,14 +35,18 @@ export default function Home() {
   const loadData = useCallback(async () => {
     const me = await base44.auth.me();
     setUser(me);
-    const [apps, accts, notifs] = await Promise.all([
+    const [apps, accts, notifs, trading, pendingWrs] = await Promise.all([
       base44.entities.Application.filter({ user_id: me.id }),
       base44.entities.Account.filter({ user_id: me.id }),
       base44.entities.Notification.filter({ user_id: me.id }, '-created_date', 5),
+      base44.entities.TradingAccount.filter({ user_id: me.id }).catch(() => []),
+      base44.entities.WithdrawalRequest.filter({ user_id: me.id, status: 'pending' }).catch(() => []),
     ]);
     setApplication(apps[0] || null);
     setAccounts(accts);
     setNotifications(notifs);
+    setTradingAccounts(trading);
+    setPendingWithdrawals(pendingWrs);
     if (accts.length > 0) {
       const txns = await base44.entities.Transaction.filter(
         { account_id: accts.map(a => a.id) },
@@ -80,10 +87,10 @@ export default function Home() {
     return (
       <div className="px-5 pt-6 min-h-screen flex flex-col items-center justify-center">
         <div className="vantoris-glass-premium p-8 text-center w-full max-w-sm">
-          <AlertCircle size={32} className="text-red-400 mx-auto mb-4" />
+          <AlertCircle size={32} className="text-crimson mx-auto mb-4" />
           <h2 className="text-xl font-bold text-white mb-2">Something went wrong</h2>
-          <p className="text-[#AAB4C3] text-sm mb-6">{loadError}</p>
-          <button onClick={retryLoad} className="w-full py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl hover:bg-brass/90 transition-all">
+          <p className="text-gray text-sm mb-6">{loadError}</p>
+          <button onClick={retryLoad} className="w-full py-3 bg-brass text-white font-semibold rounded-xl hover:bg-brass/90 transition-all">
             Try Again
           </button>
         </div>
@@ -109,18 +116,18 @@ export default function Home() {
         <div className="flex items-center justify-between mb-8">
           <ShieldLogo size={32} />
           <button onClick={() => navigate('/messages')} className="relative p-2">
-            <Bell size={20} className="text-[#AAB4C3]" />
+            <Bell size={20} className="text-gray" />
           </button>
         </div>
         <div className="vantoris-glass-premium p-8 text-center">
           <ShieldLogo size={64} className="mx-auto mb-6" />
           <h2 className="text-2xl font-bold text-white mb-2">Welcome to Vantoris</h2>
-          <p className="text-[#AAB4C3] text-sm mb-6 leading-relaxed">
+          <p className="text-gray text-sm mb-6 leading-relaxed">
             A secure platform for private institutions and approved members to manage capital with clarity and confidence.
           </p>
           <button
             onClick={() => navigate('/apply')}
-            className="w-full py-3.5 bg-brass text-[#0E1A2B] font-semibold rounded-xl hover:bg-brass/90 transition-all"
+            className="w-full py-3.5 bg-brass text-white font-semibold rounded-xl hover:bg-brass/90 transition-all"
           >
             Apply for Membership
           </button>
@@ -138,7 +145,7 @@ export default function Home() {
         <div className="flex items-center justify-between mb-8">
           <ShieldLogo size={32} />
           <button onClick={() => navigate('/messages')} className="relative p-2">
-            <Bell size={20} className="text-[#AAB4C3]" />
+            <Bell size={20} className="text-gray" />
           </button>
         </div>
         <div className="vantoris-glass-premium p-8 text-center">
@@ -146,17 +153,17 @@ export default function Home() {
             <Clock size={28} className="text-brass" />
           </div>
           <h2 className="text-xl font-bold text-white mb-2">Application Under Review</h2>
-          <p className="text-[#AAB4C3] text-sm mb-4 leading-relaxed">
+          <p className="text-gray text-sm mb-4 leading-relaxed">
             Your {application.account_type} account application is being reviewed. You will be notified once approved.
           </p>
           <div className="flex items-center justify-center gap-3 text-sm">
-            <span className="text-[#AAB4C3]">KYC Status:</span>
+            <span className="text-gray">KYC Status:</span>
             <StatusBadge status={application.kyc_status} />
           </div>
           {application.kyc_status === 'not_started' && (
             <button
               onClick={() => navigate('/apply/kyc')}
-              className="mt-6 w-full py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl hover:bg-brass/90 transition-all"
+              className="mt-6 w-full py-3 bg-brass text-white font-semibold rounded-xl hover:bg-brass/90 transition-all"
             >
               Complete Identity Verification
             </button>
@@ -177,35 +184,34 @@ export default function Home() {
         <div className="flex items-center justify-between mb-8">
           <ShieldLogo size={32} />
           <button onClick={() => navigate('/messages')} className="relative p-2">
-            <Bell size={20} className="text-[#AAB4C3]" />
+            <Bell size={20} className="text-gray" />
           </button>
         </div>
         <div className="vantoris-glass-premium p-8 text-center">
           <h2 className="text-xl font-bold text-white mb-2">Application Not Approved</h2>
-          <p className="text-[#AAB4C3] text-sm mb-4">{application.admin_notes || 'Your application was not approved at this time.'}</p>
+          <p className="text-gray text-sm mb-4">{application.admin_notes || 'Your application was not approved at this time.'}</p>
         </div>
         <OnboardingSupport />
       </div>
     );
   }
 
-  // Approved member dashboard — three-zone layout
+  // Approved member dashboard — executive three-zone layout
   return (
     <div className="px-5 pt-6 vantoris-scroll" {...containerProps}>
       <PullIndicator />
 
       {/* === Zone 1: Primary Financial Information === */}
-      {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
           <ShieldLogo size={32} />
           <div>
-            <p className="text-[#AAB4C3] text-xs">{greeting},</p>
+            <p className="text-gray text-xs">{greeting},</p>
             <h1 className="text-white font-bold text-lg">{firstName}</h1>
           </div>
         </div>
         <button onClick={() => navigate('/messages')} className="relative p-2.5 rounded-xl hover:bg-white/[0.04] transition-all">
-          <Bell size={20} className="text-[#AAB4C3]" />
+          <Bell size={20} className="text-gray" />
           {unreadCount > 0 && (
             <span className="absolute top-1 right-1 w-4 h-4 bg-crimson text-white text-[9px] rounded-full flex items-center justify-center font-bold">
               {unreadCount}
@@ -214,7 +220,6 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Balance Hero */}
       <BalanceHero
         totalBalance={totalBalance}
         availableBalance={availableBalance}
@@ -224,34 +229,30 @@ export default function Home() {
         onToggleBalance={() => setHideBalance(!hideBalance)}
       />
 
-      {/* Quick Actions */}
       <QuickActions />
 
       {/* === Zone 2: Contextual Content === */}
-      {/* Account Carousel */}
       <AccountCarousel accounts={accounts} />
 
-      {/* Cash Flow Insights */}
-      <SpendingInsights transactions={transactions} />
+      {tradingAccounts.length > 0 && (
+        <PortfolioSummary tradingAccounts={tradingAccounts} />
+      )}
 
-      {/* Recent Activity */}
+      <SpendingInsights transactions={transactions} upcomingWithdrawals={pendingWithdrawals} />
+
       <RecentActivity transactions={transactions} />
 
-      {/* AI Recommendations */}
       <AIRecommendations unreadCount={unreadCount} />
 
       {/* === Zone 3: Supporting Content === */}
-      {/* Social Banner */}
       <div className="mb-5">
         <SocialBanner />
       </div>
 
-      {/* Causes We Support */}
       <div className="mb-5">
         <SupportedCauses />
       </div>
 
-      {/* Vantoris Guide */}
       <div className="mb-5">
         <VantorisGuide />
       </div>

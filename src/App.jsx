@@ -78,8 +78,8 @@ const BackgroundJobs = React.lazy(() => import('./pages/operations/BackgroundJob
 const SystemHealth = React.lazy(() => import('./pages/operations/SystemHealth'));
 
 const LoadingFallback = () => (
-  <div className="fixed inset-0 flex items-center justify-center bg-[#0E1A2B]">
-    <div className="w-8 h-8 border-2 border-[#B08D57]/30 border-t-[#B08D57] rounded-full animate-spin" />
+  <div className="fixed inset-0 flex items-center justify-center bg-navy">
+    <div className="w-8 h-8 border-2 border-brass/30 border-t-brass rounded-full animate-spin" />
   </div>
 );
 

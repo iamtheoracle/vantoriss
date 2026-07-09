@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,43 +6,44 @@
 
 @layer base {
   :root {
-    --background: 213 50% 11%;
-    --foreground: 210 20% 98%;
-    --card: 213 22% 18%;
-    --card-foreground: 210 20% 98%;
-    --popover: 213 22% 18%;
-    --popover-foreground: 210 20% 98%;
-    --primary: 37 38% 52%;
-    --primary-foreground: 213 50% 11%;
-    --secondary: 213 22% 18%;
-    --secondary-foreground: 210 20% 98%;
-    --muted: 213 22% 22%;
-    --muted-foreground: 215 18% 73%;
-    --accent: 120 13% 26%;
-    --accent-foreground: 210 20% 98%;
-    --destructive: 350 50% 37%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 213 22% 24%;
-    --input: 213 22% 24%;
-    --ring: 37 38% 52%;
-    --chart-1: 37 38% 52%;
-    --chart-2: 120 13% 26%;
-    --chart-3: 215 18% 73%;
-    --chart-4: 350 50% 37%;
-    --chart-5: 213 22% 18%;
-    --radius: 0.75rem;
+    /* === VANTORIS Institutional Blue Palette === */
+    --background: 216 33% 10%;
+    --foreground: 210 22% 96%;
+    --card: 216 28% 15%;
+    --card-foreground: 210 22% 96%;
+    --popover: 216 30% 13%;
+    --popover-foreground: 210 22% 96%;
+    --primary: 212 56% 44%;
+    --primary-foreground: 210 22% 98%;
+    --secondary: 215 25% 20%;
+    --secondary-foreground: 210 22% 96%;
+    --muted: 215 20% 22%;
+    --muted-foreground: 215 16% 62%;
+    --accent: 210 40% 28%;
+    --accent-foreground: 210 22% 96%;
+    --destructive: 350 52% 42%;
+    --destructive-foreground: 210 22% 98%;
+    --border: 215 22% 24%;
+    --input: 215 22% 24%;
+    --ring: 212 56% 44%;
+    --chart-1: 212 56% 44%;
+    --chart-2: 160 30% 42%;
+    --chart-3: 215 16% 62%;
+    --chart-4: 350 52% 42%;
+    --chart-5: 215 28% 15%;
+    --radius: 0.875rem;
     --font-heading: 'Inter', ui-sans-serif, system-ui, sans-serif;
     --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
     --font-display: 'Inter', ui-sans-serif, system-ui, sans-serif;
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    --sidebar-background: 213 22% 14%;
-    --sidebar-foreground: 210 20% 98%;
-    --sidebar-primary: 37 38% 52%;
-    --sidebar-primary-foreground: 213 50% 11%;
-    --sidebar-accent: 213 22% 18%;
-    --sidebar-accent-foreground: 210 20% 98%;
-    --sidebar-border: 213 22% 24%;
-    --sidebar-ring: 37 38% 52%;
+    --sidebar-background: 216 30% 11%;
+    --sidebar-foreground: 210 22% 96%;
+    --sidebar-primary: 212 56% 44%;
+    --sidebar-primary-foreground: 210 22% 98%;
+    --sidebar-accent: 215 25% 18%;
+    --sidebar-accent-foreground: 210 22% 96%;
+    --sidebar-border: 215 22% 22%;
+    --sidebar-ring: 212 56% 44%;
   }
 }
 
@@ -82,78 +83,78 @@
 }
 
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #0E1A2B; }
-::-webkit-scrollbar-thumb { background: #242D38; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #B08D57; }
+::-webkit-scrollbar-track { background: #0A1A2E; }
+::-webkit-scrollbar-thumb { background: #1B2D45; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3B6CB4; }
 
-/* === Glass surfaces (vantoris-card and vantoris-glass are identical — merged) === */
+/* === Glass Surfaces — Institutional Blue === */
 .vantoris-card,
 .vantoris-glass {
-  background: rgba(30, 39, 53, 0.55);
+  background: rgba(27, 45, 69, 0.55);
   backdrop-filter: blur(20px) saturate(160%);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
-  border: 1px solid rgba(176, 141, 87, 0.1);
-  border-radius: 16px;
+  border: 1px solid rgba(59, 108, 180, 0.12);
+  border-radius: 18px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 .vantoris-balance-glow {
-  background: radial-gradient(ellipse at 50% 50%, rgba(176, 141, 87, 0.12) 0%, transparent 70%);
+  background: radial-gradient(ellipse at 50% 50%, rgba(59, 108, 180, 0.12) 0%, transparent 70%);
 }
 .vantoris-glass-flat {
-  background: rgba(30, 39, 53, 0.35);
+  background: rgba(27, 45, 69, 0.35);
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 14px;
+  border-radius: 16px;
 }
 .vantoris-glass-header {
-  background: rgba(10, 14, 24, 0.82);
+  background: rgba(10, 21, 37, 0.85);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border-bottom: 1px solid rgba(176, 141, 87, 0.08);
+  border-bottom: 1px solid rgba(59, 108, 180, 0.1);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 .vantoris-glass-sidebar {
-  background: rgba(12, 18, 30, 0.9);
+  background: rgba(12, 24, 42, 0.92);
   backdrop-filter: blur(28px) saturate(160%);
   -webkit-backdrop-filter: blur(28px) saturate(160%);
 }
 .vantoris-glass-dropdown {
-  background: rgba(15, 22, 36, 0.97);
+  background: rgba(15, 28, 48, 0.97);
   backdrop-filter: blur(28px) saturate(180%);
   -webkit-backdrop-filter: blur(28px) saturate(180%);
-  border: 1px solid rgba(176, 141, 87, 0.12);
+  border: 1px solid rgba(59, 108, 180, 0.15);
   box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  border-radius: 14px;
+  border-radius: 16px;
 }
 .vantoris-shadow-glow {
-  box-shadow: 0 0 0 1px rgba(176, 141, 87, 0.15), 0 8px 32px rgba(176, 141, 87, 0.08);
+  box-shadow: 0 0 0 1px rgba(59, 108, 180, 0.15), 0 8px 32px rgba(59, 108, 180, 0.08);
 }
 .vantoris-mesh-bg {
-  background-color: #0B0F18;
+  background-color: #0A1525;
   background-image:
-    radial-gradient(at 20% 0%, rgba(176, 141, 87, 0.04) 0px, transparent 50%),
-    radial-gradient(at 80% 100%, rgba(126, 184, 159, 0.03) 0px, transparent 50%);
+    radial-gradient(at 20% 0%, rgba(59, 108, 180, 0.06) 0px, transparent 50%),
+    radial-gradient(at 80% 100%, rgba(76, 175, 122, 0.03) 0px, transparent 50%);
 }
 
-/* Shimmer skeleton (used by admin widgets) */
+/* Shimmer skeleton */
 @keyframes vantoris-shimmer {
   0% { background-position: -1000px 0; }
   100% { background-position: 1000px 0; }
 }
 .vantoris-shimmer {
-  background: linear-gradient(90deg, rgba(36, 45, 56, 0.4) 25%, rgba(48, 58, 72, 0.6) 50%, rgba(36, 45, 56, 0.4) 75%);
+  background: linear-gradient(90deg, rgba(27, 45, 69, 0.4) 25%, rgba(40, 60, 88, 0.6) 50%, rgba(27, 45, 69, 0.4) 75%);
   background-size: 1000px 100%;
   animation: vantoris-shimmer 2s infinite linear;
 }
 
-/* === Premium Liquid Glass v2 === */
+/* === Premium Liquid Glass — Institutional Blue === */
 .vantoris-glass-premium {
-  background: linear-gradient(145deg, rgba(36, 45, 56, 0.65) 0%, rgba(24, 32, 44, 0.5) 100%);
+  background: linear-gradient(145deg, rgba(27, 45, 69, 0.68) 0%, rgba(16, 30, 50, 0.52) 100%);
   backdrop-filter: blur(28px) saturate(180%);
   -webkit-backdrop-filter: blur(28px) saturate(180%);
-  border: 1px solid rgba(176, 141, 87, 0.12);
-  border-radius: 20px;
+  border: 1px solid rgba(59, 108, 180, 0.14);
+  border-radius: 22px;
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.28),
     0 2px 8px rgba(0, 0, 0, 0.14),
@@ -161,35 +162,35 @@
     inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 }
 .vantoris-glass-dock {
-  background: rgba(14, 26, 43, 0.72);
+  background: rgba(10, 26, 46, 0.75);
   backdrop-filter: blur(32px) saturate(200%);
   -webkit-backdrop-filter: blur(32px) saturate(200%);
-  border: 1px solid rgba(176, 141, 87, 0.15);
+  border: 1px solid rgba(59, 108, 180, 0.18);
   box-shadow:
     0 16px 48px rgba(0, 0, 0, 0.4),
     0 4px 16px rgba(0, 0, 0, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 .vantoris-glass-nav {
-  background: rgba(11, 15, 24, 0.82);
+  background: rgba(10, 21, 37, 0.88);
   backdrop-filter: blur(32px) saturate(180%);
   -webkit-backdrop-filter: blur(32px) saturate(180%);
-  border-top: 1px solid rgba(176, 141, 87, 0.08);
+  border-top: 1px solid rgba(59, 108, 180, 0.1);
   box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.2);
 }
 .vantoris-balance-hero {
   background:
-    radial-gradient(ellipse at 30% 0%, rgba(176, 141, 87, 0.12) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 100%, rgba(126, 184, 159, 0.06) 0%, transparent 50%),
-    linear-gradient(145deg, rgba(36, 45, 56, 0.7) 0%, rgba(24, 32, 44, 0.55) 100%);
+    radial-gradient(ellipse at 30% 0%, rgba(59, 108, 180, 0.16) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 100%, rgba(76, 175, 122, 0.05) 0%, transparent 50%),
+    linear-gradient(145deg, rgba(27, 45, 69, 0.72) 0%, rgba(16, 30, 50, 0.56) 100%);
   backdrop-filter: blur(24px) saturate(160%);
   -webkit-backdrop-filter: blur(24px) saturate(160%);
-  border: 1px solid rgba(176, 141, 87, 0.15);
+  border: 1px solid rgba(59, 108, 180, 0.16);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 .vantoris-divider {
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(176,141,87,0.12), transparent);
+  background: linear-gradient(90deg, transparent, rgba(59, 108, 180, 0.14), transparent);
 }
 
 /* Mobile Select Bottom Sheet */
