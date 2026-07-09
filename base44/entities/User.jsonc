@@ -13,7 +13,14 @@
         "executive",
         "administrator",
         "super_administrator",
-        "admin"
+        "admin",
+        "customer_support",
+        "kyc_officer",
+        "operations_manager",
+        "treasury_officer",
+        "auditor",
+        "it_administrator",
+        "risk_officer"
       ],
       "default": "user"
     },

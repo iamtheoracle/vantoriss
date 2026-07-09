@@ -1,55 +1,81 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
-import { Menu, ArrowUpRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Menu } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
+import AdminTopBar from './AdminTopBar';
 import PageTransition from './PageTransition';
+import { base44 } from '@/api/base44Client';
+import { getDefaultWorkspace } from '@/lib/operationsAccess';
 
 export default function AdminLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [activeWorkspace, setActiveWorkspace] = useState(null);
   const location = useLocation();
 
-  // Close drawer on route change
+  useEffect(() => {
+    base44.auth.me()
+      .then(u => {
+        setUser(u);
+        // Restore workspace from localStorage or use default
+        const saved = localStorage.getItem('vantoris_workspace');
+        if (saved) {
+          setActiveWorkspace(saved);
+        } else {
+          setActiveWorkspace(getDefaultWorkspace(u.role) || 'operations');
+        }
+      })
+      .catch(() => setActiveWorkspace('operations'));
+  }, []);
+
   useEffect(() => {
     setMobileOpen(false);
   }, [location.pathname]);
 
-  return (
-    <div className="min-h-screen bg-[#0E1A2B]">
-      {/* Desktop sidebar */}
-      <div className="hidden lg:block">
-        <AdminSidebar />
-      </div>
+  function handleWorkspaceChange(ws) {
+    setActiveWorkspace(ws);
+    localStorage.setItem('vantoris_workspace', ws);
+  }
 
-      {/* Mobile / Tablet top bar */}
-      <div
-        className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-[#0E1A2B]/95 backdrop-blur-md border-b border-[#242D38] flex items-center justify-between px-4 h-14 safe-top"
-      >
-        <button
-          onClick={() => setMobileOpen(true)}
-          className="p-2 -ml-2 text-[#AAB4C3] hover:text-white transition-colors"
-          aria-label="Open navigation menu"
-        >
-          <Menu size={22} />
-        </button>
-        <span className="text-white font-bold text-sm tracking-widest">VANTORIS</span>
-        <Link to="/" className="p-2 -mr-2 text-[#AAB4C3] hover:text-white transition-colors" aria-label="Member portal">
-          <ArrowUpRight size={20} className="rotate-180" />
-        </Link>
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#0E1A2B]">
+        <div className="w-8 h-8 border-2 border-brass/30 border-t-brass rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#0E1A2B] flex">
+      {/* Desktop sidebar — fixed */}
+      <div className="hidden lg:flex fixed left-0 top-0 bottom-0 z-40">
+        <AdminSidebar
+          user={user}
+          activeWorkspace={activeWorkspace}
+          onWorkspaceChange={handleWorkspaceChange}
+        />
       </div>
 
       {/* Mobile drawer */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent side="left" className="bg-[#111C2D] border-[#242D38] p-0 w-72" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
-          <AdminSidebar />
+          <AdminSidebar
+            user={user}
+            activeWorkspace={activeWorkspace}
+            onWorkspaceChange={handleWorkspaceChange}
+            onNavigate={() => setMobileOpen(false)}
+          />
         </SheetContent>
       </Sheet>
 
-      {/* Main content — responsive: no fixed margin on mobile, ml-64 on desktop */}
-      <main className="lg:ml-64 p-4 lg:p-8 pt-[4.5rem] lg:pt-8 vantoris-scroll min-h-screen">
-        <PageTransition />
-      </main>
+      {/* Main content area */}
+      <div className="flex-1 lg:ml-64 flex flex-col min-h-screen">
+        <AdminTopBar user={user} onMenuClick={() => setMobileOpen(true)} />
+        <main className="flex-1 p-4 lg:p-6 vantoris-scroll">
+          <PageTransition />
+        </main>
+      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
-import { Users, FileText, ArrowDownToLine, Wallet } from 'lucide-react';
+import { Users, FileText, ArrowDownToLine, Wallet, Briefcase } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import AumChart from '@/components/vantoris/AumChart';
@@ -9,6 +9,7 @@ import QuickReview from '@/components/vantoris/QuickReview';
 import DailyEmailSummary from '@/components/vantoris/DailyEmailSummary';
 import QuickActionsMenu from '@/components/vantoris/QuickActionsMenu';
 import ReportingDashboard from '@/components/vantoris/ReportingDashboard';
+import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
 
 export default function AdminOverview() {
   const navigate = useNavigate();
@@ -64,9 +65,11 @@ export default function AdminOverview() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="w-8 h-8 border-2 border-brass/30 border-t-brass rounded-full animate-spin" />
-      </div>
+      <OperationsPageLayout title="Operations Dashboard" description="System overview and pending actions" icon={Briefcase} breadcrumb="Operations Workspace">
+        <div className="flex items-center justify-center h-64">
+          <div className="w-8 h-8 border-2 border-brass/30 border-t-brass rounded-full animate-spin" />
+        </div>
+      </OperationsPageLayout>
     );
   }
 
@@ -78,19 +81,18 @@ export default function AdminOverview() {
   ];
 
   return (
-    <div>
-      <div className="flex flex-col sm:flex-row items-start justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white">Operations Center</h1>
-          <p className="text-[#AAB4C3] text-sm">System overview and pending actions</p>
-        </div>
-        <div className="flex items-center gap-3">
+    <OperationsPageLayout
+      title="Operations Dashboard"
+      description="System overview and pending actions"
+      icon={Briefcase}
+      breadcrumb="Operations Workspace"
+      actions={
+        <div className="flex items-center gap-2">
           <QuickActionsMenu onActionComplete={loadData} />
           <DailyEmailSummary />
         </div>
-      </div>
-
-      {/* Stats Grid — responsive: 2 cols phone, 2 cols tablet portrait, 4 cols desktop */}
+      }
+    >
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 lg:mb-8">
         {statCards.map(card => {
           const Icon = card.icon;
@@ -114,69 +116,64 @@ export default function AdminOverview() {
         })}
       </div>
 
-      {/* Reporting Dashboard */}
       <div className="mb-6 lg:mb-8">
-        <h2 className="text-white font-semibold text-lg mb-4">Platform Analytics</h2>
+        <h2 className="text-white font-semibold text-base mb-4">Platform Analytics</h2>
         <ReportingDashboard />
       </div>
 
-      {/* Quick Review */}
       <div className="mb-6 lg:mb-8">
         <QuickReview oldestApps={quickReview.oldestApps} recentWithdrawals={quickReview.recentWithdrawals} />
       </div>
 
-      {/* Recent Queue */}
       <div className="vantoris-card p-4 sm:p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-white font-semibold">Recent Queue</h3>
+          <h3 className="text-white font-semibold text-sm">Recent Queue</h3>
           <span className="text-[#AAB4C3] text-xs">{recentItems.length} pending items</span>
         </div>
 
-        {/* Desktop / Tablet Table */}
-         <div className="hidden md:block">
-           <div className="overflow-x-auto">
-           <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-[#242D38]">
-                <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider py-3 pr-4">Type</th>
-                <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider py-3 pr-4">Details</th>
-                <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider py-3 pr-4">Submitted</th>
-                <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider py-3">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentItems.map(item => (
-                <tr key={item.id} className="border-b border-[#242D38]/40 last:border-0 hover:bg-[#242D38]/30 transition-all">
-                  <td className="py-3 pr-4">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      item.type === 'Application' ? 'bg-brass/10 text-brass' : 'bg-crimson/10 text-red-400'
-                    }`}>
-                      {item.type}
-                    </span>
-                  </td>
-                  <td className="py-3 pr-4">
-                    <p className="text-white font-medium">{item.name}</p>
-                    <p className="text-[#AAB4C3] text-xs">{item.detail}</p>
-                  </td>
-                  <td className="py-3 pr-4 text-[#AAB4C3] text-xs">
-                    {new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                  </td>
-                  <td className="py-3">
-                    <StatusBadge status={item.status} />
-                  </td>
+        <div className="hidden md:block">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[#242D38]">
+                  <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider py-3 pr-4">Type</th>
+                  <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider py-3 pr-4">Details</th>
+                  <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider py-3 pr-4">Submitted</th>
+                  <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider py-3">Status</th>
                 </tr>
-              ))}
-              {recentItems.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="py-8 text-center text-[#AAB4C3] text-sm">No pending items</td>
-                </tr>
-              )}
-            </tbody>
+              </thead>
+              <tbody>
+                {recentItems.map(item => (
+                  <tr key={item.id} className="border-b border-[#242D38]/40 last:border-0 hover:bg-[#242D38]/30 transition-all">
+                    <td className="py-3 pr-4">
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        item.type === 'Application' ? 'bg-brass/10 text-brass' : 'bg-crimson/10 text-red-400'
+                      }`}>
+                        {item.type}
+                      </span>
+                    </td>
+                    <td className="py-3 pr-4">
+                      <p className="text-white font-medium">{item.name}</p>
+                      <p className="text-[#AAB4C3] text-xs">{item.detail}</p>
+                    </td>
+                    <td className="py-3 pr-4 text-[#AAB4C3] text-xs">
+                      {new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </td>
+                    <td className="py-3">
+                      <StatusBadge status={item.status} />
+                    </td>
+                  </tr>
+                ))}
+                {recentItems.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="py-8 text-center text-[#AAB4C3] text-sm">No pending items</td>
+                  </tr>
+                )}
+              </tbody>
             </table>
-            </div>
-            </div>
+          </div>
+        </div>
 
-        {/* Mobile Cards */}
         <div className="md:hidden space-y-2">
           {recentItems.map(item => (
             <div key={item.id} className="border border-[#242D38]/40 rounded-xl p-3">
@@ -200,6 +197,6 @@ export default function AdminOverview() {
           )}
         </div>
       </div>
-    </div>
+    </OperationsPageLayout>
   );
 }

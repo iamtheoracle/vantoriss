@@ -39,6 +39,8 @@ const TransactionDispute = React.lazy(() => import('./pages/TransactionDispute')
 
 // Lazy-loaded pages — Admin (Operations Center)
 const AdminOverview = React.lazy(() => import('./pages/admin/AdminOverview'));
+const ExecutiveDashboard = React.lazy(() => import('./pages/operations/ExecutiveDashboard'));
+const SecurityComplianceDashboard = React.lazy(() => import('./pages/operations/SecurityComplianceDashboard'));
 const AdminApplications = React.lazy(() => import('./pages/admin/AdminApplications'));
 const AdminKYC = React.lazy(() => import('./pages/admin/AdminKYC'));
 const AdminMembers = React.lazy(() => import('./pages/admin/AdminMembers'));
@@ -139,6 +141,8 @@ const AuthenticatedApp = () => {
           <Route element={<OperationsRoute />}>
             <Route element={<AdminLayout />}>
               <Route path="/operations" element={<AdminOverview />} />
+              <Route path="/operations/executive" element={<ExecutiveDashboard />} />
+              <Route path="/operations/security-dashboard" element={<SecurityComplianceDashboard />} />
               <Route path="/operations/applications" element={<AdminApplications />} />
               <Route path="/operations/kyc" element={<AdminKYC />} />
               <Route path="/operations/members" element={<AdminMembers />} />
