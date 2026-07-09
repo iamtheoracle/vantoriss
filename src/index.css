@@ -52,15 +52,12 @@
   }
   body {
     @apply bg-background text-foreground font-body;
-    /* Respect system dark mode — Vantoris is always dark institutional theme */
     color-scheme: dark;
   }
-  /* Prevent rubber-band bounce on main scroll containers */
   .vantoris-scroll {
     overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;
   }
-  /* Disable text selection on interactive UI elements */
   button,
   [role="tab"],
   [role="button"],
@@ -71,51 +68,27 @@
     user-select: none;
     -webkit-tap-highlight-color: transparent;
   }
-  /* Allow text selection for content users need to copy */
   .selectable-content,
   input,
   textarea {
     -webkit-user-select: text;
     user-select: text;
   }
-  /* iOS Safe Area helpers */
-  .safe-top {
-    padding-top: env(safe-area-inset-top, 0px);
-  }
-  .safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-  }
-  .safe-left {
-    padding-left: env(safe-area-inset-left, 0px);
-  }
-  .safe-right {
-    padding-right: env(safe-area-inset-right, 0px);
-  }
-  .safe-pt-top {
-    padding-top: max(env(safe-area-inset-top, 0px), 1.5rem);
-  }
+  .safe-top { padding-top: env(safe-area-inset-top, 0px); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .safe-left { padding-left: env(safe-area-inset-left, 0px); }
+  .safe-right { padding-right: env(safe-area-inset-right, 0px); }
+  .safe-pt-top { padding-top: max(env(safe-area-inset-top, 0px), 1.5rem); }
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: #0E1A2B;
-}
-::-webkit-scrollbar-thumb {
-  background: #242D38;
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #B08D57;
-}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0E1A2B; }
+::-webkit-scrollbar-thumb { background: #242D38; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #B08D57; }
 
-/* Vantoris custom utilities */
-.vantoris-glow {
-  box-shadow: 0 0 40px rgba(176, 141, 87, 0.08), 0 0 80px rgba(176, 141, 87, 0.04);
-}
-.vantoris-card {
+/* === Glass surfaces (vantoris-card and vantoris-glass are identical — merged) === */
+.vantoris-card,
+.vantoris-glass {
   background: rgba(30, 39, 53, 0.55);
   backdrop-filter: blur(20px) saturate(160%);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
@@ -125,16 +98,6 @@
 }
 .vantoris-balance-glow {
   background: radial-gradient(ellipse at 50% 50%, rgba(176, 141, 87, 0.12) 0%, transparent 70%);
-}
-
-/* Liquid Glass surfaces */
-.vantoris-glass {
-  background: rgba(30, 39, 53, 0.55);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
-  border: 1px solid rgba(176, 141, 87, 0.1);
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 .vantoris-glass-flat {
   background: rgba(30, 39, 53, 0.35);
@@ -163,24 +126,8 @@
   box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   border-radius: 14px;
 }
-
-/* Premium shadows */
-.vantoris-shadow-premium {
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24), 0 2px 8px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-.vantoris-shadow-float {
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.32), 0 4px 16px rgba(0, 0, 0, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-}
 .vantoris-shadow-glow {
   box-shadow: 0 0 0 1px rgba(176, 141, 87, 0.15), 0 8px 32px rgba(176, 141, 87, 0.08);
-}
-
-/* Premium gradient surfaces */
-.vantoris-surface-gradient {
-  background: linear-gradient(145deg, rgba(36, 45, 56, 0.7) 0%, rgba(30, 39, 53, 0.5) 100%);
-}
-.vantoris-hero-gradient {
-  background: linear-gradient(135deg, rgba(176, 141, 87, 0.1) 0%, rgba(30, 39, 53, 0.4) 50%, rgba(14, 26, 43, 0.2) 100%);
 }
 .vantoris-mesh-bg {
   background-color: #0B0F18;
@@ -189,37 +136,11 @@
     radial-gradient(at 80% 100%, rgba(126, 184, 159, 0.03) 0px, transparent 50%);
 }
 
-/* Animations */
-@keyframes vantoris-fade-up {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes vantoris-scale-in {
-  from { opacity: 0; transform: scale(0.96); }
-  to { opacity: 1; transform: scale(1); }
-}
+/* Shimmer skeleton (used by admin widgets) */
 @keyframes vantoris-shimmer {
   0% { background-position: -1000px 0; }
   100% { background-position: 1000px 0; }
 }
-.vantoris-animate-fade-up {
-  animation: vantoris-fade-up 0.4s ease-out forwards;
-}
-.vantoris-animate-scale-in {
-  animation: vantoris-scale-in 0.3s ease-out forwards;
-}
-
-/* Premium card hover */
-.vantoris-card-hover {
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-}
-.vantoris-card-hover:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.32), 0 4px 16px rgba(0, 0, 0, 0.16);
-  border-color: rgba(176, 141, 87, 0.2);
-}
-
-/* Shimmer skeleton */
 .vantoris-shimmer {
   background: linear-gradient(90deg, rgba(36, 45, 56, 0.4) 25%, rgba(48, 58, 72, 0.6) 50%, rgba(36, 45, 56, 0.4) 75%);
   background-size: 1000px 100%;
@@ -239,7 +160,6 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.06),
     inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 }
-
 .vantoris-glass-dock {
   background: rgba(14, 26, 43, 0.72);
   backdrop-filter: blur(32px) saturate(200%);
@@ -250,7 +170,6 @@
     0 4px 16px rgba(0, 0, 0, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
-
 .vantoris-glass-nav {
   background: rgba(11, 15, 24, 0.82);
   backdrop-filter: blur(32px) saturate(180%);
@@ -258,7 +177,6 @@
   border-top: 1px solid rgba(176, 141, 87, 0.08);
   box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.2);
 }
-
 .vantoris-balance-hero {
   background:
     radial-gradient(ellipse at 30% 0%, rgba(176, 141, 87, 0.12) 0%, transparent 60%),
@@ -269,48 +187,9 @@
   border: 1px solid rgba(176, 141, 87, 0.15);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
-
-.vantoris-surface-raised {
-  background: linear-gradient(145deg, rgba(40, 50, 64, 0.5) 0%, rgba(30, 39, 53, 0.35) 100%);
-  backdrop-filter: blur(16px) saturate(140%);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-@keyframes vantoris-spring-up {
-  0% { opacity: 0; transform: translateY(16px) scale(0.92); }
-  60% { opacity: 1; transform: translateY(-4px) scale(1.02); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
-}
-@keyframes vantoris-pulse-soft {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
-}
-@keyframes vantoris-shimmer-premium {
-  0% { background-position: -800px 0; }
-  100% { background-position: 800px 0; }
-}
-
-.vantoris-animate-spring { animation: vantoris-spring-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-.vantoris-pulse-soft { animation: vantoris-pulse-soft 2.5s ease-in-out infinite; }
-
-.vantoris-skeleton-premium {
-  background: linear-gradient(90deg, rgba(36,45,56,0.3) 25%, rgba(48,58,72,0.5) 50%, rgba(36,45,56,0.3) 75%);
-  background-size: 800px 100%;
-  animation: vantoris-shimmer-premium 2s infinite linear;
-  border-radius: 8px;
-}
-
 .vantoris-divider {
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(176,141,87,0.12), transparent);
-}
-
-.vantoris-text-gradient-gold {
-  background: linear-gradient(135deg, #D4B996 0%, #B08D57 50%, #C9A961 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
 
 /* Mobile Select Bottom Sheet */

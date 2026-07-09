@@ -10,7 +10,6 @@ import {
   User, Mail, Shield, LogOut, FileText, Trash2, Copy, Check,
   Gift, Sparkles, Wallet, Bell, Users, Building2, Globe,
   ChevronRight, MessageCircle, ShieldCheck, Briefcase,
-  Smartphone, CreditCard, Settings, Lock,
 } from 'lucide-react';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import ProfileSection, { ProfileRow, ProfileDivider } from '@/components/vantoris/profile/ProfileSection';
@@ -107,15 +106,6 @@ export default function Profile() {
         )}
       </motion.div>
 
-      {/* Identity & Personal Information */}
-      <ProfileSection title="Personal Information" icon={User} delay={0.05}>
-        <ProfileRow icon={User} iconColor="text-brass" iconBg="bg-brass/10" label="Full Name" value={user.full_name || '—'} />
-        <ProfileDivider />
-        <ProfileRow icon={Mail} iconColor="text-blue-400" iconBg="bg-blue-500/10" label="Email Address" value={user.email} />
-        <ProfileDivider />
-        <ProfileRow icon={Shield} iconColor="text-champagne" iconBg="bg-champagne/10" label="Account Role" value={getRoleLabel(user.role)} />
-      </ProfileSection>
-
       {/* Account Relationships — members only */}
       {isMember && (
         <ProfileSection title="Account Relationships" icon={Wallet} delay={0.1}>
@@ -162,20 +152,9 @@ export default function Profile() {
         </ProfileSection>
       )}
 
-      {/* Security & Privacy */}
-      <ProfileSection title="Security & Privacy" icon={Lock} delay={0.2}>
-        <ProfileRow icon={Shield} iconColor="text-red-400" iconBg="bg-red-500/10" label="Security Center" value="Manage your security settings" onClick={() => navigate('/profile')} />
-        <ProfileDivider />
-        <ProfileRow icon={Smartphone} iconColor="text-cyan-400" iconBg="bg-cyan-500/10" label="Trusted Devices" value="Manage registered devices" onClick={() => navigate('/messages')} />
-        <ProfileDivider />
-        <ProfileRow icon={Lock} iconColor="text-brass" iconBg="bg-brass/10" label="Privacy Controls" value="Data and privacy preferences" onClick={() => navigate('/messages')} />
-      </ProfileSection>
-
       {/* Documents & Statements */}
-      <ProfileSection title="Documents & Statements" icon={FileText} delay={0.25}>
+      <ProfileSection title="Documents & Statements" icon={FileText} delay={0.2}>
         <ProfileRow icon={FileText} iconColor="text-purple-400" iconBg="bg-purple-500/10" label="My Documents" value="Statements, tax docs & agreements" onClick={() => navigate('/documents')} />
-        <ProfileDivider />
-        <ProfileRow icon={CreditCard} iconColor="text-champagne" iconBg="bg-champagne/10" label="Statements" value="Account statements & history" onClick={() => navigate('/documents')} />
       </ProfileSection>
 
       {/* Communication & Notifications */}
@@ -194,8 +173,6 @@ export default function Profile() {
             '_blank', 'noopener,noreferrer'
           )}
         />
-        <ProfileDivider />
-        <ProfileRow icon={Settings} iconColor="text-[#AAB4C3]" iconBg="bg-white/[0.04]" label="Notification Preferences" value="Manage alert settings" onClick={() => navigate('/messages')} />
       </ProfileSection>
 
       {/* AI & Advisory */}
