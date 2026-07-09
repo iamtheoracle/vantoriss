@@ -10,7 +10,6 @@ import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { Bell, Clock, AlertCircle } from 'lucide-react';
 
 import BalanceHero from '@/components/vantoris/home/BalanceHero';
-import QuickActions from '@/components/vantoris/home/QuickActions';
 import AccountCarousel from '@/components/vantoris/home/AccountCarousel';
 import RecentActivity from '@/components/vantoris/home/RecentActivity';
 import SpendingInsights from '@/components/vantoris/home/SpendingInsights';
@@ -226,8 +225,6 @@ export default function Home() {
         hideBalance={hideBalance}
         onToggleBalance={() => setHideBalance(!hideBalance)}
       />
-
-      <QuickActions />
 
       {/* === Zone 2: Contextual Content === */}
       <AccountCarousel accounts={accounts} />

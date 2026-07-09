@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '@/lib/formatCurrency';
-import { Wallet, ChevronRight } from 'lucide-react';
+import { Wallet, ChevronRight, Plus } from 'lucide-react';
 import StatusBadge from '@/components/vantoris/StatusBadge';
+
+const ACCOUNT_TYPES = ['All', 'Personal', 'Joint', 'Business', 'Organization'];
 
 export default function Accounts() {
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeFilter, setActiveFilter] = useState('All');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,34 +32,47 @@ export default function Accounts() {
   }
 
   const totalBalance = accounts.reduce((sum, a) => sum + (a.balance || 0), 0);
+  const filteredAccounts = activeFilter === 'All'
+    ? accounts
+    : accounts.filter(a => a.account_type === activeFilter);
 
   return (
     <div className="px-5 pt-6">
-      <h1 className="text-2xl font-bold text-white mb-1">Accounts</h1>
-      <p className="text-gray text-sm mb-6">Total Balance: <span className="text-white font-semibold">{formatCurrency(totalBalance)}</span></p>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-foreground mb-1">Accounts</h1>
+        <p className="text-gray text-sm">Total Balance: <span className="text-foreground font-semibold">{formatCurrency(totalBalance)}</span></p>
+      </div>
 
-      {/* Filter tabs */}
-      <div className="flex gap-2 mb-6 overflow-x-auto">
-        {['All', 'Personal', 'Joint', 'Business', 'Organization'].map(tab => (
-          <span key={tab} className="px-3 py-1.5 rounded-full text-xs font-medium bg-slate/50 text-gray whitespace-nowrap">
+      {/* Filter tabs — functional */}
+      <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
+        {ACCOUNT_TYPES.map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveFilter(tab)}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all border ${
+              activeFilter === tab
+                ? 'bg-brass text-white border-brass'
+                : 'bg-white text-gray border-slate-200 hover:border-brass/30'
+            }`}
+          >
             {tab}
-          </span>
+          </button>
         ))}
       </div>
 
-      {accounts.length === 0 ? (
-        <div className="vantoris-card p-8 text-center">
+      {filteredAccounts.length === 0 ? (
+        <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center">
           <Wallet size={32} className="text-gray mx-auto mb-3" />
-          <p className="text-white font-medium mb-1">No Accounts Yet</p>
-          <p className="text-gray text-sm">Your accounts will appear here once approved.</p>
+          <p className="text-foreground font-medium mb-1">{accounts.length === 0 ? 'No Accounts Yet' : 'No Matching Accounts'}</p>
+          <p className="text-gray text-sm">{accounts.length === 0 ? 'Your accounts will appear here once approved.' : 'Try a different filter.'}</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {accounts.map(account => (
+          {filteredAccounts.map(account => (
             <button
               key={account.id}
               onClick={() => navigate(`/accounts/${account.id}`)}
-              className="vantoris-card p-5 w-full text-left hover:border-brass/30 transition-all"
+              className="bg-white border border-slate-200 rounded-2xl p-5 w-full text-left hover:border-brass/30 hover:shadow-md transition-all"
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
@@ -64,16 +80,16 @@ export default function Accounts() {
                     <Wallet size={18} className="text-brass" />
                   </div>
                   <div>
-                    <p className="text-white font-medium">{account.account_name}</p>
+                    <p className="text-foreground font-medium">{account.account_name}</p>
                     <p className="text-gray text-xs font-mono">{account.account_number}</p>
                   </div>
                 </div>
-                <ChevronRight size={18} className="text-[#AAB4C3]" />
+                <ChevronRight size={18} className="text-gray/40" />
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[#AAB4C3] text-[11px] uppercase tracking-wider">Available Balance</p>
-                  <p className="text-white text-xl font-bold">{formatCurrency(account.balance)}</p>
+                  <p className="text-gray text-[11px] uppercase tracking-wider">Available Balance</p>
+                  <p className="text-foreground text-xl font-bold">{formatCurrency(account.balance)}</p>
                 </div>
                 <StatusBadge status={account.status} />
               </div>

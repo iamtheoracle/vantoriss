@@ -532,50 +532,50 @@ export default function AccountDetail() {
 
       {/* Transaction History */}
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-white font-semibold text-sm">Transaction History</h3>
+        <h3 className="text-foreground font-semibold text-sm">Transaction History</h3>
         <div className="flex items-center gap-2">
           <TransactionFilters onFilter={handleFilter} />
-          <span className="text-[#AAB4C3] text-xs">{filteredTransactions.length}/{transactions.length}</span>
+          <span className="text-gray text-xs">{filteredTransactions.length}/{transactions.length}</span>
         </div>
       </div>
 
       {filteredTransactions.length === 0 ? (
-        <div className="vantoris-card p-6 text-center">
-          <FileText size={24} className="text-[#AAB4C3] mx-auto mb-2" />
-          <p className="text-[#AAB4C3] text-sm">{transactions.length === 0 ? 'No transactions yet' : 'No transactions match filters'}</p>
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 text-center">
+          <FileText size={24} className="text-gray mx-auto mb-2" />
+          <p className="text-gray text-sm">{transactions.length === 0 ? 'No transactions yet' : 'No transactions match filters'}</p>
         </div>
       ) : (
-        <div className="space-y-0">
+        <div className="bg-white border border-slate-200 rounded-2xl px-4 divide-y divide-slate-100">
           {filteredTransactions.map(txn => (
-            <div key={txn.id} className="flex items-center justify-between py-3.5 border-b border-[#242D38]/60 last:border-0">
+            <div key={txn.id} className="flex items-center justify-between py-3.5">
               <div className="flex items-center gap-3">
                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
                   txn.type === 'deposit' || txn.type === 'opening_balance'
-                    ? 'bg-olive/20'
+                    ? 'bg-mint/10'
                     : txn.type === 'withdrawal'
-                    ? 'bg-crimson/15'
-                    : 'bg-brass/15'
+                    ? 'bg-crimson/10'
+                    : 'bg-brass/10'
                 }`}>
                   {txn.type === 'deposit' || txn.type === 'opening_balance'
-                    ? <ArrowDownLeft size={15} className="text-emerald-400" />
+                    ? <ArrowDownLeft size={15} className="text-mint" />
                     : txn.type === 'withdrawal'
-                    ? <ArrowUpRight size={15} className="text-red-400" />
+                    ? <ArrowUpRight size={15} className="text-crimson" />
                     : <TrendingUp size={15} className="text-brass" />
                   }
                 </div>
                 <div>
-                  <p className="text-white text-sm font-medium">{txn.description || txn.type.replace('_', ' ')}</p>
-                  <p className="text-[#AAB4C3] text-[11px]">
+                  <p className="text-foreground text-sm font-medium">{txn.description || txn.type.replace('_', ' ')}</p>
+                  <p className="text-gray text-[11px]">
                     {new Date(txn.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                <p className={`font-semibold text-sm ${txn.type === 'withdrawal' ? 'text-red-400' : 'text-emerald-400'}`}>
+                <p className={`font-semibold text-sm ${txn.type === 'withdrawal' ? 'text-crimson' : 'text-mint'}`}>
                   {txn.type === 'withdrawal' ? '-' : '+'}{formatCurrency(Math.abs(txn.amount))}
                 </p>
                 {txn.balance_after != null && (
-                  <p className="text-[#AAB4C3] text-[10px]">Bal: {formatCurrency(txn.balance_after)}</p>
+                  <p className="text-gray text-[10px]">Bal: {formatCurrency(txn.balance_after)}</p>
                 )}
               </div>
             </div>

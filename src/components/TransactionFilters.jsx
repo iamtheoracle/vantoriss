@@ -1,12 +1,21 @@
 import React, { useState } from 'react';
-import { Calendar, Filter } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, startOfYear, endOfYear, subMonths, subYears } from 'date-fns';
+import { Filter, X, Calendar } from 'lucide-react';
+import { format, startOfMonth, endOfMonth, startOfYear, endOfYear, subMonths } from 'date-fns';
 
 const CATEGORY_OPTIONS = [
   { value: 'opening_balance', label: 'Opening Balance' },
   { value: 'deposit', label: 'Deposit' },
   { value: 'withdrawal', label: 'Withdrawal' },
   { value: 'adjustment', label: 'Adjustment' },
+];
+
+const DATE_PRESETS = [
+  { value: 'all', label: 'All Time' },
+  { value: 'today', label: 'Today' },
+  { value: 'this_month', label: 'This Month' },
+  { value: 'last_month', label: 'Last Month' },
+  { value: 'this_year', label: 'This Year' },
+  { value: 'custom', label: 'Custom Range' },
 ];
 
 export default function TransactionFilters({ onFilter }) {
@@ -41,93 +50,135 @@ export default function TransactionFilters({ onFilter }) {
     setShowFilters(false);
   }
 
+  function handleReset() {
+    setDateRange('all');
+    setCategory('all');
+    setCustomStart('');
+    setCustomEnd('');
+    onFilter({ dateRange: null, category: null });
+    setShowFilters(false);
+  }
+
   const activeFilters = (dateRange !== 'all' || category !== 'all') ? 1 : 0;
 
   return (
     <div className="relative">
       <button
         onClick={() => setShowFilters(!showFilters)}
-        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all ${
+        className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-all border ${
           activeFilters > 0
-            ? 'bg-brass/20 text-brass border border-brass/30'
-            : 'bg-[#242D38] text-[#AAB4C3] hover:bg-[#2a3340]'
+            ? 'bg-brass/10 text-brass border-brass/30'
+            : 'bg-white text-gray border-slate-200 hover:border-brass/30'
         }`}
       >
-        <Filter size={14} />
-        Filters
-        {activeFilters > 0 && <span className="ml-1 text-xs font-bold">{activeFilters}</span>}
+        <Filter size={13} />
+        Filter
+        {activeFilters > 0 && <span className="ml-0.5 w-4 h-4 bg-brass text-white text-[9px] rounded-full flex items-center justify-center font-bold">{activeFilters}</span>}
       </button>
 
       {showFilters && (
-        <div className="absolute top-full right-0 mt-2 bg-[#1a2535] border border-[#242D38] rounded-lg p-4 w-64 shadow-lg z-50">
-          <h3 className="text-white font-semibold text-sm mb-3">Filter Transactions</h3>
-
-          <div className="space-y-4">
-            {/* Date Range */}
-            <div>
-              <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-2 block">Date Range</label>
-              <select
-                value={dateRange}
-                onChange={e => setDateRange(e.target.value)}
-                className="w-full bg-[#242D38] border border-[#242D38] rounded-lg px-3 py-2 text-white text-sm focus:border-brass/50 focus:outline-none"
-              >
-                <option value="all">All Time</option>
-                <option value="today">Today</option>
-                <option value="this_month">This Month</option>
-                <option value="last_month">Last Month</option>
-                <option value="this_year">This Year</option>
-                <option value="custom">Custom Range</option>
-              </select>
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setShowFilters(false)} />
+          <div className="absolute top-full right-0 mt-2 bg-white border border-slate-200 rounded-xl p-4 w-72 shadow-xl z-50">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-foreground font-semibold text-sm flex items-center gap-2">
+                <Filter size={14} className="text-brass" />
+                Filter Transactions
+              </h3>
+              <button onClick={() => setShowFilters(false)} className="text-gray hover:text-foreground">
+                <X size={14} />
+              </button>
             </div>
 
-            {/* Custom Date Range */}
-            {dateRange === 'custom' && (
-              <div className="space-y-2">
-                <div>
-                  <label className="text-[#AAB4C3] text-xs mb-1 block">Start Date</label>
-                  <input
-                    type="date"
-                    value={customStart}
-                    onChange={e => setCustomStart(e.target.value)}
-                    className="w-full bg-[#242D38] border border-[#242D38] rounded-lg px-3 py-2 text-white text-sm focus:border-brass/50 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="text-[#AAB4C3] text-xs mb-1 block">End Date</label>
-                  <input
-                    type="date"
-                    value={customEnd}
-                    onChange={e => setCustomEnd(e.target.value)}
-                    className="w-full bg-[#242D38] border border-[#242D38] rounded-lg px-3 py-2 text-white text-sm focus:border-brass/50 focus:outline-none"
-                  />
+            <div className="space-y-4">
+              {/* Date Range */}
+              <div>
+                <label className="text-gray text-[10px] uppercase tracking-wider mb-2 block font-medium">Date Range</label>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {DATE_PRESETS.map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setDateRange(opt.value)}
+                      className={`px-2.5 py-2 rounded-lg text-xs font-medium transition-all ${
+                        dateRange === opt.value
+                          ? 'bg-brass text-white'
+                          : 'bg-slate-50 text-gray hover:bg-slate-100'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
               </div>
-            )}
 
-            {/* Category */}
-            <div>
-              <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-2 block">Transaction Type</label>
-              <select
-                value={category}
-                onChange={e => setCategory(e.target.value)}
-                className="w-full bg-[#242D38] border border-[#242D38] rounded-lg px-3 py-2 text-white text-sm focus:border-brass/50 focus:outline-none"
-              >
-                <option value="all">All Types</option>
-                {CATEGORY_OPTIONS.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
+              {/* Custom Date Range */}
+              {dateRange === 'custom' && (
+                <div className="space-y-2">
+                  <div>
+                    <label className="text-gray text-[10px] mb-1 block">Start Date</label>
+                    <input
+                      type="date"
+                      value={customStart}
+                      onChange={e => setCustomStart(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-foreground text-sm focus:border-brass/40 focus:bg-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-gray text-[10px] mb-1 block">End Date</label>
+                    <input
+                      type="date"
+                      value={customEnd}
+                      onChange={e => setCustomEnd(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-foreground text-sm focus:border-brass/40 focus:bg-white focus:outline-none"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Category */}
+              <div>
+                <label className="text-gray text-[10px] uppercase tracking-wider mb-2 block font-medium">Transaction Type</label>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button
+                    onClick={() => setCategory('all')}
+                    className={`px-2.5 py-2 rounded-lg text-xs font-medium transition-all ${
+                      category === 'all' ? 'bg-brass text-white' : 'bg-slate-50 text-gray hover:bg-slate-100'
+                    }`}
+                  >
+                    All Types
+                  </button>
+                  {CATEGORY_OPTIONS.map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setCategory(opt.value)}
+                      className={`px-2.5 py-2 rounded-lg text-xs font-medium transition-all ${
+                        category === opt.value ? 'bg-brass text-white' : 'bg-slate-50 text-gray hover:bg-slate-100'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2 pt-1">
+                <button
+                  onClick={handleReset}
+                  className="flex-1 py-2 bg-slate-100 text-gray rounded-lg text-xs font-medium hover:bg-slate-200 transition-all"
+                >
+                  Reset
+                </button>
+                <button
+                  onClick={handleApply}
+                  className="flex-1 py-2 bg-brass text-white rounded-lg text-xs font-semibold hover:bg-brass/90 transition-all"
+                >
+                  Apply
+                </button>
+              </div>
             </div>
-
-            {/* Apply Button */}
-            <button
-              onClick={handleApply}
-              className="w-full py-2 bg-brass text-[#0E1A2B] rounded-lg text-xs font-semibold hover:bg-brass/90 transition-all"
-            >
-              Apply Filters
-            </button>
           </div>
-        </div>
+        </>
       )}
     </div>
   );
