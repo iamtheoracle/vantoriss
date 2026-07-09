@@ -77,7 +77,7 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen vantoris-mesh-bg">
+      <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="w-8 h-8 border-2 border-brass/30 border-t-brass rounded-full animate-spin" />
       </div>
     );
@@ -88,7 +88,7 @@ export default function Home() {
       <div className="px-5 pt-6 min-h-screen flex flex-col items-center justify-center">
         <div className="vantoris-glass-premium p-8 text-center w-full max-w-sm">
           <AlertCircle size={32} className="text-crimson mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-white mb-2">Something went wrong</h2>
+          <h2 className="text-xl font-bold text-foreground mb-2">Something went wrong</h2>
           <p className="text-gray text-sm mb-6">{loadError}</p>
           <button onClick={retryLoad} className="w-full py-3 bg-brass text-white font-semibold rounded-xl hover:bg-brass/90 transition-all">
             Try Again
@@ -121,7 +121,7 @@ export default function Home() {
         </div>
         <div className="vantoris-glass-premium p-8 text-center">
           <ShieldLogo size={64} className="mx-auto mb-6" />
-          <h2 className="text-2xl font-bold text-white mb-2">Welcome to Vantoris</h2>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Welcome to Vantoris</h2>
           <p className="text-gray text-sm mb-6 leading-relaxed">
             A secure platform for private institutions and approved members to manage capital with clarity and confidence.
           </p>
@@ -152,7 +152,7 @@ export default function Home() {
           <div className="w-16 h-16 rounded-full bg-brass/10 flex items-center justify-center mx-auto mb-4">
             <Clock size={28} className="text-brass" />
           </div>
-          <h2 className="text-xl font-bold text-white mb-2">Application Under Review</h2>
+          <h2 className="text-xl font-bold text-foreground mb-2">Application Under Review</h2>
           <p className="text-gray text-sm mb-4 leading-relaxed">
             Your {application.account_type} account application is being reviewed. You will be notified once approved.
           </p>
@@ -188,7 +188,7 @@ export default function Home() {
           </button>
         </div>
         <div className="vantoris-glass-premium p-8 text-center">
-          <h2 className="text-xl font-bold text-white mb-2">Application Not Approved</h2>
+          <h2 className="text-xl font-bold text-foreground mb-2">Application Not Approved</h2>
           <p className="text-gray text-sm mb-4">{application.admin_notes || 'Your application was not approved at this time.'}</p>
         </div>
         <OnboardingSupport />
@@ -207,10 +207,10 @@ export default function Home() {
           <ShieldLogo size={32} />
           <div>
             <p className="text-gray text-xs">{greeting},</p>
-            <h1 className="text-white font-bold text-lg">{firstName}</h1>
+            <h1 className="text-foreground font-bold text-lg">{firstName}</h1>
           </div>
         </div>
-        <button onClick={() => navigate('/messages')} className="relative p-2.5 rounded-xl hover:bg-white/[0.04] transition-all">
+        <button onClick={() => navigate('/messages')} className="relative p-2.5 rounded-xl hover:bg-slate-100 transition-all">
           <Bell size={20} className="text-gray" />
           {unreadCount > 0 && (
             <span className="absolute top-1 right-1 w-4 h-4 bg-crimson text-white text-[9px] rounded-full flex items-center justify-center font-bold">

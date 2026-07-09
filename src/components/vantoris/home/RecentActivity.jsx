@@ -11,7 +11,7 @@ export default function RecentActivity({ transactions }) {
   return (
     <div className="mb-5">
       <div className="flex items-center justify-between mb-3 px-1">
-        <h3 className="text-white font-semibold text-sm">Recent Activity</h3>
+        <h3 className="text-foreground font-semibold text-sm">Recent Activity</h3>
         <button onClick={() => navigate('/accounts')} className="text-brass text-xs font-medium">View All</button>
       </div>
       <div className="vantoris-glass-flat p-2">
@@ -33,11 +33,11 @@ export default function RecentActivity({ transactions }) {
               >
                 <button
                   onClick={() => setExpanded(isOpen ? null : txn.id)}
-                  className="w-full flex items-center justify-between py-2.5 px-2 rounded-xl hover:bg-white/[0.03] transition-all"
+                  className="w-full flex items-center justify-between py-2.5 px-2 rounded-xl hover:bg-slate-100/70 transition-all"
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                      isCredit ? 'bg-mint/15' : isDebit ? 'bg-crimson/12' : 'bg-brass/12'
+                      isCredit ? 'bg-mint/12' : isDebit ? 'bg-crimson/10' : 'bg-brass/10'
                     }`}>
                       {isCredit
                         ? <ArrowDownLeft size={15} className="text-mint" />
@@ -47,7 +47,7 @@ export default function RecentActivity({ transactions }) {
                       }
                     </div>
                     <div className="flex-1 min-w-0 text-left">
-                      <p className="text-white text-sm font-medium truncate">{txn.description || txn.type?.replace(/_/g, ' ')}</p>
+                      <p className="text-foreground text-sm font-medium truncate">{txn.description || txn.type?.replace(/_/g, ' ')}</p>
                       <div className="flex items-center gap-2">
                         <p className="text-gray text-[11px] capitalize">{txn.type?.replace(/_/g, ' ')}</p>
                         <span className="text-gray/30 text-[10px]">·</span>
@@ -72,7 +72,7 @@ export default function RecentActivity({ transactions }) {
                     animate={{ opacity: 1, height: 'auto' }}
                     className="px-4 pb-3 overflow-hidden"
                   >
-                    <div className="bg-white/[0.02] rounded-xl p-3 space-y-2">
+                    <div className="bg-slate-50 rounded-xl p-3 space-y-2 border border-slate-100">
                       {txn.reference && (
                         <div className="flex justify-between text-[11px]">
                           <span className="text-gray/60">Reference</span>

@@ -12,17 +12,17 @@ module.exports = {
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
-        /* === VANTORIS Institutional Blue Palette === */
-        navy: '#0A1A2E',
-        charcoal: '#0A1525',
-        slate: '#1B2D45',
+        /* === VANTORIS Institutional Blue — Light Palette === */
+        navy: '#1e56a0',
+        charcoal: '#f4f7fb',
+        slate: '#f1f5f9',
         olive: '#2D5A3D',
-        brass: '#3B6CB4',
-        champagne: '#5B8FD4',
-        gray: '#8B9DB8',
-        mint: '#4CAF7A',
+        brass: '#1e56a0',
+        champagne: '#3b82f6',
+        gray: '#64748b',
+        mint: '#10b981',
         gold: '#D4AF37',
-        crimson: '#C23B42',
+        crimson: '#ef4444',
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))'

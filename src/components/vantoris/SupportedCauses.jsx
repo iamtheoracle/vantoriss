@@ -37,7 +37,7 @@ export default function SupportedCauses() {
     <div>
       <div className="flex items-center gap-2 mb-3">
         <Heart size={16} className="text-brass" />
-        <h3 className="text-white font-semibold text-sm">Causes We Support</h3>
+        <h3 className="text-foreground font-semibold text-sm">Causes We Support</h3>
       </div>
       <div className="vantoris-glass-flat p-4 mb-3">
         <p className="text-gray text-xs leading-relaxed">
@@ -53,7 +53,7 @@ export default function SupportedCauses() {
               <div className={`w-9 h-9 rounded-xl ${cause.bg} flex items-center justify-center mb-2`}>
                 <Icon size={18} className={cause.color} />
               </div>
-              <p className="text-white font-medium text-xs mb-1">{cause.name}</p>
+              <p className="text-foreground font-medium text-xs mb-1">{cause.name}</p>
               <p className="text-gray text-[11px] leading-relaxed">{cause.desc}</p>
             </div>
           );

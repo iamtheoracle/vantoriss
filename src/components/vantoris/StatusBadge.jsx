@@ -1,14 +1,14 @@
 import React from 'react';
 
 const statusStyles = {
-  approved: 'bg-mint/15 text-mint border-mint/30',
-  active: 'bg-mint/15 text-mint border-mint/30',
-  paid: 'bg-mint/15 text-mint border-mint/30',
-  pending: 'bg-brass/15 text-brass border-brass/30',
-  not_started: 'bg-slate/50 text-gray border-gray/20',
-  rejected: 'bg-crimson/15 text-crimson border-crimson/30',
-  frozen: 'bg-crimson/15 text-crimson border-crimson/30',
-  closed: 'bg-slate/50 text-gray border-gray/20',
+  approved: 'bg-mint/12 text-mint border-mint/20',
+  active: 'bg-mint/12 text-mint border-mint/20',
+  paid: 'bg-mint/12 text-mint border-mint/20',
+  pending: 'bg-brass/12 text-brass border-brass/20',
+  not_started: 'bg-slate-100 text-gray border-slate-200',
+  rejected: 'bg-crimson/10 text-crimson border-crimson/20',
+  frozen: 'bg-crimson/10 text-crimson border-crimson/20',
+  closed: 'bg-slate-100 text-gray border-slate-200',
 };
 
 const labels = {

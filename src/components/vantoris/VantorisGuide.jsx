@@ -38,7 +38,7 @@ export default function VantorisGuide() {
       label: 'Call Support',
       desc: BUSINESS_WHATSAPP_DISPLAY,
       color: 'text-gray',
-      bg: 'bg-white/[0.06]',
+      bg: 'bg-slate-100',
       href: `tel:${BUSINESS_WHATSAPP_DISPLAY.replace(/[^0-9+]/g, '')}`,
     },
   ];
@@ -47,7 +47,7 @@ export default function VantorisGuide() {
     <div>
       <div className="flex items-center gap-2 mb-3">
         <HelpCircle size={16} className="text-brass" />
-        <h3 className="text-white font-semibold text-sm">Vantoris Guide</h3>
+        <h3 className="text-foreground font-semibold text-sm">Vantoris Guide</h3>
       </div>
       <div className="grid grid-cols-2 gap-3">
         {guides.map((g, i) => {
@@ -57,7 +57,7 @@ export default function VantorisGuide() {
               <div className={`w-10 h-10 rounded-xl ${g.bg} flex items-center justify-center mb-2`}>
                 <Icon size={20} className={g.color} />
               </div>
-              <p className="text-white font-medium text-sm">{g.label}</p>
+              <p className="text-foreground font-medium text-sm">{g.label}</p>
               <p className="text-gray text-xs">{g.desc}</p>
             </>
           );

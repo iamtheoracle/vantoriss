@@ -8,7 +8,7 @@ const TYPE_META = {
   Forex: { color: 'text-brass', bg: 'bg-brass/12', label: 'Forex' },
   Stocks: { color: 'text-mint', bg: 'bg-mint/12', label: 'Stocks' },
   Crypto: { color: 'text-champagne', bg: 'bg-champagne/12', label: 'Crypto' },
-  Mixed: { color: 'text-purple-400', bg: 'bg-purple-500/12', label: 'Diversified' },
+  Mixed: { color: 'text-purple-500', bg: 'bg-purple-500/12', label: 'Diversified' },
 };
 
 export default function PortfolioSummary({ tradingAccounts = [] }) {
@@ -19,7 +19,6 @@ export default function PortfolioSummary({ tradingAccounts = [] }) {
   const totalValue = tradingAccounts.reduce((s, a) => s + (a.balance || 0), 0);
   const totalEquity = tradingAccounts.reduce((s, a) => s + (a.equity || 0), 0);
 
-  // Group by type
   const byType = tradingAccounts.reduce((acc, acct) => {
     const type = acct.account_type || 'Mixed';
     if (!acc[type]) acc[type] = { count: 0, value: 0 };
@@ -36,7 +35,7 @@ export default function PortfolioSummary({ tradingAccounts = [] }) {
       <div className="flex items-center justify-between mb-3 px-1">
         <div className="flex items-center gap-2">
           <Briefcase size={15} className="text-brass" />
-          <h3 className="text-white font-semibold text-sm">Portfolio Summary</h3>
+          <h3 className="text-foreground font-semibold text-sm">Portfolio Summary</h3>
         </div>
         <button onClick={() => navigate('/trading')} className="text-brass text-xs font-medium flex items-center gap-0.5">
           View All <ChevronRight size={12} />
@@ -48,19 +47,17 @@ export default function PortfolioSummary({ tradingAccounts = [] }) {
         animate={{ opacity: 1, y: 0 }}
         className="vantoris-glass-premium p-4 relative overflow-hidden"
       >
-        <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-brass/[0.06] blur-2xl" />
+        <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-brass/[0.05] blur-2xl" />
 
         <div className="relative z-10">
-          {/* Total Value */}
           <div className="mb-4">
             <p className="text-gray/70 text-[10px] uppercase tracking-wider font-medium mb-0.5">Total Portfolio Value</p>
-            <p className="text-white font-bold text-2xl">{formatCurrency(totalValue)}</p>
+            <p className="text-foreground font-bold text-2xl">{formatCurrency(totalValue)}</p>
             <p className="text-gray text-xs mt-0.5">{tradingAccounts.length} Trading {tradingAccounts.length === 1 ? 'Account' : 'Accounts'} · Equity {formatCurrency(totalEquity)}</p>
           </div>
 
-          {/* Allocation Bar */}
           <div className="mb-4">
-            <div className="flex h-2 rounded-full overflow-hidden bg-white/[0.04]">
+            <div className="flex h-2 rounded-full overflow-hidden bg-slate-100">
               {types.map(([type, data], idx) => {
                 const pct = totalValue > 0 ? (data.value / totalValue) * 100 : 0;
                 const barColors = {
@@ -82,7 +79,6 @@ export default function PortfolioSummary({ tradingAccounts = [] }) {
             </div>
           </div>
 
-          {/* Breakdown by type */}
           <div className="grid grid-cols-2 gap-3">
             {types.map(([type, data]) => {
               const meta = TYPE_META[type] || TYPE_META.Mixed;
@@ -94,18 +90,17 @@ export default function PortfolioSummary({ tradingAccounts = [] }) {
                   </div>
                   <div className="min-w-0">
                     <p className="text-gray/70 text-[10px] uppercase tracking-wider">{meta.label}</p>
-                    <p className="text-white font-semibold text-sm">{formatCurrency(data.value)}</p>
+                    <p className="text-foreground font-semibold text-sm">{formatCurrency(data.value)}</p>
                   </div>
                 </div>
               );
             })}
           </div>
 
-          {/* Crypto highlight */}
           {hasCrypto && (
             <button
               onClick={() => navigate('/trading')}
-              className="mt-3 w-full flex items-center justify-between p-2.5 rounded-xl bg-champagne/[0.06] hover:bg-champagne/[0.1] transition-all"
+              className="mt-3 w-full flex items-center justify-between p-2.5 rounded-xl bg-champagne/[0.06] hover:bg-champagne/[0.1] transition-all border border-champagne/10"
             >
               <div className="flex items-center gap-2">
                 <Bitcoin size={14} className="text-champagne" />

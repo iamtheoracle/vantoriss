@@ -19,12 +19,12 @@ export default function SpendingInsights({ transactions, upcomingWithdrawals = [
     <div className="vantoris-glass-flat p-4 mb-4">
       <div className="flex items-center gap-2 mb-4">
         <TrendingUp size={15} className="text-brass" />
-        <h3 className="text-white font-semibold text-sm">Cash Flow Insights</h3>
+        <h3 className="text-foreground font-semibold text-sm">Cash Flow Insights</h3>
       </div>
 
       {/* Flow bar */}
       <div className="mb-4">
-        <div className="flex h-2.5 rounded-full overflow-hidden bg-white/[0.04]">
+        <div className="flex h-2.5 rounded-full overflow-hidden bg-slate-100">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${depositPct}%` }}
@@ -63,7 +63,7 @@ export default function SpendingInsights({ transactions, upcomingWithdrawals = [
       </div>
 
       {/* Net flow */}
-      <div className="flex items-center justify-between pt-3 border-t border-white/[0.05]">
+      <div className="flex items-center justify-between pt-3 border-t border-slate-100">
         <span className="text-gray text-xs">Net Position</span>
         <div className="flex items-center gap-1.5">
           {netFlow >= 0 ? <TrendingUp size={14} className="text-mint" /> : <TrendingDown size={14} className="text-crimson" />}
@@ -73,7 +73,7 @@ export default function SpendingInsights({ transactions, upcomingWithdrawals = [
 
       {/* Upcoming Payments / Scheduled Transfers */}
       {upcomingWithdrawals.length > 0 && (
-        <div className="mt-4 pt-3 border-t border-white/[0.05]">
+        <div className="mt-4 pt-3 border-t border-slate-100">
           <div className="flex items-center gap-1.5 mb-2">
             <Clock size={12} className="text-champagne" />
             <p className="text-gray/70 text-[10px] uppercase tracking-wider font-medium">Upcoming & Scheduled</p>
@@ -86,7 +86,7 @@ export default function SpendingInsights({ transactions, upcomingWithdrawals = [
                     <ArrowUpRight size={11} className="text-champagne" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-white text-xs font-medium truncate">{wr.method || 'Transfer'}</p>
+                    <p className="text-foreground text-xs font-medium truncate">{wr.method || 'Transfer'}</p>
                     <p className="text-gray/50 text-[10px]">Pending approval</p>
                   </div>
                 </div>
