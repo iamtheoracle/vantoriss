@@ -63,7 +63,7 @@ export default function AdminTopBar({ user, onMenuClick }) {
             </button>
           )}
           <div className="hidden sm:block min-w-0">
-            <p className="text-[#AAB4C3]/60 text-[10px] uppercase tracking-[0.15em]">Operations Center</p>
+            <p className="text-[#AAB4C3]/60 text-[10px] uppercase tracking-[0.15em]">Vantoris Command</p>
             <h2 className="text-white font-semibold text-sm truncate">{pageTitle}</h2>
           </div>
         </div>

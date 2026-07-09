@@ -8,6 +8,7 @@ import {
   Bot, Settings, Code, Plug, Bell, Lock, Flag, Cog, HeartPulse,
   ChevronRight, Wrench, Users2, MessageSquare, Crown, Briefcase,
   AlertTriangle, Scale, GitBranch, Database, ServerCog,
+  Search, Eye, ShieldAlert, Network, Globe, Zap,
 } from 'lucide-react';
 import ShieldLogo from './ShieldLogo';
 import {
@@ -22,36 +23,38 @@ const WORKSPACE_CONFIG = {
     bg: 'bg-brass/15',
     sections: [
       {
-        label: 'Overview',
+        label: 'Command',
         items: [
           { label: 'Executive Dashboard', path: '/operations/executive', icon: LayoutDashboard },
         ],
       },
       {
-        label: 'Business Intelligence',
+        label: 'Financial Intelligence',
         items: [
-          { label: 'Platform Analytics', path: '/operations', icon: BarChart3 },
-          { label: 'Reports', path: '/operations/reports', icon: TrendingUp },
-          { label: 'Executive Reports', path: '/operations/executive-reports', icon: TrendingUp },
+          { label: 'Enterprise Analytics', path: '/operations', icon: BarChart3 },
+          { label: 'Financial Performance', path: '/operations/finance', icon: DollarSign },
+          { label: 'Treasury Overview', path: '/operations/transfers', icon: Wallet },
+          { label: 'Business Intelligence', path: '/operations/reports', icon: TrendingUp },
+          { label: 'Strategic Reports', path: '/operations/executive-reports', icon: TrendingUp },
         ],
       },
       {
-        label: 'Governance',
+        label: 'Risk & Governance',
         items: [
+          { label: 'Risk Overview', path: '/operations/security-dashboard', icon: ShieldAlert },
           { label: 'Audit Logs', path: '/operations/audit-logs', icon: ScrollText },
           { label: 'Activity Timeline', path: '/operations/activity', icon: Activity },
-          { label: 'AI Assistant', path: '/operations/assistant', icon: Bot },
         ],
       },
       {
-        label: 'Platform Administration',
+        label: 'AI & Administration',
         items: [
+          { label: 'AI Executive Insights', path: '/operations/assistant', icon: Bot },
           { label: 'Configuration', path: '/operations/configuration', icon: Settings },
           { label: 'Feature Flags', path: '/operations/feature-flags', icon: Flag },
           { label: 'System Health', path: '/operations/system-health', icon: HeartPulse },
           { label: 'API Management', path: '/operations/api-management', icon: Code },
           { label: 'Integrations', path: '/operations/integrations', icon: Plug },
-          { label: 'Background Jobs', path: '/operations/background-jobs', icon: Cog },
         ],
       },
     ],
@@ -62,42 +65,38 @@ const WORKSPACE_CONFIG = {
     bg: 'bg-blue-500/15',
     sections: [
       {
-        label: 'Overview',
+        label: 'Dashboard',
         items: [
-          { label: 'Operations Dashboard', path: '/operations', icon: LayoutDashboard },
+          { label: 'Daily Operations', path: '/operations', icon: LayoutDashboard },
         ],
       },
       {
-        label: 'Members',
+        label: 'Onboarding & KYC',
         items: [
-          { label: 'Applications', path: '/operations/applications', icon: FileText },
+          { label: 'Pending Applications', path: '/operations/applications', icon: FileText },
+          { label: 'KYC Queue', path: '/operations/kyc', icon: ShieldCheck },
           { label: 'Members', path: '/operations/members', icon: Users },
           { label: 'Organizations', path: '/operations/organizations', icon: Building2 },
-          { label: 'KYC Review', path: '/operations/kyc', icon: ShieldCheck },
-          { label: 'Operational Profiles', path: '/operations/operational-profiles', icon: ShieldCheck },
         ],
       },
       {
-        label: 'Finance',
+        label: 'Payments & Transfers',
         items: [
-          { label: 'Finance Overview', path: '/operations/finance', icon: DollarSign },
-          { label: 'Deposits', path: '/operations/deposits', icon: ArrowDownToLine },
-          { label: 'Withdrawals', path: '/operations/withdrawals', icon: ArrowUpRight },
+          { label: 'Pending Deposits', path: '/operations/deposits', icon: ArrowDownToLine },
+          { label: 'Pending Withdrawals', path: '/operations/withdrawals', icon: ArrowUpRight },
+          { label: 'ACH Queue', path: '/operations/verification-requests', icon: ArrowLeftRight },
+          { label: 'Domestic Wires', path: '/operations/transfers', icon: ArrowLeftRight },
+          { label: 'International Wires', path: '/operations/transfers', icon: Globe },
           { label: 'Withdrawal Limits', path: '/operations/withdrawal-limits', icon: ShieldCheck },
-          { label: 'Verification Requests', path: '/operations/verification-requests', icon: ShieldCheck },
-          { label: 'Transfers', path: '/operations/transfers', icon: ArrowLeftRight },
+        ],
+      },
+      {
+        label: 'Banking Operations',
+        items: [
           { label: 'Accounts', path: '/operations/accounts', icon: Wallet },
           { label: 'Cards', path: '/operations/cards', icon: CreditCard },
-        ],
-      },
-      {
-        label: 'Operations',
-        items: [
-          { label: 'Service Requests', path: '/operations/service-requests', icon: Wrench },
+          { label: 'Support Queue', path: '/operations/service-requests', icon: Wrench },
           { label: 'Member Messages', path: '/operations/member-messages', icon: MessageSquare },
-          { label: 'Referrals', path: '/operations/referrals', icon: Users2 },
-          { label: 'Wallet Assignment', path: '/operations/wallet-assignment', icon: Wallet },
-          { label: 'Account Assignment', path: '/operations/account-assignment', icon: UserCheck },
           { label: 'Documents', path: '/operations/documents', icon: FolderOpen },
           { label: 'Notifications', path: '/operations/notifications', icon: Bell },
         ],
@@ -117,44 +116,38 @@ const WORKSPACE_CONFIG = {
     bg: 'bg-crimson/15',
     sections: [
       {
-        label: 'Overview',
+        label: 'Monitoring',
         items: [
-          { label: 'Security Dashboard', path: '/operations/security-dashboard', icon: ShieldCheck },
+          { label: 'Security Dashboard', path: '/operations/security-dashboard', icon: ShieldAlert },
+          { label: 'Transaction Monitoring', path: '/operations/activity', icon: Activity },
+          { label: 'Audit Logs', path: '/operations/audit-logs', icon: ScrollText },
         ],
       },
       {
-        label: 'Monitoring & Audit',
+        label: 'Risk & Compliance',
         items: [
-          { label: 'Audit Logs', path: '/operations/audit-logs', icon: ScrollText },
-          { label: 'Activity Timeline', path: '/operations/activity', icon: Activity },
+          { label: 'Risk Management', path: '/operations/withdrawal-limits', icon: Scale },
+          { label: 'Compliance Reviews', path: '/operations/kyc', icon: ShieldCheck },
+          { label: 'Approval Queue', path: '/operations/verification-requests', icon: Eye },
           { label: 'Security Center', path: '/operations/security', icon: Lock },
         ],
       },
       {
-        label: 'Finance & Treasury',
+        label: 'Finance Controls',
         items: [
-          { label: 'Finance Overview', path: '/operations/finance', icon: DollarSign },
+          { label: 'Treasury', path: '/operations/finance', icon: DollarSign },
           { label: 'Withdrawals', path: '/operations/withdrawals', icon: ArrowUpRight },
-          { label: 'Withdrawal Limits', path: '/operations/withdrawal-limits', icon: ShieldCheck },
           { label: 'Transfers', path: '/operations/transfers', icon: ArrowLeftRight },
         ],
       },
       {
-        label: 'Compliance & Verification',
+        label: 'System Security',
         items: [
-          { label: 'KYC Review', path: '/operations/kyc', icon: ShieldCheck },
-          { label: 'Verification Requests', path: '/operations/verification-requests', icon: ShieldCheck },
+          { label: 'Security Alerts', path: '/operations/notifications', icon: Bell },
           { label: 'Documents', path: '/operations/documents', icon: FolderOpen },
-        ],
-      },
-      {
-        label: 'System Administration',
-        items: [
           { label: 'Configuration', path: '/operations/configuration', icon: Settings },
           { label: 'API Management', path: '/operations/api-management', icon: Code },
-          { label: 'Feature Flags', path: '/operations/feature-flags', icon: Flag },
           { label: 'System Health', path: '/operations/system-health', icon: HeartPulse },
-          { label: 'Background Jobs', path: '/operations/background-jobs', icon: Cog },
         ],
       },
     ],
@@ -232,7 +225,7 @@ export default function AdminSidebar({ user, activeWorkspace, onWorkspaceChange,
               const Icon = item.icon;
               return (
                 <Link
-                  key={item.path}
+                  key={item.path + item.label}
                   to={item.path}
                   onClick={onNavigate}
                   className={`flex items-center gap-3 px-3 py-2 rounded-lg mb-0.5 transition-all duration-200 text-sm font-medium ${
