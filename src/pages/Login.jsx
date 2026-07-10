@@ -2,17 +2,17 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import AuthLayout from "@/components/AuthLayout";
-import { Loader2, Lock, User, ChevronRight, Phone, Mail, Calendar } from "lucide-react";
-
+import SplashScreen from "@/components/auth/SplashScreen";
+import OnboardingCarousel from "@/components/auth/OnboardingCarousel";
+import { Loader2, Lock, User } from "lucide-react";
 
 export default function Login() {
-  const [view, setView] = useState("welcome");
+  const [phase, setPhase] = useState("splash");
   const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
   const [rememberId, setRememberId] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showContact, setShowContact] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,6 +22,16 @@ export default function Login() {
       setRememberId(true);
     }
   }, []);
+
+  function handleSplashDone() {
+    const seen = localStorage.getItem("vantoris_onboarding_seen");
+    setPhase(seen ? "login" : "onboarding");
+  }
+
+  function handleOnboardingComplete() {
+    localStorage.setItem("vantoris_onboarding_seen", "true");
+    setPhase("login");
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -39,71 +49,28 @@ export default function Login() {
     }
   }
 
-  if (view === "welcome") {
+  if (phase === "splash") {
+    return <SplashScreen onDone={handleSplashDone} />;
+  }
+
+  if (phase === "onboarding") {
     return (
-      <AuthLayout bare>
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-foreground mb-3">Welcome to Vantoris</h2>
-          <p className="text-gray text-sm leading-relaxed mb-8">
-            VANTORIS is a private institutional financial platform providing transparent investment stewardship
-            and seamless capital movement for sophisticated investors. Membership is subject to review and approval.
-          </p>
-          <button
-            onClick={() => navigate("/register")}
-            className="w-full h-12 bg-navy text-white font-semibold rounded-xl hover:bg-navy/90 transition flex items-center justify-center gap-2 mb-3"
-          >
-            Open an Account
-            <ChevronRight size={18} />
-          </button>
-          <button
-            onClick={() => setView("login")}
-            className="w-full h-12 bg-white border border-slate-200 text-foreground font-semibold rounded-xl hover:bg-slate-50 transition"
-          >
-            Log In
-          </button>
-
-          <div className="flex justify-center gap-5 mt-6 text-xs">
-            <button onClick={() => setShowContact("advisor")} className="text-gray hover:text-navy transition">
-              Find an Advisor
-            </button>
-            <button onClick={() => setShowContact("appointment")} className="text-gray hover:text-navy transition">
-              Schedule Appointment
-            </button>
-            <button onClick={() => setShowContact("support")} className="text-gray hover:text-navy transition">
-              Contact Support
-            </button>
-          </div>
-
-          {showContact && (
-            <div className="mt-4 bg-white border border-slate-200 rounded-xl p-4 text-left animate-fade-up">
-              <div className="flex items-center gap-2 mb-2 text-navy">
-                {showContact === "advisor" && <User size={14} />}
-                {showContact === "appointment" && <Calendar size={14} />}
-                {showContact === "support" && <Mail size={14} />}
-                <span className="text-xs font-semibold uppercase tracking-wider">
-                  {showContact === "advisor" ? "Advisor Services" : showContact === "appointment" ? "Appointments" : "Member Support"}
-                </span>
-              </div>
-              <div className="space-y-1 text-xs text-gray">
-                <p className="flex items-center gap-2"><Phone size={12} /> 1-800-VANTORIS</p>
-                <p className="flex items-center gap-2"><Mail size={12} /> support@vantoris.com</p>
-                <p>Mon–Fri, 8:00 AM – 8:00 PM ET</p>
-              </div>
-            </div>
-          )}
-        </div>
-      </AuthLayout>
+      <OnboardingCarousel
+        onGetStarted={() => navigate("/register")}
+        onSignIn={handleOnboardingComplete}
+        onSkip={handleOnboardingComplete}
+      />
     );
   }
 
   return (
     <AuthLayout
-      title="Log In to Your Account"
+      title="Sign In to Your Account"
       footer={
         <span>
           Need to open an account?{" "}
           <Link to="/register" className="text-navy font-medium hover:underline">
-            Open an Account
+            Get Started
           </Link>
         </span>
       }
@@ -168,9 +135,9 @@ export default function Login() {
         </button>
       </form>
       <div className="flex flex-col gap-2 mt-5 text-center text-xs">
-        <Link to="/forgot-password" className="text-gray hover:text-navy transition">Forgot User ID or Password?</Link>
+        <Link to="/forgot-password" className="text-gray hover:text-navy transition">Forgot User ID</Link>
+        <Link to="/forgot-password" className="text-gray hover:text-navy transition">Forgot Password</Link>
         <Link to="/forgot-password" className="text-gray hover:text-navy transition">Need Help?</Link>
-        <Link to="/register" className="text-navy font-medium hover:underline">Enroll an Existing Account</Link>
       </div>
     </AuthLayout>
   );

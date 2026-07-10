@@ -1,5 +1,6 @@
 import React from "react";
-import { Upload, FileCheck, X } from "lucide-react";
+import { TextField } from "@/components/auth/FormField";
+import { Upload, FileCheck, X, CreditCard } from "lucide-react";
 
 function FileUpload({ label, file, onChange, description }) {
   const inputId = label.replace(/\s/g, "-").toLowerCase();
@@ -40,6 +41,17 @@ function FileUpload({ label, file, onChange, description }) {
 export default function StepIdentity({ data, updateData }) {
   return (
     <div className="space-y-4">
+      <TextField
+        label="Social Security Number"
+        type="password"
+        value={data.ssn}
+        onChange={(v) => updateData({ ssn: v })}
+        placeholder="•••-••-••••"
+        required
+        autoComplete="off"
+        icon={CreditCard}
+      />
+      <p className="text-[11px] text-gray -mt-2">Or jurisdiction equivalent (e.g. ITIN, National ID number).</p>
       <FileUpload
         label="Government ID"
         file={data.govId}
@@ -47,16 +59,10 @@ export default function StepIdentity({ data, updateData }) {
         description="Driver's license, passport, or state ID"
       />
       <FileUpload
-        label="Selfie"
+        label="Selfie Verification"
         file={data.selfie}
         onChange={(f) => updateData({ selfie: f })}
         description="Clear front-facing photo"
-      />
-      <FileUpload
-        label="Address Verification"
-        file={data.addressProof}
-        onChange={(f) => updateData({ addressProof: f })}
-        description="Utility bill or bank statement (last 90 days)"
       />
       <p className="text-xs text-gray leading-relaxed">
         Your documents are encrypted and stored securely. They will be reviewed by our compliance team as part of the account opening process.

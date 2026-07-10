@@ -27,7 +27,7 @@ const FUND_SOURCES = [
   { value: "Other", label: "Other" },
 ];
 
-export default function StepEmployment({ data, updateData }) {
+export default function StepFinancial({ data, updateData }) {
   return (
     <div className="space-y-4">
       <SelectField label="Employment Status" value={data.employment} onChange={(v) => updateData({ employment: v })} options={EMPLOYMENT_STATUSES} required />

@@ -25,6 +25,7 @@ function ReviewSection({ title, fields, onEdit }) {
 export default function StepReview({ data, product, onEditStep, onConsentChange, consents }) {
   const fullName = [data.firstName, data.middleName, data.lastName, data.suffix].filter(Boolean).join(" ");
   const fullAddress = [data.street, data.apt, data.city, `${data.state} ${data.zip}`, data.country].filter(Boolean).join(", ");
+  const maskedPhone = data.phone ? data.phone.replace(/\d(?=\d{2})/g, "•") : "";
 
   return (
     <div>
@@ -39,26 +40,33 @@ export default function StepReview({ data, product, onEditStep, onConsentChange,
         fields={[
           { label: "Full Name", value: fullName },
           { label: "Date of Birth", value: data.dob },
-          { label: "Citizenship", value: data.citizenship },
-          { label: "Residency", value: data.residency },
         ]}
       />
       <ReviewSection
-        title="Contact Information"
+        title="Contact"
         onEdit={() => onEditStep(2)}
         fields={[
-          { label: "Email", value: data.email },
-          { label: "Mobile Phone", value: data.phone },
+          { label: "Email", value: data.email || data.userId },
+          { label: "Mobile", value: maskedPhone },
         ]}
       />
       <ReviewSection
-        title="Residential Address"
-        onEdit={() => onEditStep(3)}
+        title="Address"
+        onEdit={() => onEditStep(4)}
         fields={[{ label: "Address", value: fullAddress }]}
       />
       <ReviewSection
-        title="Employment & Financial"
-        onEdit={() => onEditStep(4)}
+        title="Identity"
+        onEdit={() => onEditStep(5)}
+        fields={[
+          { label: "SSN", value: data.ssn ? "•••-••-" + data.ssn.slice(-4) : "" },
+          { label: "Government ID", value: data.govId?.name || "Not uploaded" },
+          { label: "Selfie", value: data.selfie?.name || "Not uploaded" },
+        ]}
+      />
+      <ReviewSection
+        title="Financial"
+        onEdit={() => onEditStep(6)}
         fields={[
           { label: "Employment", value: data.employment },
           { label: "Employer", value: data.employer },
@@ -67,22 +75,13 @@ export default function StepReview({ data, product, onEditStep, onConsentChange,
           { label: "Source of Funds", value: data.sourceOfFunds },
         ]}
       />
-      <ReviewSection
-        title="Identity Verification"
-        onEdit={() => onEditStep(5)}
-        fields={[
-          { label: "Government ID", value: data.govId?.name || "Not uploaded" },
-          { label: "Selfie", value: data.selfie?.name || "Not uploaded" },
-          { label: "Address Proof", value: data.addressProof?.name || "Not uploaded" },
-        ]}
-      />
 
       <div className="space-y-3 mt-5">
         <p className="text-xs font-semibold uppercase tracking-wider text-gray">Consents & Disclosures</p>
         {[
-          { key: "regulatory", label: "I have read and agree to the Deposit Account Agreement and Disclosures." },
+          { key: "regulatory", label: "I have read and agree to the Deposit Account Agreement and Regulatory Disclosures." },
           { key: "privacy", label: "I acknowledge the Privacy Notice and consent to information sharing as described." },
-          { key: "electronic", label: "I consent to electronic delivery of documents and agreements." },
+          { key: "electronic", label: "I consent to electronic delivery of documents and agreements (E-Sign Act)." },
         ].map((item) => (
           <label key={item.key} className="flex items-start gap-3 cursor-pointer">
             <button

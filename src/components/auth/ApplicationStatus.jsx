@@ -1,7 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { CheckCircle, Clock, ArrowRight, Shield } from "lucide-react";
-import ShieldLogo from "@/components/vantoris/ShieldLogo";
+import { CheckCircle, Clock, ArrowRight, Shield, Search } from "lucide-react";
 
 export default function ApplicationStatus({ status, onContinue }) {
   const isApproved = status?.type === "approved";
@@ -33,6 +32,10 @@ export default function ApplicationStatus({ status, onContinue }) {
               <span className="text-foreground text-sm font-semibold font-mono">{status.accountNumber}</span>
             </div>
             <div className="flex justify-between">
+              <span className="text-gray text-xs uppercase tracking-wider">Routing Number</span>
+              <span className="text-foreground text-sm font-semibold font-mono">{status.routingNumber}</span>
+            </div>
+            <div className="flex justify-between">
               <span className="text-gray text-xs uppercase tracking-wider">Available Balance</span>
               <span className="text-foreground text-sm font-semibold">{status.balance}</span>
             </div>
@@ -44,7 +47,7 @@ export default function ApplicationStatus({ status, onContinue }) {
           <p className="text-gray text-sm mb-8 leading-relaxed">
             Your application is now under review by our account services team. You will be notified once a determination has been made.
           </p>
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 mb-8 text-left space-y-3">
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 mb-6 text-left space-y-3">
             <div className="flex justify-between">
               <span className="text-gray text-xs uppercase tracking-wider">Reference Number</span>
               <span className="text-foreground text-sm font-semibold font-mono">{status.reference}</span>
@@ -54,10 +57,17 @@ export default function ApplicationStatus({ status, onContinue }) {
               <span className="text-navy text-sm font-semibold">Under Review</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray text-xs uppercase tracking-wider">Expected Review Time</span>
+              <span className="text-gray text-xs uppercase tracking-wider">Estimated Review Time</span>
               <span className="text-foreground text-sm font-semibold">2–3 Business Days</span>
             </div>
           </div>
+          <button
+            onClick={onContinue}
+            className="w-full h-12 bg-white border border-slate-200 text-foreground font-semibold rounded-xl hover:bg-slate-50 transition flex items-center justify-center gap-2 mb-3"
+          >
+            <Search size={16} />
+            Track Application
+          </button>
         </>
       )}
 

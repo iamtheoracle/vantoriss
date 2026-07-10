@@ -10,18 +10,6 @@ const SUFFIXES = [
   { value: "IV", label: "IV" },
 ];
 
-const CITIZENSHIPS = [
-  { value: "US Citizen", label: "U.S. Citizen" },
-  { value: "Permanent Resident", label: "Permanent Resident" },
-  { value: "Resident Alien", label: "Resident Alien" },
-  { value: "Non-Resident Alien", label: "Non-Resident Alien" },
-];
-
-const RESIDENCIES = [
-  { value: "US Resident", label: "U.S. Resident" },
-  { value: "Non-US Resident", label: "Non-U.S. Resident" },
-];
-
 export default function StepPersonalInfo({ data, updateData }) {
   return (
     <div className="space-y-4">
@@ -34,11 +22,6 @@ export default function StepPersonalInfo({ data, updateData }) {
         <SelectField label="Suffix" value={data.suffix} onChange={(v) => updateData({ suffix: v })} options={SUFFIXES} />
       </div>
       <TextField label="Date of Birth" type="date" value={data.dob} onChange={(v) => updateData({ dob: v })} required />
-      <TextField label="Social Security Number" type="password" value={data.ssn} onChange={(v) => updateData({ ssn: v })} placeholder="•••-••-••••" required autoComplete="off" />
-      <div className="grid grid-cols-2 gap-3">
-        <SelectField label="Citizenship" value={data.citizenship} onChange={(v) => updateData({ citizenship: v })} options={CITIZENSHIPS} required />
-        <SelectField label="Residency" value={data.residency} onChange={(v) => updateData({ residency: v })} options={RESIDENCIES} required />
-      </div>
     </div>
   );
 }

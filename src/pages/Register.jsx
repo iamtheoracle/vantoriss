@@ -7,9 +7,10 @@ import ProductSelection, { PRODUCTS } from "@/components/auth/ProductSelection";
 import ApplicationStatus from "@/components/auth/ApplicationStatus";
 import StepPersonalInfo from "@/components/auth/StepPersonalInfo";
 import StepContactInfo from "@/components/auth/StepContactInfo";
+import StepVerification from "@/components/auth/StepVerification";
 import StepAddress from "@/components/auth/StepAddress";
-import StepEmployment from "@/components/auth/StepEmployment";
 import StepIdentity from "@/components/auth/StepIdentity";
+import StepFinancial from "@/components/auth/StepFinancial";
 import StepSecurity from "@/components/auth/StepSecurity";
 import StepReview from "@/components/auth/StepReview";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
@@ -17,11 +18,11 @@ import { toast } from "@/components/ui/use-toast";
 import { ArrowLeft, ArrowRight, Loader2, ShieldCheck } from "lucide-react";
 
 const INITIAL_DATA = {
-  firstName: "", middleName: "", lastName: "", suffix: "", dob: "", ssn: "", citizenship: "", residency: "",
+  firstName: "", middleName: "", lastName: "", suffix: "", dob: "",
   email: "", phone: "",
   street: "", apt: "", city: "", state: "", zip: "", country: "US",
+  ssn: "", govId: null, selfie: null,
   employment: "", employer: "", occupation: "", annualIncome: "", sourceOfFunds: "",
-  govId: null, selfie: null, addressProof: null,
   userId: "", password: "", confirmPassword: "", securityPin: "", faceId: false,
 };
 
@@ -30,7 +31,7 @@ export default function Register() {
   const refCode = searchParams.get("ref") || "";
   const navigate = useNavigate();
 
-  const [phase, setPhase] = useState("products"); // products | application | status
+  const [phase, setPhase] = useState("products");
   const [step, setStep] = useState(1);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [data, setData] = useState(INITIAL_DATA);
@@ -54,24 +55,25 @@ export default function Register() {
 
   function isStepValid() {
     switch (step) {
-      case 1: return data.firstName && data.lastName && data.dob && data.ssn && data.citizenship && data.residency;
+      case 1: return data.firstName && data.lastName && data.dob;
       case 2: return data.email && data.phone;
-      case 3: return data.street && data.city && data.state && data.zip && data.country;
-      case 4: return data.employment && data.annualIncome && data.sourceOfFunds;
-      case 5: return data.govId && data.selfie && data.addressProof;
-      case 6: return data.userId && data.password && data.confirmPassword && data.securityPin && data.password === data.confirmPassword;
-      case 7: return consents.regulatory && consents.privacy && consents.electronic;
+      case 3: return !!data.phone;
+      case 4: return data.street && data.city && data.state && data.zip && data.country;
+      case 5: return data.ssn && data.govId && data.selfie;
+      case 6: return data.employment && data.annualIncome && data.sourceOfFunds;
+      case 7: return data.userId && data.password && data.confirmPassword && data.securityPin && data.password === data.confirmPassword;
+      case 8: return consents.regulatory && consents.privacy && consents.electronic;
       default: return true;
     }
   }
 
   async function handleNext() {
     setError("");
-    if (step < 6) {
+    if (step < 7) {
       setStep(step + 1);
       return;
     }
-    if (step === 6) {
+    if (step === 7) {
       if (data.password !== data.confirmPassword) {
         setError("Passwords do not match.");
         return;
@@ -91,7 +93,7 @@ export default function Register() {
       }
       return;
     }
-    if (step === 7) {
+    if (step === 8) {
       await handleSubmitApplication();
     }
   }
@@ -111,7 +113,7 @@ export default function Register() {
         full_name: [data.firstName, data.middleName, data.lastName, data.suffix].filter(Boolean).join(" "),
       });
       setOtpSent(false);
-      setStep(7);
+      setStep(8);
     } catch (err) {
       setError(err.message || "Invalid verification code.");
     } finally {
@@ -156,9 +158,8 @@ export default function Register() {
       const fullName = [data.firstName, data.middleName, data.lastName, data.suffix].filter(Boolean).join(" ");
       const fullAddress = [data.street, data.apt, data.city, `${data.state} ${data.zip}`, data.country].filter(Boolean).join(", ");
 
-      // Upload KYC documents
       const docUrls = [];
-      for (const file of [data.govId, data.selfie, data.addressProof]) {
+      for (const file of [data.govId, data.selfie]) {
         if (file) {
           const { file_url } = await base44.integrations.Core.UploadFile({ file });
           docUrls.push(file_url);
@@ -171,7 +172,7 @@ export default function Register() {
         email: data.userId || data.email,
         phone: data.phone,
         address: fullAddress,
-        business_name: ["Business Banking", "Commercial Banking", "Institutional"].includes(selectedProduct?.label) ? data.employer || "" : "",
+        business_name: ["Business", "Institutional", "Organization"].includes(selectedProduct?.label) ? data.employer || "" : "",
         account_type: selectedProduct.accountType,
         kyc_status: "not_started",
         application_status: "pending",
@@ -180,8 +181,6 @@ export default function Register() {
           product: selectedProduct.label,
           dob: data.dob,
           ssn: data.ssn,
-          citizenship: data.citizenship,
-          residency: data.residency,
           employment: data.employment,
           employer: data.employer,
           occupation: data.occupation,
@@ -211,7 +210,6 @@ export default function Register() {
     }
   }
 
-  // --- Product Selection Phase ---
   if (phase === "products") {
     return (
       <AuthLayout
@@ -220,7 +218,7 @@ export default function Register() {
           <span>
             Already a member?{" "}
             <Link to="/login" className="text-navy font-medium hover:underline">
-              Log In
+              Sign In
             </Link>
           </span>
         }
@@ -235,7 +233,7 @@ export default function Register() {
             onClick={() => { setPhase("application"); setStep(1); }}
             className="w-full h-12 bg-navy text-white font-semibold rounded-xl hover:bg-navy/90 transition flex items-center justify-center gap-2 mt-6"
           >
-            Continue Application
+            Continue
             <ArrowRight size={18} />
           </button>
         )}
@@ -243,7 +241,6 @@ export default function Register() {
     );
   }
 
-  // --- Status Phase ---
   if (phase === "status") {
     return (
       <AuthLayout bare>
@@ -252,7 +249,6 @@ export default function Register() {
     );
   }
 
-  // --- OTP Overlay ---
   if (otpSent) {
     return (
       <AuthLayout title="Verify Your Email" subtitle={`We sent a verification code to ${data.userId || data.email}`}>
@@ -292,15 +288,15 @@ export default function Register() {
     );
   }
 
-  // --- Application Steps ---
   const stepTitles = {
     1: "Personal Information",
     2: "Contact Information",
-    3: "Residential Address",
-    4: "Employment & Financial Profile",
+    3: "Verification",
+    4: "Residential Address",
     5: "Identity Verification",
-    6: "Security",
-    7: "Review & Consent",
+    6: "Financial Information",
+    7: "Security",
+    8: "Review & Submit",
   };
 
   return (
@@ -316,11 +312,12 @@ export default function Register() {
       <div className="mb-6">
         {step === 1 && <StepPersonalInfo data={data} updateData={updateData} />}
         {step === 2 && <StepContactInfo data={data} updateData={updateData} />}
-        {step === 3 && <StepAddress data={data} updateData={updateData} />}
-        {step === 4 && <StepEmployment data={data} updateData={updateData} />}
+        {step === 3 && <StepVerification data={data} />}
+        {step === 4 && <StepAddress data={data} updateData={updateData} />}
         {step === 5 && <StepIdentity data={data} updateData={updateData} />}
-        {step === 6 && <StepSecurity data={data} updateData={updateData} />}
-        {step === 7 && (
+        {step === 6 && <StepFinancial data={data} updateData={updateData} />}
+        {step === 7 && <StepSecurity data={data} updateData={updateData} />}
+        {step === 8 && (
           <StepReview
             data={data}
             product={selectedProduct}
@@ -346,7 +343,7 @@ export default function Register() {
         >
           {loading ? (
             <><Loader2 className="w-4 h-4 animate-spin" /> Processing...</>
-          ) : step === 7 ? (
+          ) : step === 8 ? (
             <><ShieldCheck size={18} /> Submit Application</>
           ) : (
             <>Continue <ArrowRight size={18} /></>

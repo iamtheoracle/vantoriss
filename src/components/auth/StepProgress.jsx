@@ -3,11 +3,12 @@ import React from "react";
 const STEPS = [
   { num: 1, label: "Personal" },
   { num: 2, label: "Contact" },
-  { num: 3, label: "Address" },
-  { num: 4, label: "Employment" },
+  { num: 3, label: "Verify" },
+  { num: 4, label: "Address" },
   { num: 5, label: "Identity" },
-  { num: 6, label: "Security" },
-  { num: 7, label: "Review" },
+  { num: 6, label: "Financial" },
+  { num: 7, label: "Security" },
+  { num: 8, label: "Review" },
 ];
 
 export default function StepProgress({ currentStep }) {
@@ -15,7 +16,7 @@ export default function StepProgress({ currentStep }) {
     <div className="mb-8">
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs font-semibold uppercase tracking-wider text-navy">
-          Step {currentStep} of 7
+          Step {currentStep} of 8
         </span>
         <span className="text-xs text-gray">{STEPS[currentStep - 1].label}</span>
       </div>
