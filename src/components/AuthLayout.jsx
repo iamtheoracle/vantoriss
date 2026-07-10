@@ -1,26 +1,35 @@
 import React from "react";
 import ShieldLogo from "@/components/vantoris/ShieldLogo";
 
-export default function AuthLayout({ icon: Icon, title, subtitle, footer, children }) {
+export default function AuthLayout({ title, subtitle, footer, children, bare = false }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0E1A2B] px-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-10">
-          <ShieldLogo size={56} className="mx-auto mb-3" />
-          <h1 className="text-2xl font-bold tracking-[0.15em] text-white mb-0.5">VANTORIS</h1>
-          <p className="text-[#AAB4C3] text-[10px] tracking-[0.25em] uppercase mb-6">Private Institutional Platform</p>
-          <h2 className="text-xl font-semibold text-white">{title}</h2>
-          {subtitle && <p className="text-[#AAB4C3] text-sm mt-1">{subtitle}</p>}
+    <div className="min-h-screen flex flex-col bg-background vantoris-mesh-bg">
+      <div className="h-1 bg-gradient-to-r from-navy via-gold to-navy" />
+      <div className="flex-1 flex items-center justify-center px-6 py-12 safe-top safe-bottom">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8 animate-fade-up">
+            <ShieldLogo size={48} className="mx-auto mb-4" />
+            <h1 className="text-2xl font-bold tracking-[0.18em] text-foreground mb-1">VANTORIS</h1>
+            <p className="text-gray text-[10px] tracking-[0.3em] uppercase">Private Institutional Platform</p>
+          </div>
+          {bare ? (
+            <div className="animate-scale-in">{children}</div>
+          ) : (
+            <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-lg animate-scale-in">
+              {title && (
+                <div className="mb-6 text-center">
+                  <h2 className="text-xl font-semibold text-foreground">{title}</h2>
+                  {subtitle && <p className="text-gray text-sm mt-1">{subtitle}</p>}
+                </div>
+              )}
+              {children}
+            </div>
+          )}
+          {footer && <p className="text-center text-sm text-gray mt-6">{footer}</p>}
+          <p className="text-center text-[10px] text-gray/50 mt-8 tracking-[0.2em] uppercase">
+            Deposits insured to regulatory limits · Equal Housing Lender
+          </p>
         </div>
-        <div className="bg-[#242D38] rounded-2xl border border-[#242D38] p-8">
-          {children}
-        </div>
-        {footer && (
-          <p className="text-center text-sm text-[#AAB4C3] mt-6">{footer}</p>
-        )}
-        <p className="text-center text-[10px] text-[#AAB4C3]/30 mt-8 tracking-widest uppercase">
-          Secure · Trusted · Tailored for you
-        </p>
       </div>
     </div>
   );

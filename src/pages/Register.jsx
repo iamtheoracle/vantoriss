@@ -1,134 +1,268 @@
-import React, { useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Loader2, Lock, Mail, UserPlus } from 'lucide-react';
-import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
-import AuthLayout from '@/components/AuthLayout';
-import GoogleIcon from '@/components/GoogleIcon';
-import { toast } from '@/components/ui/use-toast';
+import React, { useState, useCallback } from "react";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { base44 } from "@/api/base44Client";
+import AuthLayout from "@/components/AuthLayout";
+import StepProgress from "@/components/auth/StepProgress";
+import ProductSelection, { PRODUCTS } from "@/components/auth/ProductSelection";
+import ApplicationStatus from "@/components/auth/ApplicationStatus";
+import StepPersonalInfo from "@/components/auth/StepPersonalInfo";
+import StepContactInfo from "@/components/auth/StepContactInfo";
+import StepAddress from "@/components/auth/StepAddress";
+import StepEmployment from "@/components/auth/StepEmployment";
+import StepIdentity from "@/components/auth/StepIdentity";
+import StepSecurity from "@/components/auth/StepSecurity";
+import StepReview from "@/components/auth/StepReview";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { toast } from "@/components/ui/use-toast";
+import { ArrowLeft, ArrowRight, Loader2, ShieldCheck } from "lucide-react";
 
-function ErrorMessage({ message }) {
-  if (!message) return null;
-
-  return (
-    <div className="mb-4 rounded-lg border border-[#F4A7B2] bg-[#FCE7EA] p-3 text-sm font-medium text-[#7F1020]">
-      {message}
-    </div>
-  );
-}
+const INITIAL_DATA = {
+  firstName: "", middleName: "", lastName: "", suffix: "", dob: "", ssn: "", citizenship: "", residency: "",
+  email: "", phone: "",
+  street: "", apt: "", city: "", state: "", zip: "", country: "US",
+  employment: "", employer: "", occupation: "", annualIncome: "", sourceOfFunds: "",
+  govId: null, selfie: null, addressProof: null,
+  userId: "", password: "", confirmPassword: "", securityPin: "", faceId: false,
+};
 
 export default function Register() {
   const [searchParams] = useSearchParams();
-  const refCode = searchParams.get('ref') || '';
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
+  const refCode = searchParams.get("ref") || "";
+  const navigate = useNavigate();
+
+  const [phase, setPhase] = useState("products"); // products | application | status
+  const [step, setStep] = useState(1);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [data, setData] = useState(INITIAL_DATA);
+  const [consents, setConsents] = useState({ regulatory: false, privacy: false, electronic: false });
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showOtp, setShowOtp] = useState(false);
-  const [otpCode, setOtpCode] = useState('');
+  const [error, setError] = useState("");
+  const [status, setStatus] = useState(null);
 
-  async function handleSubmit(event) {
-    event.preventDefault();
-    setError('');
+  const updateData = useCallback((updates) => setData((prev) => ({ ...prev, ...updates })), []);
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.');
+  function handleBack() {
+    setError("");
+    if (step > 1) {
+      setStep(step - 1);
+    } else {
+      setPhase("products");
+    }
+  }
+
+  function isStepValid() {
+    switch (step) {
+      case 1: return data.firstName && data.lastName && data.dob && data.ssn && data.citizenship && data.residency;
+      case 2: return data.email && data.phone;
+      case 3: return data.street && data.city && data.state && data.zip && data.country;
+      case 4: return data.employment && data.annualIncome && data.sourceOfFunds;
+      case 5: return data.govId && data.selfie && data.addressProof;
+      case 6: return data.userId && data.password && data.confirmPassword && data.securityPin && data.password === data.confirmPassword;
+      case 7: return consents.regulatory && consents.privacy && consents.electronic;
+      default: return true;
+    }
+  }
+
+  async function handleNext() {
+    setError("");
+    if (step < 6) {
+      setStep(step + 1);
       return;
     }
+    if (step === 6) {
+      if (data.password !== data.confirmPassword) {
+        setError("Passwords do not match.");
+        return;
+      }
+      if (data.password.length < 8) {
+        setError("Password must be at least 8 characters.");
+        return;
+      }
+      setLoading(true);
+      try {
+        await base44.auth.register({ email: data.userId || data.email, password: data.password });
+        setOtpSent(true);
+      } catch (err) {
+        setError(err.message || "Registration failed. This User ID may already be in use.");
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+    if (step === 7) {
+      await handleSubmitApplication();
+    }
+  }
 
+  async function handleVerifyOtp() {
+    setError("");
     setLoading(true);
     try {
-      await base44.auth.register({ email, password });
-      setShowOtp(true);
+      const result = await base44.auth.verifyOtp({ email: data.userId || data.email, otpCode });
+      if (!result?.access_token) {
+        setError("Verification completed but no session token was returned. Please try again.");
+        return;
+      }
+      base44.auth.setToken(result.access_token);
+      await trackReferral();
+      await base44.auth.updateMe({
+        full_name: [data.firstName, data.middleName, data.lastName, data.suffix].filter(Boolean).join(" "),
+      });
+      setOtpSent(false);
+      setStep(7);
     } catch (err) {
-      setError(err.message || 'Registration failed.');
+      setError(err.message || "Invalid verification code.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleResendOtp() {
+    setError("");
+    try {
+      await base44.auth.resendOtp(data.userId || data.email);
+      toast({ title: "Code sent", description: "Check your email for the new code." });
+    } catch (err) {
+      setError(err.message || "Failed to resend code.");
     }
   }
 
   async function trackReferral() {
     if (!refCode) return;
-
     try {
       const me = await base44.auth.me();
       const referrers = await base44.entities.User.filter({ referral_code: refCode });
-
       if (referrers.length > 0) {
-        const referrer = referrers[0];
         await base44.entities.Referral.create({
-          referrer_id: referrer.id,
+          referrer_id: referrers[0].id,
           referred_id: me.id,
-          referred_email: email,
-          referred_name: me.full_name || '',
-          status: 'completed',
+          referred_email: data.userId || data.email,
+          referred_name: `${data.firstName} ${data.lastName}`,
+          status: "completed",
         });
       }
     } catch (refErr) {
-      console.error('Referral tracking failed:', refErr);
+      console.error("Referral tracking failed:", refErr);
     }
   }
 
-  async function handleVerify() {
-    setError('');
+  async function handleSubmitApplication() {
     setLoading(true);
-
+    setError("");
     try {
-      const result = await base44.auth.verifyOtp({ email, otpCode });
+      const me = await base44.auth.me();
+      const fullName = [data.firstName, data.middleName, data.lastName, data.suffix].filter(Boolean).join(" ");
+      const fullAddress = [data.street, data.apt, data.city, `${data.state} ${data.zip}`, data.country].filter(Boolean).join(", ");
 
-      if (!result?.access_token) {
-        setError('Verification completed but no session token was returned. Please try again or contact support.');
-        return;
+      // Upload KYC documents
+      const docUrls = [];
+      for (const file of [data.govId, data.selfie, data.addressProof]) {
+        if (file) {
+          const { file_url } = await base44.integrations.Core.UploadFile({ file });
+          docUrls.push(file_url);
+        }
       }
 
-      base44.auth.setToken(result.access_token);
-      await trackReferral();
-      window.location.href = '/';
+      await base44.entities.Application.create({
+        user_id: me.id,
+        full_name: fullName,
+        email: data.userId || data.email,
+        phone: data.phone,
+        address: fullAddress,
+        business_name: ["Business Banking", "Commercial Banking", "Institutional"].includes(selectedProduct?.label) ? data.employer || "" : "",
+        account_type: selectedProduct.accountType,
+        kyc_status: "not_started",
+        application_status: "pending",
+        kyc_documents: docUrls,
+        kyc_notes: JSON.stringify({
+          product: selectedProduct.label,
+          dob: data.dob,
+          ssn: data.ssn,
+          citizenship: data.citizenship,
+          residency: data.residency,
+          employment: data.employment,
+          employer: data.employer,
+          occupation: data.occupation,
+          annualIncome: data.annualIncome,
+          sourceOfFunds: data.sourceOfFunds,
+          securityPin: data.securityPin ? "set" : "",
+          faceId: data.faceId,
+        }),
+      });
+
+      await base44.entities.Notification.create({
+        user_id: me.id,
+        title: "Application Received",
+        message: `Your ${selectedProduct.label} application has been received and is under review. You will be notified once a determination has been made.`,
+        type: "info",
+      });
+
+      setStatus({
+        type: "review",
+        reference: `VAN-${me.id.slice(-8).toUpperCase()}`,
+      });
+      setPhase("status");
     } catch (err) {
-      setError(err.message || 'Invalid verification code.');
+      setError(err.message || "Failed to submit application. Please try again.");
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleResend() {
-    setError('');
-
-    try {
-      await base44.auth.resendOtp(email);
-      toast({
-        title: 'Code sent',
-        description: 'Check your email for the new code.',
-      });
-    } catch (err) {
-      setError(err.message || 'Failed to resend code.');
-    }
-  }
-
-  function handleGoogle() {
-    base44.auth.loginWithProvider('google', '/');
-  }
-
-  if (showOtp) {
+  // --- Product Selection Phase ---
+  if (phase === "products") {
     return (
       <AuthLayout
-        icon={Mail}
-        title="Verify your email"
-        subtitle={`We sent a code to ${email}`}
+        bare
+        footer={
+          <span>
+            Already a member?{" "}
+            <Link to="/login" className="text-navy font-medium hover:underline">
+              Log In
+            </Link>
+          </span>
+        }
       >
-        <ErrorMessage message={error} />
-        <div className="flex justify-center mb-6">
-          <InputOTP
-            maxLength={6}
-            value={otpCode}
-            onChange={setOtpCode}
-            autoFocus
-            autoComplete="one-time-code"
+        <ProductSelection
+          selected={selectedProduct}
+          onSelect={setSelectedProduct}
+          onBack={() => navigate("/login")}
+        />
+        {selectedProduct && (
+          <button
+            onClick={() => { setPhase("application"); setStep(1); }}
+            className="w-full h-12 bg-navy text-white font-semibold rounded-xl hover:bg-navy/90 transition flex items-center justify-center gap-2 mt-6"
           >
+            Continue Application
+            <ArrowRight size={18} />
+          </button>
+        )}
+      </AuthLayout>
+    );
+  }
+
+  // --- Status Phase ---
+  if (phase === "status") {
+    return (
+      <AuthLayout bare>
+        <ApplicationStatus status={status} onContinue={() => { window.location.href = "/"; }} />
+      </AuthLayout>
+    );
+  }
+
+  // --- OTP Overlay ---
+  if (otpSent) {
+    return (
+      <AuthLayout title="Verify Your Email" subtitle={`We sent a verification code to ${data.userId || data.email}`}>
+        {error && (
+          <div className="mb-4 p-3 rounded-lg bg-crimson/10 border border-crimson/20 text-crimson text-sm">
+            {error}
+          </div>
+        )}
+        <div className="flex justify-center mb-6">
+          <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode} autoFocus autoComplete="one-time-code">
             <InputOTPGroup>
               <InputOTPSlot index={0} />
               <InputOTPSlot index={1} />
@@ -139,125 +273,86 @@ export default function Register() {
             </InputOTPGroup>
           </InputOTP>
         </div>
-        <Button
-          className="w-full h-12 font-medium"
-          onClick={handleVerify}
+        <button
+          onClick={handleVerifyOtp}
           disabled={loading || otpCode.length < 6}
+          className="w-full h-12 bg-navy text-white font-semibold rounded-xl hover:bg-navy/90 transition flex items-center justify-center gap-2 disabled:opacity-50"
         >
-          {loading ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Verifying...
-            </>
-          ) : (
-            'Verify'
-          )}
-        </Button>
-        <p className="text-center text-sm text-muted-foreground mt-4">
-          Didn't receive the code?{' '}
-          <button onClick={handleResend} className="text-primary font-medium hover:underline">
-            Resend
+          {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Verifying...</> : "Verify Code"}
+        </button>
+        <div className="flex items-center justify-between mt-4 text-xs">
+          <button onClick={() => { setOtpSent(false); setError(""); }} className="text-gray hover:text-foreground">
+            ← Back to form
           </button>
-        </p>
+          <button onClick={handleResendOtp} className="text-navy font-medium hover:underline">
+            Resend code
+          </button>
+        </div>
       </AuthLayout>
     );
   }
 
-  return (
-    <AuthLayout
-      icon={UserPlus}
-      title="Create your account"
-      subtitle="Sign up to get started"
-      footer={
-        <>
-          Already have an account?{' '}
-          <Link to="/login" className="text-primary font-medium hover:underline">
-            Log in
-          </Link>
-        </>
-      }
-    >
-      <Button
-        variant="outline"
-        className="w-full h-12 text-sm font-medium mb-6"
-        onClick={handleGoogle}
-      >
-        <GoogleIcon className="w-5 h-5 mr-2" />
-        Continue with Google
-      </Button>
+  // --- Application Steps ---
+  const stepTitles = {
+    1: "Personal Information",
+    2: "Contact Information",
+    3: "Residential Address",
+    4: "Employment & Financial Profile",
+    5: "Identity Verification",
+    6: "Security",
+    7: "Review & Consent",
+  };
 
-      <div className="relative mb-6">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-border" />
+  return (
+    <AuthLayout title={stepTitles[step]}>
+      <StepProgress currentStep={step} />
+
+      {error && (
+        <div className="mb-4 p-3 rounded-lg bg-crimson/10 border border-crimson/20 text-crimson text-sm">
+          {error}
         </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card px-3 text-muted-foreground">or</span>
-        </div>
+      )}
+
+      <div className="mb-6">
+        {step === 1 && <StepPersonalInfo data={data} updateData={updateData} />}
+        {step === 2 && <StepContactInfo data={data} updateData={updateData} />}
+        {step === 3 && <StepAddress data={data} updateData={updateData} />}
+        {step === 4 && <StepEmployment data={data} updateData={updateData} />}
+        {step === 5 && <StepIdentity data={data} updateData={updateData} />}
+        {step === 6 && <StepSecurity data={data} updateData={updateData} />}
+        {step === 7 && (
+          <StepReview
+            data={data}
+            product={selectedProduct}
+            onEditStep={(s) => s === 0 ? setPhase("products") : setStep(s)}
+            consents={consents}
+            onConsentChange={(key, val) => setConsents((prev) => ({ ...prev, [key]: val }))}
+          />
+        )}
       </div>
 
-      <ErrorMessage message={error} />
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
-            <Input
-              id="email"
-              type="email"
-              autoComplete="email"
-              autoFocus
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="pl-10 h-12"
-              required
-            />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
-            <Input
-              id="password"
-              type="password"
-              autoComplete="new-password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="pl-10 h-12"
-              required
-            />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="confirm">Confirm Password</Label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
-            <Input
-              id="confirm"
-              type="password"
-              autoComplete="new-password"
-              placeholder="••••••••"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="pl-10 h-12"
-              required
-            />
-          </div>
-        </div>
-        <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
+      <div className="flex items-center gap-3">
+        <button
+          onClick={handleBack}
+          className="flex items-center gap-2 text-sm text-gray hover:text-foreground transition px-2"
+        >
+          <ArrowLeft size={16} />
+          Back
+        </button>
+        <button
+          onClick={handleNext}
+          disabled={!isStepValid() || loading}
+          className="flex-1 h-12 bg-navy text-white font-semibold rounded-xl hover:bg-navy/90 transition flex items-center justify-center gap-2 disabled:opacity-40"
+        >
           {loading ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Creating account...
-            </>
+            <><Loader2 className="w-4 h-4 animate-spin" /> Processing...</>
+          ) : step === 7 ? (
+            <><ShieldCheck size={18} /> Submit Application</>
           ) : (
-            'Create account'
+            <>Continue <ArrowRight size={18} /></>
           )}
-        </Button>
-      </form>
+        </button>
+      </div>
     </AuthLayout>
   );
 }

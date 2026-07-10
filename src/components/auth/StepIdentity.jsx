@@ -1,0 +1,66 @@
+import React from "react";
+import { Upload, FileCheck, X } from "lucide-react";
+
+function FileUpload({ label, file, onChange, description }) {
+  const inputId = label.replace(/\s/g, "-").toLowerCase();
+
+  return (
+    <div>
+      <label className="text-xs font-semibold uppercase tracking-wider text-gray mb-1.5 block">
+        {label} <span className="text-crimson">*</span>
+      </label>
+      {file ? (
+        <div className="flex items-center justify-between bg-mint/5 border border-mint/20 rounded-lg p-3">
+          <div className="flex items-center gap-2">
+            <FileCheck size={18} className="text-mint" />
+            <span className="text-sm text-foreground truncate max-w-[180px]">{file.name}</span>
+          </div>
+          <button onClick={() => onChange(null)} className="p-1 hover:bg-crimson/10 rounded">
+            <X size={16} className="text-gray" />
+          </button>
+        </div>
+      ) : (
+        <label htmlFor={inputId} className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-slate-200 rounded-lg p-5 cursor-pointer hover:border-navy/30 hover:bg-slate-50 transition">
+          <Upload size={20} className="text-gray" />
+          <span className="text-sm text-gray">Tap to upload</span>
+          <span className="text-[11px] text-gray/70 text-center">{description}</span>
+          <input
+            id={inputId}
+            type="file"
+            accept="image/*,application/pdf"
+            className="hidden"
+            onChange={(e) => e.target.files[0] && onChange(e.target.files[0])}
+          />
+        </label>
+      )}
+    </div>
+  );
+}
+
+export default function StepIdentity({ data, updateData }) {
+  return (
+    <div className="space-y-4">
+      <FileUpload
+        label="Government ID"
+        file={data.govId}
+        onChange={(f) => updateData({ govId: f })}
+        description="Driver's license, passport, or state ID"
+      />
+      <FileUpload
+        label="Selfie"
+        file={data.selfie}
+        onChange={(f) => updateData({ selfie: f })}
+        description="Clear front-facing photo"
+      />
+      <FileUpload
+        label="Address Verification"
+        file={data.addressProof}
+        onChange={(f) => updateData({ addressProof: f })}
+        description="Utility bill or bank statement (last 90 days)"
+      />
+      <p className="text-xs text-gray leading-relaxed">
+        Your documents are encrypted and stored securely. They will be reviewed by our compliance team as part of the account opening process.
+      </p>
+    </div>
+  );
+}
