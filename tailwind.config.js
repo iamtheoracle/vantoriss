@@ -12,17 +12,18 @@ module.exports = {
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
-        /* === VANTORIS Institutional Blue — Light Palette === */
-        navy: '#1e56a0',
-        charcoal: '#f4f7fb',
-        slate: '#f1f5f9',
-        olive: '#2D5A3D',
-        brass: '#1e56a0',
-        champagne: '#3b82f6',
-        gray: '#64748b',
-        mint: '#10b981',
-        gold: '#D4AF37',
-        crimson: '#ef4444',
+        /* === VANTORIS Unified Palette === */
+        navy: '#071C38',
+        charcoal: '#F8FAFC',
+        slate: '#F1F5F9',
+        olive: '#16A34A',
+        brass: '#071C38',
+        champagne: '#1F5EFF',
+        gray: '#64748B',
+        mint: '#16A34A',
+        gold: '#C9A227',
+        crimson: '#DC2626',
+        warning: '#F59E0B',
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))'
@@ -78,6 +79,14 @@ module.exports = {
         display: ['var(--font-display)'],
         mono: ['var(--font-mono)']
       },
+      fontSize: {
+        'display': ['2.25rem', { lineHeight: '1.2', fontWeight: '700' }],
+        'h1': ['1.75rem', { lineHeight: '1.25', fontWeight: '700' }],
+        'h2': ['1.375rem', { lineHeight: '1.3', fontWeight: '700' }],
+        'h3': ['1.125rem', { lineHeight: '1.35', fontWeight: '600' }],
+        'body': ['0.9375rem', { lineHeight: '1.6' }],
+        'caption': ['0.75rem', { lineHeight: '1.4' }],
+      },
       keyframes: {
         'accordion-down': {
           from: { height: '0' },
@@ -94,13 +103,18 @@ module.exports = {
         'scale-in': {
           from: { opacity: '0', transform: 'scale(0.96)' },
           to: { opacity: '1', transform: 'scale(1)' }
+        },
+        'typing-bounce': {
+          '0%, 60%, 100%': { transform: 'translateY(0)', opacity: '0.4' },
+          '30%': { transform: 'translateY(-4px)', opacity: '1' }
         }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'fade-up': 'fade-up 0.4s ease-out forwards',
-        'scale-in': 'scale-in 0.3s ease-out forwards'
+        'scale-in': 'scale-in 0.3s ease-out forwards',
+        'typing-bounce': 'typing-bounce 1.2s infinite ease-in-out'
       }
     }
   },
