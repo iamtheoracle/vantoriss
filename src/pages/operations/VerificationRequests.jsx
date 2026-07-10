@@ -201,7 +201,7 @@ export default function VerificationRequests() {
           {bulkMode && selectedIds.length > 0 && (
             <div className="flex items-center gap-3">
               <span className="text-[#AAB4C3] text-xs">{selectedIds.length} selected</span>
-              <button onClick={handleBulkApprove} disabled={submitting} className="flex items-center gap-1.5 px-4 py-2 bg-olive text-white rounded-xl text-xs font-semibold hover:bg-olive/80 transition-all disabled:opacity-40">
+              <button onClick={handleBulkApprove} disabled={submitting} className="flex items-center gap-1.5 px-4 py-2 bg-mint text-white rounded-xl text-xs font-semibold hover:bg-mint/80 transition-all disabled:opacity-40">
                 <Check size={14} /> Bulk Approve ({selectedIds.length})
               </button>
               <button onClick={handleBulkReject} disabled={submitting} className="flex items-center gap-1.5 px-4 py-2 bg-crimson text-white rounded-xl text-xs font-semibold hover:bg-crimson/80 transition-all disabled:opacity-40">
@@ -340,7 +340,7 @@ export default function VerificationRequests() {
               </div>
               <InternalComments entityType="verification_request" entityId={selected.id} />
               <div className="flex gap-3">
-                <button onClick={handleApprove} disabled={submitting} className="flex-1 py-3 bg-olive text-white font-semibold rounded-xl flex items-center justify-center gap-2 hover:bg-olive/80 transition-all disabled:opacity-40">
+                <button onClick={handleApprove} disabled={submitting} className="flex-1 py-3 bg-mint text-white font-semibold rounded-xl flex items-center justify-center gap-2 hover:bg-mint/80 transition-all disabled:opacity-40">
                   <Check size={16} /> Approve & Credit
                 </button>
                 <button onClick={handleReject} disabled={submitting} className="flex-1 py-3 bg-crimson text-white font-semibold rounded-xl flex items-center justify-center gap-2 hover:bg-crimson/80 transition-all disabled:opacity-40">
