@@ -1,15 +1,26 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
-import { CheckCheck, ChevronRight, ChevronDown } from 'lucide-react';
+import { CheckCheck, ChevronRight, ChevronDown, Star } from 'lucide-react';
+import { getMessageKey, isStarred, toggleStar } from '@/lib/starredMessages';
 import VantorisMonogram from '@/components/vantoris/brand/VantorisMonogram';
 
 const REACTIONS = ['👍', '❤️', '👏', '🔥', '💯'];
 
-export default function ChatMessage({ message, isUser, showAvatar, isLastInGroup }) {
+export default function ChatMessage({ message, isUser, showAvatar, isLastInGroup, convId, onStarToggle }) {
   const [showReactions, setShowReactions] = useState(false);
   const [reaction, setReaction] = useState(null);
   const [toolCallExpanded, setToolCallExpanded] = useState({});
+  const msgKey = getMessageKey(message);
+  const starred = convId ? isStarred(convId, msgKey) : false;
+
+  function handleStarClick(e) {
+    e.stopPropagation();
+    if (convId) {
+      toggleStar(convId, msgKey);
+      onStarToggle?.();
+    }
+  }
 
   function handleReaction(emoji) {
     setReaction(emoji);
@@ -35,6 +46,16 @@ export default function ChatMessage({ message, isUser, showAvatar, isLastInGroup
 
         {/* Bubble */}
         <div className="relative group">
+          {/* Star button */}
+          {convId && (
+            <button
+              onClick={handleStarClick}
+              className={`absolute -top-2.5 ${isUser ? '-left-6' : '-right-6'} p-1 rounded-full transition-all z-10 ${starred ? 'opacity-100' : 'opacity-0 group-hover:opacity-60 hover:!opacity-100'}`}
+              title={starred ? 'Remove star' : 'Star this message'}
+            >
+              <Star size={13} fill={starred ? 'currentColor' : 'none'} className={starred ? 'text-gold' : 'text-gray'} />
+            </button>
+          )}
           <div
             className={`rounded-2xl px-3.5 py-2.5 ${
               isUser

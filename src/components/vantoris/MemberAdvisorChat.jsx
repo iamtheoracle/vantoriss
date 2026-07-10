@@ -11,7 +11,11 @@ import {
   Calendar,
   Mail,
   ChevronRight,
+  Star,
+  Trash2,
+  Clock,
 } from 'lucide-react';
+import { getMessageKey, isStarred, toggleStar, addDeletedId, getDeletedIds } from '@/lib/starredMessages';
 import VantorisMonogram from '@/components/vantoris/brand/VantorisMonogram';
 import ConversationTabs from '@/components/vantoris/chat/ConversationTabs';
 import ChatMessage from '@/components/vantoris/chat/ChatMessage';
@@ -64,6 +68,8 @@ export default function MemberAdvisorChat() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingConv, setLoadingConv] = useState(true);
+  const [starredOnly, setStarredOnly] = useState(false);
+  const [starredVersion, setStarredVersion] = useState(0);
   const messagesEndRef = useRef(null);
   const whatsappNumber = useWhatsAppConfig();
 
@@ -94,15 +100,28 @@ export default function MemberAdvisorChat() {
     setLoadingConv(true);
     try {
       const convs = await base44.agents.listConversations({ agent_name: 'member_advisor' });
-      setConversations(convs || []);
-      if (convs && convs.length > 0) {
-        setActiveConv(convs[0]);
-        setMessages(convs[0].messages || []);
+      const deleted = getDeletedIds('member_advisor');
+      const filtered = (convs || []).filter(c => !deleted.has(c.id));
+      setConversations(filtered);
+      if (filtered.length > 0) {
+        setActiveConv(filtered[0]);
+        setMessages(filtered[0].messages || []);
       }
     } catch (e) {
       console.error('Load conversations error:', e);
     }
     setLoadingConv(false);
+  }
+
+  function deleteConversation(convId) {
+    addDeletedId('member_advisor', convId);
+    const remaining = conversations.filter(c => c.id !== convId);
+    setConversations(remaining);
+    if (activeConv?.id === convId) {
+      const next = remaining[0] || null;
+      setActiveConv(next);
+      setMessages(next?.messages || []);
+    }
   }
 
   function startNewConversation() {
@@ -156,7 +175,16 @@ export default function MemberAdvisorChat() {
       {/* Chat Container */}
       <div className="flex-1 flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm mt-2">
         {/* Header */}
-        <ChatHeader activeTab={activeTab} whatsappNumber={whatsappNumber} />
+        <ChatHeader
+          activeTab={activeTab}
+          whatsappNumber={whatsappNumber}
+          conversations={conversations}
+          activeConv={activeConv}
+          onSelectConv={(conv) => { setActiveConv(conv); setMessages(conv.messages || []); }}
+          onDeleteConv={deleteConversation}
+          onToggleStarred={() => setStarredOnly(!starredOnly)}
+          starredOnly={starredOnly}
+        />
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto vantoris-scroll px-3 py-3 bg-slate-50/40">
@@ -166,8 +194,17 @@ export default function MemberAdvisorChat() {
             </div>
           )}
 
-          {activeTab === 'advisor' && messages.length === 0 && !loadingConv && (
+          {activeTab === 'advisor' && messages.length === 0 && !loadingConv && !starredOnly && (
             <EmptyAdvisorState onSuggestion={sendMessage} />
+          )}
+
+          {activeTab === 'advisor' && starredOnly && messages.length > 0 && !loadingConv &&
+            messages.filter(msg => activeConv && isStarred(activeConv.id, getMessageKey(msg))).length === 0 && (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <Star size={32} className="text-gray/40 mb-2" />
+              <p className="text-gray text-sm">No starred messages</p>
+              <p className="text-gray/60 text-xs mt-1">Star important messages to find them here</p>
+            </div>
           )}
 
           {activeTab === 'support' && !loadingConv && (
@@ -178,25 +215,32 @@ export default function MemberAdvisorChat() {
             <ManagerChannel />
           )}
 
-          {activeTab === 'advisor' && messages.map((msg, idx) => {
-            const isUser = msg.role === 'user';
-            const prevMsg = messages[idx - 1];
-            const nextMsg = messages[idx + 1];
-            const showDateSep = shouldShowDateSeparator(messages, idx);
-            const showAvatar = !nextMsg || nextMsg.role !== msg.role;
-            const isLastInGroup = !nextMsg || nextMsg.role !== msg.role;
-            return (
-              <React.Fragment key={idx}>
-                {showDateSep && <DateSeparator label={formatDateGroup(msg.created_date)} />}
-                <ChatMessage
-                  message={msg}
-                  isUser={isUser}
-                  showAvatar={showAvatar}
-                  isLastInGroup={isLastInGroup}
-                />
-              </React.Fragment>
-            );
-          })}
+          {activeTab === 'advisor' && (() => {
+            const displayed = starredOnly && activeConv
+              ? messages.filter(msg => isStarred(activeConv.id, getMessageKey(msg)))
+              : messages;
+            return displayed.map((msg, idx) => {
+              const isUser = msg.role === 'user';
+              const prevMsg = displayed[idx - 1];
+              const nextMsg = displayed[idx + 1];
+              const showDateSep = shouldShowDateSeparator(displayed, idx);
+              const showAvatar = !nextMsg || nextMsg.role !== msg.role;
+              const isLastInGroup = !nextMsg || nextMsg.role !== msg.role;
+              return (
+                <React.Fragment key={idx}>
+                  {showDateSep && <DateSeparator label={formatDateGroup(msg.created_date)} />}
+                  <ChatMessage
+                    message={msg}
+                    isUser={isUser}
+                    showAvatar={showAvatar}
+                    isLastInGroup={isLastInGroup}
+                    convId={activeConv?.id}
+                    onStarToggle={() => setStarredVersion(v => v + 1)}
+                  />
+                </React.Fragment>
+              );
+            });
+          })()}
 
           {loading && activeTab === 'advisor' && (
             <div className="flex items-start gap-2 mb-3">
@@ -227,7 +271,8 @@ export default function MemberAdvisorChat() {
   );
 }
 
-function ChatHeader({ activeTab, whatsappNumber }) {
+function ChatHeader({ activeTab, whatsappNumber, conversations, activeConv, onSelectConv, onDeleteConv, onToggleStarred, starredOnly }) {
+  const [showHistory, setShowHistory] = useState(false);
   const config = {
     advisor: { name: 'Vantoris Advisor', status: 'Online · AI Financial Guide', online: true },
     support: { name: 'Human Support', status: whatsappNumber ? `WhatsApp · ${whatsappNumber}` : 'Available via WhatsApp', online: true },
@@ -251,6 +296,53 @@ function ChatHeader({ activeTab, whatsappNumber }) {
           {info.status}
         </p>
       </div>
+      {activeTab === 'advisor' && (
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={onToggleStarred}
+            className={`p-2 rounded-lg transition-all ${starredOnly ? 'bg-gold/15 text-gold' : 'text-gray hover:bg-slate-100 hover:text-foreground'}`}
+            title="Show starred messages only"
+          >
+            <Star size={16} fill={starredOnly ? 'currentColor' : 'none'} />
+          </button>
+          <div className="relative">
+            <button
+              onClick={() => setShowHistory(!showHistory)}
+              className="p-2 rounded-lg text-gray hover:bg-slate-100 hover:text-foreground transition-all"
+              title="Conversation history"
+            >
+              <Clock size={16} />
+            </button>
+            {showHistory && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowHistory(false)} />
+                <div className="absolute right-0 top-full mt-2 w-72 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-80 overflow-y-auto vantoris-scroll">
+                  {conversations.length === 0 ? (
+                    <p className="p-4 text-center text-gray text-sm">No conversations</p>
+                  ) : conversations.map(conv => (
+                    <div key={conv.id} className={`flex items-center gap-2 px-3 py-2.5 hover:bg-slate-50 transition-all border-b border-slate-100 last:border-0 ${activeConv?.id === conv.id ? 'bg-navy/5' : ''}`}>
+                      <button
+                        onClick={() => { onSelectConv(conv); setShowHistory(false); }}
+                        className="flex-1 text-left min-w-0"
+                      >
+                        <p className="text-sm font-medium text-foreground truncate">{conv.metadata?.name || 'Conversation'}</p>
+                        <p className="text-xs text-gray truncate">{conv.messages?.[conv.messages.length - 1]?.content?.slice(0, 50) || 'No messages'}</p>
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onDeleteConv(conv.id); }}
+                        className="p-1.5 rounded-lg text-gray hover:bg-crimson/10 hover:text-crimson transition-all flex-shrink-0"
+                        title="Delete conversation"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
       <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-navy/5">
         <Shield size={12} className="text-navy" />
         <span className="text-navy text-[9px] font-semibold uppercase tracking-wider">Encrypted</span>

@@ -24,6 +24,8 @@ export default function TransactionFilters({ onFilter }) {
   const [category, setCategory] = useState('all');
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
+  const [amountMin, setAmountMin] = useState('');
+  const [amountMax, setAmountMax] = useState('');
 
   function getDateRange() {
     const now = new Date();
@@ -46,7 +48,7 @@ export default function TransactionFilters({ onFilter }) {
   function handleApply() {
     const range = getDateRange();
     const cat = category === 'all' ? null : category;
-    onFilter({ dateRange: range, category: cat });
+    onFilter({ dateRange: range, category: cat, amountMin, amountMax });
     setShowFilters(false);
   }
 
@@ -55,11 +57,13 @@ export default function TransactionFilters({ onFilter }) {
     setCategory('all');
     setCustomStart('');
     setCustomEnd('');
-    onFilter({ dateRange: null, category: null });
+    setAmountMin('');
+    setAmountMax('');
+    onFilter({ dateRange: null, category: null, amountMin: '', amountMax: '' });
     setShowFilters(false);
   }
 
-  const activeFilters = (dateRange !== 'all' || category !== 'all') ? 1 : 0;
+  const activeFilters = (dateRange !== 'all' || category !== 'all' || amountMin !== '' || amountMax !== '') ? 1 : 0;
 
   return (
     <div className="relative">
@@ -158,6 +162,28 @@ export default function TransactionFilters({ onFilter }) {
                       {opt.label}
                     </button>
                   ))}
+                </div>
+              </div>
+
+              {/* Amount Range */}
+              <div>
+                <label className="text-gray text-[10px] uppercase tracking-wider mb-2 block font-medium">Amount Range (USD)</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    value={amountMin}
+                    onChange={e => setAmountMin(e.target.value)}
+                    placeholder="Min"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-foreground text-sm focus:border-brass/40 focus:bg-white focus:outline-none"
+                  />
+                  <span className="text-gray text-xs">–</span>
+                  <input
+                    type="number"
+                    value={amountMax}
+                    onChange={e => setAmountMax(e.target.value)}
+                    placeholder="Max"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-foreground text-sm focus:border-brass/40 focus:bg-white focus:outline-none"
+                  />
                 </div>
               </div>
 

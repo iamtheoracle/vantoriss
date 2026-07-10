@@ -3,8 +3,9 @@ import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
 import {
   Send, Bot, User, Loader2, ChevronDown, ChevronRight, Search, Plus,
-  Menu, X, Trash2, Edit3, Check, CheckCheck, MoreVertical, ArrowLeft
+  Menu, X, Trash2, Edit3, Check, CheckCheck, MoreVertical, ArrowLeft, Star
 } from 'lucide-react';
+import { getMessageKey, isStarred, toggleStar } from '@/lib/starredMessages';
 
 const COLORS = {
   container: '#151c26',
@@ -68,6 +69,8 @@ export default function AgentChat({
   const [renamingConv, setRenamingConv] = useState(null);
   const [renameValue, setRenameValue] = useState('');
   const [mobileView, setMobileView] = useState(false);
+  const [starredOnly, setStarredOnly] = useState(false);
+  const [starredVersion, setStarredVersion] = useState(0);
   const messagesEndRef = useRef(null);
 
   useEffect(() => { loadConversations(); }, []);
@@ -301,6 +304,21 @@ export default function AgentChat({
               </p>
             </div>
           </div>
+          {activeConv && messages.length > 0 && (
+            <button
+              onClick={() => setStarredOnly(!starredOnly)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full flex-shrink-0 transition-all"
+              style={{
+                background: starredOnly ? 'rgba(201, 162, 39, 0.15)' : COLORS.surface,
+                color: starredOnly ? COLORS.accentBright : COLORS.textSecondary,
+                border: starredOnly ? '1px solid ' + COLORS.accent : '1px solid transparent',
+              }}
+              title="Show only starred messages"
+            >
+              <Star size={12} fill={starredOnly ? COLORS.accentBright : 'none'} />
+              <span className="text-[11px]">Starred</span>
+            </button>
+          )}
           {activeConv && (
             <span
               className="text-[11px] px-3 py-1 rounded-full flex-shrink-0"
@@ -318,7 +336,7 @@ export default function AgentChat({
             background: `linear-gradient(180deg, ${COLORS.container} 0%, #131a23 100%)`,
           }}
         >
-          {messages.length === 0 && (
+          {messages.length === 0 && !starredOnly && (
             <div className="h-full flex flex-col items-center justify-center text-center">
               <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: 'rgba(255, 193, 7, 0.08)' }}>
                 <Bot size={32} style={{ color: COLORS.accentBright }} />
@@ -348,15 +366,35 @@ export default function AgentChat({
             </div>
           )}
 
-          {messages.map((msg, idx) => {
-            const prevMsg = messages[idx - 1];
-            const nextMsg = messages[idx + 1];
-            const isLastInGroup = !nextMsg || nextMsg.role !== msg.role;
-            const isFirstInGroup = !prevMsg || prevMsg.role !== msg.role;
-            return (
-              <WhatsAppBubble key={idx} message={msg} isLastInGroup={isLastInGroup} isFirstInGroup={isFirstInGroup} />
-            );
-          })}
+          {starredOnly && activeConv && messages.length > 0 &&
+            messages.filter(msg => isStarred(activeConv.id, getMessageKey(msg))).length === 0 && (
+            <div className="h-full flex flex-col items-center justify-center text-center">
+              <Star size={32} style={{ color: COLORS.textSecondary, opacity: 0.4 }} />
+              <p className="text-sm mt-3" style={{ color: COLORS.textSecondary }}>No starred messages</p>
+              <p className="text-xs mt-1 opacity-60" style={{ color: COLORS.textSecondary }}>Star important messages to find them here</p>
+            </div>
+          )}
+          {(() => {
+            const displayed = starredOnly && activeConv
+              ? messages.filter(msg => isStarred(activeConv.id, getMessageKey(msg)))
+              : messages;
+            return displayed.map((msg, idx) => {
+              const prevMsg = displayed[idx - 1];
+              const nextMsg = displayed[idx + 1];
+              const isLastInGroup = !nextMsg || nextMsg.role !== msg.role;
+              const isFirstInGroup = !prevMsg || prevMsg.role !== msg.role;
+              return (
+                <WhatsAppBubble
+                  key={idx}
+                  message={msg}
+                  isLastInGroup={isLastInGroup}
+                  isFirstInGroup={isFirstInGroup}
+                  convId={activeConv?.id}
+                  onStarToggle={() => setStarredVersion(v => v + 1)}
+                />
+              );
+            });
+          })()}
 
           {loading && (
             <div className="flex items-center gap-2 text-sm" style={{ color: COLORS.textSecondary }}>
@@ -497,8 +535,18 @@ function ConversationListItem({ conv, display, isActive, onSelect, onDelete, onR
 }
 
 // --- WhatsApp-style message bubble ---
-function WhatsAppBubble({ message, isLastInGroup, isFirstInGroup }) {
+function WhatsAppBubble({ message, isLastInGroup, isFirstInGroup, convId, onStarToggle }) {
   const isUser = message.role === 'user';
+  const msgKey = getMessageKey(message);
+  const starred = convId ? isStarred(convId, msgKey) : false;
+
+  function handleStarClick(e) {
+    e.stopPropagation();
+    if (convId) {
+      toggleStar(convId, msgKey);
+      onStarToggle?.();
+    }
+  }
 
   const radius = isUser
     ? `rounded-2xl ${isLastInGroup ? 'rounded-br-md' : ''} ${isFirstInGroup ? '' : ''}`
@@ -506,7 +554,16 @@ function WhatsAppBubble({ message, isLastInGroup, isFirstInGroup }) {
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} ${isLastInGroup ? 'mb-3' : 'mb-0.5'}`}>
-      <div className={`max-w-[75%] md:max-w-[65%]`}>
+      <div className={`max-w-[75%] md:max-w-[65%] relative group/star`}>
+        {convId && (
+          <button
+            onClick={handleStarClick}
+            className={`absolute -top-2.5 ${isUser ? '-left-6' : '-right-6'} p-1 rounded-full transition-all z-10 ${starred ? 'opacity-100' : 'opacity-0 group-hover/star:opacity-60 hover:!opacity-100'}`}
+            title={starred ? 'Remove star' : 'Star this message'}
+          >
+            <Star size={13} fill={starred ? COLORS.accentBright : 'none'} style={{ color: starred ? COLORS.accentBright : COLORS.textSecondary }} />
+          </button>
+        )}
         <div
           className={`${radius} px-3.5 py-2`}
           style={{

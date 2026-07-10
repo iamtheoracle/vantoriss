@@ -139,7 +139,7 @@ export default function AccountDetail() {
     setFilteredTransactions(transactions);
   }, [transactions]);
 
-  function handleFilter({ dateRange, category }) {
+  function handleFilter({ dateRange, category, amountMin, amountMax }) {
     let filtered = [...transactions];
     if (dateRange) {
       filtered = filtered.filter(t => {
@@ -149,6 +149,12 @@ export default function AccountDetail() {
     }
     if (category) {
       filtered = filtered.filter(t => t.type === category);
+    }
+    if (amountMin !== '' && amountMin != null) {
+      filtered = filtered.filter(t => Math.abs(t.amount) >= parseFloat(amountMin));
+    }
+    if (amountMax !== '' && amountMax != null) {
+      filtered = filtered.filter(t => Math.abs(t.amount) <= parseFloat(amountMax));
     }
     setFilteredTransactions(filtered);
   }
