@@ -5,6 +5,7 @@ import { Menu, PanelLeftOpen } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
 import AdminTopBar from './AdminTopBar';
 import PageTransition from './PageTransition';
+import FloatingAIDock from './FloatingAIDock';
 import { base44 } from '@/api/base44Client';
 import { getDefaultWorkspace } from '@/lib/operationsAccess';
 
@@ -97,6 +98,9 @@ export default function AdminLayout() {
           <PageTransition />
         </main>
       </div>
+
+      {/* Floating AI Assistant — available on every Operations page */}
+      <FloatingAIDock />
     </div>
   );
 }
