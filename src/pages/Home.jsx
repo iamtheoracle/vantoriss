@@ -9,7 +9,9 @@ import SocialBanner from '@/components/vantoris/SocialBanner';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { Bell, Clock, AlertCircle } from 'lucide-react';
 
-import BalanceHero from '@/components/vantoris/home/BalanceHero';
+import ImmersiveBalanceCard from '@/components/vantoris/home/ImmersiveBalanceCard';
+import ConciergeWelcome from '@/components/vantoris/home/ConciergeWelcome';
+import SanctuaryHeader from '@/components/vantoris/home/SanctuaryHeader';
 import AccountCarousel from '@/components/vantoris/home/AccountCarousel';
 import RecentActivity from '@/components/vantoris/home/RecentActivity';
 import SpendingInsights from '@/components/vantoris/home/SpendingInsights';
@@ -27,6 +29,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [hideBalance, setHideBalance] = useState(false);
+  const [showConcierge, setShowConcierge] = useState(false);
   const navigate = useNavigate();
 
   const loadData = useCallback(async () => {
@@ -58,7 +61,14 @@ export default function Home() {
     loadData().catch(e => {
       console.error(e);
       setLoadError('Unable to load your dashboard. Please check your connection and try again.');
-    }).finally(() => setLoading(false));
+    }).finally(() => {
+      setLoading(false);
+      // Show concierge welcome on fresh arrival (only for approved members)
+      if (!sessionStorage.getItem('vantoris_concierge_shown')) {
+        sessionStorage.setItem('vantoris_concierge_shown', '1');
+        setTimeout(() => setShowConcierge(true), 300);
+      }
+    });
   }, [loadData]);
 
   function retryLoad() {
@@ -198,32 +208,33 @@ export default function Home() {
     <div className="px-5 pt-6 vantoris-scroll" {...containerProps}>
       <PullIndicator />
 
-      {/* === Zone 1: Primary Financial Information === */}
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center gap-3">
-          <ShieldLogo size={32} />
-          <div>
-            <p className="text-gray text-xs">{greeting},</p>
-            <h1 className="text-foreground font-bold text-lg">{firstName}</h1>
-          </div>
-        </div>
-        <button onClick={() => navigate('/messages')} className="relative p-2.5 rounded-xl hover:bg-slate-100 transition-all">
-          <Bell size={20} className="text-gray" />
-          {unreadCount > 0 && (
-            <span className="absolute top-1 right-1 w-4 h-4 bg-crimson text-white text-[9px] rounded-full flex items-center justify-center font-bold">
-              {unreadCount}
-            </span>
-          )}
-        </button>
-      </div>
+      {/* === Concierge Welcome Overlay === */}
+      {showConcierge && (
+        <ConciergeWelcome
+          firstName={firstName}
+          greeting={greeting}
+          totalBalance={totalBalance}
+          accountCount={accounts.length}
+          unreadCount={unreadCount}
+          onComplete={() => setShowConcierge(false)}
+        />
+      )}
 
-      <BalanceHero
+      {/* === Zone 1: Sanctuary Header + Immersive Balance Card === */}
+      <SanctuaryHeader
+        firstName={firstName}
+        greeting={greeting}
+        unreadCount={unreadCount}
+      />
+
+      <ImmersiveBalanceCard
         totalBalance={totalBalance}
         availableBalance={availableBalance}
         pendingBalance={pendingAmount}
         accountCount={accounts.length}
         hideBalance={hideBalance}
         onToggleBalance={() => setHideBalance(!hideBalance)}
+        firstName={firstName}
       />
 
       {/* === Zone 2: Contextual Content === */}
