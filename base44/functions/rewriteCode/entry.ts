@@ -48,10 +48,10 @@ Return a JSON object with:
       model: 'claude_sonnet_4_6'
     });
 
-    return Response.json({
-      rewritten_code: result.rewritten_code,
-      summary: result.summary
-    });
+    const data = result.response || result.result || result;
+    const rewritten_code = data.rewritten_code || (typeof data === 'string' ? data : '');
+    const summary = data.summary || '';
+    return Response.json({ rewritten_code, summary });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
