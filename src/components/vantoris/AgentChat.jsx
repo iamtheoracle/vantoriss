@@ -57,7 +57,8 @@ export default function AgentChat({
   suggestions = null,
   inputPlaceholder = 'Ask about members, applications, KYC status, account balances...',
   singleColumn = false,
-  onClose = null
+  onClose = null,
+  renderActionSuggestions = null
 }) {
   const [conversations, setConversations] = useState([]);
   const [activeConv, setActiveConv] = useState(null);
@@ -357,32 +358,36 @@ export default function AgentChat({
           }}
         >
           {messages.length === 0 && !starredOnly && (
-            <div className="h-full flex flex-col items-center justify-center text-center">
+            <div className="h-full flex flex-col items-center justify-center text-center overflow-y-auto vantoris-scroll py-4">
               <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: 'rgba(255, 193, 7, 0.08)' }}>
                 <Bot size={32} style={{ color: COLORS.accentBright }} />
               </div>
               <h4 className="font-bold text-base mb-1" style={{ color: '#ffffff' }}>What can I help you with?</h4>
-              <p className="text-sm max-w-sm mb-8" style={{ color: COLORS.textSecondary }}>
+              <p className="text-sm max-w-sm mb-6" style={{ color: COLORS.textSecondary }}>
                 I have full access to your Vantoris platform. Ask me about members, accounts, applications, withdrawals, KYC status, and more.
               </p>
-              <div className="space-y-2 w-full max-w-sm">
-                {(suggestions || [
-                  'Show me pending applications',
-                  'What is the total AUM?',
-                  'List the top 10 accounts by balance',
-                  'How many members completed KYC?',
-                  'Rewrite this code for me',
-                ]).map((suggestion) => (
-                  <button
-                    key={suggestion}
-                    onClick={() => setInput(suggestion)}
-                    className="w-full text-left px-4 py-3 rounded-2xl text-xs transition-all hover:opacity-80"
-                    style={{ background: 'rgba(42, 54, 69, 0.4)', color: COLORS.textSecondary, border: '1px solid ' + COLORS.border }}
-                  >
-                    → {suggestion}
-                  </button>
-                ))}
-              </div>
+              {renderActionSuggestions
+                ? renderActionSuggestions({ setInput, sendMessage })
+                : (
+                  <div className="space-y-2 w-full max-w-sm">
+                    {(suggestions || [
+                      'Show me pending applications',
+                      'What is the total AUM?',
+                      'List the top 10 accounts by balance',
+                      'How many members completed KYC?',
+                      'Rewrite this code for me',
+                    ]).map((suggestion) => (
+                      <button
+                        key={suggestion}
+                        onClick={() => setInput(suggestion)}
+                        className="w-full text-left px-4 py-3 rounded-2xl text-xs transition-all hover:opacity-80"
+                        style={{ background: 'rgba(42, 54, 69, 0.4)', color: COLORS.textSecondary, border: '1px solid ' + COLORS.border }}
+                      >
+                        → {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                )}
             </div>
           )}
 

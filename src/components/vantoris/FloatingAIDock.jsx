@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bot } from 'lucide-react';
 import AgentChat from './AgentChat';
+import ActionSuggestions from './ActionSuggestions';
 
 export default function FloatingAIDock() {
   const [open, setOpen] = useState(false);
@@ -51,6 +52,9 @@ export default function FloatingAIDock() {
                 inputPlaceholder="Ask about members, applications, KYC, accounts, withdrawals…"
                 singleColumn={true}
                 onClose={() => setOpen(false)}
+                renderActionSuggestions={({ setInput, sendMessage }) => (
+                  <ActionSuggestions onAction={(q) => { setInput(q); setTimeout(() => sendMessage(q), 50); }} />
+                )}
               />
             </motion.div>
           </>
