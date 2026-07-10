@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Bell, CheckCheck, Shield, ArrowDownLeft, ArrowUpRight, Info, Send, MessageCircle, ChevronRight, X } from 'lucide-react';
 import { OPERATIONS_EMAIL } from '@/lib/businessConfig';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import ReadReceipt from '@/components/vantoris/chat/ReadReceipt';
 
 const typeIcons = {
   success: { icon: CheckCheck, bg: 'bg-olive/20', color: 'text-emerald-400' },
@@ -104,6 +105,14 @@ export default function Messages() {
       if (thread.unread_by_member) {
         await base44.entities.MessageThread.update(thread.id, { unread_by_member: false });
         setThreads(prev => prev.map(t => t.id === thread.id ? { ...t, unread_by_member: false } : t));
+      }
+      // Mark all admin messages as read by the member (for read receipts)
+      const adminUnread = msgs.filter(m => m.sender === 'admin' && !m.read);
+      for (const m of adminUnread) {
+        base44.entities.ThreadMessage.update(m.id, { read: true });
+      }
+      if (adminUnread.length > 0) {
+        setThreadMessages(prev => prev.map(m => m.sender === 'admin' ? { ...m, read: true } : m));
       }
     } catch (e) { console.error(e); }
   }
@@ -279,9 +288,12 @@ export default function Messages() {
                         <p className="text-brass text-[10px] font-medium mb-0.5">{msg.admin_name}</p>
                       )}
                       <p className="text-sm whitespace-pre-wrap selectable-content">{msg.body}</p>
-                      <p className="text-[#AAB4C3]/50 text-[9px] mt-1">
-                        {new Date(msg.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                      </p>
+                      <div className="flex items-center justify-end gap-1 mt-1">
+                        <p className="text-[#AAB4C3]/50 text-[9px]">
+                          {new Date(msg.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                        {msg.sender === 'member' && <ReadReceipt read={msg.read} />}
+                      </div>
                     </div>
                   </div>
                 ))}

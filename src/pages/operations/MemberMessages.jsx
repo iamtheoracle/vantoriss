@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { MessageSquare, Send, CheckCheck, User } from 'lucide-react';
+import ReadReceipt from '@/components/vantoris/chat/ReadReceipt';
 
 export default function MemberMessages() {
   const [threads, setThreads] = useState([]);
@@ -39,6 +40,14 @@ export default function MemberMessages() {
         await base44.entities.MessageThread.update(thread.id, { unread_by_admin: false });
         setThreads(prev => prev.map(t => t.id === thread.id ? { ...t, unread_by_admin: false } : t));
       }
+      // Mark all member messages as read by the admin (for read receipts)
+      const memberUnread = msgs.filter(m => m.sender === 'member' && !m.read);
+      for (const m of memberUnread) {
+        base44.entities.ThreadMessage.update(m.id, { read: true });
+      }
+      if (memberUnread.length > 0) {
+        setMessages(prev => prev.map(m => m.sender === 'member' ? { ...m, read: true } : m));
+      }
     } catch (e) { console.error(e); }
   }
 
@@ -61,12 +70,7 @@ export default function MemberMessages() {
         unread_by_member: true,
         unread_by_admin: false,
       });
-      await base44.entities.Notification.create({
-        user_id: selected.user_id,
-        title: 'Support Reply',
-        message: reply.slice(0, 150),
-        type: 'info',
-      });
+      // Notification is now created automatically by the entity automation
       const member = getUser(selected.user_id);
       if (member?.email) {
         await base44.integrations.Core.SendEmail({
@@ -221,9 +225,12 @@ export default function MemberMessages() {
                         <p className="text-brass text-[10px] font-medium mb-0.5">{msg.admin_name}</p>
                       )}
                       <p className="text-sm whitespace-pre-wrap selectable-content">{msg.body}</p>
-                      <p className="text-[#AAB4C3]/50 text-[9px] mt-1">
-                        {new Date(msg.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                      </p>
+                      <div className="flex items-center justify-end gap-1 mt-1">
+                        <p className="text-[#AAB4C3]/50 text-[9px]">
+                          {new Date(msg.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                        {msg.sender === 'admin' && <ReadReceipt read={msg.read} />}
+                      </div>
                     </div>
                   </div>
                 ))}

@@ -24,6 +24,11 @@
     "admin_name": {
       "type": "string",
       "description": "Display name of the admin if sender is admin"
+    },
+    "read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the recipient has read this message"
     }
   },
   "required": [
