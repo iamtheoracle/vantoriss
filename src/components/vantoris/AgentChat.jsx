@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
-import { Send, Bot, User, Loader2, ChevronDown, ChevronRight, Search, Plus, Menu, X } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Send, Bot, User, Loader2, ChevronDown, ChevronRight, Search, Plus,
+  Menu, X, Trash2, Edit3, Check, CheckCheck, MoreVertical, ArrowLeft
+} from 'lucide-react';
 
 const COLORS = {
   container: '#151c26',
@@ -14,7 +16,38 @@ const COLORS = {
   textSecondary: '#aab8c2',
   accent: '#c9a227',
   accentBright: '#ffcc00',
+  bubbleOut: '#2c394b',
+  bubbleIn: '#252f3d',
+  checkSent: '#aab8c2',
+  checkRead: '#53bdeb',
 };
+
+// --- localStorage helpers for deleted convos & custom labels ---
+const DELETED_KEY = 'vantoris_deleted_conversations';
+const LABELS_KEY = 'vantoris_conversation_labels';
+
+function getDeletedIds() {
+  try { return JSON.parse(localStorage.getItem(DELETED_KEY) || '[]'); } catch { return []; }
+}
+function addDeletedId(id) {
+  const ids = getDeletedIds();
+  if (!ids.includes(id)) {
+    ids.push(id);
+    localStorage.setItem(DELETED_KEY, JSON.stringify(ids));
+  }
+}
+function getLabels() {
+  try { return JSON.parse(localStorage.getItem(LABELS_KEY) || '{}'); } catch { return {}; }
+}
+function setLabel(convId, label) {
+  const labels = getLabels();
+  if (label && label.trim()) {
+    labels[convId] = label.trim();
+  } else {
+    delete labels[convId];
+  }
+  localStorage.setItem(LABELS_KEY, JSON.stringify(labels));
+}
 
 export default function AgentChat({
   agentName = 'vantoris_assistant',
@@ -31,6 +64,10 @@ export default function AgentChat({
   const [loadingConvs, setLoadingConvs] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [contextMenuConv, setContextMenuConv] = useState(null);
+  const [renamingConv, setRenamingConv] = useState(null);
+  const [renameValue, setRenameValue] = useState('');
+  const [mobileView, setMobileView] = useState(false);
   const messagesEndRef = useRef(null);
 
   useEffect(() => { loadConversations(); }, []);
@@ -52,10 +89,15 @@ export default function AgentChat({
   async function loadConversations() {
     try {
       const convs = await base44.agents.listConversations({ agent_name: agentName });
-      setConversations(convs || []);
-      if (convs && convs.length > 0 && !activeConv) {
-        setActiveConv(convs[0]);
-        setMessages(convs[0].messages || []);
+      const deleted = getDeletedIds();
+      const filtered = (convs || []).filter(c => !deleted.includes(c.id));
+      const labels = getLabels();
+      // attach labels
+      filtered.forEach(c => { c._label = labels[c.id] || null; });
+      setConversations(filtered);
+      if (filtered.length > 0 && !activeConv) {
+        setActiveConv(filtered[0]);
+        setMessages(filtered[0].messages || []);
       }
     } catch (e) { console.error('Load conversations error:', e); }
     setLoadingConvs(false);
@@ -67,21 +109,42 @@ export default function AgentChat({
         agent_name: agentName,
         metadata: { name: 'New Conversation', description: 'Admin assistance session' },
       });
+      conv._label = null;
       setConversations([conv, ...conversations]);
       setActiveConv(conv);
       setMessages([]);
+      setMobileView(true);
     } catch (e) { console.error('Create conversation error:', e); }
   }
 
-  async function deleteConversation(convId) {
-    try {
-      setConversations(conversations.filter(c => c.id !== convId));
-      if (activeConv?.id === convId) {
-        const next = conversations.find(c => c.id !== convId) || null;
-        setActiveConv(next);
-        setMessages(next?.messages || []);
-      }
-    } catch (e) { console.error('Delete conversation error:', e); }
+  function deleteConversation(convId) {
+    addDeletedId(convId);
+    const remaining = conversations.filter(c => c.id !== convId);
+    setConversations(remaining);
+    setContextMenuConv(null);
+    if (activeConv?.id === convId) {
+      const next = remaining[0] || null;
+      setActiveConv(next);
+      setMessages(next?.messages || []);
+      if (!next) setMobileView(false);
+    }
+  }
+
+  function startRenaming(conv) {
+    setRenamingConv(conv.id);
+    setRenameValue(conv._label || conv.metadata?.name || '');
+    setContextMenuConv(null);
+  }
+
+  function confirmRename() {
+    if (renamingConv) {
+      setLabel(renamingConv, renameValue);
+      setConversations(prev => prev.map(c =>
+        c.id === renamingConv ? { ...c, _label: renameValue.trim() || null } : c
+      ));
+    }
+    setRenamingConv(null);
+    setRenameValue('');
   }
 
   async function sendMessage() {
@@ -112,18 +175,22 @@ export default function AgentChat({
     }
   }
 
+  function getConvDisplay(conv) {
+    return conv._label || conv.metadata?.name || 'Conversation';
+  }
+
   const filteredConversations = conversations.filter(conv =>
-    (conv.metadata?.name || 'Conversation').toLowerCase().includes(searchTerm.toLowerCase())
+    getConvDisplay(conv).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <div
-      className="flex rounded-xl overflow-hidden"
+      className="flex rounded-xl overflow-hidden relative"
       style={{ height: 'calc(100vh - 140px)', background: COLORS.container, border: '1px solid ' + COLORS.border }}
     >
       {/* Conversation History Sidebar */}
       <div
-        className="flex-shrink-0 flex flex-col transition-all duration-300 overflow-hidden"
+        className={`flex-shrink-0 flex flex-col transition-all duration-300 overflow-hidden absolute md:relative z-20 md:z-auto h-full ${mobileView ? 'hidden md:flex' : 'flex'}`}
         style={{ width: sidebarOpen ? '300px' : '0', borderRight: sidebarOpen ? '1px solid ' + COLORS.border : 'none', background: COLORS.sidebar }}
       >
         {/* New Conversation Button */}
@@ -147,13 +214,13 @@ export default function AgentChat({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search conversations..."
-              className="w-full rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none transition-all"
+              className="w-full rounded-full pl-9 pr-3 py-2 text-xs focus:outline-none transition-all selectable-content"
               style={{ background: COLORS.surface, color: COLORS.textPrimary, border: '1px solid ' + COLORS.border }}
             />
           </div>
         </div>
 
-        {/* Conversation List */}
+        {/* Conversation List — WhatsApp style */}
         <div className="flex-1 overflow-y-auto vantoris-scroll p-2">
           {loadingConvs ? (
             <div className="flex items-center justify-center py-12">
@@ -166,15 +233,24 @@ export default function AgentChat({
               <p className="text-[10px] opacity-50 mt-1">Start a new one to begin</p>
             </div>
           ) : (
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               <p className="px-2 py-1.5 text-[10px] uppercase font-bold tracking-wider opacity-50" style={{ color: COLORS.textSecondary }}>Recent</p>
               {filteredConversations.map(conv => (
-                <ConversationCard
+                <ConversationListItem
                   key={conv.id}
                   conv={conv}
+                  display={getConvDisplay(conv)}
                   isActive={activeConv?.id === conv.id}
-                  onSelect={() => { setActiveConv(conv); setMessages(conv.messages || []); }}
+                  onSelect={() => { setActiveConv(conv); setMessages(conv.messages || []); setMobileView(true); }}
                   onDelete={() => deleteConversation(conv.id)}
+                  onRename={() => startRenaming(conv)}
+                  contextMenuConv={contextMenuConv}
+                  setContextMenuConv={setContextMenuConv}
+                  renaming={renamingConv === conv.id}
+                  renameValue={renameValue}
+                  setRenameValue={setRenameValue}
+                  confirmRename={confirmRename}
+                  cancelRename={() => { setRenamingConv(null); setRenameValue(''); }}
                 />
               ))}
             </div>
@@ -183,45 +259,53 @@ export default function AgentChat({
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4" style={{ borderBottom: '1px solid ' + COLORS.border }}>
+      <div className={`flex-1 flex flex-col overflow-hidden ${mobileView ? 'flex' : 'hidden md:flex'}`}>
+        {/* WhatsApp-style Header */}
+        <div className="flex items-center gap-3 p-3" style={{ borderBottom: '1px solid ' + COLORS.border, background: COLORS.sidebar }}>
+          <button
+            onClick={() => { setMobileView(false); setSidebarOpen(true); }}
+            className="md:hidden p-2 rounded-full transition-all"
+            style={{ color: COLORS.textSecondary }}
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="hidden md:flex p-2 rounded-full transition-all flex-shrink-0"
+            style={{ color: COLORS.textSecondary }}
+            title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+          >
+            {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
+          </button>
           <div className="flex items-center gap-3 flex-1 min-w-0">
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 rounded-lg transition-all flex-shrink-0"
-              style={{ color: COLORS.textSecondary }}
-              onMouseEnter={(e) => e.currentTarget.style.background = COLORS.surface}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-              title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-            >
-              {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
-            </button>
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255, 193, 7, 0.1)' }}>
-                <Bot size={18} style={{ color: COLORS.accentBright }} />
-              </div>
-              <div className="min-w-0">
-                <h3 className="font-bold text-sm truncate" style={{ color: COLORS.textPrimary }}>{title}</h3>
-                <p className="text-xs" style={{ color: COLORS.textSecondary }}>{subtitle}</p>
-              </div>
+            <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255, 193, 7, 0.1)' }}>
+              <Bot size={18} style={{ color: COLORS.accentBright }} />
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-semibold text-sm truncate" style={{ color: COLORS.textPrimary }}>{title}</h3>
+              <p className="text-[11px]" style={{ color: COLORS.textSecondary }}>
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5" />
+                {subtitle}
+              </p>
             </div>
           </div>
           {activeConv && (
-            <div className="flex items-center gap-3 ml-4 flex-shrink-0">
-              <span
-                className="text-xs px-3 py-1 rounded-full"
-                style={{ background: COLORS.surface, color: COLORS.textSecondary }}
-              >
-                {messages.length} messages
-              </span>
-              <span className="w-2 h-2 bg-emerald-400 rounded-full" title="Active" />
-            </div>
+            <span
+              className="text-[11px] px-3 py-1 rounded-full flex-shrink-0"
+              style={{ background: COLORS.surface, color: COLORS.textSecondary }}
+            >
+              {messages.length} messages
+            </span>
           )}
         </div>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto vantoris-scroll px-6 py-6 space-y-5">
+        {/* Messages — WhatsApp chat backdrop */}
+        <div
+          className="flex-1 overflow-y-auto vantoris-scroll px-4 md:px-8 py-6 space-y-1"
+          style={{
+            background: `linear-gradient(180deg, ${COLORS.container} 0%, #131a23 100%)`,
+          }}
+        >
           {messages.length === 0 && (
             <div className="h-full flex flex-col items-center justify-center text-center">
               <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: 'rgba(255, 193, 7, 0.08)' }}>
@@ -237,11 +321,12 @@ export default function AgentChat({
                   'What is the total AUM?',
                   'List the top 10 accounts by balance',
                   'How many members completed KYC?',
+                  'Rewrite this code for me',
                 ]).map((suggestion) => (
                   <button
                     key={suggestion}
                     onClick={() => setInput(suggestion)}
-                    className="w-full text-left px-4 py-3 rounded-lg text-xs transition-all hover:opacity-80"
+                    className="w-full text-left px-4 py-3 rounded-2xl text-xs transition-all hover:opacity-80"
                     style={{ background: 'rgba(42, 54, 69, 0.4)', color: COLORS.textSecondary, border: '1px solid ' + COLORS.border }}
                   >
                     → {suggestion}
@@ -251,157 +336,226 @@ export default function AgentChat({
             </div>
           )}
 
-          {messages.map((msg, idx) => (
-            <MessageBubble key={idx} message={msg} />
-          ))}
+          {messages.map((msg, idx) => {
+            const prevMsg = messages[idx - 1];
+            const nextMsg = messages[idx + 1];
+            const isLastInGroup = !nextMsg || nextMsg.role !== msg.role;
+            const isFirstInGroup = !prevMsg || prevMsg.role !== msg.role;
+            return (
+              <WhatsAppBubble key={idx} message={msg} isLastInGroup={isLastInGroup} isFirstInGroup={isFirstInGroup} />
+            );
+          })}
 
           {loading && (
-            <div
-              className="flex items-center gap-3 text-sm rounded-lg p-4 w-fit"
-              style={{ background: 'rgba(42, 54, 69, 0.3)', color: COLORS.textSecondary }}
-            >
-              <Loader2 size={16} className="animate-spin flex-shrink-0" style={{ color: COLORS.accent }} />
-              <span>Processing your request...</span>
+            <div className="flex items-center gap-2 text-sm" style={{ color: COLORS.textSecondary }}>
+              <div className="flex items-center gap-1 px-4 py-2.5 rounded-2xl rounded-bl-md" style={{ background: COLORS.bubbleIn, border: '1px solid ' + COLORS.border }}>
+                <Loader2 size={14} className="animate-spin" style={{ color: COLORS.accent }} />
+                <span className="text-xs">Typing...</span>
+              </div>
             </div>
           )}
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Area */}
-        <div className="p-4" style={{ borderTop: '1px solid ' + COLORS.border }}>
-          <div className="flex items-end gap-3">
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={inputPlaceholder}
-              className="flex-1 rounded-lg px-4 py-3 text-sm focus:outline-none resize-none max-h-24 selectable-content transition-all"
-              style={{ background: COLORS.surface, color: COLORS.textPrimary, border: '1px solid ' + COLORS.border }}
-              rows={1}
-            />
+        {/* WhatsApp-style Input */}
+        <div className="p-3" style={{ borderTop: '1px solid ' + COLORS.border, background: COLORS.sidebar }}>
+          <div className="flex items-end gap-2">
+            <div className="flex-1 relative">
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={inputPlaceholder}
+                className="w-full rounded-3xl px-5 py-3 text-sm focus:outline-none resize-none max-h-24 selectable-content transition-all"
+                style={{ background: COLORS.surface, color: COLORS.textPrimary, border: '1px solid ' + COLORS.border }}
+                rows={1}
+              />
+            </div>
             <button
               onClick={sendMessage}
               disabled={!input.trim() || loading}
-              className="w-10 h-10 flex items-center justify-center rounded-full transition-all disabled:opacity-40 flex-shrink-0"
+              className="w-11 h-11 flex items-center justify-center rounded-full transition-all disabled:opacity-40 flex-shrink-0 hover:scale-105"
               style={{ background: COLORS.accentBright, color: '#000000' }}
-              title="Send message (Shift+Enter for new line)"
+              title="Send message"
             >
               <Send size={16} />
             </button>
           </div>
-          <p className="text-[10px] mt-2 opacity-50" style={{ color: COLORS.textSecondary }}>Shift+Enter for new line</p>
+          <p className="text-[10px] mt-1.5 opacity-50 text-center" style={{ color: COLORS.textSecondary }}>Shift+Enter for new line</p>
         </div>
       </div>
     </div>
   );
 }
 
-function ConversationCard({ conv, isActive, onSelect, onDelete }) {
-  const [showActions, setShowActions] = useState(false);
-  const title = conv.metadata?.name || 'Conversation';
+// --- WhatsApp-style conversation list item with context menu ---
+function ConversationListItem({ conv, display, isActive, onSelect, onDelete, onRename, contextMenuConv, setContextMenuConv, renaming, renameValue, setRenameValue, confirmRename, cancelRename }) {
+  const lastMsg = conv.messages?.[conv.messages?.length - 1];
   const date = new Date(conv.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
-  return (
-    <div
-      onClick={onSelect}
-      onMouseEnter={() => setShowActions(true)}
-      onMouseLeave={() => setShowActions(false)}
-      className="group w-full text-left px-3 py-2.5 rounded-lg cursor-pointer transition-all"
-      style={{
-        background: isActive ? 'rgba(255, 193, 7, 0.08)' : 'transparent',
-        border: '1px solid ' + (isActive ? 'rgba(255, 193, 7, 0.2)' : 'transparent'),
-      }}
-    >
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          <p
-            className="font-medium text-xs truncate"
-            style={{ color: isActive ? COLORS.accentBright : COLORS.textSecondary }}
-          >
-            {title}
-          </p>
-          <p className="text-[10px] mt-0.5 opacity-50" style={{ color: COLORS.textSecondary }}>{date}</p>
-        </div>
-        {showActions && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            className="p-1 rounded transition-all flex-shrink-0"
-            style={{ color: COLORS.textSecondary }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = COLORS.textSecondary; }}
-            title="Delete"
-          >
-            <X size={12} />
+  if (renaming) {
+    return (
+      <div className="px-2 py-2">
+        <input
+          autoFocus
+          value={renameValue}
+          onChange={(e) => setRenameValue(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') confirmRename(); if (e.key === 'Escape') cancelRename(); }}
+          className="w-full rounded-lg px-3 py-2 text-xs focus:outline-none selectable-content"
+          style={{ background: COLORS.container, color: COLORS.textPrimary, border: '1px solid ' + COLORS.accent }}
+        />
+        <div className="flex gap-1 mt-1">
+          <button onClick={confirmRename} className="flex-1 py-1.5 rounded-lg text-[10px] font-medium" style={{ background: COLORS.accent, color: '#000' }}>
+            <Check size={10} className="inline mr-1" /> Save
           </button>
-        )}
+          <button onClick={cancelRename} className="flex-1 py-1.5 rounded-lg text-[10px] font-medium" style={{ background: COLORS.surface, color: COLORS.textSecondary }}>
+            Cancel
+          </button>
+        </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="relative">
+      <div
+        onClick={onSelect}
+        className="group w-full text-left px-3 py-3 rounded-xl cursor-pointer transition-all"
+        style={{
+          background: isActive ? 'rgba(255, 193, 7, 0.08)' : 'transparent',
+        }}
+      >
+        <div className="flex items-center gap-3">
+          {/* Avatar */}
+          <div className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: COLORS.surface }}>
+            <Bot size={18} style={{ color: COLORS.accent }} />
+          </div>
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-2">
+              <p className="font-medium text-sm truncate" style={{ color: isActive ? COLORS.accentBright : COLORS.textPrimary }}>
+                {display}
+              </p>
+              <span className="text-[10px] flex-shrink-0" style={{ color: COLORS.textSecondary }}>{date}</span>
+            </div>
+            {lastMsg && (
+              <p className="text-xs mt-0.5 line-clamp-1" style={{ color: COLORS.textSecondary }}>
+                {lastMsg.role === 'user' ? 'You: ' : ''}{lastMsg.content?.slice(0, 60)}
+              </p>
+            )}
+          </div>
+          {/* Context menu trigger */}
+          <button
+            onClick={(e) => { e.stopPropagation(); setContextMenuConv(contextMenuConv === conv.id ? null : conv.id); }}
+            className="p-1.5 rounded-full transition-all flex-shrink-0 opacity-0 group-hover:opacity-100"
+            style={{ color: COLORS.textSecondary }}
+          >
+            <MoreVertical size={14} />
+          </button>
+        </div>
+      </div>
+
+      {/* Context Menu */}
+      {contextMenuConv === conv.id && (
+        <>
+          <div className="fixed inset-0 z-30" onClick={() => setContextMenuConv(null)} />
+          <div
+            className="absolute right-2 top-12 z-40 rounded-xl overflow-hidden min-w-[140px]"
+            style={{ background: COLORS.surface, border: '1px solid ' + COLORS.border, boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}
+          >
+            <button
+              onClick={(e) => { e.stopPropagation(); onRename(); }}
+              className="w-full flex items-center gap-2 px-4 py-2.5 text-xs transition-all hover:bg-white/5"
+              style={{ color: COLORS.textPrimary }}
+            >
+              <Edit3 size={12} style={{ color: COLORS.accent }} /> Rename
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              className="w-full flex items-center gap-2 px-4 py-2.5 text-xs transition-all hover:bg-red-500/10"
+              style={{ color: '#ef4444', borderTop: '1px solid ' + COLORS.border }}
+            >
+              <Trash2 size={12} /> Delete
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
 
-function MessageBubble({ message }) {
+// --- WhatsApp-style message bubble ---
+function WhatsAppBubble({ message, isLastInGroup, isFirstInGroup }) {
   const isUser = message.role === 'user';
+
+  const radius = isUser
+    ? `rounded-2xl ${isLastInGroup ? 'rounded-br-md' : ''} ${isFirstInGroup ? '' : ''}`
+    : `rounded-2xl ${isLastInGroup ? 'rounded-bl-md' : ''}`;
+
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div className="max-w-3xl">
-        <div className={`flex gap-3 items-start ${isUser ? 'flex-row-reverse' : ''}`}>
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: isUser ? 'rgba(255, 193, 7, 0.12)' : COLORS.surface }}
-          >
-            {isUser
-              ? <User size={14} style={{ color: COLORS.accentBright }} />
-              : <Bot size={14} style={{ color: COLORS.accentBright }} />
-            }
-          </div>
-          <div
-            className="px-4 py-3 rounded-lg"
-            style={{
-              background: isUser ? COLORS.surfaceSent : COLORS.surface,
-              border: '1px solid ' + (isUser ? 'rgba(201, 162, 39, 0.15)' : COLORS.border),
-              color: COLORS.textPrimary,
-            }}
-          >
-            {message.content && (
-              isUser ? (
-                <p className="text-sm">{message.content}</p>
-              ) : (
-                <ReactMarkdown
-                  className="text-sm max-w-none [&_p]:my-2 [&_h1]:my-3 [&_h2]:my-2 [&_h3]:my-1.5 [&_ul]:my-2 [&_ol]:my-2 [&_li]:my-0.5 [&_li]:ml-4 [&_code]:px-2 [&_code]:py-1 [&_code]:rounded [&_code]:text-xs [&_pre]:p-3 [&_pre]:rounded [&_pre]:overflow-x-auto [&_table]:w-full [&_table]:text-xs [&_th]:px-2 [&_th]:py-2 [&_td]:px-2 [&_td]:py-1 [&_strong]:text-white [&_em]:text-inherit"
-                  components={{
-                    code: ({ node, inline, className, children, ...props }) => (
-                      <code
-                        className={className}
-                        style={{ background: COLORS.container, color: COLORS.textPrimary }}
-                        {...props}
-                      >
-                        {children}
-                      </code>
-                    ),
-                    pre: ({ node, children, ...props }) => (
-                      <pre
-                        style={{ background: COLORS.container, border: '1px solid ' + COLORS.border }}
-                        {...props}
-                      >
-                        {children}
-                      </pre>
-                    ),
-                  }}
-                >
-                  {message.content}
-                </ReactMarkdown>
-              )
-            )}
-            {message.tool_calls?.map((toolCall, idx) => (
-              <ToolCallDisplay key={idx} toolCall={toolCall} />
-            ))}
-          </div>
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} ${isLastInGroup ? 'mb-3' : 'mb-0.5'}`}>
+      <div className={`max-w-[75%] md:max-w-[65%]`}>
+        <div
+          className={`${radius} px-3.5 py-2`}
+          style={{
+            background: isUser ? COLORS.bubbleOut : COLORS.bubbleIn,
+            border: '1px solid ' + (isUser ? 'rgba(201, 162, 39, 0.1)' : COLORS.border),
+            color: COLORS.textPrimary,
+          }}
+        >
+          {message.content && (
+            isUser ? (
+              <p className="text-sm leading-relaxed whitespace-pre-wrap selectable-content">{message.content}</p>
+            ) : (
+              <ReactMarkdown
+                className="text-sm leading-relaxed max-w-none [&_p]:my-1 [&_h1]:my-2 [&_h2]:my-2 [&_h3]:my-1.5 [&_ul]:my-1.5 [&_ol]:my-1.5 [&_li]:my-0.5 [&_li]:ml-4 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_pre]:p-3 [&_pre]:rounded-lg [&_pre]:overflow-x-auto [&_table]:w-full [&_table]:text-xs [&_th]:px-2 [&_th]:py-1.5 [&_td]:px-2 [&_td]:py-1 [&_strong]:text-white [&_em]:text-inherit"
+                components={{
+                  code: ({ node, inline, className, children, ...props }) => (
+                    <code
+                      className={className}
+                      style={{ background: COLORS.container, color: COLORS.textPrimary }}
+                      {...props}
+                    >
+                      {children}
+                    </code>
+                  ),
+                  pre: ({ node, children, ...props }) => (
+                    <pre
+                      style={{ background: COLORS.container, border: '1px solid ' + COLORS.border }}
+                      {...props}
+                    >
+                      {children}
+                    </pre>
+                  ),
+                }}
+              >
+                {message.content}
+              </ReactMarkdown>
+            )
+          )}
+
+          {message.tool_calls?.map((toolCall, idx) => (
+            <ToolCallDisplay key={idx} toolCall={toolCall} />
+          ))}
+
+          {/* Timestamp + Read Receipt */}
+          {isLastInGroup && (
+            <div className={`flex items-center gap-1 mt-1 ${isUser ? 'justify-end' : 'justify-end'}`}>
+              <span className="text-[10px]" style={{ color: COLORS.textSecondary }}>
+                {message.created_date
+                  ? new Date(message.created_date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+                  : ''}
+              </span>
+              {isUser && <CheckCheck size={12} style={{ color: COLORS.checkSent }} strokeWidth={2} />}
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
+// --- Tool call display ---
 function ToolCallDisplay({ toolCall }) {
   const [expanded, setExpanded] = useState(false);
   const status = toolCall.status || 'completed';
@@ -429,14 +583,12 @@ function ToolCallDisplay({ toolCall }) {
 
   return (
     <div
-      className="mt-4 text-xs rounded-lg overflow-hidden"
+      className="mt-2 text-xs rounded-xl overflow-hidden"
       style={{ border: '1px solid ' + COLORS.border, background: 'rgba(21, 28, 38, 0.4)' }}
     >
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center gap-3 px-4 py-3 text-left transition-all"
-        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(42, 54, 69, 0.4)'}
-        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+        className="w-full flex items-center gap-3 px-3 py-2.5 text-left transition-all"
       >
         <div className="flex-shrink-0 w-4 h-4 flex items-center justify-center">
           {expanded
@@ -450,12 +602,12 @@ function ToolCallDisplay({ toolCall }) {
         <span className="capitalize font-medium text-[10px]" style={{ color: statusColor }}>{status}</span>
       </button>
       {expanded && (
-        <div className="px-4 py-3 space-y-3" style={{ borderTop: '1px solid ' + COLORS.border, background: 'rgba(21, 28, 38, 0.2)' }}>
+        <div className="px-3 py-2.5 space-y-2" style={{ borderTop: '1px solid ' + COLORS.border, background: 'rgba(21, 28, 38, 0.2)' }}>
           {toolCall.arguments_string && (
             <div>
-              <p className="text-[10px] uppercase tracking-widest font-bold mb-2 opacity-60" style={{ color: COLORS.textSecondary }}>Parameters</p>
+              <p className="text-[10px] uppercase tracking-widest font-bold mb-1.5 opacity-60" style={{ color: COLORS.textSecondary }}>Parameters</p>
               <pre
-                className="text-[11px] overflow-x-auto whitespace-pre-wrap p-2 rounded"
+                className="text-[11px] overflow-x-auto whitespace-pre-wrap p-2 rounded-lg"
                 style={{ background: 'rgba(21, 28, 38, 0.6)', color: '#22c55e', border: '1px solid ' + COLORS.border }}
               >
                 {(() => { try { return JSON.stringify(JSON.parse(toolCall.arguments_string), null, 2); } catch { return toolCall.arguments_string; } })()}
@@ -464,9 +616,9 @@ function ToolCallDisplay({ toolCall }) {
           )}
           {parsedResults !== null && parsedResults !== undefined && (
             <div>
-              <p className="text-[10px] uppercase tracking-widest font-bold mb-2 opacity-60" style={{ color: COLORS.textSecondary }}>Result</p>
+              <p className="text-[10px] uppercase tracking-widest font-bold mb-1.5 opacity-60" style={{ color: COLORS.textSecondary }}>Result</p>
               <pre
-                className="text-[11px] overflow-x-auto whitespace-pre-wrap p-2 rounded"
+                className="text-[11px] overflow-x-auto whitespace-pre-wrap p-2 rounded-lg"
                 style={{
                   background: 'rgba(21, 28, 38, 0.6)',
                   border: '1px solid ' + (isFailed ? 'rgba(239, 68, 68, 0.3)' : COLORS.border),
