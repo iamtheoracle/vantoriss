@@ -20,7 +20,7 @@ const WORKSPACE_CONFIG = {
   executive: {
     icon: Crown,
     accent: 'text-brass',
-    bg: 'bg-brass/15',
+    bg: 'bg-brass/10',
     sections: [
       {
         label: 'Command',
@@ -61,8 +61,8 @@ const WORKSPACE_CONFIG = {
   },
   operations: {
     icon: Briefcase,
-    accent: 'text-blue-400',
-    bg: 'bg-blue-500/15',
+    accent: 'text-champagne',
+    bg: 'bg-champagne/10',
     sections: [
       {
         label: 'Dashboard',
@@ -112,8 +112,8 @@ const WORKSPACE_CONFIG = {
   },
   security: {
     icon: ShieldCheck,
-    accent: 'text-red-400',
-    bg: 'bg-crimson/15',
+    accent: 'text-crimson',
+    bg: 'bg-crimson/10',
     sections: [
       {
         label: 'Monitoring',
@@ -171,19 +171,19 @@ export default function AdminSidebar({ user, activeWorkspace, onWorkspaceChange,
   }
 
   return (
-    <aside className="vantoris-glass-sidebar flex flex-col h-full w-64 border-r border-white/[0.06]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+    <aside className="vantoris-glass-sidebar flex flex-col h-full w-64" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
       {/* Brand header */}
-      <div className="px-5 py-4 flex items-center gap-3 flex-shrink-0 border-b border-white/[0.06]" style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 1rem)' }}>
+      <div className="px-5 py-4 flex items-center gap-3 flex-shrink-0 border-b border-slate-200" style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 1rem)' }}>
         <ShieldLogo size={32} />
         <div className="min-w-0">
-          <h1 className="text-white font-bold text-base tracking-[0.2em] leading-tight">VANTORIS</h1>
-          <p className="text-[#AAB4C3]/60 text-[9px] tracking-[0.18em] uppercase">Command Center</p>
+          <h1 className="text-foreground font-bold text-base tracking-[0.2em] leading-tight">VANTORIS</h1>
+          <p className="text-gray/60 text-[9px] tracking-[0.18em] uppercase font-medium">Command Center</p>
         </div>
       </div>
 
       {/* Workspace selector tabs */}
       {availableWorkspaces.length > 1 && (
-        <div className="p-2 flex-shrink-0 border-b border-white/[0.06]">
+        <div className="p-2 flex-shrink-0 border-b border-slate-200">
           <div className="grid grid-cols-3 gap-1">
             {availableWorkspaces.map(ws => {
               const wsConfig = WORKSPACE_CONFIG[ws];
@@ -196,7 +196,7 @@ export default function AdminSidebar({ user, activeWorkspace, onWorkspaceChange,
                   className={`flex flex-col items-center gap-1 py-2.5 rounded-lg transition-all text-[10px] font-semibold ${
                     isActive
                       ? `${wsConfig.bg} ${wsConfig.accent} shadow-sm`
-                      : 'text-[#AAB4C3] hover:bg-white/[0.06] hover:text-white'
+                      : 'text-gray hover:bg-slate-100 hover:text-foreground'
                   }`}
                   title={WORKSPACE_LABELS[ws]}
                 >
@@ -214,7 +214,7 @@ export default function AdminSidebar({ user, activeWorkspace, onWorkspaceChange,
         {config.sections.map((section, sIdx) => (
           <div key={sIdx} className="mb-4">
             {section.label && (
-              <p className="text-[#AAB4C3]/40 text-[10px] font-semibold uppercase tracking-[0.12em] px-3 mb-1.5">
+              <p className="text-gray/50 text-[10px] font-semibold uppercase tracking-[0.12em] px-3 mb-1.5">
                 {section.label}
               </p>
             )}
@@ -230,8 +230,8 @@ export default function AdminSidebar({ user, activeWorkspace, onWorkspaceChange,
                   onClick={onNavigate}
                   className={`flex items-center gap-3 px-3 py-2 rounded-lg mb-0.5 transition-all duration-200 text-sm font-medium ${
                     isActive
-                      ? 'bg-brass/12 text-brass shadow-sm border-l-2 border-brass'
-                      : 'text-[#AAB4C3] hover:bg-white/[0.05] hover:text-white'
+                      ? 'bg-brass/10 text-brass shadow-sm border-l-2 border-brass'
+                      : 'text-gray hover:bg-slate-50 hover:text-foreground'
                   }`}
                 >
                   <Icon size={15} className="flex-shrink-0" />
@@ -245,16 +245,16 @@ export default function AdminSidebar({ user, activeWorkspace, onWorkspaceChange,
       </nav>
 
       {/* User footer */}
-      <div className="p-2.5 border-t border-white/[0.06] flex-shrink-0">
-        <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl bg-white/[0.04] border border-white/[0.04]">
-          <div className="w-8 h-8 rounded-full bg-brass/20 border border-brass/30 flex items-center justify-center flex-shrink-0">
-            <span className="text-brass text-xs font-bold">
+      <div className="p-2.5 border-t border-slate-200 flex-shrink-0">
+        <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl bg-slate-50 border border-slate-200">
+          <div className="w-8 h-8 rounded-full bg-navy/10 border border-navy/15 flex items-center justify-center flex-shrink-0">
+            <span className="text-navy text-xs font-bold">
               {(user?.full_name || 'A').charAt(0).toUpperCase()}
             </span>
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-white text-xs font-medium truncate">{user?.full_name || 'Administrator'}</p>
-            <p className="text-[#AAB4C3]/60 text-[10px]">{getRoleLabel(user?.role)}</p>
+            <p className="text-foreground text-xs font-medium truncate">{user?.full_name || 'Administrator'}</p>
+            <p className="text-gray/60 text-[10px]">{getRoleLabel(user?.role)}</p>
           </div>
         </div>
       </div>

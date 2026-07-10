@@ -23,7 +23,7 @@ export default function SystemHealthWidget() {
     load();
   }, []);
 
-  if (loading) return <div className="vantoris-glass p-5 h-32 vantoris-shimmer rounded-2xl" />;
+  if (loading) return <div className="vantoris-glass-premium p-5 h-32 vantoris-shimmer rounded-2xl" />;
 
   const services = [
     { label: 'Core Banking', status: 'operational', icon: ServerCog },
@@ -33,11 +33,11 @@ export default function SystemHealthWidget() {
   ];
 
   return (
-    <div className="vantoris-glass p-5">
+    <div className="vantoris-glass-premium p-5">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <HeartPulse size={16} className="text-mint" />
-          <h3 className="text-white font-semibold text-sm">System Health</h3>
+          <h3 className="text-foreground font-semibold text-sm">System Health</h3>
         </div>
         <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-mint/10 text-mint text-[10px] font-bold border border-mint/20">
           <span className="w-1.5 h-1.5 rounded-full bg-mint animate-pulse" />
@@ -48,9 +48,9 @@ export default function SystemHealthWidget() {
         {services.map(svc => {
           const Icon = svc.icon;
           return (
-            <div key={svc.label} className="flex items-center gap-2 p-2.5 rounded-lg bg-white/[0.03]">
+            <div key={svc.label} className="flex items-center gap-2 p-2.5 rounded-lg bg-slate-50">
               <Icon size={14} className="text-mint" />
-              <span className="text-white text-[11px] font-medium flex-1 truncate">{svc.label}</span>
+              <span className="text-foreground text-[11px] font-medium flex-1 truncate">{svc.label}</span>
               <span className="w-1.5 h-1.5 rounded-full bg-mint" />
             </div>
           );

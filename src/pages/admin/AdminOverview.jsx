@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
-import { Users, FileText, ArrowUpRight, Wallet, Briefcase } from 'lucide-react';
+import { Users, FileText, ArrowUpRight, Wallet, Briefcase, Activity } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
@@ -12,6 +12,7 @@ import HighPriorityCases from '@/components/vantoris/widgets/HighPriorityCases';
 import LiveBankingActivity from '@/components/vantoris/widgets/LiveBankingActivity';
 import DailyEmailSummary from '@/components/vantoris/DailyEmailSummary';
 import QuickActionsMenu from '@/components/vantoris/QuickActionsMenu';
+import VantorisLoading from '@/components/vantoris/system/VantorisLoading';
 
 export default function AdminOverview() {
   const navigate = useNavigate();
@@ -48,9 +49,7 @@ export default function AdminOverview() {
   if (loading) {
     return (
       <OperationsPageLayout title="Daily Operations" description="Operational dashboard and queue management" icon={Briefcase} breadcrumb="Operations Workspace">
-        <div className="flex items-center justify-center h-64">
-          <div className="w-8 h-8 border-2 border-brass/30 border-t-brass rounded-full animate-spin" />
-        </div>
+        <VantorisLoading className="h-64" />
       </OperationsPageLayout>
     );
   }
@@ -70,7 +69,7 @@ export default function AdminOverview() {
 
       {/* Critical Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-        <PremiumStatCard hero label="Assets Under Management" value={formatCurrency(stats.totalBalance)} sublabel="Total across all accounts" icon={Wallet} accent="brass" onClick={() => navigate('/operations/finance')} />
+        <PremiumStatCard hero label="Assets Under Management" value={formatCurrency(stats.totalBalance)} sublabel="Total across all accounts" icon={Wallet} accent="navy" onClick={() => navigate('/operations/finance')} />
         <PremiumStatCard label="Total Members" value={stats.members} icon={Users} accent="blue" onClick={() => navigate('/operations/members')} />
         <PremiumStatCard label="Pending Applications" value={stats.pendingApps} icon={FileText} accent="gold" onClick={() => navigate('/operations/applications')} />
         <PremiumStatCard label="Pending Withdrawals" value={stats.pendingWithdrawals} icon={ArrowUpRight} accent="crimson" onClick={() => navigate('/operations/withdrawals')} />
@@ -84,56 +83,61 @@ export default function AdminOverview() {
       </div>
 
       {/* Operations Queue */}
-      <div className="vantoris-glass p-4 sm:p-5">
+      <div className="vantoris-glass-premium p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-white font-semibold text-sm">Operations Queue</h3>
-          <span className="text-[#AAB4C3] text-xs">{recentItems.length} pending items</span>
+          <div className="flex items-center gap-2">
+            <Activity size={16} className="text-navy" />
+            <h3 className="text-foreground font-semibold text-sm">Operations Queue</h3>
+          </div>
+          <span className="text-gray text-xs">{recentItems.length} pending items</span>
         </div>
 
+        {/* Desktop table */}
         <div className="hidden md:block">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-white/[0.06]">
-                  <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider py-3 pr-4">Type</th>
-                  <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider py-3 pr-4">Details</th>
-                  <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider py-3 pr-4">Submitted</th>
-                  <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider py-3">Status</th>
+                <tr className="border-b border-slate-200">
+                  <th className="text-left text-gray text-xs font-semibold uppercase tracking-wider py-3 pr-4">Type</th>
+                  <th className="text-left text-gray text-xs font-semibold uppercase tracking-wider py-3 pr-4">Details</th>
+                  <th className="text-left text-gray text-xs font-semibold uppercase tracking-wider py-3 pr-4">Submitted</th>
+                  <th className="text-left text-gray text-xs font-semibold uppercase tracking-wider py-3">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {recentItems.map(item => (
-                  <tr key={item.id} className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.03] transition-all">
+                  <tr key={item.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-all">
                     <td className="py-3 pr-4">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${item.type === 'Application' ? 'bg-brass/10 text-brass' : 'bg-crimson/10 text-red-400'}`}>{item.type}</span>
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${item.type === 'Application' ? 'bg-brass/10 text-brass' : 'bg-crimson/10 text-crimson'}`}>{item.type}</span>
                     </td>
                     <td className="py-3 pr-4">
-                      <p className="text-white font-medium">{item.name}</p>
-                      <p className="text-[#AAB4C3] text-xs">{item.detail}</p>
+                      <p className="text-foreground font-medium">{item.name}</p>
+                      <p className="text-gray text-xs">{item.detail}</p>
                     </td>
-                    <td className="py-3 pr-4 text-[#AAB4C3] text-xs">{new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                    <td className="py-3 pr-4 text-gray text-xs">{new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
                     <td className="py-3"><StatusBadge status={item.status} /></td>
                   </tr>
                 ))}
-                {recentItems.length === 0 && (<tr><td colSpan={4} className="py-8 text-center text-[#AAB4C3] text-sm">No pending items</td></tr>)}
+                {recentItems.length === 0 && (<tr><td colSpan={4} className="py-8 text-center text-gray text-sm">No pending items</td></tr>)}
               </tbody>
             </table>
           </div>
         </div>
 
+        {/* Mobile cards */}
         <div className="md:hidden space-y-2">
           {recentItems.map(item => (
-            <div key={item.id} className="border border-white/[0.06] rounded-xl p-3 bg-white/[0.02]">
+            <div key={item.id} className="border border-slate-200 rounded-xl p-3 bg-slate-50">
               <div className="flex items-center justify-between mb-2">
-                <span className={`px-2 py-1 rounded text-xs font-medium ${item.type === 'Application' ? 'bg-brass/10 text-brass' : 'bg-crimson/10 text-red-400'}`}>{item.type}</span>
+                <span className={`px-2 py-1 rounded text-xs font-medium ${item.type === 'Application' ? 'bg-brass/10 text-brass' : 'bg-crimson/10 text-crimson'}`}>{item.type}</span>
                 <StatusBadge status={item.status} />
               </div>
-              <p className="text-white font-medium text-sm">{item.name}</p>
-              <p className="text-[#AAB4C3] text-xs">{item.detail}</p>
-              <p className="text-[#AAB4C3]/50 text-[10px] mt-1">{new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+              <p className="text-foreground font-medium text-sm">{item.name}</p>
+              <p className="text-gray text-xs">{item.detail}</p>
+              <p className="text-gray/60 text-[10px] mt-1">{new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
             </div>
           ))}
-          {recentItems.length === 0 && (<div className="py-8 text-center text-[#AAB4C3] text-sm">No pending items</div>)}
+          {recentItems.length === 0 && (<div className="py-8 text-center text-gray text-sm">No pending items</div>)}
         </div>
       </div>
     </OperationsPageLayout>

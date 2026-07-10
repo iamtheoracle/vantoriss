@@ -37,31 +37,31 @@ export default function AIRecommendationsWidget() {
     load();
   }, []);
 
-  if (loading) return <div className="vantoris-glass p-5 h-48 vantoris-shimmer rounded-2xl" />;
+  if (loading) return <div className="vantoris-glass-premium p-5 h-48 vantoris-shimmer rounded-2xl" />;
 
   const priorityConfig = {
-    high: { color: 'text-red-400', bg: 'bg-crimson/10', border: 'border-crimson/20', icon: AlertTriangle },
+    high: { color: 'text-crimson', bg: 'bg-crimson/10', border: 'border-crimson/20', icon: AlertTriangle },
     medium: { color: 'text-brass', bg: 'bg-brass/10', border: 'border-brass/20', icon: TrendingUp },
     low: { color: 'text-mint', bg: 'bg-mint/10', border: 'border-mint/20', icon: Sparkles },
   };
 
   return (
-    <div className="vantoris-glass p-5">
+    <div className="vantoris-glass-premium p-5">
       <div className="flex items-center gap-2 mb-4">
         <Sparkles size={16} className="text-brass" />
-        <h3 className="text-white font-semibold text-sm">AI Recommendations</h3>
+        <h3 className="text-foreground font-semibold text-sm">AI Recommendations</h3>
       </div>
       <div className="space-y-2">
         {insights.map((tip, i) => {
           const cfg = priorityConfig[tip.priority];
           const Icon = cfg.icon;
           return (
-            <Link key={i} to={tip.path} className="flex items-start gap-3 p-2.5 -mx-1 rounded-lg hover:bg-white/[0.04] transition-all group">
+            <Link key={i} to={tip.path} className="flex items-start gap-3 p-2.5 -mx-1 rounded-lg hover:bg-slate-50 transition-all group">
               <div className={`w-6 h-6 rounded-lg ${cfg.bg} border ${cfg.border} flex items-center justify-center flex-shrink-0 mt-0.5`}>
                 <Icon size={11} className={cfg.color} />
               </div>
-              <p className="text-white text-xs flex-1 leading-relaxed">{tip.text}</p>
-              <ArrowUpRight size={12} className="text-[#AAB4C3]/30 group-hover:text-brass transition-colors flex-shrink-0 mt-0.5" />
+              <p className="text-foreground text-xs flex-1 leading-relaxed">{tip.text}</p>
+              <ArrowUpRight size={12} className="text-gray/30 group-hover:text-brass transition-colors flex-shrink-0 mt-0.5" />
             </Link>
           );
         })}

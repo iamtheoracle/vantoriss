@@ -32,30 +32,30 @@ export default function TodaysOperationalSummary() {
     load();
   }, []);
 
-  if (loading) return <div className="vantoris-glass p-5 h-32 vantoris-shimmer rounded-2xl" />;
+  if (loading) return <div className="vantoris-glass-premium p-5 h-32 vantoris-shimmer rounded-2xl" />;
 
   return (
-    <div className="vantoris-glass p-5">
+    <div className="vantoris-glass-premium p-5">
       <div className="flex items-center gap-2 mb-4">
-        <Activity size={16} className="text-brass" />
-        <h3 className="text-white font-semibold text-sm">Today's Operational Summary</h3>
+        <Activity size={16} className="text-navy" />
+        <h3 className="text-foreground font-semibold text-sm">Today's Operational Summary</h3>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
-          <p className="text-2xl font-bold text-white">{data.txnsToday}</p>
-          <p className="text-[#AAB4C3] text-xs">Transactions Today</p>
+          <p className="text-2xl font-bold text-foreground">{data.txnsToday}</p>
+          <p className="text-gray text-xs">Transactions Today</p>
         </div>
         <div>
           <p className="text-2xl font-bold text-mint">{formatCurrency(data.volumeToday)}</p>
-          <p className="text-[#AAB4C3] text-xs">Volume Today</p>
+          <p className="text-gray text-xs">Volume Today</p>
         </div>
         <div>
           <p className="text-2xl font-bold text-brass">{data.newAppsToday}</p>
-          <p className="text-[#AAB4C3] text-xs">New Applications</p>
+          <p className="text-gray text-xs">New Applications</p>
         </div>
         <Link to="/operations/applications" className="group">
-          <p className="text-2xl font-bold text-red-400 group-hover:underline">{data.pendingItems}</p>
-          <p className="text-[#AAB4C3] text-xs">Pending Items</p>
+          <p className="text-2xl font-bold text-crimson group-hover:underline">{data.pendingItems}</p>
+          <p className="text-gray text-xs">Pending Items</p>
         </Link>
       </div>
     </div>

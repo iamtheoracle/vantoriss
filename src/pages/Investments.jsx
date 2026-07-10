@@ -27,11 +27,11 @@ const ASSET_TABS = [
 ];
 
 const ALLOCATION_DATA = [
-  { name: 'Stocks', value: 45, color: '#1e56a0' },
-  { name: 'ETFs', value: 25, color: '#3b82f6' },
-  { name: 'Crypto', value: 15, color: '#f59e0b' },
-  { name: 'Commodities', value: 10, color: '#10b981' },
-  { name: 'Cash', value: 5, color: '#94a3b8' },
+  { name: 'Stocks', value: 45, color: '#071C38' },
+  { name: 'ETFs', value: 25, color: '#1F5EFF' },
+  { name: 'Crypto', value: 15, color: '#C9A227' },
+  { name: 'Commodities', value: 10, color: '#16A34A' },
+  { name: 'Cash', value: 5, color: '#64748B' },
 ];
 
 const PERFORMANCE_DATA = [
@@ -140,12 +140,12 @@ export default function Investments() {
         <div className="flex items-center gap-4 mt-3">
           <div>
             <p className="text-white/50 text-[10px] uppercase tracking-wider">Day Change</p>
-            <p className="text-emerald-400 text-sm font-semibold">+2.34%</p>
+            <p className="text-mint text-sm font-semibold">+2.34%</p>
           </div>
           <div className="w-px h-8 bg-white/15" />
           <div>
             <p className="text-white/50 text-[10px] uppercase tracking-wider">Total Return</p>
-            <p className="text-emerald-400 text-sm font-semibold">+12.8%</p>
+            <p className="text-mint text-sm font-semibold">+12.8%</p>
           </div>
           <div className="w-px h-8 bg-white/15" />
           <div>
@@ -283,7 +283,7 @@ function OverviewTab({ accounts, onCreateAccount, selectedChart, setSelectedChar
                     <p className="text-foreground font-semibold text-sm">{account.account_name}</p>
                     <p className="text-gray text-xs">{account.account_type} · {account.account_number}</p>
                   </div>
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${account.status === 'active' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-slate-100 text-gray'}`}>
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${account.status === 'active' ? 'bg-emerald-500/10 text-mint' : 'bg-slate-100 text-gray'}`}>
                     {account.status}
                   </span>
                 </div>
@@ -403,7 +403,7 @@ function PortfolioTab({ accounts, onCreateAccount }) {
                   fontSize: '12px',
                 }}
               />
-              <Bar dataKey="value" fill="#1e56a0" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="value" fill="#071C38" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -423,7 +423,7 @@ function PortfolioTab({ accounts, onCreateAccount }) {
                 <p className="text-foreground text-sm font-medium">{d.name}</p>
                 <p className="text-gray text-xs">{d.date}</p>
               </div>
-              <p className="text-emerald-600 text-sm font-semibold">+{formatCurrency(d.amount)}</p>
+              <p className="text-mint text-sm font-semibold">+{formatCurrency(d.amount)}</p>
             </div>
           ))}
         </div>
@@ -462,7 +462,7 @@ function WatchlistPreview() {
             </div>
             <div className="text-right">
               <p className="text-foreground font-medium text-sm">${item.price.toFixed(2)}</p>
-              <p className={`text-xs font-medium ${item.change >= 0 ? 'text-emerald-600' : 'text-crimson'}`}>
+              <p className={`text-xs font-medium ${item.change >= 0 ? 'text-mint' : 'text-crimson'}`}>
                 {item.change >= 0 ? '+' : ''}{item.change.toFixed(2)}%
               </p>
             </div>
@@ -502,8 +502,8 @@ function CryptoTab() {
         {cryptos.map((c, idx) => (
           <div key={c.symbol} className={`flex items-center justify-between p-3.5 ${idx > 0 ? 'border-t border-border/50' : ''}`}>
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-amber-500/10 flex items-center justify-center">
-                <span className="text-amber-600 text-xs font-bold">{c.symbol.slice(0, 2)}</span>
+              <div className="w-9 h-9 rounded-full bg-brass/10 flex items-center justify-center">
+                <span className="text-brass text-xs font-bold">{c.symbol.slice(0, 2)}</span>
               </div>
               <div>
                 <p className="text-foreground font-semibold text-sm">{c.symbol}</p>
@@ -512,7 +512,7 @@ function CryptoTab() {
             </div>
             <div className="text-right">
               <p className="text-foreground font-medium text-sm">${c.price.toLocaleString()}</p>
-              <p className={`text-xs font-medium ${c.change >= 0 ? 'text-emerald-600' : 'text-crimson'}`}>
+              <p className={`text-xs font-medium ${c.change >= 0 ? 'text-mint' : 'text-crimson'}`}>
                 {c.change >= 0 ? '+' : ''}{c.change.toFixed(2)}%
               </p>
             </div>
@@ -541,7 +541,7 @@ function CommoditiesTab() {
             </div>
             <div className="text-right">
               <p className="text-foreground font-medium text-sm">${c.price.toFixed(2)}</p>
-              <p className={`text-xs font-medium ${c.change >= 0 ? 'text-emerald-600' : 'text-crimson'}`}>
+              <p className={`text-xs font-medium ${c.change >= 0 ? 'text-mint' : 'text-crimson'}`}>
                 {c.change >= 0 ? '+' : ''}{c.change.toFixed(2)}%
               </p>
             </div>
