@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
-import { Menu } from 'lucide-react';
+import { Menu, PanelLeftOpen } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
 import AdminTopBar from './AdminTopBar';
 import PageTransition from './PageTransition';
@@ -10,9 +10,16 @@ import { getDefaultWorkspace } from '@/lib/operationsAccess';
 
 export default function AdminLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarHidden, setSidebarHidden] = useState(() => localStorage.getItem('vantoris_sidebar_hidden') === 'true');
   const [user, setUser] = useState(null);
   const [activeWorkspace, setActiveWorkspace] = useState(null);
   const location = useLocation();
+
+  function toggleSidebar() {
+    const next = !sidebarHidden;
+    setSidebarHidden(next);
+    localStorage.setItem('vantoris_sidebar_hidden', String(next));
+  }
 
   useEffect(() => {
     base44.auth.me()
@@ -48,13 +55,28 @@ export default function AdminLayout() {
   return (
     <div className="min-h-screen vantoris-mesh-bg flex">
       {/* Desktop sidebar — fixed */}
-      <div className="hidden lg:flex fixed left-0 top-0 bottom-0 z-40">
-        <AdminSidebar
-          user={user}
-          activeWorkspace={activeWorkspace}
-          onWorkspaceChange={handleWorkspaceChange}
-        />
-      </div>
+      {!sidebarHidden && (
+        <div className="hidden lg:flex fixed left-0 top-0 bottom-0 z-40">
+          <AdminSidebar
+            user={user}
+            activeWorkspace={activeWorkspace}
+            onWorkspaceChange={handleWorkspaceChange}
+            onHide={toggleSidebar}
+          />
+        </div>
+      )}
+
+      {/* Floating show button when sidebar is hidden */}
+      {sidebarHidden && (
+        <button
+          onClick={toggleSidebar}
+          className="hidden lg:flex fixed left-3 top-3 z-40 items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200 shadow-md text-foreground text-xs font-medium hover:bg-slate-50 transition-all"
+          title="Show sidebar"
+        >
+          <PanelLeftOpen size={16} />
+          Menu
+        </button>
+      )}
 
       {/* Mobile drawer */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -69,7 +91,7 @@ export default function AdminLayout() {
       </Sheet>
 
       {/* Main content area */}
-      <div className="flex-1 lg:ml-64 flex flex-col min-h-screen">
+      <div className={`flex-1 flex flex-col min-h-screen ${sidebarHidden ? 'lg:ml-0' : 'lg:ml-64'}`}>
         <AdminTopBar user={user} onMenuClick={() => setMobileOpen(true)} />
         <main className="flex-1 p-4 lg:p-6 vantoris-scroll">
           <PageTransition />

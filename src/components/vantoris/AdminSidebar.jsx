@@ -9,6 +9,7 @@ import {
   ChevronRight, Wrench, Users2, MessageSquare, Crown, Briefcase,
   AlertTriangle, Scale, GitBranch, Database, ServerCog,
   Search, Eye, ShieldAlert, Network, Globe, Zap,
+  PanelLeftClose,
 } from 'lucide-react';
 import ShieldLogo from './ShieldLogo';
 import {
@@ -154,7 +155,7 @@ const WORKSPACE_CONFIG = {
   },
 };
 
-export default function AdminSidebar({ user, activeWorkspace, onWorkspaceChange, onNavigate }) {
+export default function AdminSidebar({ user, activeWorkspace, onWorkspaceChange, onNavigate, onHide }) {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -175,10 +176,19 @@ export default function AdminSidebar({ user, activeWorkspace, onWorkspaceChange,
       {/* Brand header */}
       <div className="px-5 py-4 flex items-center gap-3 flex-shrink-0 border-b border-slate-200" style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 1rem)' }}>
         <ShieldLogo size={32} />
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h1 className="text-foreground font-bold text-base tracking-[0.2em] leading-tight">VANTORIS</h1>
           <p className="text-gray/60 text-[9px] tracking-[0.18em] uppercase font-medium">Command Center</p>
         </div>
+        {onHide && (
+          <button
+            onClick={onHide}
+            className="p-1.5 rounded-lg text-gray hover:bg-slate-100 hover:text-foreground transition-all flex-shrink-0"
+            title="Hide sidebar"
+          >
+            <PanelLeftClose size={18} />
+          </button>
+        )}
       </div>
 
       {/* Workspace selector tabs */}
