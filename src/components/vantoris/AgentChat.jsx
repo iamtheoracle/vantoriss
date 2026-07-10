@@ -6,13 +6,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 
 const COLORS = {
   container: '#151c26',
-  sidebar: '#1a2330',
-  surface: '#1f2a38',
+  sidebar: '#1c2531',
+  surface: '#252f3d',
+  surfaceSent: '#2c394b',
   border: '#2a3645',
-  textPrimary: '#ffffff',
+  textPrimary: '#e2e8f0',
   textSecondary: '#aab8c2',
   accent: '#c9a227',
-  accentBright: '#ffc107',
+  accentBright: '#ffcc00',
 };
 
 export default function AgentChat({
@@ -129,10 +130,10 @@ export default function AgentChat({
         <div className="p-4" style={{ borderBottom: '1px solid ' + COLORS.border }}>
           <button
             onClick={startNewConversation}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-bold transition-all hover:opacity-90"
-            style={{ background: COLORS.accentBright, color: COLORS.container }}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-full text-sm font-bold transition-all hover:opacity-90"
+            style={{ background: COLORS.accentBright, color: '#000000' }}
           >
-            <Plus size={14} strokeWidth={3} />
+            <Plus size={16} strokeWidth={3} />
             New Conversation
           </button>
         </div>
@@ -209,7 +210,7 @@ export default function AgentChat({
           {activeConv && (
             <div className="flex items-center gap-3 ml-4 flex-shrink-0">
               <span
-                className="text-xs px-2.5 py-1 rounded-full"
+                className="text-xs px-3 py-1 rounded-full"
                 style={{ background: COLORS.surface, color: COLORS.textSecondary }}
               >
                 {messages.length} messages
@@ -226,7 +227,7 @@ export default function AgentChat({
               <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: 'rgba(255, 193, 7, 0.08)' }}>
                 <Bot size={32} style={{ color: COLORS.accentBright }} />
               </div>
-              <h4 className="font-bold text-base mb-1" style={{ color: COLORS.textPrimary }}>What can I help you with?</h4>
+              <h4 className="font-bold text-base mb-1" style={{ color: '#ffffff' }}>What can I help you with?</h4>
               <p className="text-sm max-w-sm mb-8" style={{ color: COLORS.textSecondary }}>
                 I have full access to your Vantoris platform. Ask me about members, accounts, applications, withdrawals, KYC status, and more.
               </p>
@@ -281,8 +282,8 @@ export default function AgentChat({
             <button
               onClick={sendMessage}
               disabled={!input.trim() || loading}
-              className="w-10 h-10 flex items-center justify-center rounded-lg transition-all disabled:opacity-40 flex-shrink-0"
-              style={{ background: COLORS.accentBright, color: COLORS.container }}
+              className="w-10 h-10 flex items-center justify-center rounded-full transition-all disabled:opacity-40 flex-shrink-0"
+              style={{ background: COLORS.accentBright, color: '#000000' }}
               title="Send message (Shift+Enter for new line)"
             >
               <Send size={16} />
@@ -356,9 +357,9 @@ function MessageBubble({ message }) {
           <div
             className="px-4 py-3 rounded-lg"
             style={{
-              background: isUser ? 'rgba(42, 54, 69, 0.6)' : 'rgba(42, 54, 69, 0.5)',
+              background: isUser ? COLORS.surfaceSent : COLORS.surface,
               border: '1px solid ' + (isUser ? 'rgba(201, 162, 39, 0.15)' : COLORS.border),
-              color: isUser ? '#e0e0e0' : COLORS.textSecondary,
+              color: COLORS.textPrimary,
             }}
           >
             {message.content && (
