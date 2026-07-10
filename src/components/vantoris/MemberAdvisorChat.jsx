@@ -105,31 +105,40 @@ export default function MemberAdvisorChat() {
     setLoadingConv(false);
   }
 
-  async function startNewConversation() {
+  function startNewConversation() {
+    setActiveConv(null);
+    setMessages([]);
+  }
+
+  async function generateConversationTitle(firstMessage) {
     try {
-      const conv = await base44.agents.createConversation({
-        agent_name: 'member_advisor',
-        metadata: { name: 'Advisor Session', description: 'Member advisory chat' },
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Generate a very short title (3-6 words, no quotes, no trailing punctuation) for a conversation that starts with this message:\n\n"${firstMessage}"\n\nTitle:`,
       });
-      setConversations([conv, ...conversations]);
-      setActiveConv(conv);
-      setMessages([]);
-      return conv;
-    } catch (e) {
-      console.error('Create conversation error:', e);
+      const title = (typeof result === 'string' ? result : (result.response || result.result || '')).trim();
+      return title.slice(0, 60) || firstMessage.slice(0, 40);
+    } catch {
+      return firstMessage.length > 40 ? firstMessage.slice(0, 40) + '…' : firstMessage;
     }
   }
 
   async function sendMessage(text) {
     if (!text.trim() || loading) return;
 
-    let conv = activeConv;
-    if (!conv) {
-      conv = await startNewConversation();
-    }
-
     setLoading(true);
     setMessages((prev) => [...prev, { role: 'user', content: text, created_date: new Date().toISOString() }]);
+
+    let conv = activeConv;
+    if (!conv) {
+      const title = await generateConversationTitle(text);
+      conv = await base44.agents.createConversation({
+        agent_name: 'member_advisor',
+        metadata: { name: title, description: 'Member advisory chat' },
+      });
+      if (!conv.metadata) conv.metadata = { name: title };
+      setConversations([conv, ...conversations]);
+      setActiveConv(conv);
+    }
 
     try {
       await base44.agents.addMessage(conv, { role: 'user', content: text });

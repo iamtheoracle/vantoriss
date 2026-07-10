@@ -103,18 +103,22 @@ export default function AgentChat({
     setLoadingConvs(false);
   }
 
-  async function startNewConversation() {
+  function startNewConversation() {
+    setActiveConv(null);
+    setMessages([]);
+    setMobileView(true);
+  }
+
+  async function generateConversationTitle(firstMessage) {
     try {
-      const conv = await base44.agents.createConversation({
-        agent_name: agentName,
-        metadata: { name: 'New Conversation', description: 'Admin assistance session' },
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Generate a very short title (3-6 words, no quotes, no trailing punctuation) for a conversation that starts with this message:\n\n"${firstMessage}"\n\nTitle:`,
       });
-      conv._label = null;
-      setConversations([conv, ...conversations]);
-      setActiveConv(conv);
-      setMessages([]);
-      setMobileView(true);
-    } catch (e) { console.error('Create conversation error:', e); }
+      const title = (typeof result === 'string' ? result : (result.response || result.result || '')).trim();
+      return title.slice(0, 60) || firstMessage.slice(0, 40);
+    } catch {
+      return firstMessage.length > 40 ? firstMessage.slice(0, 40) + '…' : firstMessage;
+    }
   }
 
   function deleteConversation(convId) {
@@ -152,13 +156,21 @@ export default function AgentChat({
     const content = input.trim();
     setInput('');
 
+    setLoading(true);
+    setMessages((prev) => [...prev, { role: 'user', content, created_date: new Date().toISOString() }]);
+
     let conv = activeConv;
     if (!conv) {
-      conv = await startNewConversation();
+      const title = await generateConversationTitle(content);
+      conv = await base44.agents.createConversation({
+        agent_name: agentName,
+        metadata: { name: title, description: 'Admin assistance session' },
+      });
+      conv._label = null;
+      if (!conv.metadata) conv.metadata = { name: title };
+      setConversations([conv, ...conversations]);
+      setActiveConv(conv);
     }
-
-    setLoading(true);
-    setMessages((prev) => [...prev, { role: 'user', content }]);
 
     try {
       await base44.agents.addMessage(conv, { role: 'user', content });
