@@ -1,0 +1,44 @@
+{
+  "name": "CodeSnippet",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Name or title of the code snippet"
+    },
+    "language": {
+      "type": "string",
+      "description": "Programming language (javascript, jsx, typescript, css, json, etc.)"
+    },
+    "original_code": {
+      "type": "string",
+      "description": "The original code before rewriting"
+    },
+    "rewritten_code": {
+      "type": "string",
+      "description": "The rewritten/optimized code"
+    },
+    "instructions": {
+      "type": "string",
+      "description": "Instructions used for the rewrite (e.g., 'optimize for performance', 'add error handling')"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Brief summary of what changed and why"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "reviewed",
+        "applied",
+        "archived"
+      ],
+      "default": "draft"
+    }
+  },
+  "required": [
+    "title",
+    "language"
+  ]
+}
