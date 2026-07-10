@@ -55,7 +55,9 @@ export default function AgentChat({
   title = 'Vantoris AI Assistant',
   subtitle = 'Platform-wide operations',
   suggestions = null,
-  inputPlaceholder = 'Ask about members, applications, KYC status, account balances...'
+  inputPlaceholder = 'Ask about members, applications, KYC status, account balances...',
+  singleColumn = false,
+  onClose = null
 }) {
   const [conversations, setConversations] = useState([]);
   const [activeConv, setActiveConv] = useState(null);
@@ -191,7 +193,15 @@ export default function AgentChat({
   }
 
   function getConvDisplay(conv) {
-    return conv._label || conv.metadata?.name || 'Conversation';
+    if (conv._label) return conv._label;
+    const name = conv.metadata?.name;
+    if (name && name !== 'New Conversation' && name !== 'Conversation') return name;
+    const firstUserMsg = conv.messages?.find(m => m.role === 'user');
+    if (firstUserMsg?.content) {
+      const text = firstUserMsg.content.trim();
+      return text.length > 50 ? text.slice(0, 50) + '…' : text;
+    }
+    return 'New Conversation';
   }
 
   const filteredConversations = conversations.filter(conv =>
@@ -200,13 +210,13 @@ export default function AgentChat({
 
   return (
     <div
-      className="flex rounded-xl overflow-hidden relative"
-      style={{ height: 'calc(100vh - 140px)', background: COLORS.container, border: '1px solid ' + COLORS.border }}
+      className={`flex overflow-hidden relative ${singleColumn ? 'rounded-none' : 'rounded-xl'}`}
+      style={{ height: singleColumn ? '100%' : 'calc(100vh - 140px)', background: COLORS.container, border: singleColumn ? 'none' : '1px solid ' + COLORS.border }}
     >
       {/* Conversation History Sidebar */}
       <div
-        className={`flex-shrink-0 flex flex-col transition-all duration-300 overflow-hidden absolute md:relative z-20 md:z-auto h-full ${mobileView ? 'hidden md:flex' : 'flex'}`}
-        style={{ width: sidebarOpen ? '300px' : '0', borderRight: sidebarOpen ? '1px solid ' + COLORS.border : 'none', background: COLORS.sidebar }}
+        className={`flex-shrink-0 flex flex-col transition-all duration-300 overflow-hidden ${singleColumn ? 'relative' : 'absolute md:relative'} z-20 md:z-auto h-full ${singleColumn ? (mobileView ? 'hidden' : 'flex') : (mobileView ? 'hidden md:flex' : 'flex')}`}
+        style={{ width: singleColumn ? '100%' : (sidebarOpen ? '300px' : '0'), borderRight: sidebarOpen || singleColumn ? '1px solid ' + COLORS.border : 'none', background: COLORS.sidebar }}
       >
         {/* New Conversation Button */}
         <div className="p-4" style={{ borderBottom: '1px solid ' + COLORS.border }}>
@@ -274,19 +284,19 @@ export default function AgentChat({
       </div>
 
       {/* Main Chat Area */}
-      <div className={`flex-1 flex flex-col overflow-hidden ${mobileView ? 'flex' : 'hidden md:flex'}`}>
+      <div className={`flex-1 flex flex-col overflow-hidden ${singleColumn ? (mobileView ? 'flex' : 'hidden') : (mobileView ? 'flex' : 'hidden md:flex')}`}>
         {/* WhatsApp-style Header */}
         <div className="flex items-center gap-3 p-3" style={{ borderBottom: '1px solid ' + COLORS.border, background: COLORS.sidebar }}>
           <button
             onClick={() => { setMobileView(false); setSidebarOpen(true); }}
-            className="md:hidden p-2 rounded-full transition-all"
+            className={`${singleColumn ? '' : 'md:hidden'} p-2 rounded-full transition-all`}
             style={{ color: COLORS.textSecondary }}
           >
             <ArrowLeft size={18} />
           </button>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="hidden md:flex p-2 rounded-full transition-all flex-shrink-0"
+            className={`${singleColumn ? 'hidden' : 'hidden md:flex'} p-2 rounded-full transition-all flex-shrink-0`}
             style={{ color: COLORS.textSecondary }}
             title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
           >
@@ -326,6 +336,16 @@ export default function AgentChat({
             >
               {messages.length} messages
             </span>
+          )}
+          {singleColumn && onClose && (
+            <button
+              onClick={onClose}
+              className="p-2 rounded-full transition-all flex-shrink-0"
+              style={{ color: COLORS.textSecondary }}
+              title="Close"
+            >
+              <X size={18} />
+            </button>
           )}
         </div>
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, X } from 'lucide-react';
+import { Bot } from 'lucide-react';
 import AgentChat from './AgentChat';
 
 export default function FloatingAIDock() {
@@ -26,7 +26,7 @@ export default function FloatingAIDock() {
         <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-mint rounded-full border-2 border-white" />
       </motion.button>
 
-      {/* Slide-up panel */}
+      {/* Slide-in panel — shows listing first, then transitions to chat */}
       <AnimatePresence>
         {open && (
           <>
@@ -42,36 +42,16 @@ export default function FloatingAIDock() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', stiffness: 400, damping: 36 }}
-              className="fixed right-0 top-0 bottom-0 z-50 w-full sm:w-[600px] bg-white flex flex-col safe-top safe-bottom"
+              className="fixed right-0 top-0 bottom-0 z-50 w-full sm:w-[600px] flex flex-col safe-top safe-bottom"
             >
-              {/* Header */}
-              <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 vantoris-glass-header">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-full bg-navy/8 flex items-center justify-center">
-                    <Bot size={18} className="text-navy" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-sm text-foreground">Vantoris AI Assistant</h3>
-                    <p className="text-gray text-[11px]">Operations Co-Pilot</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setOpen(false)}
-                  className="p-2 rounded-lg text-gray hover:bg-slate-100 hover:text-foreground transition-all"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              {/* Chat body */}
-              <div className="flex-1 overflow-hidden">
-                <AgentChat
-                  agentName="vantoris_assistant"
-                  title="Vantoris AI Assistant"
-                  subtitle="Operations Co-Pilot"
-                  inputPlaceholder="Ask about members, applications, KYC, accounts, withdrawals…"
-                />
-              </div>
+              <AgentChat
+                agentName="vantoris_assistant"
+                title="Vantoris AI Assistant"
+                subtitle="Operations Co-Pilot"
+                inputPlaceholder="Ask about members, applications, KYC, accounts, withdrawals…"
+                singleColumn={true}
+                onClose={() => setOpen(false)}
+              />
             </motion.div>
           </>
         )}
