@@ -4,12 +4,14 @@ import { formatCurrency } from '@/lib/formatCurrency';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
 import { BarChart3, Users, Wallet, FileText, ArrowDownToLine, Download, Mail, Calendar } from 'lucide-react';
 import { exportToCsv } from '@/lib/exportCsv';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function Reports() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [generatingReport, setGeneratingReport] = useState(false);
   const [reportResult, setReportResult] = useState(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     (async () => {
@@ -22,8 +24,11 @@ export default function Reports() {
           base44.entities.Transaction.list('-created_date', 200),
         ]);
         setData({ users, apps, accounts, withdrawals, transactions });
-      } catch (e) { console.error(e); }
-      setLoading(false);
+        } catch (e) {
+        console.error(e);
+        toast({ title: 'Load failed', description: e.message || 'Unable to load report data.', variant: 'destructive' });
+        }
+        setLoading(false);
     })();
   }, []);
 
@@ -126,7 +131,11 @@ export default function Reports() {
       exportToCsv(`vantoris_monthly_report_${monthName.replace(/\s/g, '_')}`, ['Metric', 'Value'], reportRows);
 
       setReportResult({ monthName, txns: monthTxns.length, aum: totalAUM, growth: assetGrowth });
-    } catch (e) { console.error(e); }
+      toast({ title: 'Report generated', description: `Monthly report for ${monthName} has been emailed and exported.` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Report failed', description: e.message || 'Unable to generate report.', variant: 'destructive' });
+    }
     setGeneratingReport(false);
   }
 

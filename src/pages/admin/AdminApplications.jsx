@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Check, X, CheckSquare, Square, Mail, Clock, FileText, ExternalLink } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
 import { hasOperationsAccess } from '@/lib/operationsAccess';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function AdminApplications() {
   const [applications, setApplications] = useState([]);
@@ -18,6 +19,7 @@ export default function AdminApplications() {
   const [bulkMode, setBulkMode] = useState(false);
   const [sendingReminders, setSendingReminders] = useState(false);
   const [reminderResult, setReminderResult] = useState(null);
+  const { toast } = useToast();
 
   useEffect(() => { loadApps(); }, []);
 
@@ -54,7 +56,11 @@ export default function AdminApplications() {
         sent++;
       }
       setReminderResult({ sent, total: stale.length });
-    } catch (e) { console.error(e); }
+      toast({ title: 'Reminders sent', description: `${sent} reminder${sent !== 1 ? 's' : ''} sent to stale applications.` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Reminders failed', description: e.message || 'Unable to send reminders.', variant: 'destructive' });
+    }
     setSendingReminders(false);
   }
 
@@ -115,7 +121,11 @@ export default function AdminApplications() {
       setSelectedIds([]);
       setBulkMode(false);
       loadApps();
-    } catch (e) { console.error(e); }
+      toast({ title: 'Bulk approve complete', description: `${selectedIds.length} application${selectedIds.length !== 1 ? 's' : ''} approved.` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Bulk approve failed', description: e.message || 'Unable to approve applications.', variant: 'destructive' });
+    }
     setSubmitting(false);
   }
 
@@ -140,7 +150,11 @@ export default function AdminApplications() {
       setSelectedIds([]);
       setBulkMode(false);
       loadApps();
-    } catch (e) { console.error(e); }
+      toast({ title: 'Bulk reject complete', description: `${selectedIds.length} application${selectedIds.length !== 1 ? 's' : ''} rejected.` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Bulk reject failed', description: e.message || 'Unable to reject applications.', variant: 'destructive' });
+    }
     setSubmitting(false);
   }
 
@@ -213,7 +227,11 @@ export default function AdminApplications() {
       setOpeningBalance('');
       setAdminNotes('');
       loadApps();
-    } catch (e) { console.error(e); }
+      toast({ title: 'Application approved', description: `${selected.full_name}'s ${selected.account_type} account has been created.` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Approval failed', description: e.message || 'Unable to approve application.', variant: 'destructive' });
+    }
     setSubmitting(false);
   }
 
@@ -240,7 +258,11 @@ export default function AdminApplications() {
       setSelected(null);
       setAdminNotes('');
       loadApps();
-    } catch (e) { console.error(e); }
+      toast({ title: 'Application rejected', description: `${selected.full_name}'s application has been rejected.` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Rejection failed', description: e.message || 'Unable to reject application.', variant: 'destructive' });
+    }
     setSubmitting(false);
   }
 

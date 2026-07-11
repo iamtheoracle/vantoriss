@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { OPERATIONS_EMAIL } from '@/lib/businessConfig';
 import ReadReceipt from '@/components/vantoris/chat/ReadReceipt';
+import { useToast } from '@/components/ui/use-toast';
 
 const typeIcons = {
   success: { icon: CheckCheck, bg: 'bg-emerald-500/15', color: 'text-emerald-400' },
@@ -43,6 +44,7 @@ export default function Messages() {
   const [showConversations, setShowConversations] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const messagesEndRef = useRef(null);
+  const { toast } = useToast();
 
   useEffect(() => { loadData(); }, []);
 
@@ -103,7 +105,11 @@ export default function Messages() {
       setReplyingTo(null);
       setReplyText('');
       loadData();
-    } catch (e) { console.error(e); }
+      toast({ title: 'Reply sent', description: 'Your message has been sent to support.' });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Reply failed', description: e.message || 'Unable to send reply.', variant: 'destructive' });
+    }
     setSending(false);
   }
 
@@ -125,7 +131,10 @@ export default function Messages() {
       if (adminUnread.length > 0) {
         setThreadMessages(prev => prev.map(m => m.sender === 'admin' ? { ...m, read: true } : m));
       }
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Load failed', description: e.message || 'Unable to open conversation.', variant: 'destructive' });
+    }
   }
 
   async function sendThreadReply() {
@@ -149,7 +158,11 @@ export default function Messages() {
       setThreadMessages(msgs);
       setThreadReply('');
       loadData();
-    } catch (e) { console.error(e); }
+      toast({ title: 'Message sent', description: 'Your reply has been sent to support.' });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Send failed', description: e.message || 'Unable to send message.', variant: 'destructive' });
+    }
     setSending(false);
   }
 
@@ -166,7 +179,10 @@ export default function Messages() {
         setOpenThread(null);
         setShowConversations(false);
       }
-    } catch (e) { console.error('Delete thread error:', e); }
+    } catch (e) {
+      console.error('Delete thread error:', e);
+      toast({ title: 'Delete failed', description: e.message || 'Unable to delete conversation.', variant: 'destructive' });
+    }
   }
 
   function startRenaming(thread) {

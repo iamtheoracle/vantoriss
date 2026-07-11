@@ -4,6 +4,7 @@ import StatusBadge from '@/components/vantoris/StatusBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Check, X, FileText, ExternalLink, BellRing, Trash2, CheckSquare, Square } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function AdminKYC() {
   const [applications, setApplications] = useState([]);
@@ -15,6 +16,7 @@ export default function AdminKYC() {
   const [reminderResult, setReminderResult] = useState(null);
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
+  const { toast } = useToast();
 
   useEffect(() => { loadApps(); }, []);
 
@@ -49,7 +51,11 @@ export default function AdminKYC() {
       setSelected(null);
       setNotes('');
       loadApps();
-    } catch (e) { console.error(e); }
+      toast({ title: `KYC ${status}`, description: `${selected.full_name}'s KYC has been ${status}.` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'KYC action failed', description: e.message || 'Unable to update KYC status.', variant: 'destructive' });
+    }
     setSubmitting(false);
   }
 
@@ -78,7 +84,11 @@ export default function AdminKYC() {
       setSelected(null);
       setNotes('');
       loadApps();
-    } catch (e) { console.error(e); }
+      toast({ title: 'KYC documents reset', description: `${selected.full_name}'s documents have been cleared for re-upload.` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Reset failed', description: e.message || 'Unable to reset KYC documents.', variant: 'destructive' });
+    }
     setSubmitting(false);
   }
 
@@ -101,7 +111,11 @@ export default function AdminKYC() {
         sent++;
       }
       setReminderResult({ sent, total: staleApps.length });
-    } catch (e) { console.error(e); }
+      toast({ title: 'Reminders sent', description: `${sent} KYC reminder${sent !== 1 ? 's' : ''} sent.` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Reminders failed', description: e.message || 'Unable to send reminders.', variant: 'destructive' });
+    }
     setSendingReminders(false);
   }
 
@@ -148,30 +162,34 @@ export default function AdminKYC() {
   async function handleBulkApprove() {
     if (selectedIds.length === 0) return;
     setSubmitting(true);
+    let ok = 0, fail = 0;
     for (const id of selectedIds) {
       const app = applications.find(a => a.id === id);
       if (app) {
-        try { await approveOne(app); } catch (e) { console.error('Bulk approve failed for', id, e); }
+        try { await approveOne(app); ok++; } catch (e) { console.error('Bulk approve failed for', id, e); fail++; }
       }
     }
     setSelectedIds([]);
     setBulkMode(false);
     loadApps();
+    toast({ title: 'Bulk approve complete', description: `${ok} approved${fail > 0 ? `, ${fail} failed` : ''}.` });
     setSubmitting(false);
   }
 
   async function handleBulkReject() {
     if (selectedIds.length === 0) return;
     setSubmitting(true);
+    let ok = 0, fail = 0;
     for (const id of selectedIds) {
       const app = applications.find(a => a.id === id);
       if (app) {
-        try { await rejectOne(app); } catch (e) { console.error('Bulk reject failed for', id, e); }
+        try { await rejectOne(app); ok++; } catch (e) { console.error('Bulk reject failed for', id, e); fail++; }
       }
     }
     setSelectedIds([]);
     setBulkMode(false);
     loadApps();
+    toast({ title: 'Bulk reject complete', description: `${ok} rejected${fail > 0 ? `, ${fail} failed` : ''}.` });
     setSubmitting(false);
   }
 

@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ShieldCheck, Plus, Search, Mail, Phone, Building2, BadgeCheck, Trash2 } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 const ROLES = [
   'Super Administrator', 'Administrator', 'Executive', 'Operations Manager',
@@ -33,6 +34,7 @@ export default function OperationalProfiles() {
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState(null);
   const [saving, setSaving] = useState(false);
+  const { toast } = useToast();
   const [form, setForm] = useState({
     full_name: '', staff_id: '', employee_number: '', position: '', department: '',
     role: 'Operations Officer', work_email: '', work_phone: '', status: 'Active',
@@ -49,8 +51,11 @@ export default function OperationalProfiles() {
       ]);
       setProfiles(profs);
       setUsers(usrs);
-    } catch (e) { console.error(e); }
-    setLoading(false);
+      } catch (e) {
+      console.error(e);
+      toast({ title: 'Load failed', description: e.message || 'Unable to load profiles.', variant: 'destructive' });
+      }
+      setLoading(false);
   }
 
   const filtered = profiles.filter(p =>
@@ -93,7 +98,11 @@ export default function OperationalProfiles() {
       }
       setShowCreate(false);
       loadData();
-    } catch (e) { console.error(e); }
+      toast({ title: editing ? 'Profile updated' : 'Profile created', description: `${form.full_name}'s profile has been saved.` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Save failed', description: e.message || 'Unable to save profile.', variant: 'destructive' });
+    }
     setSaving(false);
   }
 
@@ -101,7 +110,11 @@ export default function OperationalProfiles() {
     try {
       await base44.entities.OperationalProfile.update(profile.id, { status });
       loadData();
-    } catch (e) { console.error(e); }
+      toast({ title: 'Status updated', description: `${profile.full_name} is now ${status}.` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Update failed', description: e.message || 'Unable to update status.', variant: 'destructive' });
+    }
   }
 
   async function handleDeleteProfile(profile) {
@@ -109,7 +122,11 @@ export default function OperationalProfiles() {
     try {
       await base44.entities.OperationalProfile.delete(profile.id);
       loadData();
-    } catch (e) { console.error(e); }
+      toast({ title: 'Profile deleted', description: `${profile.full_name}'s profile has been removed.` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Delete failed', description: e.message || 'Unable to delete profile.', variant: 'destructive' });
+    }
   }
 
   function getLinkedUser(id) {

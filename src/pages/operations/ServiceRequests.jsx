@@ -6,6 +6,7 @@ import InternalComments from '@/components/vantoris/InternalComments';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Check, X, Wrench, FileText, Plus, Trash2, MessageSquare } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function ServiceRequests() {
   const [requests, setRequests] = useState([]);
@@ -18,6 +19,7 @@ export default function ServiceRequests() {
   const [showTemplates, setShowTemplates] = useState(false);
   const [newTemplate, setNewTemplate] = useState({ title: '', body: '', category: 'general' });
   const [savingTemplate, setSavingTemplate] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => { loadData(); }, []);
 
@@ -31,8 +33,11 @@ export default function ServiceRequests() {
       setRequests(reqs);
       setUsers(usrs);
       setTemplates(tmpls);
-    } catch (e) { console.error(e); }
-    setLoading(false);
+      } catch (e) {
+      console.error(e);
+      toast({ title: 'Load failed', description: e.message || 'Unable to load data.', variant: 'destructive' });
+      }
+      setLoading(false);
   }
 
   async function handleCreateTemplate() {
@@ -42,7 +47,11 @@ export default function ServiceRequests() {
       await base44.entities.ServiceTemplate.create(newTemplate);
       setNewTemplate({ title: '', body: '', category: 'general' });
       loadData();
-    } catch (e) { console.error(e); }
+      toast({ title: 'Template created', description: 'Response template saved successfully.' });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Save failed', description: e.message || 'Unable to create template.', variant: 'destructive' });
+    }
     setSavingTemplate(false);
   }
 
@@ -50,7 +59,11 @@ export default function ServiceRequests() {
     try {
       await base44.entities.ServiceTemplate.delete(id);
       loadData();
-    } catch (e) { console.error(e); }
+      toast({ title: 'Template deleted', description: 'Response template removed.' });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Delete failed', description: e.message || 'Unable to delete template.', variant: 'destructive' });
+    }
   }
 
   function applyTemplate(tmpl) {
@@ -84,7 +97,11 @@ export default function ServiceRequests() {
       setSelected(null);
       setAdminNotes('');
       loadData();
-    } catch (e) { console.error(e); }
+      toast({ title: status === 'approved' ? 'Request approved' : 'Request rejected', description: `${selected.service_type} request has been ${status}.` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Action failed', description: e.message || 'Unable to process request.', variant: 'destructive' });
+    }
     setSubmitting(false);
   }
 

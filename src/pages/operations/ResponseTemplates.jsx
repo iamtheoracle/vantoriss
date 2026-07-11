@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { MessageSquare, Plus, Edit2, Trash2, Copy, CheckCircle2 } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 const TEMPLATE_CATEGORIES = ['approval', 'rejection', 'info', 'general'];
 
@@ -14,6 +15,7 @@ export default function ResponseTemplates() {
   const [form, setForm] = useState({ title: '', body: '', category: 'general' });
   const [submitting, setSubmitting] = useState(false);
   const [copied, setCopied] = useState(null);
+  const { toast } = useToast();
 
   useEffect(() => { loadTemplates(); }, []);
 
@@ -36,7 +38,11 @@ export default function ResponseTemplates() {
       setEditingId(null);
       setShowForm(false);
       loadTemplates();
-    } catch (e) { console.error(e); }
+      toast({ title: editingId ? 'Template updated' : 'Template created', description: 'Response template saved successfully.' });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Save failed', description: e.message || 'Unable to save template.', variant: 'destructive' });
+    }
     setSubmitting(false);
   }
 
@@ -45,7 +51,11 @@ export default function ResponseTemplates() {
     try {
       await base44.entities.ServiceTemplate.delete(id);
       loadTemplates();
-    } catch (e) { console.error(e); }
+      toast({ title: 'Template deleted', description: 'Response template removed.' });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Delete failed', description: e.message || 'Unable to delete template.', variant: 'destructive' });
+    }
   }
 
   function handleEdit(template) {

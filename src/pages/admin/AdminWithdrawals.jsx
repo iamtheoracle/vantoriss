@@ -8,6 +8,7 @@ import { CheckSquare, Square, Check, X, ArrowUpRight, CheckCircle2 } from 'lucid
 import { logAuditEntry } from '@/lib/auditLogger';
 import { sendTransactionEmail } from '@/lib/transactionEmails';
 import TransactionFilters from '@/components/TransactionFilters';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function AdminWithdrawals() {
   const [withdrawals, setWithdrawals] = useState([]);
@@ -20,6 +21,7 @@ export default function AdminWithdrawals() {
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [limits, setLimits] = useState([]);
+  const { toast } = useToast();
 
   useEffect(() => { loadData(); }, []);
 
@@ -137,7 +139,11 @@ export default function AdminWithdrawals() {
       setSelected(null);
       setAdminNotes('');
       loadData();
-    } catch (e) { console.error(e); }
+      toast({ title: 'Withdrawal processed', description: `${formatCurrency(Math.abs(selected.amount))} paid via ${selected.method}.` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Payment failed', description: e.message || 'Unable to process withdrawal.', variant: 'destructive' });
+    }
     setSubmitting(false);
   }
 
@@ -149,7 +155,11 @@ export default function AdminWithdrawals() {
       setSelected(null);
       setAdminNotes('');
       loadData();
-    } catch (e) { console.error(e); }
+      toast({ title: 'Withdrawal rejected', description: `${formatCurrency(Math.abs(selected.amount))} request rejected.` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Rejection failed', description: e.message || 'Unable to reject withdrawal.', variant: 'destructive' });
+    }
     setSubmitting(false);
   }
 
@@ -157,6 +167,7 @@ export default function AdminWithdrawals() {
     if (selectedIds.length === 0) return;
     setSubmitting(true);
     const balanceMap = {};
+    let ok = 0, fail = 0;
     for (const id of selectedIds) {
       const wd = withdrawals.find(w => w.id === id);
       if (!wd) continue;
@@ -165,25 +176,29 @@ export default function AdminWithdrawals() {
         const baseBalance = balanceMap[wd.account_id] !== undefined ? balanceMap[wd.account_id] : (acct?.balance || 0);
         await payOne(wd, 'Bulk approved', baseBalance);
         balanceMap[wd.account_id] = baseBalance - Math.abs(wd.amount);
-      } catch (e) { console.error('Bulk pay failed for', id, e); }
+        ok++;
+      } catch (e) { console.error('Bulk pay failed for', id, e); fail++; }
     }
     setSelectedIds([]);
     setBulkMode(false);
     loadData();
+    toast({ title: 'Bulk pay complete', description: `${ok} processed${fail > 0 ? `, ${fail} failed` : ''}.` });
     setSubmitting(false);
   }
 
   async function handleBulkReject() {
     if (selectedIds.length === 0) return;
     setSubmitting(true);
+    let ok = 0, fail = 0;
     for (const id of selectedIds) {
       const wd = withdrawals.find(w => w.id === id);
       if (!wd) continue;
-      try { await rejectOne(wd, 'Bulk rejected'); } catch (e) { console.error('Bulk reject failed for', id, e); }
+      try { await rejectOne(wd, 'Bulk rejected'); ok++; } catch (e) { console.error('Bulk reject failed for', id, e); fail++; }
     }
     setSelectedIds([]);
     setBulkMode(false);
     loadData();
+    toast({ title: 'Bulk reject complete', description: `${ok} rejected${fail > 0 ? `, ${fail} failed` : ''}.` });
     setSubmitting(false);
   }
 

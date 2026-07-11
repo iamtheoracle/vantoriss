@@ -8,6 +8,7 @@ import OpeningContribution from '@/components/vantoris/OpeningContribution';
 import SocialBanner from '@/components/vantoris/SocialBanner';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { Bell, Clock, AlertCircle } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 import ImmersiveBalanceCard from '@/components/vantoris/home/ImmersiveBalanceCard';
 import ConciergeWelcome from '@/components/vantoris/home/ConciergeWelcome';
@@ -31,6 +32,7 @@ export default function Home() {
   const [hideBalance, setHideBalance] = useState(false);
   const [showConcierge, setShowConcierge] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const loadData = useCallback(async () => {
     const me = await base44.auth.me();
@@ -61,6 +63,7 @@ export default function Home() {
     loadData().catch(e => {
       console.error(e);
       setLoadError('Unable to load your dashboard. Please check your connection and try again.');
+      toast({ title: 'Dashboard load failed', description: e.message || 'Unable to load your data.', variant: 'destructive' });
     }).finally(() => {
       setLoading(false);
       // Show concierge welcome on fresh arrival (only for approved members)
@@ -77,6 +80,7 @@ export default function Home() {
     loadData().catch(e => {
       console.error(e);
       setLoadError('Unable to load your dashboard. Please check your connection and try again.');
+      toast({ title: 'Dashboard load failed', description: e.message || 'Unable to load your data.', variant: 'destructive' });
     }).finally(() => setLoading(false));
   }
 

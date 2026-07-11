@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { MessageSquare, Send } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function InternalComments({ entityType, entityId }) {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [content, setContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!entityId) return;
@@ -21,7 +23,10 @@ export default function InternalComments({ entityType, entityId }) {
         100
       );
       setComments(all);
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Load failed', description: e.message || 'Unable to load comments.', variant: 'destructive' });
+    }
     setLoading(false);
   }
 
@@ -39,7 +44,11 @@ export default function InternalComments({ entityType, entityId }) {
       });
       setContent('');
       loadComments();
-    } catch (e) { console.error(e); }
+      toast({ title: 'Comment added', description: 'Your internal comment has been posted.' });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Comment failed', description: e.message || 'Unable to add comment.', variant: 'destructive' });
+    }
     setSubmitting(false);
   }
 

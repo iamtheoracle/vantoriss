@@ -6,6 +6,7 @@ import {
   Menu, X, Trash2, Edit3, Check, CheckCheck, MoreVertical, ArrowLeft, Star
 } from 'lucide-react';
 import { getMessageKey, isStarred, toggleStar } from '@/lib/starredMessages';
+import { useToast } from '@/components/ui/use-toast';
 
 const COLORS = {
   container: '#151c26',
@@ -75,6 +76,7 @@ export default function AgentChat({
   const [starredOnly, setStarredOnly] = useState(false);
   const [starredVersion, setStarredVersion] = useState(0);
   const messagesEndRef = useRef(null);
+  const { toast } = useToast();
 
   useEffect(() => { loadConversations(); }, []);
 
@@ -105,7 +107,10 @@ export default function AgentChat({
         setActiveConv(filtered[0]);
         setMessages(filtered[0].messages || []);
       }
-    } catch (e) { console.error('Load conversations error:', e); }
+    } catch (e) {
+      console.error('Load conversations error:', e);
+      toast({ title: 'Chat load failed', description: e.message || 'Unable to load conversations.', variant: 'destructive' });
+    }
     setLoadingConvs(false);
   }
 
@@ -182,6 +187,7 @@ export default function AgentChat({
       await base44.agents.addMessage(conv, { role: 'user', content });
     } catch (e) {
       console.error('Send message error:', e);
+      toast({ title: 'Message failed', description: e.message || 'Unable to send message. Please try again.', variant: 'destructive' });
       setLoading(false);
     }
   }

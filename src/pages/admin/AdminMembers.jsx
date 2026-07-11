@@ -7,6 +7,7 @@ import { generateAccountNumber } from '@/lib/formatCurrency';
 import { logAuditEntry } from '@/lib/auditLogger';
 import { exportToCsv } from '@/lib/exportCsv';
 import { sendTransactionEmail } from '@/lib/transactionEmails';
+import { useToast } from '@/components/ui/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import InviteUserDialog from '@/components/vantoris/InviteUserDialog';
@@ -29,6 +30,7 @@ export default function AdminMembers() {
   const [deleting, setDeleting] = useState(false);
   const [activityMember, setActivityMember] = useState(null);
   const [referrals, setReferrals] = useState([]);
+  const { toast } = useToast();
 
   useEffect(() => { loadData(); }, []);
 
@@ -63,7 +65,11 @@ export default function AdminMembers() {
       });
       setDeleteTarget(null);
       loadData();
-    } catch (e) { console.error(e); }
+      toast({ title: 'Member deleted', description: `${deleteTarget.full_name} and all associated data have been removed.` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Delete failed', description: e.message || 'Unable to delete member.', variant: 'destructive' });
+    }
     setDeleting(false);
   }
 
@@ -124,7 +130,11 @@ export default function AdminMembers() {
       setShowCreate(null);
       setAcctForm({ account_type: 'Personal', account_name: '', opening_balance: '' });
       loadData();
-    } catch (e) { console.error(e); }
+      toast({ title: 'Account created', description: `${acctForm.account_type} account created for ${showCreate.full_name}.` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Create failed', description: e.message || 'Unable to create account.', variant: 'destructive' });
+    }
     setCreating(false);
   }
 
@@ -433,7 +443,11 @@ export default function AdminMembers() {
                     });
                     setNotesMember(null);
                     loadData();
-                  } catch (e) { console.error(e); }
+                    toast({ title: 'Notes saved', description: `Admin notes updated for ${notesMember.full_name}.` });
+                  } catch (e) {
+                    console.error(e);
+                    toast({ title: 'Save failed', description: e.message || 'Unable to save notes.', variant: 'destructive' });
+                  }
                   setSavingNotes(false);
                 }}
                 className="w-full py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl disabled:opacity-40"

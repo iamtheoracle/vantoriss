@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { Plus, TrendingUp, Eye, EyeOff } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, Tooltip } from 'recharts';
 
@@ -69,6 +70,7 @@ export default function Investments() {
   const [showCreateAccount, setShowCreateAccount] = useState(false);
   const [newAccount, setNewAccount] = useState({ account_type: 'Forex', account_name: '', initial_balance: '' });
   const [creating, setCreating] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => { loadAccounts(); }, []);
 
@@ -77,8 +79,11 @@ export default function Investments() {
       const user = await base44.auth.me();
       const accts = await base44.entities.TradingAccount.filter({ user_id: user.id }, '-created_date', 10);
       setAccounts(accts);
-    } catch (e) { console.error(e); }
-    setLoading(false);
+      } catch (e) {
+      console.error(e);
+      toast({ title: 'Load failed', description: e.message || 'Unable to load trading accounts.', variant: 'destructive' });
+      }
+      setLoading(false);
   }
 
   async function createAccount() {
@@ -107,7 +112,11 @@ export default function Investments() {
       setShowCreateAccount(false);
       setNewAccount({ account_type: 'Forex', account_name: '', initial_balance: '' });
       loadAccounts();
-    } catch (e) { console.error(e); }
+      toast({ title: 'Trading account created', description: `${newAccount.account_type} account activated successfully.` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Create failed', description: e.message || 'Unable to create trading account.', variant: 'destructive' });
+    }
     setCreating(false);
   }
 

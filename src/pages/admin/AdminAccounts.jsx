@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Plus, Search, Download, History, Pencil, ArrowLeft, ScrollText, Mail, Lock, Unlock, Upload } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
 import { sendTransactionEmail } from '@/lib/transactionEmails';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function AdminAccounts() {
   const [accounts, setAccounts] = useState([]);
@@ -25,6 +26,7 @@ export default function AdminAccounts() {
   const [freezing, setFreezing] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [importing, setImporting] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => { loadAccounts(); }, []);
 
@@ -44,7 +46,10 @@ export default function AdminAccounts() {
       ]);
       setTransactions(txns);
       setAuditLogs(logs);
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Failed to load history', description: e.message || 'Unable to load transaction history.', variant: 'destructive' });
+    }
     setLoadingTxns(false);
   }
 
@@ -106,7 +111,11 @@ export default function AdminAccounts() {
       setShowTxn(null);
       setTxnForm({ type: 'deposit', amount: '', description: '', reference: '', transaction_date: '' });
       loadAccounts();
-    } catch (e) { console.error(e); }
+      toast({ title: 'Transaction added', description: `${formatCurrency(Math.abs(parseFloat(txnForm.amount)))} ${txnForm.type} processed successfully.` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Transaction failed', description: e.message || 'Unable to add transaction.', variant: 'destructive' });
+    }
     setSubmitting(false);
   }
 
@@ -157,7 +166,11 @@ export default function AdminAccounts() {
       setViewingHistory({ ...viewingHistory, balance: newBalance });
       viewHistory({ ...viewingHistory, balance: newBalance });
       loadAccounts();
-    } catch (e) { console.error(e); }
+      toast({ title: 'Transaction updated', description: 'The transaction has been edited and balances recalculated.' });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Edit failed', description: e.message || 'Unable to edit transaction.', variant: 'destructive' });
+    }
     setSubmitting(false);
   }
 
@@ -187,7 +200,11 @@ export default function AdminAccounts() {
         'Balance After': t.balance_after,
       }));
       exportToCsv(`account_${viewingHistory.account_number}_transactions`, headers, rows);
-    } catch (e) { console.error(e); }
+      toast({ title: 'Export complete', description: 'Transactions exported to CSV.' });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Export failed', description: e.message || 'Unable to export CSV.', variant: 'destructive' });
+    }
     setExporting(false);
   }
 
@@ -220,7 +237,11 @@ export default function AdminAccounts() {
       setToggleFreezeAccount(null);
       loadAccounts();
       if (viewingHistory) viewHistory({ ...viewingHistory, status: newStatus });
-    } catch (e) { console.error(e); }
+      toast({ title: newStatus === 'frozen' ? 'Account frozen' : 'Account unfrozen', description: `${account.account_name} is now ${newStatus}.` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Action failed', description: e.message || 'Unable to change account status.', variant: 'destructive' });
+    }
     setFreezing(false);
   }
 
@@ -281,7 +302,7 @@ export default function AdminAccounts() {
       loadAccounts();
     } catch (e) {
       console.error(e);
-      alert('Error importing: ' + e.message);
+      toast({ title: 'Import failed', description: e.message || 'Unable to import transactions.', variant: 'destructive' });
     }
     setImporting(false);
   }

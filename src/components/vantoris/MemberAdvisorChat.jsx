@@ -23,6 +23,7 @@ import ChatInputBar from '@/components/vantoris/chat/ChatInputBar';
 import BankingCards from '@/components/vantoris/chat/BankingCards';
 import TypingIndicator from '@/components/vantoris/chat/TypingIndicator';
 import { useWhatsAppConfig } from '@/hooks/useWhatsAppConfig';
+import { useToast } from '@/components/ui/use-toast';
 
 const SUGGESTIONS = [
   'What is my current account balance?',
@@ -72,6 +73,7 @@ export default function MemberAdvisorChat() {
   const [starredVersion, setStarredVersion] = useState(0);
   const messagesEndRef = useRef(null);
   const whatsappNumber = useWhatsAppConfig();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (activeTab === 'advisor') {
@@ -109,6 +111,7 @@ export default function MemberAdvisorChat() {
       }
     } catch (e) {
       console.error('Load conversations error:', e);
+      toast({ title: 'Chat load failed', description: e.message || 'Unable to load conversations.', variant: 'destructive' });
     }
     setLoadingConv(false);
   }
@@ -163,6 +166,7 @@ export default function MemberAdvisorChat() {
       await base44.agents.addMessage(conv, { role: 'user', content: text });
     } catch (e) {
       console.error('Send message error:', e);
+      toast({ title: 'Message failed', description: e.message || 'Unable to send message. Please try again.', variant: 'destructive' });
       setLoading(false);
     }
   }

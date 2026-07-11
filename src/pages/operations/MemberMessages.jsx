@@ -6,6 +6,7 @@ import {
   MoreVertical, ArrowLeft, Search, X
 } from 'lucide-react';
 import ReadReceipt from '@/components/vantoris/chat/ReadReceipt';
+import { useToast } from '@/components/ui/use-toast';
 
 // localStorage helpers for custom labels
 const LABELS_KEY = 'vantoris_admin_thread_labels';
@@ -31,6 +32,7 @@ export default function MemberMessages() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showConversation, setShowConversation] = useState(false);
   const messagesEndRef = useRef(null);
+  const { toast } = useToast();
 
   useEffect(() => { loadData(); }, []);
 
@@ -48,8 +50,11 @@ export default function MemberMessages() {
       thrds.forEach(t => { t._label = labels[t.id] || null; });
       setThreads(thrds);
       setUsers(usrs);
-    } catch (e) { console.error(e); }
-    setLoading(false);
+      } catch (e) {
+      console.error(e);
+      toast({ title: 'Load failed', description: e.message || 'Unable to load messages.', variant: 'destructive' });
+      }
+      setLoading(false);
   }
 
   function getUser(id) { return users.find(u => u.id === id); }
@@ -73,7 +78,10 @@ export default function MemberMessages() {
       if (memberUnread.length > 0) {
         setMessages(prev => prev.map(m => m.sender === 'member' ? { ...m, read: true } : m));
       }
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Thread error', description: e.message || 'Unable to open conversation.', variant: 'destructive' });
+    }
   }
 
   async function sendReply() {
@@ -103,7 +111,11 @@ export default function MemberMessages() {
       setMessages(msgs);
       setReply('');
       loadData();
-    } catch (e) { console.error(e); }
+      toast({ title: 'Reply sent', description: 'Your message has been sent to the member.' });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Reply failed', description: e.message || 'Unable to send reply.', variant: 'destructive' });
+    }
     setSending(false);
   }
 
@@ -114,7 +126,11 @@ export default function MemberMessages() {
       setSelected(null);
       setShowConversation(false);
       loadData();
-    } catch (e) { console.error(e); }
+      toast({ title: 'Thread closed', description: 'The conversation has been closed.' });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Close failed', description: e.message || 'Unable to close thread.', variant: 'destructive' });
+    }
   }
 
   async function deleteThread(threadId) {
@@ -130,7 +146,10 @@ export default function MemberMessages() {
         setSelected(null);
         setShowConversation(false);
       }
-    } catch (e) { console.error('Delete thread error:', e); }
+    } catch (e) {
+      console.error('Delete thread error:', e);
+      toast({ title: 'Delete failed', description: e.message || 'Unable to delete thread.', variant: 'destructive' });
+    }
   }
 
   function startRenaming(thread) {

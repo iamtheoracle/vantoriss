@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Zap, Lock, Unlock, DollarSign, Check, X } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
+import { useToast } from '@/components/ui/use-toast';
 
 const QUICK_ACTIONS = [
   { id: 'freeze', label: 'Freeze Account', icon: Lock, color: 'text-red-400', bg: 'bg-crimson/15' },
@@ -19,6 +20,7 @@ export default function QuickActionsMenu({ onActionComplete }) {
   const [adjustmentReason, setAdjustmentReason] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const { toast } = useToast();
 
   async function handleActionSelect(actionId) {
     setSelectedAction(actionId);
@@ -27,8 +29,11 @@ export default function QuickActionsMenu({ onActionComplete }) {
       try {
         const accts = await base44.entities.Account.list('-created_date', 100);
         setAccounts(accts);
-      } catch (e) { console.error(e); }
-      setLoading(false);
+        } catch (e) {
+        console.error(e);
+        toast({ title: 'Load failed', description: e.message || 'Unable to load accounts.', variant: 'destructive' });
+        }
+        setLoading(false);
     }
   }
 
@@ -53,7 +58,11 @@ export default function QuickActionsMenu({ onActionComplete }) {
       setSelectedAction(null);
       setSelectedAccount(null);
       onActionComplete?.();
-    } catch (e) { console.error(e); }
+      toast({ title: 'Account frozen', description: `${account.account_name} has been frozen.` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Freeze failed', description: e.message || 'Unable to freeze account.', variant: 'destructive' });
+    }
     setSubmitting(false);
   }
 
@@ -78,7 +87,11 @@ export default function QuickActionsMenu({ onActionComplete }) {
       setSelectedAction(null);
       setSelectedAccount(null);
       onActionComplete?.();
-    } catch (e) { console.error(e); }
+      toast({ title: 'Account unfrozen', description: `${account.account_name} is now active.` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Unfreeze failed', description: e.message || 'Unable to unfreeze account.', variant: 'destructive' });
+    }
     setSubmitting(false);
   }
 
@@ -124,7 +137,11 @@ export default function QuickActionsMenu({ onActionComplete }) {
       setAdjustmentAmount('');
       setAdjustmentReason('');
       onActionComplete?.();
-    } catch (e) { console.error(e); }
+      toast({ title: 'Balance adjusted', description: `${account.account_name} adjusted by ${amount > 0 ? '+' : ''}${amount.toFixed(2)}.` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Adjustment failed', description: e.message || 'Unable to adjust balance.', variant: 'destructive' });
+    }
     setSubmitting(false);
   }
 
