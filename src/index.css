@@ -173,6 +173,53 @@
   border: 1px solid rgba(7, 28, 56, 0.2);
   box-shadow: 0 8px 32px rgba(7, 28, 56, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
+/* White text on dark surfaces — deep, crisp, elegant shadows */
+.vantoris-glass-dock,
+.vantoris-balance-hero,
+.vantoris-chat-bubble-out {
+  color: #FFFFFF;
+}
+.vantoris-glass-dock h1,
+.vantoris-glass-dock h2,
+.vantoris-glass-dock h3,
+.vantoris-glass-dock h4,
+.vantoris-glass-dock p,
+.vantoris-glass-dock span,
+.vantoris-glass-dock li,
+.vantoris-glass-dock td,
+.vantoris-glass-dock div,
+.vantoris-balance-hero h1,
+.vantoris-balance-hero h2,
+.vantoris-balance-hero h3,
+.vantoris-balance-hero h4,
+.vantoris-balance-hero p,
+.vantoris-balance-hero span,
+.vantoris-balance-hero li,
+.vantoris-balance-hero td,
+.vantoris-balance-hero div,
+.vantoris-chat-bubble-out p,
+.vantoris-chat-bubble-out span {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 1px rgba(0, 0, 0, 0.3);
+}
+.vantoris-glass-dock h1,
+.vantoris-balance-hero h1,
+.vantoris-chat-bubble-out h1 {
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35), 0 0 1px rgba(0, 0, 0, 0.4);
+}
+.vantoris-glass-dock h2,
+.vantoris-balance-hero h2,
+.vantoris-chat-bubble-out h2 {
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+.vantoris-glass-dock h3,
+.vantoris-balance-hero h3,
+.vantoris-chat-bubble-out h3 {
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35), 0 1px 1px rgba(0, 0, 0, 0.25);
+}
+.vantoris-glass-dock a,
+.vantoris-balance-hero a {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 0 1px rgba(0, 0, 0, 0.3);
+}
 
 .vantoris-balance-glow {
   background: radial-gradient(ellipse at 50% 50%, rgba(201, 162, 39, 0.06) 0%, transparent 70%);
@@ -226,6 +273,22 @@
   background: #FFFFFF;
   border: 1px solid rgba(7, 28, 56, 0.06);
   box-shadow: 0 1px 6px rgba(7, 28, 56, 0.04);
+}
+
+/* Global white text on navy backgrounds — crisp, deep, pretty shadow */
+.bg-navy,
+.bg-navy\/90,
+.bg-navy\/80 {
+  color: #FFFFFF;
+}
+.bg-navy h1, .bg-navy h2, .bg-navy h3, .bg-navy h4, .bg-navy p, .bg-navy span, .bg-navy div, .bg-navy li, .bg-navy a, .bg-navy td {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 1px rgba(0, 0, 0, 0.3);
+}
+.bg-navy h1, .bg-navy h2 {
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+.bg-navy h3 {
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35), 0 1px 1px rgba(0, 0, 0, 0.25);
 }
 
 /* Mobile Select Bottom Sheet */
