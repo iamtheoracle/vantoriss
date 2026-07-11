@@ -281,7 +281,7 @@ export default function AdminApplications() {
         <button
           onClick={handleSendReminders}
           disabled={sendingReminders}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-brass/15 text-brass rounded-xl text-sm font-medium hover:bg-brass/25 transition-all disabled:opacity-40 whitespace-nowrap"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-brass/15 text-brass rounded-xl text-sm font-medium hover:bg-brass/25 transition-all disabled:opacity-40 whitespace-nowrap shadow-[0_2px_8px_rgba(201,162,39,0.15),inset_0_1px_0_rgba(255,255,255,0.15)]"
         >
           <Mail size={16} /> {sendingReminders ? 'Sending...' : 'Send Reminders'}
         </button>
@@ -331,10 +331,10 @@ export default function AdminApplications() {
         </div>
       )}
 
-      <div className="hidden md:block vantoris-card overflow-x-auto">
+      <div className="hidden md:block vantoris-card overflow-x-auto shadow-[0_8px_32px_rgba(7,28,56,0.08),0_2px_8px_rgba(7,28,56,0.04)]">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-[#242D38] bg-[#1a2535]">
+            <tr className="border-b border-[#242D38] bg-gradient-to-r from-[#0E1A2B] to-[#1a2535] shadow-[0_4px_16px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.05)]">
               {bulkMode && (
                 <th className="px-3 py-3 w-10">
                   <button onClick={toggleSelectAll} className="text-[#AAB4C3] hover:text-brass transition-all">
@@ -344,12 +344,12 @@ export default function AdminApplications() {
                   </button>
                 </th>
               )}
-              <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3">Applicant</th>
-              <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3">Type</th>
-              <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3">KYC</th>
-              <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3">Status</th>
-              <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3">Date</th>
-              <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3">Action</th>
+              <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3 [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">Applicant</th>
+              <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3 [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">Type</th>
+              <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3 [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">KYC</th>
+              <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3 [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">Status</th>
+              <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3 [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">Date</th>
+              <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3 [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -386,7 +386,7 @@ export default function AdminApplications() {
                     {app.application_status === 'pending' && app.kyc_status === 'approved' && (
                       <button
                         onClick={() => setSelected(app)}
-                        className="px-3 py-1.5 bg-brass/15 text-brass rounded-lg text-xs font-medium hover:bg-brass/25 transition-all"
+                        className="px-3 py-1.5 bg-brass/15 text-brass rounded-lg text-xs font-medium hover:bg-brass/25 transition-all shadow-[0_2px_6px_rgba(201,162,39,0.12)]"
                       >
                         Review
                       </button>
@@ -436,7 +436,7 @@ export default function AdminApplications() {
               <div className="flex items-center gap-2">
                 <StatusBadge status={app.kyc_status} />
                 {app.application_status === 'pending' && app.kyc_status === 'approved' && !bulkMode && (
-                  <button onClick={() => setSelected(app)} className="flex-1 py-2 bg-brass/15 text-brass rounded-lg text-xs font-medium">
+                  <button onClick={() => setSelected(app)} className="flex-1 py-2 bg-brass/15 text-brass rounded-lg text-xs font-medium shadow-[0_2px_6px_rgba(201,162,39,0.12)]">
                     Review
                   </button>
                 )}
