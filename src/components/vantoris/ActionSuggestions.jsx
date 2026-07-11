@@ -122,6 +122,12 @@ export default function ActionSuggestions({ onAction }) {
         <span className="text-xs font-bold uppercase tracking-wider text-gray">Pending Actions</span>
         <span className="text-[10px] font-bold bg-crimson/10 text-crimson px-2 py-0.5 rounded-full">{totalCount}</span>
       </div>
+      <button
+        onClick={() => onAction('Generate a new account with account and routing number. I will provide the member details.')}
+        className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl bg-navy/5 border border-navy/10 text-navy text-xs font-semibold hover:bg-navy/10 transition-all"
+      >
+        <UserPlus size={14} /> Generate New Account
+      </button>
       {CATEGORIES.map((cat) => {
         const catItems = items[cat.key] || [];
         if (catItems.length === 0) return null;

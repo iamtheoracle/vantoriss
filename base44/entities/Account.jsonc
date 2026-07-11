@@ -8,6 +8,10 @@
     "account_number": {
       "type": "string"
     },
+    "routing_number": {
+      "type": "string",
+      "description": "Bank routing number for transfers"
+    },
     "account_type": {
       "type": "string",
       "enum": [

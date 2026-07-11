@@ -157,9 +157,9 @@ export default function AgentChat({
     setRenameValue('');
   }
 
-  async function sendMessage() {
-    if (!input.trim() || loading) return;
-    const content = input.trim();
+  async function sendMessage(contentOverride) {
+    const content = (contentOverride || input).trim();
+    if (!content || loading) return;
     setInput('');
 
     setLoading(true);

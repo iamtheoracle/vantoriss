@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { CheckSquare, Square, Check, X, ShieldCheck, Mail } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
 import { sendTransactionEmail } from '@/lib/transactionEmails';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function VerificationRequests() {
   const [requests, setRequests] = useState([]);
@@ -19,6 +20,7 @@ export default function VerificationRequests() {
   const [submitting, setSubmitting] = useState(false);
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
+  const { toast } = useToast();
 
   useEffect(() => { loadData(); }, []);
 
@@ -112,10 +114,14 @@ export default function VerificationRequests() {
     setSubmitting(true);
     try {
       await approveOne(selected, adminNotes);
+      toast({ title: 'Funding approved', description: `${formatCurrency(Math.abs(selected.amount))} credited successfully.` });
       setSelected(null);
       setAdminNotes('');
       loadData();
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Approval failed', description: e.message || 'An error occurred while approving. Please try again.', variant: 'destructive' });
+    }
     setSubmitting(false);
   }
 
@@ -124,10 +130,14 @@ export default function VerificationRequests() {
     setSubmitting(true);
     try {
       await rejectOne(selected, adminNotes);
+      toast({ title: 'Funding rejected', description: 'The funding submission has been rejected.' });
       setSelected(null);
       setAdminNotes('');
       loadData();
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Rejection failed', description: e.message || 'An error occurred while rejecting. Please try again.', variant: 'destructive' });
+    }
     setSubmitting(false);
   }
 
