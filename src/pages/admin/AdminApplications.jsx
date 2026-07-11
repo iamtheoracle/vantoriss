@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { formatCurrency, generateAccountNumber } from '@/lib/formatCurrency';
 import StatusBadge from '@/components/vantoris/StatusBadge';
+import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Check, X, CheckSquare, Square, Mail, Clock, FileText, ExternalLink } from 'lucide-react';
+import { Check, X, CheckSquare, Square, Mail, FileText, ExternalLink } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
 import { hasOperationsAccess } from '@/lib/operationsAccess';
 import { useToast } from '@/components/ui/use-toast';
@@ -273,26 +274,28 @@ export default function AdminApplications() {
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-white mb-1">Applications</h1>
-      <p className="text-[#AAB4C3] text-sm mb-6">Review and approve member applications</p>
-
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
+    <OperationsPageLayout
+      title="Applications"
+      description="Review and approve member applications"
+      icon={FileText}
+      breadcrumb="Operations Center"
+      actions={
         <button
           onClick={handleSendReminders}
           disabled={sendingReminders}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-brass/15 text-brass rounded-xl text-sm font-medium hover:bg-brass/25 transition-all disabled:opacity-40 whitespace-nowrap shadow-[0_2px_8px_rgba(201,162,39,0.15),inset_0_1px_0_rgba(255,255,255,0.15)]"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-brass/12 text-brass rounded-xl text-sm font-medium hover:bg-brass/20 transition-all disabled:opacity-40 whitespace-nowrap border border-brass/20"
         >
           <Mail size={16} /> {sendingReminders ? 'Sending...' : 'Send Reminders'}
         </button>
-        {reminderResult && (
-          <span className="text-[#AAB4C3] text-sm">
-            {reminderResult.sent > 0
-              ? `✓ Sent ${reminderResult.sent} reminder${reminderResult.sent > 1 ? 's' : ''}`
-              : 'No stale applications found'}
-          </span>
-        )}
-      </div>
+      }
+    >
+      {reminderResult && (
+        <p className="text-muted-foreground text-sm mb-4">
+          {reminderResult.sent > 0
+            ? `✓ Sent ${reminderResult.sent} reminder${reminderResult.sent > 1 ? 's' : ''}`
+            : 'No stale applications found'}
+        </p>
+      )}
 
       {/* Bulk Action Bar */}
       {bulkEligible.length > 0 && (
@@ -300,14 +303,16 @@ export default function AdminApplications() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => { setBulkMode(!bulkMode); setSelectedIds([]); }}
-              className={`flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
-                bulkMode ? 'bg-brass/15 text-brass' : 'bg-[#242D38] text-[#AAB4C3] hover:text-white'
+              className={`flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all border ${
+                bulkMode
+                  ? 'bg-brass/12 text-brass border-brass/20'
+                  : 'bg-card text-muted-foreground border-border hover:text-foreground hover:bg-slate/50'
               }`}
             >
               <CheckSquare size={14} /> Bulk Select
             </button>
             {bulkMode && selectedIds.length > 0 && (
-              <span className="text-[#AAB4C3] text-xs">{selectedIds.length} selected</span>
+              <span className="text-muted-foreground text-xs">{selectedIds.length} selected</span>
             )}
           </div>
           {bulkMode && selectedIds.length > 0 && (
@@ -315,14 +320,14 @@ export default function AdminApplications() {
               <button
                 onClick={handleBulkApprove}
                 disabled={submitting}
-                className="flex items-center justify-center gap-1.5 px-4 py-2 bg-olive text-white rounded-xl text-xs font-semibold hover:bg-olive/80 transition-all disabled:opacity-40 whitespace-nowrap"
+                className="flex items-center justify-center gap-1.5 px-4 py-2 bg-mint text-white rounded-xl text-xs font-semibold hover:bg-mint/90 transition-all disabled:opacity-40 whitespace-nowrap"
               >
                 <Check size={14} /> Approve
               </button>
               <button
                 onClick={handleBulkReject}
                 disabled={submitting}
-                className="flex items-center justify-center gap-1.5 px-4 py-2 bg-crimson text-white rounded-xl text-xs font-semibold hover:bg-crimson/80 transition-all disabled:opacity-40 whitespace-nowrap"
+                className="flex items-center justify-center gap-1.5 px-4 py-2 bg-crimson text-white rounded-xl text-xs font-semibold hover:bg-crimson/90 transition-all disabled:opacity-40 whitespace-nowrap"
               >
                 <X size={14} /> Reject
               </button>
@@ -331,38 +336,39 @@ export default function AdminApplications() {
         </div>
       )}
 
-      <div className="hidden md:block vantoris-card overflow-x-auto shadow-[0_8px_32px_rgba(7,28,56,0.08),0_2px_8px_rgba(7,28,56,0.04)]">
+      {/* Desktop Table */}
+      <div className="hidden md:block vantoris-card overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-[#242D38] bg-gradient-to-r from-[#0E1A2B] to-[#1a2535] shadow-[0_4px_16px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.05)]">
+            <tr className="border-b border-border bg-slate/50">
               {bulkMode && (
                 <th className="px-3 py-3 w-10">
-                  <button onClick={toggleSelectAll} className="text-[#AAB4C3] hover:text-brass transition-all">
+                  <button onClick={toggleSelectAll} className="text-muted-foreground hover:text-brass transition-all">
                     {selectedIds.length === bulkEligible.length && bulkEligible.length > 0
                       ? <CheckSquare size={16} className="text-brass" />
                       : <Square size={16} />}
                   </button>
                 </th>
               )}
-              <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3 [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">Applicant</th>
-              <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3 [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">Type</th>
-              <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3 [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">KYC</th>
-              <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3 [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">Status</th>
-              <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3 [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">Date</th>
-              <th className="text-left text-[#AAB4C3] text-xs font-medium uppercase tracking-wider px-5 py-3 [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">Action</th>
+              <th className="text-left text-muted-foreground text-xs font-semibold uppercase tracking-wider px-5 py-3">Applicant</th>
+              <th className="text-left text-muted-foreground text-xs font-semibold uppercase tracking-wider px-5 py-3">Type</th>
+              <th className="text-left text-muted-foreground text-xs font-semibold uppercase tracking-wider px-5 py-3">KYC</th>
+              <th className="text-left text-muted-foreground text-xs font-semibold uppercase tracking-wider px-5 py-3">Status</th>
+              <th className="text-left text-muted-foreground text-xs font-semibold uppercase tracking-wider px-5 py-3">Date</th>
+              <th className="text-left text-muted-foreground text-xs font-semibold uppercase tracking-wider px-5 py-3">Action</th>
             </tr>
           </thead>
           <tbody>
             {applications.map(app => {
               const isBulkEligible = bulkMode && app.application_status === 'pending' && app.kyc_status === 'approved';
               return (
-                <tr key={app.id} className={`border-b border-[#242D38]/40 hover:bg-[#242D38]/20 transition-all ${
+                <tr key={app.id} className={`border-b border-border/60 hover:bg-slate/30 transition-all ${
                   selectedIds.includes(app.id) ? 'bg-brass/5' : ''
                 }`}>
                   {bulkMode && (
                     <td className="px-3 py-4">
                       {isBulkEligible ? (
-                        <button onClick={() => toggleSelect(app.id)} className="text-[#AAB4C3] hover:text-brass">
+                        <button onClick={() => toggleSelect(app.id)} className="text-muted-foreground hover:text-brass">
                           {selectedIds.includes(app.id)
                             ? <CheckSquare size={16} className="text-brass" />
                             : <Square size={16} />}
@@ -373,26 +379,26 @@ export default function AdminApplications() {
                     </td>
                   )}
                   <td className="px-5 py-4">
-                    <p className="text-white font-medium">{app.full_name}</p>
-                    <p className="text-[#AAB4C3] text-xs">{app.email}</p>
+                    <p className="text-foreground font-medium">{app.full_name}</p>
+                    <p className="text-muted-foreground text-xs">{app.email}</p>
                   </td>
-                  <td className="px-5 py-4 text-white">{app.account_type}</td>
+                  <td className="px-5 py-4 text-foreground">{app.account_type}</td>
                   <td className="px-5 py-4"><StatusBadge status={app.kyc_status} /></td>
                   <td className="px-5 py-4"><StatusBadge status={app.application_status} /></td>
-                  <td className="px-5 py-4 text-[#AAB4C3] text-xs">
+                  <td className="px-5 py-4 text-muted-foreground text-xs">
                     {new Date(app.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </td>
                   <td className="px-5 py-4">
                     {app.application_status === 'pending' && app.kyc_status === 'approved' && (
                       <button
                         onClick={() => setSelected(app)}
-                        className="px-3 py-1.5 bg-brass/15 text-brass rounded-lg text-xs font-medium hover:bg-brass/25 transition-all shadow-[0_2px_6px_rgba(201,162,39,0.12)]"
+                        className="px-3 py-1.5 bg-navy/8 text-navy rounded-lg text-xs font-medium hover:bg-navy/14 transition-all border border-navy/10"
                       >
                         Review
                       </button>
                     )}
                     {app.application_status === 'pending' && app.kyc_status !== 'approved' && (
-                      <span className="text-[#AAB4C3] text-xs">Awaiting KYC</span>
+                      <span className="text-muted-foreground text-xs">Awaiting KYC</span>
                     )}
                   </td>
                 </tr>
@@ -400,7 +406,7 @@ export default function AdminApplications() {
             })}
             {applications.length === 0 && (
               <tr>
-                <td colSpan={bulkMode ? 7 : 6} className="py-12 text-center text-[#AAB4C3]">No applications</td>
+                <td colSpan={bulkMode ? 7 : 6} className="py-12 text-center text-muted-foreground">No applications</td>
               </tr>
             )}
           </tbody>
@@ -416,7 +422,7 @@ export default function AdminApplications() {
               {bulkMode && (
                 <div className="flex items-center gap-2">
                   {isBulkEligible ? (
-                    <button onClick={() => toggleSelect(app.id)} className="text-[#AAB4C3]">
+                    <button onClick={() => toggleSelect(app.id)} className="text-muted-foreground">
                       {selectedIds.includes(app.id) ? <CheckSquare size={16} className="text-brass" /> : <Square size={16} />}
                     </button>
                   ) : <span className="inline-block w-4" />}
@@ -424,68 +430,68 @@ export default function AdminApplications() {
               )}
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-white font-medium text-sm">{app.full_name}</p>
-                  <p className="text-[#AAB4C3] text-xs">{app.email}</p>
+                  <p className="text-foreground font-medium text-sm">{app.full_name}</p>
+                  <p className="text-muted-foreground text-xs">{app.email}</p>
                 </div>
                 <StatusBadge status={app.application_status} />
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="text-white">{app.account_type}</span>
-                <span className="text-[#AAB4C3]">{new Date(app.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                <span className="text-foreground">{app.account_type}</span>
+                <span className="text-muted-foreground">{new Date(app.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
               </div>
               <div className="flex items-center gap-2">
                 <StatusBadge status={app.kyc_status} />
                 {app.application_status === 'pending' && app.kyc_status === 'approved' && !bulkMode && (
-                  <button onClick={() => setSelected(app)} className="flex-1 py-2 bg-brass/15 text-brass rounded-lg text-xs font-medium shadow-[0_2px_6px_rgba(201,162,39,0.12)]">
+                  <button onClick={() => setSelected(app)} className="flex-1 py-2 bg-navy/8 text-navy rounded-lg text-xs font-medium border border-navy/10">
                     Review
                   </button>
                 )}
                 {app.application_status === 'pending' && app.kyc_status !== 'approved' && (
-                  <span className="text-[#AAB4C3] text-xs">Awaiting KYC</span>
+                  <span className="text-muted-foreground text-xs">Awaiting KYC</span>
                 )}
               </div>
             </div>
           );
         })}
-        {applications.length === 0 && <p className="text-center text-[#AAB4C3] py-8">No applications</p>}
+        {applications.length === 0 && <p className="text-center text-muted-foreground py-8">No applications</p>}
       </div>
 
       {/* Review Dialog */}
       <Dialog open={!!selected} onOpenChange={() => setSelected(null)}>
-        <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-md">
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-white">Review Application</DialogTitle>
+            <DialogTitle className="text-foreground">Review Application</DialogTitle>
           </DialogHeader>
           {selected && (
             <div className="space-y-4 mt-2">
-              <div className="vantoris-card p-4">
-                <p className="text-white font-medium">{selected.full_name}</p>
-                <p className="text-[#AAB4C3] text-xs">{selected.email}</p>
-                <p className="text-[#AAB4C3] text-xs mt-1">Type: {selected.account_type}</p>
-                {selected.business_name && <p className="text-[#AAB4C3] text-xs">Business: {selected.business_name}</p>}
-                {selected.address && <p className="text-[#AAB4C3] text-xs">Address: {selected.address}</p>}
+              <div className="vantoris-glass-flat p-4">
+                <p className="text-foreground font-medium">{selected.full_name}</p>
+                <p className="text-muted-foreground text-xs">{selected.email}</p>
+                <p className="text-muted-foreground text-xs mt-1">Type: {selected.account_type}</p>
+                {selected.business_name && <p className="text-muted-foreground text-xs">Business: {selected.business_name}</p>}
+                {selected.address && <p className="text-muted-foreground text-xs">Address: {selected.address}</p>}
               </div>
               {selected.opening_receipt_url && (
-                <div className="vantoris-card p-4 space-y-2">
+                <div className="vantoris-glass-flat p-4 space-y-2">
                   <div className="flex items-center gap-2">
                     <FileText size={14} className="text-brass" />
-                    <p className="text-white text-sm font-medium">Opening Contribution Receipt</p>
+                    <p className="text-foreground text-sm font-medium">Opening Contribution Receipt</p>
                   </div>
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-[#AAB4C3]">Amount</span>
-                    <span className="text-white font-medium">{formatCurrency(selected.opening_balance || 0)}</span>
+                    <span className="text-muted-foreground">Amount</span>
+                    <span className="text-foreground font-medium">{formatCurrency(selected.opening_balance || 0)}</span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-[#AAB4C3]">Method</span>
-                    <span className="text-white font-medium">{selected.opening_payment_method || '—'}</span>
+                    <span className="text-muted-foreground">Method</span>
+                    <span className="text-foreground font-medium">{selected.opening_payment_method || '—'}</span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-[#AAB4C3]">Status</span>
+                    <span className="text-muted-foreground">Status</span>
                     <span className={`font-medium ${
-                      selected.opening_contribution_status === 'approved' ? 'text-emerald-400' :
-                      selected.opening_contribution_status === 'rejected' ? 'text-red-400' :
+                      selected.opening_contribution_status === 'approved' ? 'text-mint' :
+                      selected.opening_contribution_status === 'rejected' ? 'text-crimson' :
                       selected.opening_contribution_status === 'pending' ? 'text-brass' :
-                      'text-[#AAB4C3]'
+                      'text-muted-foreground'
                     }`}>
                       {selected.opening_contribution_status === 'approved' ? 'Verified' :
                        selected.opening_contribution_status === 'rejected' ? 'Rejected' :
@@ -504,22 +510,22 @@ export default function AdminApplications() {
                 </div>
               )}
               <div>
-                <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Opening Balance (USD)</label>
+                <label className="text-muted-foreground text-xs uppercase tracking-wider mb-1.5 block">Opening Balance (USD)</label>
                 <input
                   type="number"
                   value={openingBalance}
                   onChange={e => setOpeningBalance(e.target.value)}
-                  className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none"
+                  className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground text-sm focus:border-brass/50 focus:outline-none"
                   placeholder="0.00"
                 />
-                <p className="text-[#AAB4C3] text-[11px] mt-1">Enter the amount received via wire/deposit outside the app</p>
+                <p className="text-muted-foreground text-[11px] mt-1">Enter the amount received via wire/deposit outside the app</p>
               </div>
               <div>
-                <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Admin Notes</label>
+                <label className="text-muted-foreground text-xs uppercase tracking-wider mb-1.5 block">Admin Notes</label>
                 <textarea
                   value={adminNotes}
                   onChange={e => setAdminNotes(e.target.value)}
-                  className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none resize-none"
+                  className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground text-sm focus:border-brass/50 focus:outline-none resize-none"
                   rows={3}
                 />
               </div>
@@ -527,14 +533,14 @@ export default function AdminApplications() {
                 <button
                   onClick={handleApprove}
                   disabled={submitting}
-                  className="flex-1 py-3 bg-olive text-white font-semibold rounded-xl flex items-center justify-center gap-2 hover:bg-olive/80 transition-all disabled:opacity-40"
+                  className="flex-1 py-3 bg-mint text-white font-semibold rounded-xl flex items-center justify-center gap-2 hover:bg-mint/90 transition-all disabled:opacity-40"
                 >
                   <Check size={16} /> Approve
                 </button>
                 <button
                   onClick={handleReject}
                   disabled={submitting}
-                  className="flex-1 py-3 bg-crimson text-white font-semibold rounded-xl flex items-center justify-center gap-2 hover:bg-crimson/80 transition-all disabled:opacity-40"
+                  className="flex-1 py-3 bg-crimson text-white font-semibold rounded-xl flex items-center justify-center gap-2 hover:bg-crimson/90 transition-all disabled:opacity-40"
                 >
                   <X size={16} /> Reject
                 </button>
@@ -543,6 +549,6 @@ export default function AdminApplications() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </OperationsPageLayout>
   );
 }
