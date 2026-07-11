@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,8 +7,8 @@
 @layer base {
   :root {
     /* === VANTORIS Unified Institutional Design System === */
-    /* Surfaces */
-    --background: 210 40% 98%;
+    /* Surfaces — soft, warm-neutral, not overly blue */
+    --background: 210 20% 98%;
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
@@ -20,19 +20,19 @@
     --secondary: 210 16% 93%;
     --secondary-foreground: 222 47% 11%;
     --muted: 210 16% 93%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 223 100% 56%;
+    --muted-foreground: 215 14% 45%;
+    --accent: 220 83% 52%;
     --accent-foreground: 0 0% 100%;
     /* Semantic */
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 215 16% 88%;
-    --input: 215 16% 88%;
+    --border: 215 14% 90%;
+    --input: 215 14% 90%;
     --ring: 214 78% 12%;
     /* Charts */
     --chart-1: 214 78% 12%;
     --chart-2: 142 76% 36%;
-    --chart-3: 215 16% 47%;
+    --chart-3: 215 14% 45%;
     --chart-4: 0 72% 51%;
     --chart-5: 46 67% 47%;
     /* Radius */
@@ -56,7 +56,7 @@
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 210 16% 93%;
     --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 215 16% 88%;
+    --sidebar-border: 215 14% 90%;
     --sidebar-ring: 214 78% 12%;
   }
 }
@@ -76,10 +76,12 @@
     -webkit-text-size-adjust: 100%;
     font-synthesis: none;
     font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+    font-optical-sizing: auto;
   }
-  h1 { font-size: var(--text-h1); font-weight: 800; line-height: 1.25; letter-spacing: -0.025em; text-rendering: optimizeLegibility; }
-  h2 { font-size: var(--text-h2); font-weight: 700; line-height: 1.3; letter-spacing: -0.015em; text-rendering: optimizeLegibility; }
-  h3 { font-size: var(--text-h3); font-weight: 700; line-height: 1.35; letter-spacing: -0.01em; text-rendering: optimizeLegibility; }
+  h1 { font-size: var(--text-h1); font-weight: 700; line-height: 1.25; letter-spacing: -0.025em; text-rendering: optimizeLegibility; }
+  h2 { font-size: var(--text-h2); font-weight: 700; line-height: 1.3; letter-spacing: -0.02em; text-rendering: optimizeLegibility; }
+  h3 { font-size: var(--text-h3); font-weight: 600; line-height: 1.35; letter-spacing: -0.012em; text-rendering: optimizeLegibility; }
+  h4 { font-weight: 600; line-height: 1.4; letter-spacing: -0.01em; text-rendering: optimizeLegibility; }
   .vantoris-scroll {
     overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;
@@ -121,15 +123,15 @@
 .vantoris-card,
 .vantoris-glass {
   background: #FFFFFF;
-  border: 1px solid rgba(7, 28, 56, 0.06);
+  border: 1px solid rgba(7, 28, 56, 0.07);
   border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(7, 28, 56, 0.04);
+  box-shadow: 0 1px 3px rgba(7, 28, 56, 0.04), 0 4px 16px rgba(7, 28, 56, 0.04);
 }
 
 /* Flat surface — lists, table rows, subtle containers */
 .vantoris-glass-flat {
   background: #F8FAFC;
-  border: 1px solid rgba(7, 28, 56, 0.05);
+  border: 1px solid rgba(7, 28, 56, 0.06);
   border-radius: 14px;
 }
 
@@ -173,7 +175,7 @@
   border: 1px solid rgba(7, 28, 56, 0.2);
   box-shadow: 0 8px 32px rgba(7, 28, 56, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
-/* White text on dark surfaces — deep, crisp, elegant shadows */
+/* White text on dark surfaces — clean, crisp shadow */
 .vantoris-glass-dock,
 .vantoris-balance-hero,
 .vantoris-chat-bubble-out {
@@ -188,6 +190,7 @@
 .vantoris-glass-dock li,
 .vantoris-glass-dock td,
 .vantoris-glass-dock div,
+.vantoris-glass-dock a,
 .vantoris-balance-hero h1,
 .vantoris-balance-hero h2,
 .vantoris-balance-hero h3,
@@ -197,28 +200,23 @@
 .vantoris-balance-hero li,
 .vantoris-balance-hero td,
 .vantoris-balance-hero div,
+.vantoris-balance-hero a,
 .vantoris-chat-bubble-out p,
-.vantoris-chat-bubble-out span {
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 1px rgba(0, 0, 0, 0.3);
+.vantoris-chat-bubble-out span,
+.vantoris-chat-bubble-out h1,
+.vantoris-chat-bubble-out h2,
+.vantoris-chat-bubble-out h3 {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
 }
 .vantoris-glass-dock h1,
 .vantoris-balance-hero h1,
 .vantoris-chat-bubble-out h1 {
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35), 0 0 1px rgba(0, 0, 0, 0.4);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 .vantoris-glass-dock h2,
 .vantoris-balance-hero h2,
 .vantoris-chat-bubble-out h2 {
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-.vantoris-glass-dock h3,
-.vantoris-balance-hero h3,
-.vantoris-chat-bubble-out h3 {
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35), 0 1px 1px rgba(0, 0, 0, 0.25);
-}
-.vantoris-glass-dock a,
-.vantoris-balance-hero a {
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 0 1px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
 }
 
 .vantoris-balance-glow {
@@ -275,20 +273,17 @@
   box-shadow: 0 1px 6px rgba(7, 28, 56, 0.04);
 }
 
-/* Global white text on navy backgrounds — crisp, deep, pretty shadow */
+/* Global white text on navy backgrounds — clean, crisp shadow */
 .bg-navy,
 .bg-navy\/90,
 .bg-navy\/80 {
   color: #FFFFFF;
 }
 .bg-navy h1, .bg-navy h2, .bg-navy h3, .bg-navy h4, .bg-navy p, .bg-navy span, .bg-navy div, .bg-navy li, .bg-navy a, .bg-navy td {
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 1px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
 }
 .bg-navy h1, .bg-navy h2 {
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35);
-}
-.bg-navy h3 {
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35), 0 1px 1px rgba(0, 0, 0, 0.25);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 /* Mobile Select Bottom Sheet */
