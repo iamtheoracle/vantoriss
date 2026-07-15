@@ -15,7 +15,7 @@ export default function FloatingAIDock() {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ type: 'spring', stiffness: 400, damping: 24, delay: 0.4 }}
         onClick={() => setOpen(true)}
-        className="fixed bottom-5 right-5 z-40 w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-105 safe-bottom text-9xl"
+        className="fixed bottom-5 right-5 z-40 w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-105 safe-bottom text-4xl"
         style={{
           background: 'linear-gradient(145deg, #071C38 0%, #0E2A4A 100%)',
           border: '1px solid rgba(201, 162, 39, 0.3)',
@@ -23,7 +23,7 @@ export default function FloatingAIDock() {
         }}
         title="Ask Vantoris AI">
         
-        <Bot size={24} className="text-brass" />
+        <Bot size={24} className="text-brass opacity-100" />
         <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-mint rounded-full border-2 border-white" />
       </motion.button>
 
