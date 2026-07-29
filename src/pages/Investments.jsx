@@ -7,6 +7,7 @@ import { Plus, TrendingUp, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, Tooltip } from 'recharts';
+import FeatureGate from '@/components/vantoris/FeatureGate';
 
 const TRADING_CHARTS = [
   { symbol: 'AAPL', type: 'Stocks', name: 'Apple Inc.' },
@@ -131,6 +132,7 @@ export default function Investments() {
   const totalPortfolioValue = accounts.reduce((s, a) => s + (a.balance || 0), 0);
 
   return (
+    <FeatureGate featureName="Investments">
     <div className="px-5 pt-6 pb-4">
       {/* Header */}
       <div className="mb-5">
@@ -255,6 +257,7 @@ export default function Investments() {
         </DialogContent>
       </Dialog>
     </div>
+    </FeatureGate>
   );
 }
 

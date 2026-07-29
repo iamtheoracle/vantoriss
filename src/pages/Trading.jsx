@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { TrendingUp, Plus, Eye, EyeOff, Copy, Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { formatCurrency } from '@/lib/formatCurrency';
+import FeatureGate from '@/components/vantoris/FeatureGate';
 
 const TRADING_CHARTS = [
   { symbol: 'EURUSD', type: 'Forex', name: 'EUR/USD' },
@@ -79,6 +80,7 @@ export default function Trading() {
   }
 
   return (
+    <FeatureGate featureName="Trading">
     <div className="space-y-6 pb-20">
       {/* Header */}
       <div>
@@ -238,5 +240,6 @@ export default function Trading() {
         </DialogContent>
       </Dialog>
     </div>
+    </FeatureGate>
   );
 }

@@ -8,6 +8,7 @@ import {
   QrCode, Bitcoin, RefreshCw, Calendar, Repeat, Users, FileCheck,
   DollarSign, Landmark, Wallet, X, ArrowRight,
 } from 'lucide-react';
+import FeatureGate from '@/components/vantoris/FeatureGate';
 
 const SECTIONS = [
   {
@@ -99,6 +100,7 @@ export default function MoveMoney() {
   const totalBalance = accounts.reduce((s, a) => s + (a.balance || 0), 0);
 
   return (
+    <FeatureGate featureName="Move Money">
     <div className="px-5 pt-6 pb-4">
       {/* Header */}
       <div className="mb-5">
@@ -165,6 +167,7 @@ export default function MoveMoney() {
         />
       )}
     </div>
+    </FeatureGate>
   );
 }
 
