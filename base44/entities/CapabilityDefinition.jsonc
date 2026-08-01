@@ -1,0 +1,48 @@
+{
+  "name": "CapabilityDefinition",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Capability name"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "tool",
+        "knowledge",
+        "reasoning",
+        "action"
+      ],
+      "description": "Capability type"
+    },
+    "handler": {
+      "type": "string",
+      "description": "Handler identifier (e.g. spark.reason, memory.store)"
+    },
+    "version": {
+      "type": "string",
+      "default": "1.0.0"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Required permissions"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description"
+    }
+  },
+  "required": [
+    "name",
+    "type",
+    "handler"
+  ]
+}

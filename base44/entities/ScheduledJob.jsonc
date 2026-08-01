@@ -1,0 +1,46 @@
+{
+  "name": "ScheduledJob",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Job name"
+    },
+    "schedule": {
+      "type": "string",
+      "description": "Cron expression or interval"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "running",
+        "paused",
+        "completed",
+        "failed",
+        "cancelled"
+      ],
+      "default": "pending"
+    },
+    "retry_policy": {
+      "type": "string",
+      "description": "JSON-serialized retry policy"
+    },
+    "last_run": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "next_run": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "payload": {
+      "type": "string",
+      "description": "JSON-serialized job payload"
+    }
+  },
+  "required": [
+    "name",
+    "schedule"
+  ]
+}

@@ -40,6 +40,7 @@ const Investments = React.lazy(() => import('./pages/Investments'));
 const More = React.lazy(() => import('./pages/More'));
 const TransactionDispute = React.lazy(() => import('./pages/TransactionDispute'));
 const BrandIdentity = React.lazy(() => import('./pages/BrandIdentity'));
+const BudCompanion = React.lazy(() => import('./components/runtime/BudCompanion'));
 
 // Lazy-loaded pages — Admin (Operations Center)
 const AdminOverview = React.lazy(() => import('./pages/admin/AdminOverview'));
@@ -132,6 +133,7 @@ const AuthenticatedApp = () => {
               <Route path="/investments" element={<Investments />} />
               <Route path="/more" element={<More />} />
               <Route path="/transaction-dispute" element={<TransactionDispute />} />
+              <Route path="/bud" element={<BudCompanion />} />
               <Route path="/guide" element={<MemberAdvisor />} />
             </Route>
 

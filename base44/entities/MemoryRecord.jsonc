@@ -1,0 +1,38 @@
+{
+  "name": "MemoryRecord",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "The user this memory belongs to"
+    },
+    "key": {
+      "type": "string",
+      "description": "Memory key identifier"
+    },
+    "value": {
+      "type": "string",
+      "description": "JSON-serialized memory value"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "preference",
+        "fact",
+        "context",
+        "entity"
+      ],
+      "default": "context"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this memory entry expires"
+    }
+  },
+  "required": [
+    "user_id",
+    "key",
+    "value"
+  ]
+}

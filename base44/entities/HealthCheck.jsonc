@@ -1,0 +1,26 @@
+{
+  "name": "HealthCheck",
+  "type": "object",
+  "properties": {
+    "service": {
+      "type": "string",
+      "description": "Service name"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "healthy",
+        "degraded",
+        "unhealthy"
+      ]
+    },
+    "details": {
+      "type": "string",
+      "description": "JSON-serialized health check details"
+    }
+  },
+  "required": [
+    "service",
+    "status"
+  ]
+}

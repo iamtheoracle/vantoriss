@@ -1,0 +1,38 @@
+{
+  "name": "AIEvent",
+  "type": "object",
+  "properties": {
+    "event_type": {
+      "type": "string",
+      "description": "Event type (request, response, lifecycle, workflow, capability, audit, security, monitoring)"
+    },
+    "version": {
+      "type": "string",
+      "default": "1.0.0"
+    },
+    "source": {
+      "type": "string",
+      "description": "Source component that published the event"
+    },
+    "target": {
+      "type": "string",
+      "description": "Target component"
+    },
+    "payload": {
+      "type": "string",
+      "description": "JSON-serialized event payload"
+    },
+    "correlation_id": {
+      "type": "string",
+      "description": "Correlation ID for distributed tracing"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Associated user ID if any"
+    }
+  },
+  "required": [
+    "event_type",
+    "source"
+  ]
+}
