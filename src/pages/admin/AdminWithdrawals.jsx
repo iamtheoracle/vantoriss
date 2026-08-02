@@ -4,7 +4,7 @@ import { formatCurrency } from '@/lib/formatCurrency';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { CheckSquare, Square, Check, X, ArrowUpRight, CheckCircle2 } from 'lucide-react';
+import { CheckSquare, Square, Check, X, ArrowUpRight, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
 import { sendTransactionEmail } from '@/lib/transactionEmails';
 import TransactionFilters from '@/components/TransactionFilters';
@@ -20,6 +20,8 @@ export default function AdminWithdrawals() {
   const [submitting, setSubmitting] = useState(false);
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
+  const [bulkAction, setBulkAction] = useState(null);
+  const [bulkNotes, setBulkNotes] = useState('');
   const [limits, setLimits] = useState([]);
   const { toast } = useToast();
 
@@ -63,6 +65,8 @@ export default function AdminWithdrawals() {
   }
 
   const pendingWds = withdrawals.filter(w => w.status === 'pending');
+  const selectedWithdrawals = selectedIds.map(id => withdrawals.find(w => w.id === id)).filter(Boolean);
+  const selectedTotal = selectedWithdrawals.reduce((sum, w) => sum + Math.abs(w.amount), 0);
 
   function toggleSelect(id) {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
@@ -163,42 +167,36 @@ export default function AdminWithdrawals() {
     setSubmitting(false);
   }
 
-  async function handleBulkPay() {
-    if (selectedIds.length === 0) return;
+  async function executeBulkAction() {
+    if (!bulkAction || selectedIds.length === 0) return;
     setSubmitting(true);
     const balanceMap = {};
     let ok = 0, fail = 0;
+    const isPay = bulkAction === 'pay';
     for (const id of selectedIds) {
       const wd = withdrawals.find(w => w.id === id);
       if (!wd) continue;
       try {
-        const acct = getAccount(wd.account_id);
-        const baseBalance = balanceMap[wd.account_id] !== undefined ? balanceMap[wd.account_id] : (acct?.balance || 0);
-        await payOne(wd, 'Bulk approved', baseBalance);
-        balanceMap[wd.account_id] = baseBalance - Math.abs(wd.amount);
+        if (isPay) {
+          const acct = getAccount(wd.account_id);
+          const baseBalance = balanceMap[wd.account_id] !== undefined ? balanceMap[wd.account_id] : (acct?.balance || 0);
+          await payOne(wd, bulkNotes || 'Bulk approved', baseBalance);
+          balanceMap[wd.account_id] = baseBalance - Math.abs(wd.amount);
+        } else {
+          await rejectOne(wd, bulkNotes || 'Bulk rejected');
+        }
         ok++;
-      } catch (e) { console.error('Bulk pay failed for', id, e); fail++; }
+      } catch (e) { console.error('Bulk action failed for', id, e); fail++; }
     }
     setSelectedIds([]);
     setBulkMode(false);
+    setBulkAction(null);
+    setBulkNotes('');
     loadData();
-    toast({ title: 'Bulk pay complete', description: `${ok} processed${fail > 0 ? `, ${fail} failed` : ''}.` });
-    setSubmitting(false);
-  }
-
-  async function handleBulkReject() {
-    if (selectedIds.length === 0) return;
-    setSubmitting(true);
-    let ok = 0, fail = 0;
-    for (const id of selectedIds) {
-      const wd = withdrawals.find(w => w.id === id);
-      if (!wd) continue;
-      try { await rejectOne(wd, 'Bulk rejected'); ok++; } catch (e) { console.error('Bulk reject failed for', id, e); fail++; }
-    }
-    setSelectedIds([]);
-    setBulkMode(false);
-    loadData();
-    toast({ title: 'Bulk reject complete', description: `${ok} rejected${fail > 0 ? `, ${fail} failed` : ''}.` });
+    toast({
+      title: isPay ? 'Bulk approval complete' : 'Bulk rejection complete',
+      description: `${ok} ${isPay ? 'processed' : 'rejected'}${fail > 0 ? `, ${fail} failed` : ''}.`,
+    });
     setSubmitting(false);
   }
 
@@ -222,23 +220,57 @@ export default function AdminWithdrawals() {
 
       {/* Bulk Action Bar */}
       {pendingWds.length > 0 && (
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4">
-          <button
-            onClick={() => { setBulkMode(!bulkMode); setSelectedIds([]); }}
-            className={`flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all ${bulkMode ? 'bg-brass/15 text-brass' : 'bg-[#242D38] text-[#AAB4C3] hover:text-white'}`}
-          >
-            <CheckSquare size={14} /> Bulk Select
-          </button>
-          {bulkMode && selectedIds.length > 0 && (
-            <div className="flex items-center gap-3">
-              <span className="text-[#AAB4C3] text-xs">{selectedIds.length} selected</span>
-              <button onClick={handleBulkPay} disabled={submitting} className="flex items-center justify-center gap-1.5 px-4 py-2 bg-olive text-white rounded-xl text-xs font-semibold hover:bg-olive/80 transition-all disabled:opacity-40 whitespace-nowrap">
-                <Check size={14} /> Pay
-              </button>
-              <button onClick={handleBulkReject} disabled={submitting} className="flex items-center justify-center gap-1.5 px-4 py-2 bg-crimson text-white rounded-xl text-xs font-semibold hover:bg-crimson/80 transition-all disabled:opacity-40 whitespace-nowrap">
-                <X size={14} /> Reject
-              </button>
-            </div>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
+          {!bulkMode ? (
+            <button
+              onClick={() => { setBulkMode(true); setSelectedIds([]); }}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-navy text-white rounded-xl text-xs font-semibold hover:bg-navy/90 transition-colors"
+            >
+              <CheckSquare size={14} /> Bulk Actions
+            </button>
+          ) : (
+            <>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={toggleSelectAll}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-navy bg-white border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors"
+                >
+                  {selectedIds.length === pendingWds.length && pendingWds.length > 0 ? <CheckSquare size={14} className="text-mint" /> : <Square size={14} />}
+                  {selectedIds.length === pendingWds.length && pendingWds.length > 0 ? 'Deselect All' : 'Select All Pending'}
+                </button>
+                {selectedIds.length > 0 && (
+                  <span className="text-xs text-gray">
+                    <span className="font-semibold text-foreground">{selectedIds.length}</span> selected · {formatCurrency(selectedTotal)}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                {selectedIds.length > 0 && (
+                  <>
+                    <button
+                      onClick={() => setBulkAction('pay')}
+                      disabled={submitting}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-mint text-white rounded-xl text-xs font-semibold hover:bg-mint/90 transition-colors disabled:opacity-40"
+                    >
+                      <Check size={14} /> Approve All
+                    </button>
+                    <button
+                      onClick={() => setBulkAction('reject')}
+                      disabled={submitting}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-crimson text-white rounded-xl text-xs font-semibold hover:bg-crimson/90 transition-colors disabled:opacity-40"
+                    >
+                      <X size={14} /> Reject All
+                    </button>
+                  </>
+                )}
+                <button
+                  onClick={() => { setBulkMode(false); setSelectedIds([]); }}
+                  className="inline-flex items-center px-3 py-2 text-xs font-medium text-gray hover:text-foreground transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </>
           )}
         </div>
       )}
@@ -250,8 +282,8 @@ export default function AdminWithdrawals() {
             <tr className="border-b border-[#242D38] bg-[#1a2535]">
               {bulkMode && (
                 <th className="px-3 py-3 w-10">
-                  <button onClick={toggleSelectAll} className="text-[#AAB4C3] hover:text-brass">
-                    {selectedIds.length === pendingWds.length && pendingWds.length > 0 ? <CheckSquare size={16} className="text-brass" /> : <Square size={16} />}
+                  <button onClick={toggleSelectAll} className="text-gray hover:text-mint">
+                    {selectedIds.length === pendingWds.length && pendingWds.length > 0 ? <CheckSquare size={16} className="text-mint" /> : <Square size={16} />}
                   </button>
                 </th>
               )}
@@ -272,8 +304,8 @@ export default function AdminWithdrawals() {
                     {bulkMode && (
                       <td className="px-3 py-4">
                         {isPending ? (
-                          <button onClick={() => toggleSelect(wd.id)} className="text-[#AAB4C3] hover:text-brass">
-                            {selectedIds.includes(wd.id) ? <CheckSquare size={16} className="text-brass" /> : <Square size={16} />}
+                          <button onClick={() => toggleSelect(wd.id)} className="text-gray hover:text-mint">
+                            {selectedIds.includes(wd.id) ? <CheckSquare size={16} className="text-mint" /> : <Square size={16} />}
                           </button>
                         ) : <span className="inline-block w-4" />}
                       </td>
@@ -301,11 +333,7 @@ export default function AdminWithdrawals() {
                         Review
                       </button>
                     )}
-                    {isPending && bulkMode && (
-                      <button onClick={() => toggleSelect(wd.id)} className="text-[#AAB4C3] hover:text-brass">
-                        {selectedIds.includes(wd.id) ? <CheckSquare size={16} className="text-brass" /> : <Square size={16} />}
-                      </button>
-                    )}
+                    {isPending && bulkMode && <span className="text-gray text-xs">—</span>}
                   </td>
                 </tr>
               );
@@ -323,10 +351,10 @@ export default function AdminWithdrawals() {
           const acct = getAccount(wd.account_id);
           const isPending = wd.status === 'pending';
           return (
-            <div key={wd.id} className={`vantoris-card p-4 space-y-2 ${selectedIds.includes(wd.id) ? 'border-brass/40' : ''}`}>
+            <div key={wd.id} className={`vantoris-card p-4 space-y-2 ${selectedIds.includes(wd.id) ? 'border-mint/40' : ''}`}>
               {bulkMode && isPending && (
-                <button onClick={() => toggleSelect(wd.id)} className="flex items-center gap-2 text-xs text-[#AAB4C3]">
-                  {selectedIds.includes(wd.id) ? <CheckSquare size={14} className="text-brass" /> : <Square size={14} />}
+                <button onClick={() => toggleSelect(wd.id)} className="flex items-center gap-2 text-xs text-gray">
+                  {selectedIds.includes(wd.id) ? <CheckSquare size={14} className="text-mint" /> : <Square size={14} />}
                   {selectedIds.includes(wd.id) ? 'Selected' : 'Select'}
                 </button>
               )}
@@ -359,6 +387,64 @@ export default function AdminWithdrawals() {
         })}
         {filteredWithdrawals.length === 0 && <p className="text-center text-[#AAB4C3] py-8">{withdrawals.length === 0 ? 'No withdrawal requests' : 'No withdrawals match filters'}</p>}
       </div>
+
+      {/* Bulk Action Confirmation */}
+      <Dialog open={!!bulkAction} onOpenChange={() => !submitting && setBulkAction(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {bulkAction === 'pay' ? <CheckCircle2 size={18} className="text-mint" /> : <AlertTriangle size={18} className="text-crimson" />}
+              {bulkAction === 'pay' ? 'Approve Withdrawals' : 'Reject Withdrawals'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-gray text-xs">Selected Requests</span>
+                <span className="text-foreground font-semibold">{selectedIds.length}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray text-xs">Total Amount</span>
+                <span className="text-foreground font-semibold">{formatCurrency(selectedTotal)}</span>
+              </div>
+            </div>
+            <div className="max-h-40 overflow-y-auto space-y-1.5">
+              {selectedWithdrawals.map(wd => (
+                <div key={wd.id} className="flex items-center justify-between text-xs p-2 rounded-lg bg-slate-50">
+                  <span className="text-gray">{getAccount(wd.account_id)?.account_name || '—'} · {wd.method}</span>
+                  <span className="text-foreground font-medium">{formatCurrency(Math.abs(wd.amount))}</span>
+                </div>
+              ))}
+            </div>
+            <div>
+              <label className="text-gray text-xs uppercase tracking-wider mb-1.5 block">Admin Notes (optional)</label>
+              <textarea
+                value={bulkNotes}
+                onChange={e => setBulkNotes(e.target.value)}
+                placeholder={bulkAction === 'pay' ? 'Bulk approval notes...' : 'Reason for rejection...'}
+                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-foreground text-sm focus:border-navy/30 focus:outline-none resize-none"
+                rows={2}
+              />
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={executeBulkAction}
+                disabled={submitting}
+                className={`flex-1 py-3 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-40 ${bulkAction === 'pay' ? 'bg-mint hover:bg-mint/90' : 'bg-crimson hover:bg-crimson/90'}`}
+              >
+                {submitting ? <><Loader2 size={16} className="animate-spin" /> Processing...</> : bulkAction === 'pay' ? <><Check size={16} /> Confirm Approval</> : <><X size={16} /> Confirm Rejection</>}
+              </button>
+              <button
+                onClick={() => setBulkAction(null)}
+                disabled={submitting}
+                className="px-5 py-3 bg-slate-100 text-gray font-semibold rounded-xl hover:bg-slate-200 transition-colors disabled:opacity-40"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Review Dialog */}
       <Dialog open={!!selected} onOpenChange={() => setSelected(null)}>
@@ -403,7 +489,7 @@ export default function AdminWithdrawals() {
                 />
               </div>
               <div className="flex gap-3">
-                <button onClick={handlePay} disabled={submitting} className="flex-1 py-3 bg-olive text-white font-semibold rounded-xl flex items-center justify-center gap-2 hover:bg-olive/80 transition-all disabled:opacity-40">
+                <button onClick={handlePay} disabled={submitting} className="flex-1 py-3 bg-mint text-white font-semibold rounded-xl flex items-center justify-center gap-2 hover:bg-mint/90 transition-all disabled:opacity-40">
                   <Check size={16} /> Mark Paid
                 </button>
                 <button onClick={handleReject} disabled={submitting} className="flex-1 py-3 bg-crimson text-white font-semibold rounded-xl flex items-center justify-center gap-2 hover:bg-crimson/80 transition-all disabled:opacity-40">
