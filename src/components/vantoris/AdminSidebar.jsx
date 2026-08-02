@@ -9,7 +9,7 @@ import {
   ChevronRight, Wrench, Users2, MessageSquare, Crown, Briefcase,
   AlertTriangle, Scale, GitBranch, Database, ServerCog,
   Search, Eye, ShieldAlert, Network, Globe, Zap,
-  PanelLeftClose, FileUp,
+  PanelLeftClose, FileUp, CalendarDays,
 } from 'lucide-react';
 import ShieldLogo from './ShieldLogo';
 import {
@@ -35,6 +35,7 @@ const WORKSPACE_CONFIG = {
           { label: 'Enterprise Analytics', path: '/operations', icon: BarChart3 },
           { label: 'Financial Performance', path: '/operations/finance', icon: DollarSign },
           { label: 'AUM Growth', path: '/operations/aum-growth', icon: TrendingUp },
+          { label: 'Transaction Summaries', path: '/operations/transaction-summaries', icon: CalendarDays },
           { label: 'Treasury Overview', path: '/operations/transfers', icon: Wallet },
           { label: 'Business Intelligence', path: '/operations/reports', icon: TrendingUp },
           { label: 'Strategic Reports', path: '/operations/executive-reports', icon: TrendingUp },
@@ -108,6 +109,7 @@ const WORKSPACE_CONFIG = {
         label: 'Reports',
         items: [
           { label: 'AUM Growth', path: '/operations/aum-growth', icon: TrendingUp },
+          { label: 'Transaction Summaries', path: '/operations/transaction-summaries', icon: CalendarDays },
           { label: 'Reports', path: '/operations/reports', icon: BarChart3 },
           { label: 'Activity Timeline', path: '/operations/activity', icon: Activity },
         ],
