@@ -67,6 +67,7 @@ const AccountAssignment = React.lazy(() => import('./pages/operations/AccountAss
 const Reports = React.lazy(() => import('./pages/operations/Reports'));
 const ExecutiveReports = React.lazy(() => import('./pages/operations/ExecutiveReports'));
 const AuditLogs = React.lazy(() => import('./pages/operations/AuditLogs'));
+const AumGrowth = React.lazy(() => import('./pages/operations/AumGrowth'));
 const ActivityTimeline = React.lazy(() => import('./pages/operations/ActivityTimeline'));
 const VerificationRequests = React.lazy(() => import('./pages/operations/VerificationRequests'));
 const ServiceRequests = React.lazy(() => import('./pages/operations/ServiceRequests'));
@@ -177,6 +178,7 @@ const AuthenticatedApp = () => {
               <Route path="/operations/reports" element={<Reports />} />
               <Route path="/operations/executive-reports" element={<ExecutiveReports />} />
               <Route path="/operations/audit-logs" element={<AuditLogs />} />
+              <Route path="/operations/aum-growth" element={<AumGrowth />} />
               <Route path="/operations/activity" element={<ActivityTimeline />} />
               <Route path="/operations/configuration" element={<Configuration />} />
               <Route path="/operations/api-management" element={<ApiManagement />} />
