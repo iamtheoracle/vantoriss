@@ -9,7 +9,7 @@ import {
   ChevronRight, Wrench, Users2, MessageSquare, Crown, Briefcase,
   AlertTriangle, Scale, GitBranch, Database, ServerCog,
   Search, Eye, ShieldAlert, Network, Globe, Zap,
-  PanelLeftClose,
+  PanelLeftClose, FileUp,
 } from 'lucide-react';
 import ShieldLogo from './ShieldLogo';
 import {
@@ -96,6 +96,7 @@ const WORKSPACE_CONFIG = {
         label: 'Banking Operations',
         items: [
           { label: 'Accounts', path: '/operations/accounts', icon: Wallet },
+          { label: 'Bulk Import', path: '/operations/bulk-import', icon: FileUp },
           { label: 'Cards', path: '/operations/cards', icon: CreditCard },
           { label: 'Support Queue', path: '/operations/service-requests', icon: Wrench },
           { label: 'Member Messages', path: '/operations/member-messages', icon: MessageSquare },
