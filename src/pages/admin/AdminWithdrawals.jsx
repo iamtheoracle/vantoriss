@@ -4,11 +4,12 @@ import { formatCurrency } from '@/lib/formatCurrency';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { CheckSquare, Square, Check, X, ArrowUpRight, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
+import { CheckSquare, Square, Check, X, ArrowUpRight, CheckCircle2, AlertTriangle, Loader2, ShieldCheck } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
 import { sendTransactionEmail } from '@/lib/transactionEmails';
 import TransactionFilters from '@/components/TransactionFilters';
 import { useToast } from '@/components/ui/use-toast';
+import { Link } from 'react-router-dom';
 
 export default function AdminWithdrawals() {
   const [withdrawals, setWithdrawals] = useState([]);
@@ -211,7 +212,19 @@ export default function AdminWithdrawals() {
   }
 
   return (
-    <OperationsPageLayout title="Withdrawals" description="Review and process withdrawal requests" icon={ArrowUpRight}>
+    <OperationsPageLayout
+      title="Withdrawals"
+      description="Review and process withdrawal requests"
+      icon={ArrowUpRight}
+      actions={
+        <Link
+          to="/operations/withdrawal-audit-log"
+          className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-gray hover:text-navy transition-colors"
+        >
+          <ShieldCheck size={14} /> Audit Trail
+        </Link>
+      }
+    >
       {/* Filter Bar */}
       <div className="mb-4 flex items-center gap-3">
         <TransactionFilters onFilter={handleFilter} />
