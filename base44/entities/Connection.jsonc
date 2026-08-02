@@ -1,0 +1,55 @@
+{
+  "name": "Connection",
+  "type": "object",
+  "properties": {
+    "from_user_id": {
+      "type": "string"
+    },
+    "to_user_id": {
+      "type": "string"
+    },
+    "from_name": {
+      "type": "string"
+    },
+    "to_name": {
+      "type": "string"
+    },
+    "from_photo": {
+      "type": "string"
+    },
+    "to_photo": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "connect",
+        "study_together",
+        "join_project",
+        "collaborate",
+        "become_buddies",
+        "follow",
+        "save_profile"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "accepted",
+        "declined"
+      ],
+      "default": "pending"
+    },
+    "message": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "from_user_id",
+    "to_user_id",
+    "from_name",
+    "to_name",
+    "type"
+  ]
+}

@@ -15,12 +15,20 @@ import PageTransition from './components/vantoris/PageTransition';
 import MemberLayout from './components/vantoris/MemberLayout';
 import AdminLayout from './components/vantoris/AdminLayout';
 import OperationsRoute from './components/OperationsRoute';
+import CampusLayout from './components/campus/CampusLayout';
 
 // Lazy-loaded pages — Auth
 const Login = React.lazy(() => import('./pages/Login'));
 const Register = React.lazy(() => import('./pages/Register'));
 const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = React.lazy(() => import('./pages/ResetPassword'));
+
+// Lazy-loaded pages — Campus Connect
+const Discover = React.lazy(() => import('./pages/campus/Discover'));
+const StudentProfileView = React.lazy(() => import('./pages/campus/StudentProfileView'));
+const Communities = React.lazy(() => import('./pages/campus/Communities'));
+const CampusConnections = React.lazy(() => import('./pages/campus/Connections'));
+const EditProfile = React.lazy(() => import('./pages/campus/EditProfile'));
 
 // Lazy-loaded pages — Member
 const AIAssistantHome = React.lazy(() => import('./pages/AIAssistantHome'));
@@ -120,32 +128,13 @@ const AuthenticatedApp = () => {
         </Route>
 
         <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
-          {/* Member routes — staff/admins are redirected to Operations */}
-          <Route element={<MemberRoute />}>
-            <Route element={<MemberLayout />}>
-              <Route path="/" element={<Home />} />
-              <Route path="/advisor/home" element={<AIAssistantHome />} />
-              <Route path="/accounts" element={<Accounts />} />
-              <Route path="/accounts/:id" element={<AccountDetail />} />
-              <Route path="/services" element={<Services />} />
-              <Route path="/messages" element={<Messages />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/documents" element={<MemberDocuments />} />
-              <Route path="/advisor" element={<MemberAdvisor />} />
-              <Route path="/trading" element={<Trading />} />
-              <Route path="/move-money" element={<MoveMoney />} />
-              <Route path="/investments" element={<Investments />} />
-              <Route path="/more" element={<More />} />
-              <Route path="/transaction-dispute" element={<TransactionDispute />} />
-              <Route path="/bud" element={<BudCompanion />} />
-              <Route path="/guide" element={<MemberAdvisor />} />
-            </Route>
-
-            {/* Non-layout member routes */}
-            <Route element={<PageTransition />}>
-              <Route path="/apply" element={<Apply />} />
-              <Route path="/apply/kyc" element={<ApplyKYC />} />
-            </Route>
+          {/* Campus Connect */}
+          <Route element={<CampusLayout />}>
+            <Route path="/" element={<Discover />} />
+            <Route path="/students/:id" element={<StudentProfileView />} />
+            <Route path="/communities" element={<Communities />} />
+            <Route path="/connections" element={<CampusConnections />} />
+            <Route path="/profile/edit" element={<EditProfile />} />
           </Route>
 
           {/* Backward-compatible redirect */}

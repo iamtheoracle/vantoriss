@@ -1,0 +1,129 @@
+{
+  "name": "StudentProfile",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Linked auth user ID"
+    },
+    "full_name": {
+      "type": "string"
+    },
+    "photo_url": {
+      "type": "string",
+      "description": "Profile photo URL"
+    },
+    "verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "university": {
+      "type": "string"
+    },
+    "campus": {
+      "type": "string"
+    },
+    "faculty": {
+      "type": "string"
+    },
+    "department": {
+      "type": "string"
+    },
+    "level": {
+      "type": "string",
+      "enum": [
+        "100",
+        "200",
+        "300",
+        "400",
+        "500",
+        "Postgrad",
+        "PhD"
+      ]
+    },
+    "bio": {
+      "type": "string"
+    },
+    "courses": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "interests": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "achievements": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "projects": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "research_interests": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "languages": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "badges": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "portfolio_url": {
+      "type": "string"
+    },
+    "social_links": {
+      "type": "string",
+      "description": "JSON-serialized social links"
+    },
+    "availability": {
+      "type": "string",
+      "enum": [
+        "available",
+        "busy",
+        "offline"
+      ],
+      "default": "available"
+    },
+    "current_goals": {
+      "type": "string"
+    },
+    "study_goals": {
+      "type": "string"
+    },
+    "looking_for": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "user_id",
+    "full_name",
+    "university"
+  ]
+}

@@ -70,6 +70,20 @@ module.exports = {
           'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))'
+        },
+        campus: {
+          primary: '#4F46E5',
+          'primary-light': '#818CF8',
+          'primary-dark': '#4338CA',
+          accent: '#F43F5E',
+          secondary: '#8B5CF6',
+          bg: '#FAFAFF',
+          surface: '#FFFFFF',
+          dark: '#1E1B4B',
+          muted: '#94A3B8',
+          success: '#10B981',
+          warning: '#F59E0B',
+          danger: '#EF4444',
         }
       },
       fontFamily: {
