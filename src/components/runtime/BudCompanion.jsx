@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Send, Loader2, Sparkles, Activity, Shield, Cpu, ChevronLeft } from 'lucide-react';
+import { Send, Loader2, Sparkles, Activity, Shield, Cpu, ChevronLeft, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function BudCompanion() {
@@ -28,12 +28,19 @@ export default function BudCompanion() {
         action: 'process',
       });
       const data = response.data || response;
+      let content = data?.response || 'I apologize, I could not process your request.';
+      if (data?.pendingApproval) {
+        content += '\n\nYour request has been forwarded to our staff for review. You will be notified once it has been approved or if additional information is needed.';
+      }
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: data?.response || 'I apologize, I could not process your request.',
+        content,
         metadata: data?.metadata,
         sources: data?.sources,
         capabilities: data?.capabilities,
+        routing: data?.routing,
+        pendingApproval: data?.pendingApproval,
+        escalated: data?.escalated,
       }]);
     } catch (error) {
       setMessages(prev => [...prev, {
@@ -133,6 +140,14 @@ export default function BudCompanion() {
                   : 'vantoris-chat-bubble-in rounded-bl-md'
               }`}>
                 <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                {msg.pendingApproval && (
+                  <div className="mt-2 pt-2 border-t border-slate-200/50 flex items-center gap-1.5">
+                    <Clock size={11} className="text-brass" />
+                    <span className="text-[10px] text-brass font-medium">
+                      {msg.escalated ? 'Escalated for staff review' : 'Pending staff approval'}
+                    </span>
+                  </div>
+                )}
                 {msg.metadata?.traceId && (
                   <p className="text-[10px] text-gray/50 mt-2">Trace: {msg.metadata.traceId.substring(0, 8)}</p>
                 )}

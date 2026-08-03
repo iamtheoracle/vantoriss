@@ -88,10 +88,23 @@ export function routeSpecialist(message: string) {
   const lower = message.toLowerCase();
   const scores: Record<string, number> = {};
 
+  // Action verbs that strongly indicate a specific specialist domain
+  const ACTION_KEYWORDS: Record<string, string[]> = {
+    payments: ['transfer', 'send money', 'move money', 'wire', 'ach', 'pay ', 'withdrawal', 'withdraw'],
+    compliance: ['kyc', 'verify identity', 'identity verification', 'compliance check'],
+    credit: ['loan', 'borrow', 'mortgage', 'credit limit'],
+    fraud: ['fraud', 'dispute', 'unauthorized', 'compromised', 'stolen'],
+    document: ['letter', 'draft', 'confirmation letter', 'generate document'],
+  };
+
   for (const [key, spec] of Object.entries(SPECIALISTS)) {
     scores[key] = 0;
     for (const kw of spec.keywords) {
       if (lower.includes(kw)) scores[key] += 1;
+    }
+    // Action keywords get double weight — they indicate the member wants something done
+    for (const akw of (ACTION_KEYWORDS[key] || [])) {
+      if (lower.includes(akw)) scores[key] += 2;
     }
   }
 

@@ -107,6 +107,12 @@ const WORKSPACE_CONFIG = {
         ],
       },
       {
+        label: 'AI Operations',
+        items: [
+          { label: 'Recommendation Review', path: '/operations/recommendations', icon: Gavel },
+        ],
+      },
+      {
         label: 'Reports',
         items: [
           { label: 'AUM Growth', path: '/operations/aum-growth', icon: TrendingUp },
