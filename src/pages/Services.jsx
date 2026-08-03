@@ -7,8 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useToast } from '@/components/ui/use-toast';
 
 const services = [
-  { type: 'Joint Account', icon: Users, desc: 'Add a joint account with another member', color: 'bg-brass/15 text-brass' },
-  { type: 'Business Account', icon: Building2, desc: 'Open a business account for your company', color: 'bg-olive/20 text-emerald-400' },
+  { type: 'Savings Account', icon: Users, desc: 'Open a savings account to earn interest', color: 'bg-brass/15 text-brass' },
+  { type: 'Money Market Account', icon: Building2, desc: 'Higher interest with flexible access', color: 'bg-olive/20 text-emerald-400' },
   { type: 'Debit Card', icon: CreditCard, desc: 'Request a debit card for your account', color: 'bg-blue-500/15 text-blue-400' },
   { type: 'Investment Access', icon: TrendingUp, desc: 'Request access to investment opportunities', color: 'bg-purple-500/15 text-purple-400' },
 ];

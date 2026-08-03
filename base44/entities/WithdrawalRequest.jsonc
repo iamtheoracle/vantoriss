@@ -14,15 +14,12 @@
     "method": {
       "type": "string",
       "enum": [
-        "Bank Transfer",
-        "Wire Transfer",
-        "Crypto Withdrawal",
-        "Internal Transfer",
         "ACH Transfer",
         "Domestic Wire",
         "International Wire",
-        "External Linked Bank",
-        "Check by Mail"
+        "External Transfer",
+        "Check by Mail",
+        "Cashier's Check"
       ]
     },
     "notes": {

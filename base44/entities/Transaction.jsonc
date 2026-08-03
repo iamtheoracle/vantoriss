@@ -11,6 +11,9 @@
         "opening_balance",
         "deposit",
         "withdrawal",
+        "transfer",
+        "interest",
+        "fee",
         "adjustment"
       ]
     },

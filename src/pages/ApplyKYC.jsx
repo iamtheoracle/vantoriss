@@ -113,7 +113,8 @@ export default function ApplyKYC() {
       <div className="vantoris-card p-5 mb-4">
         <h3 className="text-white font-medium text-sm mb-3">Required Documents</h3>
         <ul className="space-y-2 text-[#AAB4C3] text-xs">
-          <li className="flex items-center gap-2"><FileText size={14} /> Government-issued photo ID</li>
+          <li className="flex items-center gap-2"><FileText size={14} /> Government-issued photo ID (Driver's License or State ID)</li>
+          <li className="flex items-center gap-2"><FileText size={14} /> Social Security Number (SSN) or ITIN</li>
           <li className="flex items-center gap-2"><FileText size={14} /> Proof of address (utility bill, bank statement)</li>
           <li className="flex items-center gap-2"><FileText size={14} /> Selfie verification</li>
         </ul>

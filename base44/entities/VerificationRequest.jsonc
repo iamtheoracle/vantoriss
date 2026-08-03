@@ -16,20 +16,17 @@
     "method": {
       "type": "string",
       "enum": [
-        "Opening Contribution",
+        "Direct Deposit",
+        "ACH Transfer",
         "Wire Transfer",
-        "Crypto Deposit",
-        "ACH Deposit",
-        "Western Union",
-        "RIA",
-        "MoneyGram",
-        "Check",
-        "Chime"
+        "Mobile Check Deposit",
+        "Cashier's Check",
+        "Personal Check"
       ]
     },
     "reference": {
       "type": "string",
-      "description": "Member-provided reference (tx hash, wire confirmation, etc.)"
+      "description": "Member-provided reference (confirmation number, check number, etc.)"
     },
     "status": {
       "type": "string",

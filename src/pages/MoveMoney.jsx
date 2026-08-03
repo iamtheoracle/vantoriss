@@ -5,7 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
 import {
   ArrowLeftRight, Send, Download, CreditCard, Building2, Globe,
-  QrCode, Bitcoin, RefreshCw, Calendar, Repeat, Users, FileCheck,
+  QrCode, Calendar, Repeat, Users, FileCheck,
   DollarSign, Landmark, Wallet, X, ArrowRight,
 } from 'lucide-react';
 import FeatureGate from '@/components/vantoris/FeatureGate';
@@ -34,8 +34,6 @@ const SECTIONS = [
       { id: 'zelle', label: 'Zelle®', desc: 'Send money with Zelle', icon: Send, color: 'bg-purple-500/10 text-purple-600' },
       { id: 'qr', label: 'QR Code Payment', desc: 'Pay or receive via QR code', icon: QrCode, color: 'bg-brass/10 text-brass' },
       { id: 'bills', label: 'Pay Bills', desc: 'Manage and pay your bills', icon: FileCheck, color: 'bg-emerald-500/10 text-emerald-600' },
-      { id: 'crypto', label: 'Crypto Transfer', desc: 'Send or receive cryptocurrency', icon: Bitcoin, color: 'bg-amber-500/10 text-amber-600' },
-      { id: 'currency', label: 'Currency Exchange', desc: 'Convert between currencies', icon: RefreshCw, color: 'bg-teal-500/10 text-teal-600' },
     ],
   },
   {

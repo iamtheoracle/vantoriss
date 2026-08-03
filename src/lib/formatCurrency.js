@@ -7,7 +7,11 @@ export function formatCurrency(amount) {
 }
 
 export function generateAccountNumber() {
-  const prefix = 'VA';
   const num = Math.floor(1000000000 + Math.random() * 9000000000);
-  return `${prefix}-${String(num).slice(0, 4)}-${String(num).slice(4, 8)}`;
+  return String(num).padStart(10, '0');
+}
+
+export function generateRoutingNumber() {
+  const num = Math.floor(100000000 + Math.random() * 900000000);
+  return String(num).padStart(9, '0');
 }

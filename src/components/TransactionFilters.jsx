@@ -6,6 +6,9 @@ const CATEGORY_OPTIONS = [
   { value: 'opening_balance', label: 'Opening Balance' },
   { value: 'deposit', label: 'Deposit' },
   { value: 'withdrawal', label: 'Withdrawal' },
+  { value: 'transfer', label: 'Transfer' },
+  { value: 'interest', label: 'Interest' },
+  { value: 'fee', label: 'Fee' },
   { value: 'adjustment', label: 'Adjustment' },
 ];
 

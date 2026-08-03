@@ -54,22 +54,22 @@ const WITHDRAWAL_METHODS = [
     availability: 'SWIFT and beneficiary details required',
   },
   {
-    value: 'Internal Transfer',
-    title: 'Internal Transfer',
-    speed: 'Instant',
-    time: 'Usually immediate',
-    fee: '$0 fee',
-    limit: 'Available balance limit',
-    availability: 'Between eligible Vantoris accounts',
-  },
-  {
-    value: 'External Linked Bank',
-    title: 'External Linked Bank',
+    value: 'External Transfer',
+    title: 'External Transfer',
     speed: 'Standard',
     time: '2-3 Business Days',
     fee: '$0 standard fee',
     limit: 'Up to linked bank limits',
     availability: 'Requires verified external account',
+  },
+  {
+    value: "Cashier's Check",
+    title: "Cashier's Check",
+    speed: 'Bank-Issued',
+    time: '1-2 Business Days',
+    fee: '$10 estimated fee',
+    limit: 'Up to $50,000 per check',
+    availability: 'Bank-issued check mailed to address',
   },
   {
     value: 'Check by Mail',
@@ -80,20 +80,12 @@ const WITHDRAWAL_METHODS = [
     limit: 'Up to $10,000 per check',
     availability: 'Optional mailed check delivery',
   },
-  {
-    value: 'Crypto Withdrawal',
-    title: 'Crypto Withdrawal',
-    speed: 'Network',
-    time: 'Depends on network confirmation',
-    fee: 'Network fee applies',
-    limit: 'Enabled accounts only',
-    availability: 'Subject to wallet review and policy controls',
-  },
+
 ];
 
 const DESTINATIONS = [
   { id: 'saved-bank', title: 'Saved U.S. Bank', detail: 'Chase Checking ending 4821', type: 'Saved banks' },
-  { id: 'linked-account', title: 'Linked Vantoris Account', detail: 'Personal Savings ending 0188', type: 'Linked accounts' },
+  { id: 'linked-account', title: 'Linked Account', detail: 'Savings ending 0188', type: 'Linked accounts' },
 ];
 
 export default function AccountDetail() {
@@ -560,15 +552,15 @@ export default function AccountDetail() {
             <div key={txn.id} className="flex items-center justify-between py-3.5">
               <div className="flex items-center gap-3">
                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                  txn.type === 'deposit' || txn.type === 'opening_balance'
+                  txn.type === 'deposit' || txn.type === 'opening_balance' || txn.type === 'interest'
                     ? 'bg-mint/10'
-                    : txn.type === 'withdrawal'
+                    : txn.type === 'withdrawal' || txn.type === 'fee'
                     ? 'bg-crimson/10'
                     : 'bg-brass/10'
                 }`}>
-                  {txn.type === 'deposit' || txn.type === 'opening_balance'
+                  {txn.type === 'deposit' || txn.type === 'opening_balance' || txn.type === 'interest'
                     ? <ArrowDownLeft size={15} className="text-mint" />
-                    : txn.type === 'withdrawal'
+                    : txn.type === 'withdrawal' || txn.type === 'fee'
                     ? <ArrowUpRight size={15} className="text-crimson" />
                     : <TrendingUp size={15} className="text-brass" />
                   }
@@ -581,8 +573,8 @@ export default function AccountDetail() {
                 </div>
               </div>
               <div className="text-right">
-                <p className={`font-semibold text-sm ${txn.type === 'withdrawal' ? 'text-crimson' : 'text-mint'}`}>
-                  {txn.type === 'withdrawal' ? '-' : '+'}{formatCurrency(Math.abs(txn.amount))}
+                <p className={`font-semibold text-sm ${(txn.type === 'withdrawal' || txn.type === 'fee') ? 'text-crimson' : 'text-mint'}`}>
+                  {(txn.type === 'withdrawal' || txn.type === 'fee') ? '-' : '+'}{formatCurrency(Math.abs(txn.amount))}
                 </p>
                 {txn.balance_after != null && (
                   <p className="text-gray text-[10px]">Bal: {formatCurrency(txn.balance_after)}</p>

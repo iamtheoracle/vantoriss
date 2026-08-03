@@ -4,18 +4,15 @@ import { AlertCircle, Check, Clock, FileText, MessageCircle, Upload } from 'luci
 import { useWhatsAppConfig, whatsappLinkFromConfig } from '@/hooks/useWhatsAppConfig';
 
 const PAYMENT_METHODS = [
-  { value: 'Opening Contribution', label: 'Opening Contribution', desc: 'Initial deposit to activate your account' },
+  { value: 'Direct Deposit', label: 'Direct Deposit', desc: 'Payroll or benefits direct deposit' },
+  { value: 'ACH Transfer', label: 'ACH Transfer', desc: 'Standard bank-to-bank ACH transfer' },
   { value: 'Wire Transfer', label: 'Wire Transfer', desc: 'Domestic or international wire' },
-  { value: 'Crypto Deposit', label: 'Crypto Deposit', desc: 'USDT / BTC / ETH' },
-  { value: 'ACH Deposit', label: 'ACH Deposit', desc: 'US bank ACH transfer' },
-  { value: 'Western Union', label: 'Western Union', desc: 'Send via Western Union with time-limited details' },
-  { value: 'RIA', label: 'RIA', desc: 'RIA Money Transfer with time-limited account details' },
-  { value: 'MoneyGram', label: 'MoneyGram', desc: 'MoneyGram international transfer with expiring details' },
-  { value: 'Check', label: 'Check', desc: 'Physical check deposit with limited-validity instructions' },
-  { value: 'Chime', label: 'Chime', desc: 'Chime transfer with expiring account details' },
+  { value: 'Mobile Check Deposit', label: 'Mobile Check Deposit', desc: 'Deposit a check by photo' },
+  { value: "Cashier's Check", label: "Cashier's Check", desc: 'Bank-issued cashier check deposit' },
+  { value: 'Personal Check', label: 'Personal Check', desc: 'Personal check deposit' },
 ];
 
-const TIME_LIMITED_METHODS = new Set(['Western Union', 'RIA', 'MoneyGram', 'Check', 'Chime']);
+const TIME_LIMITED_METHODS = new Set(['Personal Check', "Cashier's Check"]);
 
 function formatUsd(value) {
   return new Intl.NumberFormat('en-US', {
@@ -34,7 +31,7 @@ function FieldLabel({ children }) {
 
 export default function OpeningContribution({ application, onUpdate }) {
   const whatsappNumber = useWhatsAppConfig();
-  const [method, setMethod] = useState(application?.opening_payment_method || 'Opening Contribution');
+  const [method, setMethod] = useState(application?.opening_payment_method || 'Direct Deposit');
   const [amount, setAmount] = useState(application?.opening_balance ? String(application.opening_balance) : '');
   const [receiptUrl, setReceiptUrl] = useState(application?.opening_receipt_url || '');
   const [accountDetails, setAccountDetails] = useState(application?.deposit_account_details || '');
@@ -61,7 +58,7 @@ export default function OpeningContribution({ application, onUpdate }) {
     () =>
       whatsappLinkFromConfig(
         whatsappNumber,
-        'Hello BOA, I need help with my opening contribution payment.'
+        'Hello, I need help with my opening deposit payment.'
       ),
     [whatsappNumber]
   );
@@ -110,8 +107,8 @@ export default function OpeningContribution({ application, onUpdate }) {
 
       await base44.entities.Notification.create({
         user_id: application.user_id,
-        title: 'Opening Contribution Received',
-        message: `Your opening contribution of ${formatUsd(amount)} via ${method} has been received. Payment verification typically takes 2–3 working days. We will notify you once your account is activated.`,
+        title: 'Opening Deposit Received',
+        message: `Your opening deposit of ${formatUsd(amount)} via ${method} has been received. Payment verification typically takes 2–3 business days. We will notify you once your account is activated.`,
         type: 'info',
       });
 
@@ -132,8 +129,8 @@ export default function OpeningContribution({ application, onUpdate }) {
         </div>
         <h3 className="text-lg font-bold text-white text-center mb-2">Payment Under Verification</h3>
         <p className="text-[#AAB4C3] text-sm text-center mb-4 leading-relaxed">
-          Your opening contribution receipt has been submitted and is being verified by our operations team.
-          This process typically takes <span className="text-brass font-medium">2–3 working days</span>.
+          Your opening deposit receipt has been submitted and is being verified by our operations team.
+          This process typically takes <span className="text-brass font-medium">2–3 business days</span>.
         </p>
         <div className="bg-[#242D38] rounded-xl p-4 space-y-2">
           <div className="flex justify-between text-xs">
@@ -204,7 +201,7 @@ export default function OpeningContribution({ application, onUpdate }) {
 
       {/* Amount */}
       <div className="mb-4">
-        <FieldLabel>Contribution Amount (USD)</FieldLabel>
+        <FieldLabel>Deposit Amount (USD)</FieldLabel>
         <input
           type="number"
           value={amount}
@@ -273,7 +270,7 @@ export default function OpeningContribution({ application, onUpdate }) {
         onClick={handleSubmit}
         className="w-full py-3.5 bg-brass text-[#0E1A2B] font-semibold rounded-xl hover:bg-brass/90 transition-all disabled:opacity-40"
       >
-        {submitting ? 'Submitting...' : 'Submit Contribution'}
+        {submitting ? 'Submitting...' : 'Submit Deposit'}
       </button>
 
       <a

@@ -5,10 +5,10 @@
     "account_type": {
       "type": "string",
       "enum": [
-        "Personal",
-        "Joint",
-        "Business",
-        "Organization"
+        "Checking",
+        "Savings",
+        "Money Market",
+        "CD"
       ],
       "description": "Account type this limit applies to"
     },

@@ -18,10 +18,10 @@
     "account_type": {
       "type": "string",
       "enum": [
-        "Personal",
-        "Joint",
-        "Business",
-        "Organization"
+        "Checking",
+        "Savings",
+        "Money Market",
+        "CD"
       ]
     },
     "kyc_status": {
@@ -68,22 +68,19 @@
     },
     "opening_receipt_url": {
       "type": "string",
-      "description": "URL of the uploaded opening contribution payment receipt"
+      "description": "URL of the uploaded opening deposit payment receipt"
     },
     "opening_payment_method": {
       "type": "string",
       "enum": [
-        "Opening Contribution",
+        "Direct Deposit",
+        "ACH Transfer",
         "Wire Transfer",
-        "Crypto Deposit",
-        "ACH Deposit",
-        "Western Union",
-        "RIA",
-        "MoneyGram",
-        "Check",
-        "Chime"
+        "Mobile Check Deposit",
+        "Cashier's Check",
+        "Personal Check"
       ],
-      "description": "Method used for the opening contribution"
+      "description": "Method used for the opening deposit"
     },
     "opening_contribution_status": {
       "type": "string",

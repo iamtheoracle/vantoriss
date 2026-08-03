@@ -5,10 +5,10 @@ import { hasOperationsAccess } from '@/lib/operationsAccess';
 import { ArrowLeft, Building2, Check, Landmark, User, Users } from 'lucide-react';
 
 const accountTypes = [
-  { type: 'Personal', icon: User, desc: 'Individual account for personal banking and transactions' },
-  { type: 'Joint', icon: Users, desc: 'Add a joint account with another member' },
-  { type: 'Business', icon: Building2, desc: 'Open a business account for your company' },
-  { type: 'Organization', icon: Landmark, desc: 'Request a fund or organization account' },
+  { type: 'Checking', icon: User, desc: 'Everyday transactions, debit card, and bill pay' },
+  { type: 'Savings', icon: Users, desc: 'Earn interest on your deposits' },
+  { type: 'Money Market', icon: Building2, desc: 'Higher interest with flexible access' },
+  { type: 'CD', icon: Landmark, desc: 'Fixed-term certificate of deposit' },
 ];
 
 function fieldClass() {
@@ -198,9 +198,9 @@ export default function Apply() {
               className={fieldClass()}
             />
           </div>
-          {(selectedType === 'Business' || selectedType === 'Organization') && (
+          {selectedType === 'CD' && (
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#5B6472]">Business / Organization Name</label>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#5B6472]">Beneficiary / Account Holder Name</label>
               <input
                 value={form.business_name}
                 onChange={e => setForm({ ...form, business_name: e.target.value })}
