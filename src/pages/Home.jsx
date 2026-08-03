@@ -5,19 +5,17 @@ import ShieldLogo from '@/components/vantoris/ShieldLogo';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import OnboardingSupport from '@/components/vantoris/OnboardingSupport';
 import OpeningContribution from '@/components/vantoris/OpeningContribution';
-import SocialBanner from '@/components/vantoris/SocialBanner';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { Bell, Clock, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
-import ImmersiveBalanceCard from '@/components/vantoris/home/ImmersiveBalanceCard';
-import ConciergeWelcome from '@/components/vantoris/home/ConciergeWelcome';
-import SanctuaryHeader from '@/components/vantoris/home/SanctuaryHeader';
-import AccountCarousel from '@/components/vantoris/home/AccountCarousel';
-import RecentActivity from '@/components/vantoris/home/RecentActivity';
-import SpendingInsights from '@/components/vantoris/home/SpendingInsights';
-import AIRecommendations from '@/components/vantoris/home/AIRecommendations';
-import PortfolioSummary from '@/components/vantoris/home/PortfolioSummary';
+import FinancialHero from '@/components/vantoris/home/FinancialHero';
+import AIConcierge from '@/components/vantoris/home/AIConcierge';
+import YourServices, { getAvailableServices } from '@/components/vantoris/home/YourServices';
+import DiscoverSection from '@/components/vantoris/home/DiscoverSection';
+import AccountsSection from '@/components/vantoris/home/AccountsSection';
+import InvestmentsSection from '@/components/vantoris/home/InvestmentsSection';
+import ActivityTimeline from '@/components/vantoris/home/ActivityTimeline';
 
 export default function Home() {
   const [user, setUser] = useState(null);
@@ -30,7 +28,6 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [hideBalance, setHideBalance] = useState(false);
-  const [showConcierge, setShowConcierge] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -53,7 +50,7 @@ export default function Home() {
       const txns = await base44.entities.Transaction.filter(
         { account_id: accts.map(a => a.id) },
         '-created_date',
-        10
+        20
       );
       setTransactions(txns);
     }
@@ -66,11 +63,6 @@ export default function Home() {
       toast({ title: 'Dashboard load failed', description: e.message || 'Unable to load your data.', variant: 'destructive' });
     }).finally(() => {
       setLoading(false);
-      // Show concierge welcome on fresh arrival (only for approved members)
-      if (!sessionStorage.getItem('vantoris_concierge_shown')) {
-        sessionStorage.setItem('vantoris_concierge_shown', '1');
-        setTimeout(() => setShowConcierge(true), 300);
-      }
     });
   }, [loadData]);
 
@@ -207,57 +199,62 @@ export default function Home() {
     );
   }
 
-  // Approved member dashboard — executive three-zone layout
+  // Compute financial metrics
+  const investmentValue = tradingAccounts.reduce((s, a) => s + (a.balance || 0), 0);
+  const netWorth = totalBalance + investmentValue;
+
+  // Daily P&L from today's transactions
+  const today = new Date().toLocaleDateString('en-US');
+  const dailyChange = transactions
+    .filter(t => new Date(t.transaction_date || t.created_date).toLocaleDateString('en-US') === today)
+    .reduce((sum, t) => {
+      if (t.type === 'deposit' || t.type === 'opening_balance' || t.type === 'interest') return sum + (t.amount || 0);
+      if (t.type === 'withdrawal' || t.type === 'fee') return sum - (t.amount || 0);
+      return sum;
+    }, 0);
+
+  // Services the user has — used to filter Discover section
+  const availableServiceIds = getAvailableServices(accounts, tradingAccounts).map(s => s.id);
+
+  // Approved member dashboard — financial headquarters
   return (
     <div className="px-5 pt-6 vantoris-scroll" {...containerProps}>
       <PullIndicator />
 
-      {/* === Concierge Welcome Overlay === */}
-      {showConcierge && (
-        <ConciergeWelcome
-          firstName={firstName}
-          greeting={greeting}
-          totalBalance={totalBalance}
-          accountCount={accounts.length}
-          unreadCount={unreadCount}
-          onComplete={() => setShowConcierge(false)}
-        />
-      )}
-
-      {/* === Zone 1: Sanctuary Header + Immersive Balance Card === */}
-      <SanctuaryHeader
+      {/* === Hero: Financial Summary === */}
+      <FinancialHero
         firstName={firstName}
         greeting={greeting}
+        netWorth={netWorth}
+        availableCash={availableBalance}
+        investmentValue={investmentValue}
+        dailyChange={dailyChange}
+        hideBalance={hideBalance}
+        onToggleBalance={() => setHideBalance(!hideBalance)}
         unreadCount={unreadCount}
       />
 
-      <ImmersiveBalanceCard
-        totalBalance={totalBalance}
-        availableBalance={availableBalance}
-        pendingBalance={pendingAmount}
-        accountCount={accounts.length}
-        hideBalance={hideBalance}
-        onToggleBalance={() => setHideBalance(!hideBalance)}
-        firstName={firstName}
+      {/* === AI Concierge === */}
+      <AIConcierge firstName={firstName} />
+
+      {/* === Your Services (only what the user has) === */}
+      <YourServices
+        accounts={accounts}
+        tradingAccounts={tradingAccounts}
+        transactions={transactions}
       />
 
-      {/* === Zone 2: Contextual Content === */}
-      <AccountCarousel accounts={accounts} />
+      {/* === Discover (services the user doesn't have yet) === */}
+      <DiscoverSection hiddenServiceIds={availableServiceIds} />
 
-      {tradingAccounts.length > 0 && (
-        <PortfolioSummary tradingAccounts={tradingAccounts} />
-      )}
+      {/* === Accounts (only existing) === */}
+      <AccountsSection accounts={accounts} hideBalance={hideBalance} />
 
-      <SpendingInsights transactions={transactions} upcomingWithdrawals={pendingWithdrawals} />
+      {/* === Investments (portfolio or invitation) === */}
+      <InvestmentsSection tradingAccounts={tradingAccounts} hideBalance={hideBalance} />
 
-      <RecentActivity transactions={transactions} />
-
-      <AIRecommendations unreadCount={unreadCount} />
-
-      {/* === Zone 3: Supporting Content === */}
-      <div className="mb-5">
-        <SocialBanner />
-      </div>
+      {/* === Recent Activity (unified timeline) === */}
+      <ActivityTimeline transactions={transactions} />
     </div>
   );
 }
