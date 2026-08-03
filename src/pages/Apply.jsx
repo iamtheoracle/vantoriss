@@ -2,14 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { hasOperationsAccess } from '@/lib/operationsAccess';
-import { ArrowLeft, Building2, Check, Landmark, User, Users } from 'lucide-react';
+import { ArrowLeft, Briefcase, Building2, Check, Landmark, ShieldCheck, User, Users } from 'lucide-react';
 
 const accountTypes = [
-  { type: 'Checking', icon: User, desc: 'Everyday transactions, debit card, and bill pay' },
-  { type: 'Savings', icon: Users, desc: 'Earn interest on your deposits' },
-  { type: 'Money Market', icon: Building2, desc: 'Higher interest with flexible access' },
-  { type: 'CD', icon: Landmark, desc: 'Fixed-term certificate of deposit' },
+  { type: 'Checking', icon: User, desc: 'Everyday transactions, debit card, and bill pay', standard: true },
+  { type: 'Savings', icon: Users, desc: 'Earn interest on your deposits', standard: true },
+  { type: 'Money Market', icon: Building2, desc: 'Higher interest with flexible access', standard: true },
+  { type: 'CD', icon: Landmark, desc: 'Fixed-term certificate of deposit', standard: true },
+  { type: 'Joint', icon: Users, desc: 'Shared account with a co-applicant', standard: false },
+  { type: 'Business', icon: Briefcase, desc: 'Business checking or savings for your company', standard: false },
 ];
+
+const BUSINESS_TYPES = ['LLC', 'Corporation', 'Partnership', 'Sole Proprietorship', 'Non-Profit'];
 
 function fieldClass() {
   return 'w-full rounded-lg border border-[#D8DEE8] bg-white px-4 py-3 text-sm text-[#111827] outline-none transition placeholder:text-[#9CA3AF] focus:border-[#B08D57] focus:ring-2 focus:ring-[#F5EFE5]';
@@ -18,7 +22,7 @@ function fieldClass() {
 export default function Apply() {
   const [step, setStep] = useState(1);
   const [selectedType, setSelectedType] = useState('');
-  const [form, setForm] = useState({ full_name: '', email: '', phone: '', address: '', business_name: '' });
+  const [form, setForm] = useState({ full_name: '', email: '', phone: '', address: '', business_name: '', joint_account_holder_name: '', joint_account_holder_ssn: '', ein: '', business_type: '' });
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -66,7 +70,7 @@ export default function Apply() {
       await base44.entities.Notification.create({
         user_id: me.id,
         title: 'Application Received',
-        message: `Your ${selectedType} account application has been submitted. Complete identity verification to proceed.`,
+        message: `Your ${selectedType} account application has been submitted.${!accountTypes.find(a => a.type === selectedType)?.standard ? ' This account type requires additional review and approval.' : ''} Complete identity verification to proceed.`,
         type: 'info',
       });
       setDone(true);
@@ -135,7 +139,12 @@ export default function Apply() {
                     <Icon size={20} />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-bold text-[#071A33]">{accountType.type} Account</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-bold text-[#071A33]">{accountType.type} Account</p>
+                      {!accountType.standard && (
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-[#B08D57] bg-[#B08D57]/10 px-1.5 py-0.5 rounded-full">Requires Approval</span>
+                      )}
+                    </div>
                     <p className="text-xs text-[#5B6472]">{accountType.desc}</p>
                   </div>
                   {selected && (
@@ -207,6 +216,70 @@ export default function Apply() {
                 className={fieldClass()}
               />
             </div>
+          )}
+          {selectedType === 'Joint' && (
+            <>
+              <div className="rounded-lg border border-[#B08D57]/30 bg-[#FDFBF5] p-3 flex items-start gap-2">
+                <ShieldCheck size={16} className="text-[#B08D57] flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-[#5B6472] leading-relaxed">Joint accounts require co-applicant verification. Both account holders must complete identity verification.</p>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#5B6472]">Co-Applicant Full Name</label>
+                <input
+                  value={form.joint_account_holder_name}
+                  onChange={e => setForm({ ...form, joint_account_holder_name: e.target.value })}
+                  className={fieldClass()}
+                  placeholder="Legal full name"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#5B6472]">Co-Applicant SSN (Last 4 Digits)</label>
+                <input
+                  value={form.joint_account_holder_ssn}
+                  onChange={e => setForm({ ...form, joint_account_holder_ssn: e.target.value.slice(0, 4) })}
+                  className={fieldClass()}
+                  placeholder="e.g. 1234"
+                  inputMode="numeric"
+                />
+              </div>
+            </>
+          )}
+          {selectedType === 'Business' && (
+            <>
+              <div className="rounded-lg border border-[#B08D57]/30 bg-[#FDFBF5] p-3 flex items-start gap-2">
+                <ShieldCheck size={16} className="text-[#B08D57] flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-[#5B6472] leading-relaxed">Business accounts require EIN verification and additional documentation. Subject to enhanced review.</p>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#5B6472]">Business Legal Name</label>
+                <input
+                  value={form.business_name}
+                  onChange={e => setForm({ ...form, business_name: e.target.value })}
+                  className={fieldClass()}
+                  placeholder="Registered business name"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#5B6472]">Business Type</label>
+                <select
+                  value={form.business_type}
+                  onChange={e => setForm({ ...form, business_type: e.target.value })}
+                  className={fieldClass()}
+                >
+                  <option value="">Select business type</option>
+                  {BUSINESS_TYPES.map(bt => <option key={bt} value={bt}>{bt}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#5B6472]">EIN (Employer Identification Number)</label>
+                <input
+                  value={form.ein}
+                  onChange={e => setForm({ ...form, ein: e.target.value })}
+                  className={fieldClass()}
+                  placeholder="XX-XXXXXXX"
+                />
+              </div>
+            </>
           )}
           <button
             type="button"

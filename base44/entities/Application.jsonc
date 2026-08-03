@@ -21,7 +21,9 @@
         "Checking",
         "Savings",
         "Money Market",
-        "CD"
+        "CD",
+        "Joint",
+        "Business"
       ]
     },
     "kyc_status": {
@@ -61,7 +63,31 @@
       "default": 0
     },
     "business_name": {
-      "type": "string"
+      "type": "string",
+      "description": "Business name (for Business accounts) or beneficiary name (for CD accounts)"
+    },
+    "business_type": {
+      "type": "string",
+      "enum": [
+        "LLC",
+        "Corporation",
+        "Partnership",
+        "Sole Proprietorship",
+        "Non-Profit"
+      ],
+      "description": "Legal business structure (Business accounts only)"
+    },
+    "ein": {
+      "type": "string",
+      "description": "Employer Identification Number (Business accounts only, 9 digits)"
+    },
+    "joint_account_holder_name": {
+      "type": "string",
+      "description": "Full legal name of the co-applicant (Joint accounts only)"
+    },
+    "joint_account_holder_ssn": {
+      "type": "string",
+      "description": "Last 4 digits of co-applicant SSN (Joint accounts only)"
     },
     "address": {
       "type": "string"

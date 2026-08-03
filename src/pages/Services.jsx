@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Users, Building2, CreditCard, TrendingUp, Check, Clock, BarChart3 } from 'lucide-react';
+import { Users, Building2, CreditCard, TrendingUp, Check, Clock, BarChart3, Landmark, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
 
 const services = [
-  { type: 'Savings Account', icon: Users, desc: 'Open a savings account to earn interest', color: 'bg-brass/15 text-brass' },
-  { type: 'Money Market Account', icon: Building2, desc: 'Higher interest with flexible access', color: 'bg-olive/20 text-emerald-400' },
-  { type: 'Debit Card', icon: CreditCard, desc: 'Request a debit card for your account', color: 'bg-blue-500/15 text-blue-400' },
-  { type: 'Investment Access', icon: TrendingUp, desc: 'Request access to investment opportunities', color: 'bg-purple-500/15 text-purple-400' },
+  { type: 'Joint Account', icon: Users, desc: 'Request a joint account with a co-applicant', color: 'bg-brass/15 text-brass', requiresApproval: true },
+  { type: 'Business Account', icon: Building2, desc: 'Request a business checking or savings account', color: 'bg-olive/20 text-emerald-400', requiresApproval: true },
+  { type: 'Savings Account', icon: Landmark, desc: 'Open a savings account to earn interest', color: 'bg-blue-500/15 text-blue-400' },
+  { type: 'Debit Card', icon: CreditCard, desc: 'Request a debit card for your account', color: 'bg-purple-500/15 text-purple-400' },
+  { type: 'Investment Access', icon: TrendingUp, desc: 'Request access to investment opportunities', color: 'bg-teal-500/15 text-teal-400' },
 ];
 
 const quickLinks = [
@@ -136,7 +137,14 @@ export default function Services() {
                 <Icon size={20} />
               </div>
               <div className="flex-1">
-                <p className="text-white font-medium text-sm">{svc.type}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-white font-medium text-sm">{svc.type}</p>
+                  {svc.requiresApproval && (
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-brass bg-brass/15 px-1.5 py-0.5 rounded-full flex items-center gap-1">
+                      <ShieldCheck size={9} /> Requires Approval
+                    </span>
+                  )}
+                </div>
                 <p className="text-[#AAB4C3] text-xs">{svc.desc}</p>
               </div>
             </button>
@@ -172,6 +180,12 @@ export default function Services() {
             <DialogTitle className="text-white">Request {showRequest}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-2">
+            {services.find(s => s.type === showRequest)?.requiresApproval && (
+              <div className="rounded-lg border border-brass/30 bg-brass/10 p-3 flex items-start gap-2">
+                <ShieldCheck size={16} className="text-brass flex-shrink-0 mt-0.5" />
+                <p className="text-[#AAB4C3] text-xs leading-relaxed">This service requires additional review and approval. Please provide as much detail as possible to expedite processing.</p>
+              </div>
+            )}
             <p className="text-[#AAB4C3] text-sm">Provide any additional details for your request.</p>
             <textarea
               value={details}

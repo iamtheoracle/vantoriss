@@ -18,7 +18,9 @@
         "Checking",
         "Savings",
         "Money Market",
-        "CD"
+        "CD",
+        "Joint",
+        "Business"
       ]
     },
     "account_name": {

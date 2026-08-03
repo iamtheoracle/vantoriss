@@ -5,7 +5,7 @@ import { formatCurrency } from '@/lib/formatCurrency';
 import { Wallet, ChevronRight, Plus } from 'lucide-react';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 
-const ACCOUNT_TYPES = ['All', 'Checking', 'Savings', 'Money Market', 'CD'];
+const ACCOUNT_TYPES = ['All', 'Checking', 'Savings', 'Money Market', 'CD', 'Joint', 'Business'];
 
 export default function Accounts() {
   const [accounts, setAccounts] = useState([]);
