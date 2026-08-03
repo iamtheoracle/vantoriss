@@ -49,8 +49,8 @@ export default async function(req) {
       format,
       date_from: date_from || null,
       date_to: date_to || null,
-      exported_by: user.id,
-      exported_by_name: user.full_name,
+      exported_by: isScheduled ? null : user.id,
+      exported_by_name: isScheduled ? 'Automated Scheduler' : user.full_name,
       rows_exported: 0,
       failed_rows: 0,
       retry_count: 0,
@@ -136,6 +136,7 @@ export default async function(req) {
       let rowsExported = 0;
       let failedRows = 0;
 
+      const sheetDataRows = [];
       const csvRows = transactionsToExport.map(tx => {
         try {
           const account = accountMap[tx.account_id];
@@ -168,6 +169,7 @@ export default async function(req) {
             'Export Timestamp': now,
           };
           rowsExported++;
+          sheetDataRows.push(headers.map(h => row[h] ?? ''));
           return headers.map(h => escape(row[h])).join(',');
         } catch (e) {
           failedRows++;
@@ -176,19 +178,64 @@ export default async function(req) {
       });
 
       const csv = [headers.map(escape).join(','), ...csvRows.filter(r => r)].join('\n');
+      const lastTx = transactionsToExport[0];
 
-      // Upload the CSV file
-      const csvBlob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const file = new File([csvBlob], `transaction_ledger_${export_type}_${now.split('T')[0]}.csv`, { type: 'text/csv' });
-      const uploadResult = await base44.asServiceRole.integrations.Core.UploadFile({ file });
+      let fileUrl = null;
+      let googleSheetId = null;
+      let googleSheetUrl = null;
+
+      if (format === 'google_sheets') {
+        // Export to Google Sheets via the authorized shared connector
+        const { accessToken } = await base44.asServiceRole.connectors.getConnection('googlesheets');
+        const sheetTitle = `HeroBox Transaction Ledger — ${export_type} ${now.split('T')[0]}`;
+
+        // 1. Create a new spreadsheet
+        const createRes = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            properties: { title: sheetTitle },
+            sheets: [{ properties: { title: 'Transactions' } }],
+          }),
+        });
+        if (!createRes.ok) {
+          const errBody = await createRes.text();
+          throw new Error(`Google Sheets create failed: ${createRes.status} ${errBody}`);
+        }
+        const sheetData = await createRes.json();
+        googleSheetId = sheetData.spreadsheetId;
+        googleSheetUrl = sheetData.spreadsheetUrl;
+
+        // 2. Write header + data rows in a single batch
+        const values = [headers, ...sheetDataRows];
+        const appendRes = await fetch(
+          `https://sheets.googleapis.com/v4/spreadsheets/${googleSheetId}/values/Transactions!A1:append?valueInputOption=RAW&insertDataOption=OVERWRITE`,
+          {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ values }),
+          }
+        );
+        if (!appendRes.ok) {
+          const errBody = await appendRes.text();
+          throw new Error(`Google Sheets append failed: ${appendRes.status} ${errBody}`);
+        }
+      } else {
+        // Upload as CSV file
+        const csvBlob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const file = new File([csvBlob], `transaction_ledger_${export_type}_${now.split('T')[0]}.csv`, { type: 'text/csv' });
+        const uploadResult = await base44.asServiceRole.integrations.Core.UploadFile({ file });
+        fileUrl = uploadResult.file_url;
+      }
 
       // Update export record
-      const lastTx = transactionsToExport[0];
       const updated = await base44.asServiceRole.entities.TransactionExport.update(exportRecord.id, {
         status: 'completed',
         rows_exported: rowsExported,
         failed_rows: failedRows,
-        file_url: uploadResult.file_url,
+        file_url: fileUrl,
+        google_sheet_id: googleSheetId,
+        google_sheet_url: googleSheetUrl,
         last_transaction_id: lastTx?.id || null,
       });
 
@@ -205,8 +252,8 @@ export default async function(req) {
           dateFrom: date_from,
           dateTo: date_to,
         }),
-        user_id: user.id,
-        admin_name: user.full_name,
+        user_id: isScheduled ? null : user.id,
+        admin_name: isScheduled ? 'Automated Scheduler' : user.full_name,
       });
 
       return Response.json({
@@ -214,7 +261,8 @@ export default async function(req) {
         exportId: exportRecord.id,
         rowsExported,
         failedRows,
-        fileUrl: uploadResult.file_url,
+        fileUrl,
+        googleSheetUrl,
       });
     } catch (innerError) {
       // Mark export as failed

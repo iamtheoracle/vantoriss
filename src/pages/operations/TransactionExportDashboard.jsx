@@ -235,6 +235,17 @@ export default function TransactionExportDashboard() {
                         <p className="text-xs text-crimson">{exp.failed_rows} failed</p>
                       )}
                     </div>
+                    {exp.google_sheet_url && exp.status === 'completed' && (
+                      <a
+                        href={exp.google_sheet_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 rounded-lg bg-mint/10 text-mint hover:bg-mint/20 transition-colors"
+                        title="Open Google Sheet"
+                      >
+                        <FileSpreadsheet size={14} />
+                      </a>
+                    )}
                     {exp.file_url && exp.status === 'completed' && (
                       <a
                         href={exp.file_url}

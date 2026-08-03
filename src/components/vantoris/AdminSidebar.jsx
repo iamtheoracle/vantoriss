@@ -9,7 +9,7 @@ import {
   ChevronRight, Wrench, Users2, MessageSquare, Crown, Briefcase,
   AlertTriangle, Scale, GitBranch, Database, ServerCog,
   Search, Eye, ShieldAlert, Network, Globe, Zap,
-  PanelLeftClose, FileUp, CalendarDays, Gavel, FileSpreadsheet,
+  PanelLeftClose, FileUp, CalendarDays, Gavel, FileSpreadsheet, Trophy,
 } from 'lucide-react';
 import ShieldLogo from './ShieldLogo';
 import {
@@ -39,6 +39,7 @@ const WORKSPACE_CONFIG = {
           { label: 'Treasury Overview', path: '/operations/transfers', icon: Wallet },
           { label: 'Business Intelligence', path: '/operations/reports', icon: TrendingUp },
           { label: 'Impact Analytics', path: '/operations/impact-analytics', icon: BarChart3 },
+          { label: 'Supporter Leaderboard', path: '/operations/leaderboard', icon: Trophy },
           { label: 'Strategic Reports', path: '/operations/executive-reports', icon: TrendingUp },
         ],
       },
@@ -112,6 +113,7 @@ const WORKSPACE_CONFIG = {
         items: [
           { label: 'Recommendation Review', path: '/operations/recommendations', icon: Gavel },
           { label: 'Impact Analytics', path: '/operations/impact-analytics', icon: BarChart3 },
+          { label: 'Supporter Leaderboard', path: '/operations/leaderboard', icon: Trophy },
           { label: 'Transaction Export', path: '/operations/transaction-export', icon: FileSpreadsheet },
         ],
       },

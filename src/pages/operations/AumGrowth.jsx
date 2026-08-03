@@ -68,7 +68,8 @@ export default function AumGrowth() {
     sorted.forEach(t => {
       const ym = (t.transaction_date || (t.created_date || '').split('T')[0] || '').substring(0, 7);
       if (!ym) return;
-      if (!monthlyFlows[ym]) monthlyFlows[ym] = { month: ym, label: formatMonthLabel(ym), inflow: 0, outflow: 0, endAum: 0 };
+      if (!monthlyFlows[ym]) monthlyFlows[ym] = { month: ym, label: formatMonthLabel(ym), inflow: 0, outflow: 0, endAum: 0, txnCount: 0 };
+      monthlyFlows[ym].txnCount += 1;
       const amt = Math.abs(t.amount || 0);
       if (t.type === 'withdrawal') monthlyFlows[ym].outflow += amt;
       else if (t.type === 'adjustment') {
@@ -92,6 +93,7 @@ export default function AumGrowth() {
       inflow: m.inflow,
       outflow: m.outflow,
       net: m.inflow - m.outflow,
+      txnCount: m.txnCount,
     }));
 
     const totalAcctAUM = accounts.reduce((s, a) => s + (a.balance || 0), 0);
