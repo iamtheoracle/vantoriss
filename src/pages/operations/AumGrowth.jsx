@@ -200,6 +200,39 @@ export default function AumGrowth() {
         )}
       </div>
 
+      {/* Transaction Volume Trends */}
+      <div className="vantoris-card p-5 mb-6">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h3 className="text-foreground font-semibold text-base">Transaction Volume Trends</h3>
+            <p className="text-gray text-xs mt-0.5">Number of transactions and volume by month</p>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-navy/5 border border-navy/10">
+            <Activity size={14} className="text-navy" />
+            <span className="text-xs font-medium text-navy">{timeline.reduce((s, t) => s + (t.txnCount || 0), 0)} transactions</span>
+          </div>
+        </div>
+        {timeline.length === 0 ? (
+          <div className="flex items-center justify-center h-48 text-gray text-sm">No volume data available.</div>
+        ) : (
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={timeline} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#64748B' }} axisLine={{ stroke: '#CBD5E1' }} tickLine={false} />
+              <YAxis yAxisId="left" tickFormatter={(v) => v.toLocaleString()} tick={{ fontSize: 11, fill: '#64748B' }} axisLine={false} tickLine={false} width={40} />
+              <YAxis yAxisId="right" orientation="right" tickFormatter={formatAxisCurrency} tick={{ fontSize: 11, fill: '#64748B' }} axisLine={false} tickLine={false} width={60} />
+              <Tooltip
+                contentStyle={{ borderRadius: 12, border: '1px solid #E2E8F0', boxShadow: '0 8px 28px rgba(7,28,56,0.08)', fontSize: 13 }}
+                labelStyle={{ fontWeight: 600, color: '#071C38' }}
+              />
+              <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
+              <Bar yAxisId="left" dataKey="txnCount" name="Transaction Count" fill="#1F5EFF" radius={[4, 4, 0, 0]} />
+              <Bar yAxisId="right" dataKey="net" name="Net Volume" fill="#16A34A" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+
       {/* Monthly Flows — Bar Chart */}
       <div className="vantoris-card p-5">
         <div className="flex items-center justify-between mb-5">
