@@ -1,41 +1,75 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import ShieldLogo from '@/components/vantoris/ShieldLogo';
 import DeleteAccountDialog from '@/components/vantoris/DeleteAccountDialog';
-import { hasOperationsAccess, getRoleLabel } from '@/lib/operationsAccess';
-import { formatCurrency } from '@/lib/formatCurrency';
+import { hasOperationsAccess } from '@/lib/operationsAccess';
 import {
   User, Shield, LogOut, FileText, Trash2, Copy, Check,
-  Gift, Sparkles, Wallet, Bell, MessageCircle, ShieldCheck,
-  ChevronRight, Briefcase,
+  Gift, Bell, MessageCircle, ShieldCheck, Settings,
 } from 'lucide-react';
-import StatusBadge from '@/components/vantoris/StatusBadge';
 import ProfileSection, { ProfileRow, ProfileDivider } from '@/components/vantoris/profile/ProfileSection';
 import { useWhatsAppConfig, whatsappLinkFromConfig } from '@/hooks/useWhatsAppConfig';
+import ProfileHeader from '@/components/vantoris/profile/ProfileHeader';
+import FinancialOverview from '@/components/vantoris/profile/FinancialOverview';
+import CommunitySupport from '@/components/vantoris/profile/CommunitySupport';
+import RecentActivity from '@/components/vantoris/profile/RecentActivity';
+import ProfileActionDock from '@/components/vantoris/profile/ProfileActionDock';
 
 export default function Profile() {
   const whatsappNumber = useWhatsAppConfig();
   const [user, setUser] = useState(null);
+  const [accounts, setAccounts] = useState([]);
+  const [tradingAccounts, setTradingAccounts] = useState([]);
+  const [application, setApplication] = useState(null);
+  const [heroProfile, setHeroProfile] = useState(null);
+  const [heroActivities, setHeroActivities] = useState([]);
+  const [heroRequests, setHeroRequests] = useState([]);
+  const [transactions, setTransactions] = useState([]);
   const [showDelete, setShowDelete] = useState(false);
   const [copied, setCopied] = useState(false);
   const [referralLink, setReferralLink] = useState('');
   const navigate = useNavigate();
 
-  useEffect(() => {
-    async function load() {
-      const me = await base44.auth.me();
-      if (me && me.role === 'user' && !me.referral_code) {
-        const code = generateReferralCode(me.id);
-        await base44.auth.updateMe({ referral_code: code });
-        me.referral_code = code;
-      }
-      setUser(me);
-      setReferralLink(`${window.location.origin}/register?ref=${me.referral_code || ''}`);
+  useEffect(() => { loadProfile(); }, []);
+
+  async function loadProfile() {
+    const me = await base44.auth.me();
+    if (me && me.role === 'user' && !me.referral_code) {
+      const code = generateReferralCode(me.id);
+      await base44.auth.updateMe({ referral_code: code });
+      me.referral_code = code;
     }
-    load();
-  }, []);
+    setUser(me);
+    setReferralLink(`${window.location.origin}/register?ref=${me.referral_code || ''}`);
+
+    const [accts, apps, trading, heroProfs, heroActs, heroReqs] = await Promise.all([
+      base44.entities.Account.filter({ user_id: me.id }),
+      base44.entities.Application.filter({ user_id: me.id }),
+      base44.entities.TradingAccount.filter({ user_id: me.id }),
+      base44.entities.HeroBoxProfile.filter({ user_id: me.id }),
+      base44.entities.HeroBoxActivity.filter({ user_id: me.id }, '-created_date', 5),
+      base44.entities.HeroBoxRequest.filter({ user_id: me.id }),
+    ]);
+
+    setAccounts(accts);
+    setApplication(apps[0] || null);
+    setTradingAccounts(trading);
+    setHeroProfile(heroProfs[0] || null);
+    setHeroActivities(heroActs);
+    setHeroRequests(heroReqs);
+
+    const accountIds = accts.slice(0, 3).map(a => a.id);
+    if (accountIds.length > 0) {
+      const txnResults = await Promise.all(
+        accountIds.map(id => base44.entities.Transaction.filter({ account_id: id }, '-created_date', 5))
+      );
+      const allTxns = txnResults.flat().sort((a, b) =>
+        new Date(b.created_date) - new Date(a.created_date)
+      ).slice(0, 8);
+      setTransactions(allTxns);
+    }
+  }
 
   if (!user) {
     return (
@@ -46,60 +80,42 @@ export default function Profile() {
   }
 
   const isMember = user.role === 'user';
+  const hasAccounts = accounts.length > 0;
+  const hasHeroBox = !!heroProfile;
+
+  const profileCompletion = [
+    user.full_name ? 25 : 0,
+    application?.kyc_status === 'approved' ? 25 : 0,
+    hasAccounts ? 25 : 0,
+    hasHeroBox ? 25 : 0,
+  ].reduce((a, b) => a + b, 0);
 
   return (
     <div className="px-5 pt-6 pb-8">
-      {/* Identity Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="vantoris-glass-premium p-6 mb-4 relative overflow-hidden"
-      >
-        <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-brass/[0.06] blur-3xl" />
-        <div className="relative z-10 flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brass/15 to-brass/5 border border-brass/15 flex items-center justify-center">
-            <span className="text-brass text-xl font-bold">
-              {(user.full_name || 'U').charAt(0).toUpperCase()}
-            </span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-foreground font-semibold text-lg truncate">{user.full_name || 'Member'}</p>
-            <p className="text-gray text-sm truncate">{user.email}</p>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-brass text-xs font-medium">{getRoleLabel(user.role)}</span>
-            </div>
-          </div>
-        </div>
-      </motion.div>
+      {/* 1. Profile Header */}
+      <ProfileHeader user={user} application={application} profileCompletion={profileCompletion} />
 
-      {/* Contact & Security */}
-      <ProfileSection title="Account Settings" icon={ShieldCheck} delay={0.1}>
-        <ProfileRow
-          icon={User}
-          iconColor="text-brass"
-          iconBg="bg-brass/10"
-          label="Personal Information"
-          value={user.email}
-          onClick={() => {}}
-        />
-        <ProfileDivider />
-        <ProfileRow
-          icon={Shield}
-          iconColor="text-brass"
-          iconBg="bg-brass/10"
-          label="Security & Access"
-          value="Manage your credentials"
-          onClick={() => {}}
-        />
-      </ProfileSection>
+      {/* 2. Quick Actions — context-aware expandable dock */}
+      <ProfileActionDock hasAccounts={hasAccounts} hasHeroBox={hasHeroBox} isMember={isMember} />
 
-      {/* Documents */}
-      <ProfileSection title="Documents" icon={FileText} delay={0.15}>
+      {/* 3. Financial Overview — only eligible products */}
+      <FinancialOverview accounts={accounts} tradingAccounts={tradingAccounts} />
+
+      {/* 4. Community Support — HeroBox data only if profile exists */}
+      <CommunitySupport heroProfile={heroProfile} heroRequests={heroRequests} />
+
+      {/* 5. Recent Activity — merged financial + community timeline */}
+      {(transactions.length > 0 || heroActivities.length > 0) && (
+        <RecentActivity transactions={transactions} heroActivities={heroActivities} />
+      )}
+
+      {/* 6. Documents */}
+      <ProfileSection title="Documents" icon={FileText} delay={0.1}>
         <ProfileRow icon={FileText} iconColor="text-brass" iconBg="bg-brass/10" label="Statements & Documents" value="Statements, tax docs & agreements" onClick={() => navigate('/documents')} />
       </ProfileSection>
 
-      {/* Communication */}
-      <ProfileSection title="Communication" icon={Bell} delay={0.2}>
+      {/* 7. Communication */}
+      <ProfileSection title="Communication" icon={Bell} delay={0.15}>
         <ProfileRow icon={Bell} iconColor="text-brass" iconBg="bg-brass/10" label="Messages" value="Secure messages" onClick={() => navigate('/messages')} />
         <ProfileDivider />
         <ProfileRow
@@ -108,7 +124,6 @@ export default function Profile() {
           iconBg="bg-mint/10"
           label="WhatsApp Support"
           value="Chat with us directly"
-          rightElement={<ChevronRight size={16} className="text-gray/40" />}
           onClick={() => window.open(
             whatsappLinkFromConfig(whatsappNumber, 'Hello Vantoris Support, I have a question regarding my account.'),
             '_blank', 'noopener,noreferrer'
@@ -116,18 +131,18 @@ export default function Profile() {
         />
       </ProfileSection>
 
-      {/* Advisory */}
+      {/* Advisory & Services — members only */}
       {isMember && (
-        <ProfileSection title="Advisory & Services" icon={Sparkles} delay={0.25}>
-          <ProfileRow icon={Sparkles} iconColor="text-brass" iconBg="bg-brass/10" label="Vantoris Advisor" value="Your personal AI financial assistant" onClick={() => navigate('/advisor')} />
+        <ProfileSection title="Advisory & Services" icon={ShieldCheck} delay={0.2}>
+          <ProfileRow icon={ShieldCheck} iconColor="text-brass" iconBg="bg-brass/10" label="Vantoris Advisor" value="Your personal AI financial assistant" onClick={() => navigate('/advisor')} />
           <ProfileDivider />
-          <ProfileRow icon={Briefcase} iconColor="text-brass" iconBg="bg-brass/10" label="Services" value="Manage banking services" onClick={() => navigate('/services')} />
+          <ProfileRow icon={Settings} iconColor="text-brass" iconBg="bg-brass/10" label="Services" value="Manage banking services" onClick={() => navigate('/services')} />
         </ProfileSection>
       )}
 
       {/* Referral Program — members only */}
       {isMember && (
-        <ProfileSection title="Referral Program" icon={Gift} delay={0.3}>
+        <ProfileSection title="Referral Program" icon={Gift} delay={0.25}>
           <div className="p-3.5">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-9 h-9 rounded-xl bg-brass/10 flex items-center justify-center">
@@ -158,13 +173,17 @@ export default function Profile() {
 
       {/* Operations Center access — role-gated */}
       {hasOperationsAccess(user.role) && (
-        <ProfileSection title="Staff Access" icon={Shield} delay={0.35}>
+        <ProfileSection title="Staff Access" icon={Shield} delay={0.3}>
           <ProfileRow icon={Shield} iconColor="text-brass" iconBg="bg-brass/10" label="Operations Center" value="Staff access" onClick={() => navigate('/operations')} />
         </ProfileSection>
       )}
 
-      {/* Account Management */}
-      <ProfileSection title="Account Management" icon={LogOut} delay={0.4}>
+      {/* 8. Settings & Account Management */}
+      <ProfileSection title="Account Management" icon={LogOut} delay={0.35}>
+        <ProfileRow icon={User} iconColor="text-brass" iconBg="bg-brass/10" label="Personal Information" value={user.email} onClick={() => {}} />
+        <ProfileDivider />
+        <ProfileRow icon={Shield} iconColor="text-brass" iconBg="bg-brass/10" label="Security & Access" value="Manage your credentials" onClick={() => {}} />
+        <ProfileDivider />
         <ProfileRow icon={LogOut} label="Sign Out" onClick={() => base44.auth.logout('/')} danger />
         <ProfileDivider />
         <ProfileRow icon={Trash2} label="Delete Account" onClick={() => setShowDelete(true)} danger />
