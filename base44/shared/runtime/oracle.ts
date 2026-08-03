@@ -51,6 +51,15 @@ export function createOracle(services, registries, guardian, nexus, spark, orbit
           response = await spark.reason(request, orchestration, services);
         }
 
+        // 3b. If Spark produced a structured recommendation, persist it for staff approval
+        if (response.recommendation) {
+          eventBus.publish({
+            type: 'workflow', source: 'oracle',
+            payload: { requestId: request.id, specialist: orchestration.routing?.specialist, recommendationCreated: true },
+            correlationId: traceId,
+          });
+        }
+
         // 4. Orbit — handle deferred work
         if (orchestration.deferredJobs && orchestration.deferredJobs.length) {
           for (const job of orchestration.deferredJobs) {
@@ -71,6 +80,9 @@ export function createOracle(services, registries, guardian, nexus, spark, orbit
           content: response.content,
           sources: response.sources,
           capabilities: orchestration.capabilities?.map(c => c.name),
+          routing: orchestration.routing,
+          recommendation: response.recommendation || null,
+          escalate: orchestration.escalate || false,
           metadata: { traceId, ...response.metadata },
         };
       } catch (error) {

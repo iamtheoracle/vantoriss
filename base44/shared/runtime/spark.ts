@@ -11,6 +11,8 @@ export function createSpark() {
 
       const model = orchestration.model?.name || 'automatic';
       const promptTemplate = orchestration.prompt?.template || 'You are a helpful assistant.';
+      const routing = orchestration.routing;
+      const isActionImpacting = routing?.isActionImpacting || false;
 
       // Build context from platform services (Spark does NOT own these)
       const memory = orchestration.context?.memory;
@@ -18,28 +20,70 @@ export function createSpark() {
 
       const systemPrompt = this._buildSystemPrompt(promptTemplate, memory, history);
 
+      // If action-impacting, request structured recommendation output
+      let responseSchema = null;
+      let fullPrompt = `${systemPrompt}\n\nMember: ${request.message}`;
+
+      if (isActionImpacting) {
+        responseSchema = {
+          type: 'object',
+          properties: {
+            response: { type: 'string', description: 'The conversational response to show the member' },
+            recommendation: {
+              type: 'object',
+              properties: {
+                summary: { type: 'string', description: 'Concise summary of the recommendation' },
+                supporting_evidence: { type: 'string', description: 'Data and evidence supporting the recommendation' },
+                confidence_level: { type: 'string', enum: ['low', 'medium', 'high'] },
+                potential_risks: { type: 'string', description: 'Identified risks and mitigations' },
+                applicable_policies: { type: 'string', description: 'Relevant platform policies and procedures' },
+                recommended_action: { type: 'string', description: 'Specific next action recommended' },
+                is_escalation: { type: 'boolean', description: 'Whether this should be escalated to staff' },
+                escalation_reason: { type: 'string', description: 'Reason for escalation if applicable' },
+              },
+            },
+          },
+          required: ['response'],
+        };
+        fullPrompt = `${systemPrompt}\n\nMember: ${request.message}\n\nThis request requires staff approval before any action is taken. Prepare a structured recommendation with summary, supporting evidence, confidence level, potential risks, applicable policies, recommended action, and whether escalation is needed. Provide a conversational response for the member that acknowledges their request without executing any action.`;
+      }
+
       eventBus.publish({
         type: 'request', source: 'spark', target: 'modelService',
-        payload: { requestId: request.id, model },
+        payload: { requestId: request.id, model, structured: isActionImpacting },
       });
 
       try {
         const result = await breaker.execute(() =>
           withRetry(() => services.model.invoke({
-            prompt: `${systemPrompt}\n\nUser: ${request.message}`,
+            prompt: fullPrompt,
             model,
+            response_json_schema: responseSchema || undefined,
           }), { maxRetries: 2, backoffMs: 2000, timeout: 60000 })
         );
 
         eventBus.publish({
           type: 'response', source: 'spark', target: 'oracle',
-          payload: { requestId: request.id, model },
+          payload: { requestId: request.id, model, structured: isActionImpacting },
         });
 
+        // Handle structured recommendation response
+        let content = '';
+        let recommendation = null;
+
+        if (typeof result === 'object' && result !== null) {
+          content = result.response || result.content || JSON.stringify(result);
+          recommendation = result.recommendation || null;
+        } else {
+          content = typeof result === 'string' ? result : String(result);
+        }
+
         return {
-          content: typeof result === 'string' ? result : (result.response || result.result || JSON.stringify(result)),
+          content,
+          recommendation,
+          routing,
           sources: orchestration.context?.knowledge || [],
-          metadata: { model },
+          metadata: { model, specialist: routing?.specialist, structured: isActionImpacting },
         };
       } catch (error) {
         logger.error('Spark reasoning failed', { requestId: request.id, error: error.message });

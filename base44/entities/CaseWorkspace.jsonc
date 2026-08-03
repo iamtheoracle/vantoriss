@@ -1,0 +1,95 @@
+{
+  "name": "CaseWorkspace",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "The member this case belongs to"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Case subject or title"
+    },
+    "thread_id": {
+      "type": "string",
+      "description": "Associated message thread ID"
+    },
+    "case_type": {
+      "type": "string",
+      "enum": [
+        "banking",
+        "payments",
+        "compliance",
+        "investment",
+        "document",
+        "platform",
+        "herobox",
+        "general"
+      ],
+      "description": "Which specialist assistant domain this case belongs to"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "pending_review",
+        "pending_approval",
+        "approved",
+        "rejected",
+        "escalated",
+        "closed"
+      ],
+      "default": "open"
+    },
+    "internal_notes": {
+      "type": "string",
+      "description": "Staff-only internal notes"
+    },
+    "assigned_owner": {
+      "type": "string",
+      "description": "Staff member assigned to this case"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "medium"
+    },
+    "escalated": {
+      "type": "boolean",
+      "default": false
+    },
+    "escalation_reason": {
+      "type": "string",
+      "description": "Why this case was escalated"
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Document URLs attached to this case"
+    },
+    "timeline": {
+      "type": "string",
+      "description": "JSON-serialized timeline of events"
+    },
+    "audit_history": {
+      "type": "string",
+      "description": "JSON-serialized audit trail"
+    },
+    "closed_date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "user_id",
+    "subject",
+    "case_type"
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "name": "Recommendation",
+  "type": "object",
+  "properties": {
+    "case_id": {
+      "type": "string",
+      "description": "The CaseWorkspace this recommendation belongs to"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "The member this recommendation concerns"
+    },
+    "assistant_type": {
+      "type": "string",
+      "enum": [
+        "payments",
+        "banking",
+        "compliance",
+        "investment",
+        "document",
+        "platform"
+      ],
+      "description": "Which specialist assistant produced this recommendation"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Concise summary of the recommendation"
+    },
+    "supporting_evidence": {
+      "type": "string",
+      "description": "Evidence and data supporting the recommendation"
+    },
+    "confidence_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "medium"
+    },
+    "potential_risks": {
+      "type": "string",
+      "description": "Identified risks associated with the recommendation"
+    },
+    "applicable_policies": {
+      "type": "string",
+      "description": "Relevant platform policies"
+    },
+    "recommended_action": {
+      "type": "string",
+      "description": "The specific action recommended"
+    },
+    "required_approver": {
+      "type": "string",
+      "enum": [
+        "staff",
+        "admin",
+        "compliance_officer",
+        "platform_authority"
+      ],
+      "default": "staff"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "pending_review",
+        "approved",
+        "rejected",
+        "executed"
+      ],
+      "default": "draft"
+    },
+    "approver_id": {
+      "type": "string",
+      "description": "Staff member who approved or rejected"
+    },
+    "approval_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "approval_notes": {
+      "type": "string",
+      "description": "Notes from the approver"
+    }
+  },
+  "required": [
+    "case_id",
+    "user_id",
+    "assistant_type",
+    "summary"
+  ]
+}

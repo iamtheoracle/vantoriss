@@ -1,0 +1,120 @@
+{
+  "name": "AssistantRecommendation",
+  "type": "object",
+  "properties": {
+    "workspace_id": {
+      "type": "string",
+      "description": "The case workspace this recommendation belongs to"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "The member this recommendation concerns"
+    },
+    "specialist": {
+      "type": "string",
+      "enum": [
+        "payments",
+        "banking",
+        "compliance",
+        "investment",
+        "document",
+        "credit",
+        "fraud",
+        "platform"
+      ],
+      "description": "Which specialist assistant produced this recommendation"
+    },
+    "member_message": {
+      "type": "string",
+      "description": "The original member request that triggered this recommendation"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Concise summary of the recommendation"
+    },
+    "supporting_evidence": {
+      "type": "string",
+      "description": "Data and evidence supporting the recommendation"
+    },
+    "confidence_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "medium"
+    },
+    "potential_risks": {
+      "type": "string",
+      "description": "Identified risks and mitigations"
+    },
+    "applicable_policies": {
+      "type": "string",
+      "description": "Relevant platform policies and procedures"
+    },
+    "recommended_action": {
+      "type": "string",
+      "description": "Specific next action the assistant recommends"
+    },
+    "required_approver": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "operations",
+        "compliance",
+        "executive"
+      ],
+      "default": "admin"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "executed",
+        "escalated"
+      ],
+      "default": "pending"
+    },
+    "reviewer_id": {
+      "type": "string",
+      "description": "Staff member who reviewed this recommendation"
+    },
+    "reviewer_name": {
+      "type": "string"
+    },
+    "review_notes": {
+      "type": "string",
+      "description": "Staff notes from the review"
+    },
+    "reviewed_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "escalation_reason": {
+      "type": "string",
+      "description": "Why this recommendation was escalated"
+    },
+    "escalated_to": {
+      "type": "string",
+      "description": "Who this was escalated to"
+    },
+    "collaboration_notes": {
+      "type": "string",
+      "description": "Contributions from collaborating specialists"
+    },
+    "is_action_impacting": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this recommendation requires staff approval before any action"
+    }
+  },
+  "required": [
+    "workspace_id",
+    "user_id",
+    "specialist",
+    "summary"
+  ]
+}
