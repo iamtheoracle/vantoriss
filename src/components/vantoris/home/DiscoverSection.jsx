@@ -15,7 +15,8 @@ const DISCOVER_CATALOG = [
   { id: 'business-banking', title: 'Business Banking', subtitle: 'Treasury & payroll solutions', icon: Building2, route: '/services', hideIf: ['business-treasury'] },
   { id: 'premium-cards', title: 'Premium Cards', subtitle: 'Exclusive card benefits', icon: CreditCard, route: '/services', hideIf: [] },
   { id: 'international-banking', title: 'International Banking', subtitle: 'Global account access', icon: Globe, route: '/services', hideIf: ['global-transfers'] },
-  { id: 'herobox-premium', title: 'HeroBox Premium', subtitle: 'Concierge care packages', icon: Package, route: '/services', hideIf: [] },
+  { id: 'herobox-premium', title: 'HeroBox Premium', subtitle: 'Concierge care packages', icon: Package, route: '/herobox', hideIf: [] },
+  { id: 'herobox', title: 'HeroBox', subtitle: 'Support our military heroes', icon: Package, route: '/herobox', hideIf: [] },
 ];
 
 export default function DiscoverSection({ hiddenServiceIds = [] }) {

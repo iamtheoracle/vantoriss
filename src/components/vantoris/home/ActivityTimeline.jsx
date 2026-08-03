@@ -43,8 +43,13 @@ export default function ActivityTimeline({ transactions }) {
             const isOpen = expanded === txn.id;
 
             const isHeroBox = txn.description?.toLowerCase().includes('herobox') ||
-                              txn.description?.toLowerCase().includes('care package');
+                              txn.description?.toLowerCase().includes('care package') ||
+                              txn.description?.toLowerCase().includes('sponsored') ||
+                              txn.reference === 'HeroBox';
             const displayIcon = isHeroBox ? Package : Icon;
+            const displayMeta = isHeroBox
+              ? { ...meta, color: 'text-brass', bg: 'bg-brass/12', label: 'HeroBox' }
+              : meta;
 
             return (
               <motion.div
@@ -58,15 +63,15 @@ export default function ActivityTimeline({ transactions }) {
                   className="w-full flex items-center justify-between py-2.5 px-2 rounded-xl hover:bg-slate-100/70 transition-all"
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className={`w-9 h-9 rounded-xl ${meta.bg} flex items-center justify-center flex-shrink-0`}>
-                      <displayIcon size={15} className={meta.color} />
+                    <div className={`w-9 h-9 rounded-xl ${displayMeta.bg} flex items-center justify-center flex-shrink-0`}>
+                      <displayIcon size={15} className={displayMeta.color} />
                     </div>
                     <div className="flex-1 min-w-0 text-left">
                       <p className="text-foreground text-sm font-medium truncate">
                         {txn.description || meta.label}
                       </p>
                       <div className="flex items-center gap-2">
-                        <p className="text-gray text-[11px] capitalize">{meta.label}</p>
+                        <p className="text-gray text-[11px] capitalize">{displayMeta.label}</p>
                         <span className="text-gray/30 text-[10px]">·</span>
                         <p className="text-gray text-[11px]">
                           {new Date(txn.transaction_date || txn.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}

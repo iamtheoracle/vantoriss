@@ -1,14 +1,15 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, ArrowRight, Send, TrendingUp, Package, Plane, Wallet } from 'lucide-react';
+import { Sparkles, ArrowRight, Send, TrendingUp, Package, Plane, Wallet, Heart } from 'lucide-react';
 
 const EXAMPLES = [
   { label: 'Transfer money', icon: Send, route: '/move-money' },
   { label: 'Invest $500', icon: TrendingUp, route: '/investments' },
-  { label: 'Send a HeroBox', icon: Package, route: '/services' },
+  { label: 'Sponsor a Hero', icon: Package, route: '/herobox' },
   { label: 'Send money internationally', icon: Plane, route: '/move-money' },
   { label: 'Track my portfolio', icon: Wallet, route: '/investments' },
+  { label: 'Track my package', icon: Heart, route: '/herobox' },
 ];
 
 export default function AIConcierge({ firstName }) {

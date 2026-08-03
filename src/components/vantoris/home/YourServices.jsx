@@ -10,10 +10,10 @@ const SERVICE_REGISTRY = [
   {
     id: 'herobox',
     title: 'HeroBox',
-    subtitle: 'Care packages worldwide',
+    subtitle: 'Mission support platform',
     icon: Package,
-    route: '/services',
-    alwaysAvailable: true,
+    route: '/herobox',
+    requiresHeroBox: true,
   },
   {
     id: 'banking',
@@ -81,13 +81,13 @@ const SERVICE_REGISTRY = [
   },
 ];
 
-export function getAvailableServices(accounts, tradingAccounts) {
+export function getAvailableServices(accounts, tradingAccounts, heroboxProfile) {
   const accountTypes = new Set(accounts.map(a => a.account_type));
   const tradingTypes = new Set(tradingAccounts.map(a => a.account_type));
   const hasAccount = accounts.length > 0;
 
   return SERVICE_REGISTRY.filter(service => {
-    if (service.alwaysAvailable) return true;
+    if (service.requiresHeroBox) return !!heroboxProfile;
     if (service.requiresAccount && hasAccount) return true;
     if (service.accountTypes?.some(t => accountTypes.has(t))) return true;
     if (service.tradingTypes?.some(t => tradingTypes.has(t))) return true;
@@ -95,15 +95,17 @@ export function getAvailableServices(accounts, tradingAccounts) {
   });
 }
 
-export function getDiscoverServices(accounts, tradingAccounts) {
-  const available = new Set(getAvailableServices(accounts, tradingAccounts).map(s => s.id));
+export function getDiscoverServices(accounts, tradingAccounts, heroboxProfile) {
+  const available = new Set(getAvailableServices(accounts, tradingAccounts, heroboxProfile).map(s => s.id));
   return SERVICE_REGISTRY.filter(s => !available.has(s.id));
 }
 
 function HeroBoxCard({ navigate, transactions }) {
   const heroboxTxns = transactions.filter(t =>
     t.description?.toLowerCase().includes('herobox') ||
-    t.description?.toLowerCase().includes('care package')
+    t.description?.toLowerCase().includes('care package') ||
+    t.description?.toLowerCase().includes('sponsored') ||
+    t.reference === 'HeroBox'
   ).slice(0, 3);
 
   return (
@@ -136,37 +138,37 @@ function HeroBoxCard({ navigate, transactions }) {
 
         <div className="grid grid-cols-3 gap-2 mb-3">
           <button
-            onClick={() => navigate('/services')}
+            onClick={() => navigate('/herobox')}
             className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100/80 border border-slate-100 transition-all"
           >
             <Package size={16} className="text-navy" />
-            <span className="text-gray text-[10px] font-medium">New Package</span>
+            <span className="text-gray text-[10px] font-medium">Sponsor</span>
           </button>
           <button
-            onClick={() => navigate('/accounts')}
+            onClick={() => navigate('/herobox')}
             className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100/80 border border-slate-100 transition-all"
           >
             <Truck size={16} className="text-navy" />
-            <span className="text-gray text-[10px] font-medium">Track Order</span>
+            <span className="text-gray text-[10px] font-medium">Track</span>
           </button>
           <button
-            onClick={() => navigate('/services')}
+            onClick={() => navigate('/herobox')}
             className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100/80 border border-slate-100 transition-all"
           >
             <RefreshCw size={16} className="text-navy" />
-            <span className="text-gray text-[10px] font-medium">Reorder</span>
+            <span className="text-gray text-[10px] font-medium">Mission</span>
           </button>
         </div>
 
         {heroboxTxns.length > 0 ? (
           <div>
-            <p className="text-gray/60 text-[10px] uppercase tracking-wider font-medium mb-2">Recent Orders</p>
+            <p className="text-gray/60 text-[10px] uppercase tracking-wider font-medium mb-2">Recent Activity</p>
             <div className="space-y-1.5">
               {heroboxTxns.map(txn => (
                 <div key={txn.id} className="flex items-center justify-between p-2 rounded-lg bg-slate-50/60">
                   <div className="flex items-center gap-2 min-w-0">
                     <Heart size={12} className="text-brass/60 flex-shrink-0" />
-                    <p className="text-foreground text-xs font-medium truncate">{txn.description || 'HeroBox order'}</p>
+                    <p className="text-foreground text-xs font-medium truncate">{txn.description || 'HeroBox activity'}</p>
                   </div>
                   <span className="text-gray text-[10px] flex-shrink-0">
                     {new Date(txn.transaction_date || txn.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
@@ -177,7 +179,7 @@ function HeroBoxCard({ navigate, transactions }) {
           </div>
         ) : (
           <div className="p-3 rounded-xl bg-slate-50/60 text-center">
-            <p className="text-gray text-[11px]">No orders yet — send your first care package today</p>
+            <p className="text-gray text-[11px]">No mission activity yet — sponsor your first package</p>
           </div>
         )}
       </div>
@@ -185,9 +187,9 @@ function HeroBoxCard({ navigate, transactions }) {
   );
 }
 
-export default function YourServices({ accounts, tradingAccounts, transactions }) {
+export default function YourServices({ accounts, tradingAccounts, transactions, heroboxProfile }) {
   const navigate = useNavigate();
-  const services = getAvailableServices(accounts, tradingAccounts);
+  const services = getAvailableServices(accounts, tradingAccounts, heroboxProfile);
 
   if (services.length === 0) return null;
 

@@ -1,0 +1,52 @@
+{
+  "name": "HeroBoxActivity",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "activity_type": {
+      "type": "string",
+      "enum": [
+        "sponsored",
+        "request_approved",
+        "package_delivered",
+        "letter_received",
+        "impact_report",
+        "volunteer_hours",
+        "internet_sponsored",
+        "community_update",
+        "mission_milestone"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "available",
+        "pending",
+        "under_review",
+        "approved",
+        "completed"
+      ],
+      "default": "completed"
+    },
+    "recipient_name": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "activity_type",
+    "title"
+  ]
+}

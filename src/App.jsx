@@ -40,6 +40,7 @@ const More = React.lazy(() => import('./pages/More'));
 const TransactionDispute = React.lazy(() => import('./pages/TransactionDispute'));
 const BrandIdentity = React.lazy(() => import('./pages/BrandIdentity'));
 const BudCompanion = React.lazy(() => import('./components/runtime/BudCompanion'));
+const HeroBox = React.lazy(() => import('./pages/HeroBox'));
 
 // Lazy-loaded pages — Admin (Operations Center)
 const AdminOverview = React.lazy(() => import('./pages/admin/AdminOverview'));
@@ -137,6 +138,7 @@ const AuthenticatedApp = () => {
             <Route path="/more" element={<More />} />
             <Route path="/dispute" element={<TransactionDispute />} />
             <Route path="/assistant" element={<BudCompanion />} />
+            <Route path="/herobox" element={<HeroBox />} />
           </Route>
 
           {/* Backward-compatible redirect */}

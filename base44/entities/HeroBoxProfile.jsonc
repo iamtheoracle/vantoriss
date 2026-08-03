@@ -1,0 +1,71 @@
+{
+  "name": "HeroBoxProfile",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "sponsor",
+        "hero",
+        "volunteer",
+        "organization"
+      ],
+      "default": "sponsor"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "pending",
+        "inactive"
+      ],
+      "default": "active"
+    },
+    "mission_statement": {
+      "type": "string"
+    },
+    "heroes_supported": {
+      "type": "number",
+      "default": 0
+    },
+    "packages_delivered": {
+      "type": "number",
+      "default": 0
+    },
+    "letters_sent": {
+      "type": "number",
+      "default": 0
+    },
+    "families_assisted": {
+      "type": "number",
+      "default": 0
+    },
+    "internet_sponsorships": {
+      "type": "number",
+      "default": 0
+    },
+    "volunteer_hours": {
+      "type": "number",
+      "default": 0
+    },
+    "organizations_supported": {
+      "type": "number",
+      "default": 0
+    },
+    "mission_milestones": {
+      "type": "number",
+      "default": 0
+    },
+    "total_contribution": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "user_id",
+    "role"
+  ]
+}

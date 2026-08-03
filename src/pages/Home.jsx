@@ -23,6 +23,7 @@ export default function Home() {
   const [transactions, setTransactions] = useState([]);
   const [tradingAccounts, setTradingAccounts] = useState([]);
   const [pendingWithdrawals, setPendingWithdrawals] = useState([]);
+  const [heroBoxProfile, setHeroBoxProfile] = useState(null);
   const [application, setApplication] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,25 +35,43 @@ export default function Home() {
   const loadData = useCallback(async () => {
     const me = await base44.auth.me();
     setUser(me);
-    const [apps, accts, notifs, trading, pendingWrs] = await Promise.all([
+    const [apps, accts, notifs, trading, pendingWrs, hbProfiles] = await Promise.all([
       base44.entities.Application.filter({ user_id: me.id }),
       base44.entities.Account.filter({ user_id: me.id }),
       base44.entities.Notification.filter({ user_id: me.id }, '-created_date', 5),
       base44.entities.TradingAccount.filter({ user_id: me.id }).catch(() => []),
       base44.entities.WithdrawalRequest.filter({ user_id: me.id, status: 'pending' }).catch(() => []),
+      base44.entities.HeroBoxProfile.filter({ user_id: me.id }).catch(() => []),
     ]);
     setApplication(apps[0] || null);
     setAccounts(accts);
     setNotifications(notifs);
     setTradingAccounts(trading);
     setPendingWithdrawals(pendingWrs);
+    setHeroBoxProfile(hbProfiles[0] || null);
     if (accts.length > 0) {
-      const txns = await base44.entities.Transaction.filter(
-        { account_id: accts.map(a => a.id) },
-        '-created_date',
-        20
+      const [txns, hbActs] = await Promise.all([
+        base44.entities.Transaction.filter(
+          { account_id: accts.map(a => a.id) },
+          '-created_date',
+          20
+        ),
+        base44.entities.HeroBoxActivity.filter({ user_id: me.id }, '-created_date', 10).catch(() => []),
+      ]);
+      const hbItems = hbActs.map(a => ({
+        id: `hb_${a.id}`,
+        type: 'adjustment',
+        amount: a.amount || 0,
+        description: a.title,
+        transaction_date: a.created_date,
+        created_date: a.created_date,
+        balance_after: null,
+        reference: 'HeroBox',
+      }));
+      const merged = [...txns, ...hbItems].sort((a, b) =>
+        new Date(b.transaction_date || b.created_date) - new Date(a.transaction_date || a.created_date)
       );
-      setTransactions(txns);
+      setTransactions(merged);
     }
   }, []);
 
@@ -214,7 +233,7 @@ export default function Home() {
     }, 0);
 
   // Services the user has — used to filter Discover section
-  const availableServiceIds = getAvailableServices(accounts, tradingAccounts).map(s => s.id);
+  const availableServiceIds = getAvailableServices(accounts, tradingAccounts, heroBoxProfile).map(s => s.id);
 
   // Approved member dashboard — financial headquarters
   return (
@@ -242,6 +261,7 @@ export default function Home() {
         accounts={accounts}
         tradingAccounts={tradingAccounts}
         transactions={transactions}
+        heroboxProfile={heroBoxProfile}
       />
 
       {/* === Discover (services the user doesn't have yet) === */}

@@ -1,0 +1,68 @@
+{
+  "name": "HeroBoxRequest",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "request_type": {
+      "type": "string",
+      "enum": [
+        "care_package",
+        "internet_support",
+        "financial_assistance",
+        "communication_services",
+        "essential_supplies"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "recipient_name": {
+      "type": "string"
+    },
+    "recipient_branch": {
+      "type": "string"
+    },
+    "recipient_location": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "under_review",
+        "approved",
+        "in_progress",
+        "delivered",
+        "completed"
+      ],
+      "default": "pending"
+    },
+    "amount": {
+      "type": "number",
+      "default": 0
+    },
+    "payment_account_id": {
+      "type": "string"
+    },
+    "tracking_number": {
+      "type": "string"
+    },
+    "estimated_delivery": {
+      "type": "string",
+      "format": "date"
+    },
+    "mission_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "request_type",
+    "title"
+  ]
+}
