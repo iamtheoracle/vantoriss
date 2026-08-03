@@ -9,19 +9,19 @@ import { getMessageKey, isStarred, toggleStar } from '@/lib/starredMessages';
 import { useToast } from '@/components/ui/use-toast';
 
 const COLORS = {
-  container: '#151c26',
-  sidebar: '#1c2531',
-  surface: '#252f3d',
-  surfaceSent: '#2c394b',
-  border: '#2a3645',
-  textPrimary: '#e2e8f0',
-  textSecondary: '#aab8c2',
-  accent: '#c9a227',
-  accentBright: '#ffcc00',
-  bubbleOut: '#2c394b',
-  bubbleIn: '#252f3d',
-  checkSent: '#aab8c2',
-  checkRead: '#53bdeb',
+  container: '#F8FAFC',
+  sidebar: '#FFFFFF',
+  surface: '#F1F5F9',
+  surfaceSent: '#071C38',
+  border: 'rgba(7, 28, 56, 0.08)',
+  textPrimary: '#071C38',
+  textSecondary: '#64748B',
+  accent: '#C9A227',
+  accentBright: '#B08D57',
+  bubbleOut: '#071C38',
+  bubbleIn: '#FFFFFF',
+  checkSent: '#94A3B8',
+  checkRead: '#3B82F6',
 };
 
 // --- localStorage helpers for deleted convos & custom labels ---
@@ -230,7 +230,7 @@ export default function AgentChat({
           <button
             onClick={startNewConversation}
             className="w-full flex items-center justify-center gap-2 py-3 rounded-full text-sm font-bold transition-all hover:opacity-90"
-            style={{ background: COLORS.accentBright, color: '#000000' }}
+            style={{ background: COLORS.accentBright, color: '#FFFFFF' }}
           >
             <Plus size={16} strokeWidth={3} />
             New Conversation
@@ -310,7 +310,7 @@ export default function AgentChat({
             {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
           <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255, 193, 7, 0.1)' }}>
+            <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(201, 162, 39, 0.1)' }}>
               <Bot size={18} style={{ color: COLORS.accentBright }} />
             </div>
             <div className="min-w-0">
@@ -360,15 +360,15 @@ export default function AgentChat({
         <div
           className="flex-1 overflow-y-auto vantoris-scroll px-4 md:px-8 py-6 space-y-1"
           style={{
-            background: `linear-gradient(180deg, ${COLORS.container} 0%, #131a23 100%)`,
+            background: COLORS.container,
           }}
         >
           {messages.length === 0 && !starredOnly && (
             <div className="h-full flex flex-col items-center justify-center text-center overflow-y-auto vantoris-scroll py-4">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: 'rgba(255, 193, 7, 0.08)' }}>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: 'rgba(201, 162, 39, 0.08)' }}>
                 <Bot size={32} style={{ color: COLORS.accentBright }} />
               </div>
-              <h4 className="font-bold text-base mb-1" style={{ color: '#ffffff' }}>What can I help you with?</h4>
+              <h4 className="font-bold text-base mb-1" style={{ color: COLORS.textPrimary }}>What can I help you with?</h4>
               <p className="text-sm max-w-sm mb-6" style={{ color: COLORS.textSecondary }}>
                 I have full access to your Vantoris platform. Ask me about members, accounts, applications, withdrawals, KYC status, and more.
               </p>
@@ -387,7 +387,7 @@ export default function AgentChat({
                         key={suggestion}
                         onClick={() => setInput(suggestion)}
                         className="w-full text-left px-4 py-3 rounded-2xl text-xs transition-all hover:opacity-80"
-                        style={{ background: 'rgba(42, 54, 69, 0.4)', color: COLORS.textSecondary, border: '1px solid ' + COLORS.border }}
+                        style={{ background: 'rgba(7, 28, 56, 0.04)', color: COLORS.textSecondary, border: '1px solid ' + COLORS.border }}
                       >
                         → {suggestion}
                       </button>
@@ -456,7 +456,7 @@ export default function AgentChat({
               onClick={sendMessage}
               disabled={!input.trim() || loading}
               className="w-11 h-11 flex items-center justify-center rounded-full transition-all disabled:opacity-40 flex-shrink-0 hover:scale-105"
-              style={{ background: COLORS.accentBright, color: '#000000' }}
+              style={{ background: COLORS.accentBright, color: '#FFFFFF' }}
               title="Send message"
             >
               <Send size={16} />
@@ -486,7 +486,7 @@ function ConversationListItem({ conv, display, isActive, onSelect, onDelete, onR
           style={{ background: COLORS.container, color: COLORS.textPrimary, border: '1px solid ' + COLORS.accent }}
         />
         <div className="flex gap-1 mt-1">
-          <button onClick={confirmRename} className="flex-1 py-1.5 rounded-lg text-[10px] font-medium" style={{ background: COLORS.accent, color: '#000' }}>
+          <button onClick={confirmRename} className="flex-1 py-1.5 rounded-lg text-[10px] font-medium" style={{ background: COLORS.accent, color: '#FFFFFF' }}>
             <Check size={10} className="inline mr-1" /> Save
           </button>
           <button onClick={cancelRename} className="flex-1 py-1.5 rounded-lg text-[10px] font-medium" style={{ background: COLORS.surface, color: COLORS.textSecondary }}>
@@ -503,7 +503,7 @@ function ConversationListItem({ conv, display, isActive, onSelect, onDelete, onR
         onClick={onSelect}
         className="group w-full text-left px-3 py-3 rounded-xl cursor-pointer transition-all"
         style={{
-          background: isActive ? 'rgba(255, 193, 7, 0.08)' : 'transparent',
+          background: isActive ? 'rgba(201, 162, 39, 0.08)' : 'transparent',
         }}
       >
         <div className="flex items-center gap-3">
@@ -596,19 +596,14 @@ function WhatsAppBubble({ message, isLastInGroup, isFirstInGroup, convId, onStar
           </button>
         )}
         <div
-          className={`${radius} px-3.5 py-2`}
-          style={{
-            background: isUser ? COLORS.bubbleOut : COLORS.bubbleIn,
-            border: '1px solid ' + (isUser ? 'rgba(201, 162, 39, 0.1)' : COLORS.border),
-            color: COLORS.textPrimary,
-          }}
+          className={`${radius} px-3.5 py-2 ${isUser ? 'vantoris-chat-bubble-out' : 'vantoris-chat-bubble-in'}`}
         >
           {message.content && (
             isUser ? (
               <p className="text-sm leading-relaxed whitespace-pre-wrap selectable-content">{message.content}</p>
             ) : (
               <ReactMarkdown
-                className="text-sm leading-relaxed max-w-none [&_p]:my-1 [&_h1]:my-2 [&_h2]:my-2 [&_h3]:my-1.5 [&_ul]:my-1.5 [&_ol]:my-1.5 [&_li]:my-0.5 [&_li]:ml-4 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_pre]:p-3 [&_pre]:rounded-lg [&_pre]:overflow-x-auto [&_table]:w-full [&_table]:text-xs [&_th]:px-2 [&_th]:py-1.5 [&_td]:px-2 [&_td]:py-1 [&_strong]:text-white [&_em]:text-inherit"
+                className="text-sm leading-relaxed max-w-none [&_p]:my-1 [&_h1]:my-2 [&_h2]:my-2 [&_h3]:my-1.5 [&_ul]:my-1.5 [&_ol]:my-1.5 [&_li]:my-0.5 [&_li]:ml-4 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_pre]:p-3 [&_pre]:rounded-lg [&_pre]:overflow-x-auto [&_table]:w-full [&_table]:text-xs [&_th]:px-2 [&_th]:py-1.5 [&_td]:px-2 [&_td]:py-1 [&_strong]:text-foreground [&_em]:text-inherit"
                 components={{
                   code: ({ node, inline, className, children, ...props }) => (
                     <code
@@ -660,7 +655,7 @@ function ToolCallDisplay({ toolCall }) {
   const [expanded, setExpanded] = useState(false);
   const status = toolCall.status || 'completed';
   const isFailed = ['failed', 'error'].includes(status);
-  const statusColor = isFailed ? '#ef4444' : (status === 'pending' || status === 'running') ? COLORS.accent : '#22c55e';
+  const statusColor = isFailed ? '#ef4444' : (status === 'pending' || status === 'running') ? COLORS.accent : '#16A34A';
 
   let parsedResults = null;
   try {
@@ -684,7 +679,7 @@ function ToolCallDisplay({ toolCall }) {
   return (
     <div
       className="mt-2 text-xs rounded-xl overflow-hidden"
-      style={{ border: '1px solid ' + COLORS.border, background: 'rgba(21, 28, 38, 0.4)' }}
+      style={{ border: '1px solid ' + COLORS.border, background: 'rgba(7, 28, 56, 0.04)' }}
     >
       <button
         onClick={() => setExpanded(!expanded)}
@@ -702,13 +697,13 @@ function ToolCallDisplay({ toolCall }) {
         <span className="capitalize font-medium text-[10px]" style={{ color: statusColor }}>{status}</span>
       </button>
       {expanded && (
-        <div className="px-3 py-2.5 space-y-2" style={{ borderTop: '1px solid ' + COLORS.border, background: 'rgba(21, 28, 38, 0.2)' }}>
+        <div className="px-3 py-2.5 space-y-2" style={{ borderTop: '1px solid ' + COLORS.border, background: 'rgba(7, 28, 56, 0.02)' }}>
           {toolCall.arguments_string && (
             <div>
               <p className="text-[10px] uppercase tracking-widest font-bold mb-1.5 opacity-60" style={{ color: COLORS.textSecondary }}>Parameters</p>
               <pre
                 className="text-[11px] overflow-x-auto whitespace-pre-wrap p-2 rounded-lg"
-                style={{ background: 'rgba(21, 28, 38, 0.6)', color: '#22c55e', border: '1px solid ' + COLORS.border }}
+                style={{ background: 'rgba(7, 28, 56, 0.06)', color: '#16A34A', border: '1px solid ' + COLORS.border }}
               >
                 {(() => { try { return JSON.stringify(JSON.parse(toolCall.arguments_string), null, 2); } catch { return toolCall.arguments_string; } })()}
               </pre>
@@ -720,7 +715,7 @@ function ToolCallDisplay({ toolCall }) {
               <pre
                 className="text-[11px] overflow-x-auto whitespace-pre-wrap p-2 rounded-lg"
                 style={{
-                  background: 'rgba(21, 28, 38, 0.6)',
+                  background: 'rgba(7, 28, 56, 0.06)',
                   border: '1px solid ' + (isFailed ? 'rgba(239, 68, 68, 0.3)' : COLORS.border),
                   color: isFailed ? '#ef4444' : 'rgba(34, 197, 94, 0.8)',
                 }}
