@@ -54,6 +54,7 @@ const AdminWithdrawals = React.lazy(() => import('./pages/admin/AdminWithdrawals
 const AdminAgent = React.lazy(() => import('./pages/admin/AdminAgent'));
 const RecommendationReview = React.lazy(() => import('./pages/operations/RecommendationReview'));
 const TransactionExportDashboard = React.lazy(() => import('./pages/operations/TransactionExportDashboard'));
+const ImpactAnalytics = React.lazy(() => import('./pages/operations/ImpactAnalytics'));
 
 // Lazy-loaded pages — Operations Center
 const WithdrawalLimits = React.lazy(() => import('./pages/operations/WithdrawalLimits'));
@@ -167,6 +168,7 @@ const AuthenticatedApp = () => {
               <Route path="/operations/assistant" element={<AdminAgent />} />
               <Route path="/operations/recommendations" element={<RecommendationReview />} />
               <Route path="/operations/transaction-export" element={<TransactionExportDashboard />} />
+              <Route path="/operations/impact-analytics" element={<ImpactAnalytics />} />
               <Route path="/operations/organizations" element={<Organizations />} />
               <Route path="/operations/finance" element={<Finance />} />
               <Route path="/operations/deposits" element={<Deposits />} />

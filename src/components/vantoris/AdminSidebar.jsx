@@ -38,6 +38,7 @@ const WORKSPACE_CONFIG = {
           { label: 'Transaction Summaries', path: '/operations/transaction-summaries', icon: CalendarDays },
           { label: 'Treasury Overview', path: '/operations/transfers', icon: Wallet },
           { label: 'Business Intelligence', path: '/operations/reports', icon: TrendingUp },
+          { label: 'Impact Analytics', path: '/operations/impact-analytics', icon: BarChart3 },
           { label: 'Strategic Reports', path: '/operations/executive-reports', icon: TrendingUp },
         ],
       },
@@ -110,6 +111,7 @@ const WORKSPACE_CONFIG = {
         label: 'AI Operations',
         items: [
           { label: 'Recommendation Review', path: '/operations/recommendations', icon: Gavel },
+          { label: 'Impact Analytics', path: '/operations/impact-analytics', icon: BarChart3 },
           { label: 'Transaction Export', path: '/operations/transaction-export', icon: FileSpreadsheet },
         ],
       },

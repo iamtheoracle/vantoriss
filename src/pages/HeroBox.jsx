@@ -175,7 +175,7 @@ export default function HeroBox() {
       </motion.div>
 
       {/* Impact Dashboard */}
-      <ImpactDashboard profile={profile} />
+      <ImpactDashboard profile={profile} activities={activities} />
 
       {/* Quick Actions */}
       <div className="grid grid-cols-3 gap-3 mb-5">
