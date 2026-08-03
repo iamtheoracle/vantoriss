@@ -9,7 +9,7 @@ import {
   ChevronRight, Wrench, Users2, MessageSquare, Crown, Briefcase,
   AlertTriangle, Scale, GitBranch, Database, ServerCog,
   Search, Eye, ShieldAlert, Network, Globe, Zap,
-  PanelLeftClose, FileUp, CalendarDays, Gavel,
+  PanelLeftClose, FileUp, CalendarDays, Gavel, FileSpreadsheet,
 } from 'lucide-react';
 import ShieldLogo from './ShieldLogo';
 import {
@@ -110,6 +110,7 @@ const WORKSPACE_CONFIG = {
         label: 'AI Operations',
         items: [
           { label: 'Recommendation Review', path: '/operations/recommendations', icon: Gavel },
+          { label: 'Transaction Export', path: '/operations/transaction-export', icon: FileSpreadsheet },
         ],
       },
       {

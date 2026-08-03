@@ -58,7 +58,7 @@ export function createSpark() {
           withRetry(() => services.model.invoke({
             prompt: fullPrompt,
             model,
-            response_json_schema: responseSchema || undefined,
+            responseJsonSchema: responseSchema || undefined,
           }), { maxRetries: 2, backoffMs: 2000, timeout: 60000 })
         );
 

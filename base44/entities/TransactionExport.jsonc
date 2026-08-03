@@ -1,0 +1,92 @@
+{
+  "name": "TransactionExport",
+  "type": "object",
+  "properties": {
+    "export_type": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "weekly",
+        "daily",
+        "manual"
+      ],
+      "description": "Export schedule type"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "in_progress",
+        "completed",
+        "failed",
+        "partial"
+      ],
+      "default": "pending"
+    },
+    "format": {
+      "type": "string",
+      "enum": [
+        "csv",
+        "excel",
+        "google_sheets"
+      ],
+      "default": "csv"
+    },
+    "date_from": {
+      "type": "string",
+      "format": "date",
+      "description": "Start date of exported transactions"
+    },
+    "date_to": {
+      "type": "string",
+      "format": "date",
+      "description": "End date of exported transactions"
+    },
+    "rows_exported": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of transaction rows successfully exported"
+    },
+    "failed_rows": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of rows that failed to export"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL to the generated export file"
+    },
+    "exported_by": {
+      "type": "string",
+      "description": "User ID who triggered the export"
+    },
+    "exported_by_name": {
+      "type": "string"
+    },
+    "error_details": {
+      "type": "string",
+      "description": "Error details if export failed"
+    },
+    "last_transaction_id": {
+      "type": "string",
+      "description": "ID of the last exported transaction (for deduplication)"
+    },
+    "google_sheet_id": {
+      "type": "string",
+      "description": "Google Sheets spreadsheet ID if exported to Google Sheets"
+    },
+    "google_sheet_url": {
+      "type": "string",
+      "description": "URL to the Google Sheets spreadsheet"
+    },
+    "retry_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of retry attempts for failed exports"
+    }
+  },
+  "required": [
+    "export_type",
+    "format"
+  ]
+}

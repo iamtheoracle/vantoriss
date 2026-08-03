@@ -6,6 +6,8 @@ export function createModelService(base44) {
       if (addContextFromInternet) params.add_context_from_internet = true;
       if (fileUrls) params.file_urls = fileUrls;
       const result = await base44.asServiceRole.integrations.Core.InvokeLLM(params);
+      // When a JSON schema is specified, InvokeLLM returns the structured dict directly
+      if (responseJsonSchema) return result;
       return result.response || result.result || result;
     },
 
