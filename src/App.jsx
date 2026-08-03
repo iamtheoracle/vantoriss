@@ -56,6 +56,7 @@ const RecommendationReview = React.lazy(() => import('./pages/operations/Recomme
 const TransactionExportDashboard = React.lazy(() => import('./pages/operations/TransactionExportDashboard'));
 const ImpactAnalytics = React.lazy(() => import('./pages/operations/ImpactAnalytics'));
 const SupporterLeaderboard = React.lazy(() => import('./pages/operations/SupporterLeaderboard'));
+const HeroBoxMissionControl = React.lazy(() => import('./pages/operations/HeroBoxMissionControl'));
 
 // Lazy-loaded pages — Operations Center
 const WithdrawalLimits = React.lazy(() => import('./pages/operations/WithdrawalLimits'));
@@ -171,6 +172,7 @@ const AuthenticatedApp = () => {
               <Route path="/operations/transaction-export" element={<TransactionExportDashboard />} />
               <Route path="/operations/impact-analytics" element={<ImpactAnalytics />} />
               <Route path="/operations/leaderboard" element={<SupporterLeaderboard />} />
+              <Route path="/operations/herobox" element={<HeroBoxMissionControl />} />
               <Route path="/operations/organizations" element={<Organizations />} />
               <Route path="/operations/finance" element={<Finance />} />
               <Route path="/operations/deposits" element={<Deposits />} />

@@ -9,7 +9,7 @@ import {
   ChevronRight, Wrench, Users2, MessageSquare, Crown, Briefcase,
   AlertTriangle, Scale, GitBranch, Database, ServerCog,
   Search, Eye, ShieldAlert, Network, Globe, Zap,
-  PanelLeftClose, FileUp, CalendarDays, Gavel, FileSpreadsheet, Trophy,
+  PanelLeftClose, FileUp, CalendarDays, Gavel, FileSpreadsheet, Trophy, Radar,
 } from 'lucide-react';
 import ShieldLogo from './ShieldLogo';
 import {
@@ -27,6 +27,7 @@ const WORKSPACE_CONFIG = {
         label: 'Command',
         items: [
           { label: 'Executive Dashboard', path: '/operations/executive', icon: LayoutDashboard },
+          { label: 'HeroBox Mission Control', path: '/operations/herobox', icon: Radar },
         ],
       },
       {
@@ -74,6 +75,7 @@ const WORKSPACE_CONFIG = {
         label: 'Dashboard',
         items: [
           { label: 'Daily Operations', path: '/operations', icon: LayoutDashboard },
+          { label: 'HeroBox Mission Control', path: '/operations/herobox', icon: Radar },
         ],
       },
       {
