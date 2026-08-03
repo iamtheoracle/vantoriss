@@ -20,6 +20,9 @@ const OPERATIONS_ROLES = [
   'auditor',
   'it_administrator',
   'risk_officer',
+  'herobox_manager',
+  'volunteer_manager',
+  'shipping_manager',
 ];
 
 // Workspace → roles that can access it
@@ -33,6 +36,11 @@ const WORKSPACE_ROLES = {
     'super_administrator', 'administrator', 'admin',
     'compliance_officer', 'finance_officer', 'treasury_officer',
     'auditor', 'it_administrator', 'risk_officer',
+  ],
+  herobox: [
+    'super_administrator', 'administrator', 'admin',
+    'operations_officer', 'operations_manager', 'customer_support',
+    'herobox_manager', 'volunteer_manager', 'shipping_manager',
   ],
 };
 
@@ -63,6 +71,9 @@ export function getRoleLabel(role) {
     auditor: 'Auditor',
     it_administrator: 'IT Administrator',
     risk_officer: 'Risk Officer',
+    herobox_manager: 'HeroBox Manager',
+    volunteer_manager: 'Volunteer Manager',
+    shipping_manager: 'Shipping Manager',
   };
   return labels[role] || 'Member';
 }
@@ -94,10 +105,12 @@ export const WORKSPACE_LABELS = {
   executive: 'Executive',
   operations: 'Operations',
   security: 'Security & Compliance',
+  herobox: 'HeroBox',
 };
 
 export const WORKSPACE_ICONS = {
   executive: 'Crown',
   operations: 'Briefcase',
   security: 'ShieldCheck',
+  herobox: 'Radar',
 };

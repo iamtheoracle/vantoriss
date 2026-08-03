@@ -10,6 +10,7 @@ import {
   AlertTriangle, Scale, GitBranch, Database, ServerCog,
   Search, Eye, ShieldAlert, Network, Globe, Zap,
   PanelLeftClose, FileUp, CalendarDays, Gavel, FileSpreadsheet, Trophy, Radar,
+  Shield, Package, Heart,
 } from 'lucide-react';
 import ShieldLogo from './ShieldLogo';
 import {
@@ -172,6 +173,52 @@ const WORKSPACE_CONFIG = {
       },
     ],
   },
+  herobox: {
+    icon: Radar,
+    accent: 'text-brass',
+    bg: 'bg-brass/10',
+    sections: [
+      {
+        label: 'Command',
+        items: [
+          { label: 'Mission Control', path: '/operations/herobox', icon: Radar },
+        ],
+      },
+      {
+        label: 'People',
+        items: [
+          { label: 'Heroes', path: '/operations/herobox/heroes', icon: Shield },
+          { label: 'Supporters', path: '/operations/leaderboard', icon: Heart },
+          { label: 'Volunteers', path: '/operations/herobox/volunteers', icon: Users },
+          { label: 'Organizations', path: '/operations/organizations', icon: Building2 },
+        ],
+      },
+      {
+        label: 'Operations',
+        items: [
+          { label: 'Care Packages', path: '/operations/herobox/care-packages', icon: Package },
+          { label: 'Support Requests', path: '/operations/service-requests', icon: Wrench },
+          { label: 'Member Messages', path: '/operations/member-messages', icon: MessageSquare },
+        ],
+      },
+      {
+        label: 'Intelligence',
+        items: [
+          { label: 'Impact Analytics', path: '/operations/impact-analytics', icon: BarChart3 },
+          { label: 'Finance', path: '/operations/finance', icon: DollarSign },
+          { label: 'Reports', path: '/operations/reports', icon: TrendingUp },
+        ],
+      },
+      {
+        label: 'Administration',
+        items: [
+          { label: 'Settings', path: '/operations/configuration', icon: Settings },
+          { label: 'Audit Logs', path: '/operations/audit-logs', icon: ScrollText },
+          { label: 'Activity Timeline', path: '/operations/activity', icon: Activity },
+        ],
+      },
+    ],
+  },
 };
 
 export default function AdminSidebar({ user, activeWorkspace, onWorkspaceChange, onNavigate, onHide }) {
@@ -213,7 +260,7 @@ export default function AdminSidebar({ user, activeWorkspace, onWorkspaceChange,
       {/* Workspace selector tabs */}
       {availableWorkspaces.length > 1 && (
         <div className="p-2 flex-shrink-0 border-b border-slate-200">
-          <div className="grid grid-cols-3 gap-1">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1">
             {availableWorkspaces.map(ws => {
               const wsConfig = WORKSPACE_CONFIG[ws];
               const WsIcon = wsConfig.icon;

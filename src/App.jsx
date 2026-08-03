@@ -57,6 +57,9 @@ const TransactionExportDashboard = React.lazy(() => import('./pages/operations/T
 const ImpactAnalytics = React.lazy(() => import('./pages/operations/ImpactAnalytics'));
 const SupporterLeaderboard = React.lazy(() => import('./pages/operations/SupporterLeaderboard'));
 const HeroBoxMissionControl = React.lazy(() => import('./pages/operations/HeroBoxMissionControl'));
+const HeroBoxHeroes = React.lazy(() => import('./pages/operations/HeroBoxHeroes'));
+const HeroBoxCarePackages = React.lazy(() => import('./pages/operations/HeroBoxCarePackages'));
+const HeroBoxVolunteers = React.lazy(() => import('./pages/operations/HeroBoxVolunteers'));
 
 // Lazy-loaded pages — Operations Center
 const WithdrawalLimits = React.lazy(() => import('./pages/operations/WithdrawalLimits'));
@@ -173,6 +176,9 @@ const AuthenticatedApp = () => {
               <Route path="/operations/impact-analytics" element={<ImpactAnalytics />} />
               <Route path="/operations/leaderboard" element={<SupporterLeaderboard />} />
               <Route path="/operations/herobox" element={<HeroBoxMissionControl />} />
+              <Route path="/operations/herobox/heroes" element={<HeroBoxHeroes />} />
+              <Route path="/operations/herobox/care-packages" element={<HeroBoxCarePackages />} />
+              <Route path="/operations/herobox/volunteers" element={<HeroBoxVolunteers />} />
               <Route path="/operations/organizations" element={<Organizations />} />
               <Route path="/operations/finance" element={<Finance />} />
               <Route path="/operations/deposits" element={<Deposits />} />
