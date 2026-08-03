@@ -10,7 +10,7 @@ import RequestCard from '@/components/vantoris/herobox/RequestCard';
 import SponsorFlow from '@/components/vantoris/herobox/SponsorFlow';
 import CommunityFeed from '@/components/vantoris/herobox/CommunityFeed';
 import HeroBoxDiscover from '@/components/vantoris/herobox/HeroBoxDiscover';
-import OrbitSearch from '@/components/vantoris/herobox/orbit/OrbitSearch';
+import OrbitSearch from '@/components/vantoris/herobox/OrbitSearch';
 
 const ACTIVITY_META = {
   sponsored: { icon: Heart, color: 'text-brass', bg: 'bg-brass/12', label: 'Sponsored' },
