@@ -33,8 +33,8 @@
   "telegram_greeting": "Welcome! I'm Bud, your Vantoris AI companion. What can I help you with?",
   "line_greeting": "Hi! I'm Bud. How can I assist you today?",
   "memory_config": {
-    "enabled": false,
-    "scope": "conversation",
+    "enabled": true,
+    "scope": "both",
     "include_other_conversation_context": false,
     "instructions": "Bud does NOT own memory. Memory is managed by the Memory Service in the Oracle runtime."
   },
