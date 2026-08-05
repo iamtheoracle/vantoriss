@@ -46,7 +46,7 @@ export default function StepReview({ data, product, onEditStep, onConsentChange,
         title="Contact"
         onEdit={() => onEditStep(2)}
         fields={[
-          { label: "Email", value: data.email || data.userId },
+          { label: "Email", value: data.userId || data.email },
           { label: "Mobile", value: maskedPhone },
         ]}
       />

@@ -44,7 +44,6 @@ export function TextField({ label, value, onChange, type = "text", placeholder, 
           type={type}
           value={value || ""}
           onChange={handleChange}
-          onInput={handleChange}
           onBlur={handleBlur}
           placeholder={placeholder}
           required={required}

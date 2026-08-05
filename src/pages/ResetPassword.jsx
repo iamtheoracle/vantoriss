@@ -106,7 +106,7 @@ export default function ResetPassword() {
         </div>
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !newPassword || !confirmPassword}
           className="w-full h-12 bg-navy text-white font-semibold rounded-xl hover:bg-navy/90 transition flex items-center justify-center gap-2 disabled:opacity-50"
         >
           {loading ? (

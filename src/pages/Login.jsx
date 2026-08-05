@@ -121,7 +121,7 @@ export default function Login() {
         </label>
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !userId.trim() || !password}
           className="w-full h-12 bg-navy text-white font-semibold rounded-xl hover:bg-navy/90 transition flex items-center justify-center gap-2 disabled:opacity-50"
         >
           {loading ? (

@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import { motion } from "framer-motion";
 import { Phone, Check, ShieldCheck } from "lucide-react";
 
-export default function StepVerification({ data }) {
-  const [confirmed, setConfirmed] = useState(false);
+export default function StepVerification({ data, updateData }) {
+  const confirmed = !!data.phoneConfirmed;
   const maskedPhone = data.phone
     ? data.phone.replace(/\d(?=\d{2})/g, "•")
     : "";
@@ -27,7 +27,7 @@ export default function StepVerification({ data }) {
       <label className="flex items-start gap-3 cursor-pointer p-3 rounded-xl border border-slate-200 hover:bg-slate-50 transition">
         <button
           type="button"
-          onClick={() => setConfirmed(!confirmed)}
+          onClick={() => updateData({ phoneConfirmed: !confirmed })}
           className={`mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition ${
             confirmed ? "bg-navy border-navy" : "border-slate-300 bg-white"
           }`}

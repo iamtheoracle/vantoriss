@@ -19,7 +19,7 @@ import { ArrowLeft, ArrowRight, Loader2, ShieldCheck } from "lucide-react";
 
 const INITIAL_DATA = {
   firstName: "", middleName: "", lastName: "", suffix: "", dob: "",
-  email: "", phone: "",
+  email: "", phone: "", phoneConfirmed: false,
   street: "", apt: "", city: "", state: "", zip: "", country: "US",
   ssn: "", govId: null, selfie: null,
   employment: "", employer: "", occupation: "", annualIncome: "", sourceOfFunds: "",
@@ -59,6 +59,7 @@ export default function Register() {
     return !!(
       d.userId &&
       d.password &&
+      d.password.length >= 8 &&
       d.confirmPassword &&
       d.securityPin &&
       d.password === d.confirmPassword
@@ -69,7 +70,7 @@ export default function Register() {
     switch (step) {
       case 1: return data.firstName && data.lastName && data.dob;
       case 2: return data.email && data.phone;
-      case 3: return !!data.phone;
+      case 3: return !!data.phone && !!data.phoneConfirmed;
       case 4: return data.street && data.city && data.state && data.zip && data.country;
       case 5: return data.ssn && data.govId && data.selfie;
       case 6: return data.employment && data.annualIncome && data.sourceOfFunds;
@@ -329,7 +330,7 @@ export default function Register() {
       <div className="mb-6">
         {step === 1 && <StepPersonalInfo data={data} updateData={updateData} />}
         {step === 2 && <StepContactInfo data={data} updateData={updateData} />}
-        {step === 3 && <StepVerification data={data} />}
+        {step === 3 && <StepVerification data={data} updateData={updateData} />}
         {step === 4 && <StepAddress data={data} updateData={updateData} />}
         {step === 5 && <StepIdentity data={data} updateData={updateData} />}
         {step === 6 && <StepFinancial data={data} updateData={updateData} />}
