@@ -53,6 +53,18 @@ export default function Register() {
     }
   }
 
+  // Single source of truth for Step 7 validation.
+  // Used by both the Continue button (isStepValid) and handleNext submission logic.
+  function validateStep7(d) {
+    return !!(
+      d.userId &&
+      d.password &&
+      d.confirmPassword &&
+      d.securityPin &&
+      d.password === d.confirmPassword
+    );
+  }
+
   function isStepValid() {
     switch (step) {
       case 1: return data.firstName && data.lastName && data.dob;
@@ -61,7 +73,7 @@ export default function Register() {
       case 4: return data.street && data.city && data.state && data.zip && data.country;
       case 5: return data.ssn && data.govId && data.selfie;
       case 6: return data.employment && data.annualIncome && data.sourceOfFunds;
-      case 7: return data.userId && data.password && data.confirmPassword && data.securityPin && data.password === data.confirmPassword;
+      case 7: return validateStep7(data);
       case 8: return consents.regulatory && consents.privacy && consents.electronic;
       default: return true;
     }
@@ -70,6 +82,11 @@ export default function Register() {
   async function handleNext() {
     setError("");
     if (step < 7) {
+      // Seed userId from email when first entering Step 7, so the field is
+      // pre-filled and validation immediately passes if the user accepts it.
+      if (step === 6) {
+        updateData({ userId: data.userId || data.email });
+      }
       setStep(step + 1);
       return;
     }
@@ -84,7 +101,7 @@ export default function Register() {
       }
       setLoading(true);
       try {
-        await base44.auth.register({ email: data.userId || data.email, password: data.password });
+        await base44.auth.register({ email: data.userId, password: data.password });
         setOtpSent(true);
       } catch (err) {
         setError(err.message || "Registration failed. This User ID may already be in use.");
@@ -102,7 +119,7 @@ export default function Register() {
     setError("");
     setLoading(true);
     try {
-      const result = await base44.auth.verifyOtp({ email: data.userId || data.email, otpCode });
+      const result = await base44.auth.verifyOtp({ email: data.userId, otpCode });
       if (!result?.access_token) {
         setError("Verification completed but no session token was returned. Please try again.");
         return;
@@ -124,7 +141,7 @@ export default function Register() {
   async function handleResendOtp() {
     setError("");
     try {
-      await base44.auth.resendOtp(data.userId || data.email);
+      await base44.auth.resendOtp(data.userId);
       toast({ title: "Code sent", description: "Check your email for the new code." });
     } catch (err) {
       setError(err.message || "Failed to resend code.");
@@ -140,7 +157,7 @@ export default function Register() {
         await base44.entities.Referral.create({
           referrer_id: referrers[0].id,
           referred_id: me.id,
-          referred_email: data.userId || data.email,
+          referred_email: data.userId,
           referred_name: `${data.firstName} ${data.lastName}`,
           status: "completed",
         });
@@ -169,7 +186,7 @@ export default function Register() {
       await base44.entities.Application.create({
         user_id: me.id,
         full_name: fullName,
-        email: data.userId || data.email,
+        email: data.userId,
         phone: data.phone,
         address: fullAddress,
         business_name: ["Business", "Institutional", "Organization"].includes(selectedProduct?.label) ? data.employer || "" : "",
@@ -251,7 +268,7 @@ export default function Register() {
 
   if (otpSent) {
     return (
-      <AuthLayout title="Verify Your Email" subtitle={`We sent a verification code to ${data.userId || data.email}`}>
+      <AuthLayout title="Verify Your Email" subtitle={`We sent a verification code to ${data.userId}`}>
         {error && (
           <div className="mb-4 p-3 rounded-lg bg-crimson/10 border border-crimson/20 text-crimson text-sm">
             {error}

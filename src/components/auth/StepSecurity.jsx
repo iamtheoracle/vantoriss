@@ -8,7 +8,7 @@ export default function StepSecurity({ data, updateData }) {
       <TextField
         label="Create User ID"
         type="email"
-        value={data.userId || data.email || ""}
+        value={data.userId || ""}
         onChange={(v) => updateData({ userId: v })}
         placeholder="you@example.com"
         required

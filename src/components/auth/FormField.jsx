@@ -4,6 +4,34 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 
 export function TextField({ label, value, onChange, type = "text", placeholder, required, autoComplete, icon: Icon }) {
+  // Sync autofilled values into React state. Browsers (iOS Safari, Android Chrome,
+  // password managers) may fill the DOM without firing a synthetic onChange event.
+  // Listening to onInput and onBlur in addition to onChange, and checking the DOM
+  // value on mount, ensures React state stays in sync in all environments.
+  const inputRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    // Some browsers (e.g. iOS Safari) apply autofill asynchronously after mount.
+    // Poll once after a short delay to catch values that are already in the DOM.
+    const timer = setTimeout(() => {
+      if (el.value && el.value !== (value || "")) {
+        onChange(el.value);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleChange = (e) => onChange(e.target.value);
+  const handleBlur = (e) => {
+    // Only sync on blur if the DOM value differs from React state (autofill capture).
+    if (e.target.value !== (value || "")) {
+      onChange(e.target.value);
+    }
+  };
+
   return (
     <div className="space-y-1.5">
       <Label className="text-xs font-semibold uppercase tracking-wider text-gray">
@@ -12,9 +40,12 @@ export function TextField({ label, value, onChange, type = "text", placeholder, 
       <div className="relative">
         {Icon && <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray" />}
         <Input
+          ref={inputRef}
           type={type}
           value={value || ""}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={handleChange}
+          onInput={handleChange}
+          onBlur={handleBlur}
           placeholder={placeholder}
           required={required}
           autoComplete={autoComplete}
