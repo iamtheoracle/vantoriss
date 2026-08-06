@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Send, Loader2, Sparkles, Activity, Shield, Cpu, ChevronLeft, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-export default function BudCompanion() {
+export default function CommandCompanion() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -76,8 +76,8 @@ export default function BudCompanion() {
               <Sparkles size={20} className="text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-foreground">Bud</h1>
-              <p className="text-xs text-gray">AI Runtime Companion</p>
+              <h1 className="text-lg font-bold text-foreground">Command</h1>
+              <p className="text-xs text-gray">AI Runtime Assistant</p>
             </div>
           </div>
           <button onClick={checkHealth} className="p-2 rounded-lg hover:bg-slate-100 transition-colors">
@@ -176,7 +176,7 @@ export default function BudCompanion() {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSend()}
-            placeholder="Message Bud..."
+            placeholder="Message Command..."
             disabled={loading}
             className="flex-1 bg-white border border-border rounded-full px-4 py-2.5 text-sm focus:border-brass/50 focus:outline-none disabled:opacity-50"
           />

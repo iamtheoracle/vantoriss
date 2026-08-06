@@ -3,61 +3,16 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useWhatsAppConfig, whatsappLinkFromConfig } from '@/hooks/useWhatsAppConfig';
+import { useMemberEntitlements } from '@/hooks/useMemberEntitlements';
 import {
   User, Shield, Bell, Settings, Gift, Users, Calendar,
-  FileText, CreditCard, MessageCircle, HelpCircle, Info,
+  FileText, CreditCard, HelpCircle, Info,
   ShieldCheck, FileCheck, History, Lock, LogOut,
-  ChevronRight, Sparkles, Award, ScrollText, Phone,
+  ChevronRight, Sparkles, ScrollText, MessageCircle,
 } from 'lucide-react';
 import ShieldLogo from '@/components/vantoris/ShieldLogo';
 import DeleteAccountDialog from '@/components/vantoris/DeleteAccountDialog';
 import { getRoleLabel } from '@/lib/operationsAccess';
-
-const SECTIONS = [
-  {
-    title: 'Account',
-    items: [
-      { id: 'profile', label: 'Profile', desc: 'Personal information & settings', icon: User, route: '/profile', color: 'bg-brass/10 text-brass' },
-      { id: 'security', label: 'Security Center', desc: 'PIN, sessions & security settings', icon: Shield, route: '/profile', color: 'bg-crimson/10 text-crimson' },
-      { id: 'notifications', label: 'Notifications', desc: 'Manage your notifications', icon: Bell, route: '/messages', color: 'bg-blue-500/10 text-blue-600' },
-      { id: 'settings', label: 'Settings', desc: 'App preferences', icon: Settings, route: '/profile', color: 'bg-gray-100 text-gray' },
-    ],
-  },
-  {
-    title: 'Banking',
-    items: [
-      { id: 'cards', label: 'Cards', desc: 'Manage your debit & credit cards', icon: CreditCard, route: '/services', color: 'bg-brass/10 text-brass' },
-      { id: 'statements', label: 'Statements', desc: 'Account statements', icon: FileText, route: '/documents', color: 'bg-blue-500/10 text-blue-600' },
-      { id: 'documents', label: 'Documents', desc: 'All your documents', icon: FileCheck, route: '/documents', color: 'bg-purple-500/10 text-purple-600' },
-      { id: 'tax', label: 'Tax Documents', desc: 'Tax forms & records', icon: ScrollText, route: '/documents', color: 'bg-emerald-500/10 text-emerald-600' },
-    ],
-  },
-  {
-    title: 'Advisory & Support',
-    items: [
-      { id: 'advisor', label: 'Member Advisor', desc: 'AI financial assistant with WhatsApp', icon: Sparkles, route: '/advisor', color: 'bg-brass/10 text-brass' },
-      { id: 'help', label: 'Help Center', desc: 'FAQs & guides', icon: HelpCircle, route: '/advisor', color: 'bg-blue-500/10 text-blue-600' },
-      { id: 'contact', label: 'Contact Support', desc: 'WhatsApp & email support', icon: Phone, external: true, color: 'bg-emerald-500/10 text-emerald-600' },
-      { id: 'appointments', label: 'Appointments', desc: 'Schedule a call', icon: Calendar, route: '/services', color: 'bg-purple-500/10 text-purple-600' },
-    ],
-  },
-  {
-    title: 'Verification & History',
-    items: [
-      { id: 'kyc', label: 'Identity Verification', desc: 'KYC / KYB status', icon: ShieldCheck, route: '/apply/kyc', color: 'bg-brass/10 text-brass' },
-      { id: 'activity', label: 'Activity History', desc: 'Recent account activity', icon: History, route: '/accounts', color: 'bg-gray-100 text-gray' },
-      { id: 'rewards', label: 'Rewards', desc: 'Points & rewards', icon: Gift, color: 'bg-amber-500/10 text-amber-600' },
-    ],
-  },
-  {
-    title: 'Programs & Legal',
-    items: [
-      { id: 'referrals', label: 'Referral Program', desc: 'Invite friends & earn', icon: Users, route: '/profile', color: 'bg-brass/10 text-brass' },
-      { id: 'privacy', label: 'Privacy', desc: 'Privacy preferences', icon: Lock, route: '/profile', color: 'bg-gray-100 text-gray' },
-      { id: 'about', label: 'About VANTORIS', desc: 'Learn about us', icon: Info, color: 'bg-blue-500/10 text-blue-600' },
-    ],
-  },
-];
 
 export default function More() {
   const navigate = useNavigate();
@@ -65,6 +20,7 @@ export default function More() {
   const [user, setUser] = useState(null);
   const [showDelete, setShowDelete] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
+  const { entitlements } = useMemberEntitlements();
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(console.error);
@@ -86,6 +42,67 @@ export default function More() {
       navigate(item.route);
     }
   }
+
+  const products = entitlements?.products ?? {};
+  const hasAccounts = entitlements?.isApproved ?? false;
+
+  // Entitlement-driven sections — built at render time from live member data.
+  const SECTIONS = [
+    {
+      title: 'Account',
+      items: [
+        { id: 'profile', label: 'Profile', desc: 'Personal information & settings', icon: User, route: '/profile', color: 'bg-brass/10 text-brass' },
+        { id: 'security', label: 'Security Center', desc: 'PIN, sessions & security settings', icon: Shield, route: '/profile', color: 'bg-crimson/10 text-crimson' },
+        { id: 'notifications', label: 'Notifications', desc: 'Manage your notifications', icon: Bell, route: '/messages', color: 'bg-blue-500/10 text-blue-600' },
+        { id: 'settings', label: 'Settings', desc: 'App preferences', icon: Settings, route: '/profile', color: 'bg-gray-100 text-gray' },
+      ],
+    },
+    // Banking section only shown when member has active accounts
+    ...(hasAccounts ? [{
+      title: 'Banking',
+      items: [
+        { id: 'cards', label: 'Cards', desc: 'Manage your debit & credit cards', icon: CreditCard, route: '/services', color: 'bg-brass/10 text-brass' },
+        { id: 'statements', label: 'Statements', desc: 'Account statements', icon: FileText, route: '/documents', color: 'bg-blue-500/10 text-blue-600' },
+        { id: 'documents', label: 'Documents', desc: 'All your documents', icon: FileCheck, route: '/documents', color: 'bg-purple-500/10 text-purple-600' },
+        { id: 'tax', label: 'Tax Documents', desc: 'Tax forms & records', icon: ScrollText, route: '/documents', color: 'bg-emerald-500/10 text-emerald-600' },
+      ],
+    }] : []),
+    // Investments section only shown when member has investments
+    ...(products.investments ? [{
+      title: 'Investments',
+      items: [
+        { id: 'trading', label: 'Trading', desc: 'Stocks, ETFs, crypto & more', icon: History, route: '/investments', color: 'bg-navy/10 text-navy' },
+        { id: 'portfolio', label: 'Portfolio', desc: 'View your holdings', icon: ScrollText, route: '/investments', color: 'bg-blue-500/10 text-blue-600' },
+      ],
+    }] : []),
+    {
+      title: 'Member Support',
+      items: [
+        { id: 'advisor', label: 'Member Advisor', desc: 'AI financial assistant', icon: Sparkles, route: '/advisor', color: 'bg-brass/10 text-brass' },
+        { id: 'whatsapp', label: 'WhatsApp Support', desc: 'Chat with our support team', icon: MessageCircle, external: true, color: 'bg-emerald-500/10 text-emerald-600' },
+        { id: 'help', label: 'Help Center', desc: 'FAQs & guides', icon: HelpCircle, route: '/advisor', color: 'bg-blue-500/10 text-blue-600' },
+        { id: 'appointments', label: 'Appointments', desc: 'Schedule a call', icon: Calendar, route: '/services', color: 'bg-purple-500/10 text-purple-600' },
+      ],
+    },
+    {
+      title: 'Verification & History',
+      items: [
+        { id: 'kyc', label: 'Identity Verification', desc: 'KYC / KYB status', icon: ShieldCheck, route: '/apply/kyc', color: 'bg-brass/10 text-brass' },
+        ...(hasAccounts ? [
+          { id: 'activity', label: 'Activity History', desc: 'Recent account activity', icon: History, route: '/accounts', color: 'bg-gray-100 text-gray' },
+          { id: 'rewards', label: 'Rewards', desc: 'Points & rewards', icon: Gift, color: 'bg-amber-500/10 text-amber-600' },
+        ] : []),
+      ],
+    },
+    {
+      title: 'Programs & Legal',
+      items: [
+        { id: 'referrals', label: 'Referral Program', desc: 'Invite friends & earn', icon: Users, route: '/profile', color: 'bg-brass/10 text-brass' },
+        { id: 'privacy', label: 'Privacy', desc: 'Privacy preferences', icon: Lock, route: '/profile', color: 'bg-gray-100 text-gray' },
+        { id: 'about', label: 'About VANTORIS', desc: 'Learn about us', icon: Info, color: 'bg-blue-500/10 text-blue-600' },
+      ],
+    },
+  ];
 
   return (
     <div className="px-5 pt-6 pb-4">

@@ -5,11 +5,13 @@ import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import { EntitlementProvider } from '@/lib/EntitlementContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import MemberRoute from '@/components/MemberRoute';
 import PageTransition from './components/vantoris/PageTransition';
+import EntitlementRoute from '@/components/EntitlementRoute';
 
 // Layouts & Guards (non-lazy — needed for route structure)
 import MemberLayout from './components/vantoris/MemberLayout';
@@ -39,7 +41,7 @@ const Investments = React.lazy(() => import('./pages/Investments'));
 const More = React.lazy(() => import('./pages/More'));
 const TransactionDispute = React.lazy(() => import('./pages/TransactionDispute'));
 const BrandIdentity = React.lazy(() => import('./pages/BrandIdentity'));
-const BudCompanion = React.lazy(() => import('./components/runtime/BudCompanion'));
+const CommandCompanion = React.lazy(() => import('./components/runtime/BudCompanion'));
 const HeroBox = React.lazy(() => import('./pages/HeroBox'));
 
 // Lazy-loaded pages — Admin (Operations Center)
@@ -140,12 +142,24 @@ const AuthenticatedApp = () => {
             <Route path="/profile" element={<Profile />} />
             <Route path="/documents" element={<MemberDocuments />} />
             <Route path="/advisor" element={<MemberAdvisor />} />
-            <Route path="/trading" element={<Trading />} />
-            <Route path="/move-money" element={<MoveMoney />} />
-            <Route path="/investments" element={<Investments />} />
+            <Route path="/trading" element={
+              <EntitlementRoute product="investments" featureName="Investments">
+                <Trading />
+              </EntitlementRoute>
+            } />
+            <Route path="/move-money" element={
+              <EntitlementRoute product="moveMoney" featureName="Move Money">
+                <MoveMoney />
+              </EntitlementRoute>
+            } />
+            <Route path="/investments" element={
+              <EntitlementRoute product="investments" featureName="Investments">
+                <Investments />
+              </EntitlementRoute>
+            } />
             <Route path="/more" element={<More />} />
             <Route path="/dispute" element={<TransactionDispute />} />
-            <Route path="/assistant" element={<BudCompanion />} />
+            <Route path="/assistant" element={<CommandCompanion />} />
             <Route path="/herobox" element={<HeroBox />} />
           </Route>
 
@@ -216,13 +230,15 @@ const AuthenticatedApp = () => {
 function App() {
   return (
     <AuthProvider>
-      <QueryClientProvider client={queryClientInstance}>
-        <Router>
-          <ScrollToTop />
-          <AuthenticatedApp />
-        </Router>
-        <Toaster />
-      </QueryClientProvider>
+      <EntitlementProvider>
+        <QueryClientProvider client={queryClientInstance}>
+          <Router>
+            <ScrollToTop />
+            <AuthenticatedApp />
+          </Router>
+          <Toaster />
+        </QueryClientProvider>
+      </EntitlementProvider>
     </AuthProvider>
   )
 }
