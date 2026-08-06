@@ -1,0 +1,34 @@
+{
+  "name": "Auto-Trigger KYC Compliance on Application Create",
+  "description": "Automatically creates compliance notifications when a member submits an account application, triggering the correct identity verification steps based on account type (standard KYC, Joint co-applicant verification, Business EIN/business docs verification).",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "Application"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "auto_trigger_kyc_compliance_on_application_create",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "onApplicationCreate",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

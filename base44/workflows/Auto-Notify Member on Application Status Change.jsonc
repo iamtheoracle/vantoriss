@@ -1,0 +1,34 @@
+{
+  "name": "Auto-Notify Member on Application Status Change",
+  "description": "Automatically creates a member notification when their application status, KYC status, or opening contribution status changes",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "update"
+      ],
+      "entity_name": "Application"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "auto_notify_member_on_application_status_change",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "onApplicationStatusChange",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}
