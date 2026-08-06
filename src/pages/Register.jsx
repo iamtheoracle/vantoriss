@@ -44,6 +44,11 @@ export default function Register() {
 
   const updateData = useCallback((updates) => setData((prev) => ({ ...prev, ...updates })), []);
 
+  function deriveUsernameFromEmail(email) {
+    if (!email) return "";
+    return email.split("@")[0];
+  }
+
   function handleBack() {
     setError("");
     if (step > 1) {
@@ -70,6 +75,9 @@ export default function Register() {
   async function handleNext() {
     setError("");
     if (step < 7) {
+      if (step === 6) {
+        updateData({ userId: data.userId || deriveUsernameFromEmail(data.email) });
+      }
       setStep(step + 1);
       return;
     }
@@ -166,16 +174,15 @@ export default function Register() {
         }
       }
 
-      await base44.entities.Application.create({
+      const result = await base44.functions.invoke('submitApplication', {
         user_id: me.id,
         full_name: fullName,
-        email: data.userId || data.email,
+        email: data.email,
         phone: data.phone,
         address: fullAddress,
         business_name: ["Business", "Institutional", "Organization"].includes(selectedProduct?.label) ? data.employer || "" : "",
         account_type: selectedProduct.accountType,
         kyc_status: "not_started",
-        application_status: "pending",
         kyc_documents: docUrls,
         kyc_notes: JSON.stringify({
           product: selectedProduct.label,
@@ -191,15 +198,22 @@ export default function Register() {
         }),
       });
 
-      await base44.entities.Notification.create({
-        user_id: me.id,
-        title: "Application Received",
-        message: `Your ${selectedProduct.label} application has been received and is under review. You will be notified once a determination has been made.`,
-        type: "info",
-      });
+      if (result?.error) {
+        setError(result.error);
+        return;
+      }
+
+      if (result.outcome === 'application_created') {
+        await base44.entities.Notification.create({
+          user_id: me.id,
+          title: "Application Received",
+          message: `Your ${selectedProduct.label} application has been received and is under review. You will be notified once a determination has been made.`,
+          type: "info",
+        });
+      }
 
       setStatus({
-        type: "review",
+        type: result.outcome === 'enquiry_created' ? "enquiry" : "review",
         reference: `VAN-${me.id.slice(-8).toUpperCase()}`,
       });
       setPhase("status");
