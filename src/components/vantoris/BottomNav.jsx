@@ -3,18 +3,28 @@ import { Link, useLocation } from 'react-router-dom';
 import { Home, Wallet, ArrowLeftRight, TrendingUp, LayoutGrid } from 'lucide-react';
 import { TabHistoryContext } from '@/lib/TabHistoryContext';
 import { useContext } from 'react';
+import { useMemberEntitlements } from '@/hooks/useMemberEntitlements';
 
-const navItems = [
-  { label: 'Home', path: '/', icon: Home },
-  { label: 'Accounts', path: '/accounts', icon: Wallet },
-  { label: 'Move Money', path: '/move-money', icon: ArrowLeftRight },
-  { label: 'Investments', path: '/investments', icon: TrendingUp },
-  { label: 'More', path: '/more', icon: LayoutGrid },
+const BASE_NAV_ITEMS = [
+  { label: 'Home', path: '/', icon: Home, product: null },
+  { label: 'Accounts', path: '/accounts', icon: Wallet, product: null },
+  { label: 'Move Money', path: '/move-money', icon: ArrowLeftRight, product: 'moveMoney' },
+  { label: 'Investments', path: '/investments', icon: TrendingUp, product: 'investments' },
+  { label: 'More', path: '/more', icon: LayoutGrid, product: null },
 ];
 
 export default function BottomNav() {
   const location = useLocation();
   const { getTabPath } = useContext(TabHistoryContext);
+  const { loading, entitlements } = useMemberEntitlements();
+
+  // While loading, show only items with no product gate to avoid flash of
+  // unentitled content. Once entitlements resolve, show/hide gated items.
+  const navItems = BASE_NAV_ITEMS.filter(item => {
+    if (!item.product) return true;
+    if (loading) return false; // hide gated items until data is ready
+    return entitlements?.products?.[item.product] ?? false;
+  });
 
   return (
     <nav
