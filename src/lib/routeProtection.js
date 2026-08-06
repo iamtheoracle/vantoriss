@@ -7,7 +7,7 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { canAccessProduct, getMemberEntitlements } from './entitlementService';
 import { getProductById, WorkflowStage } from './productCatalog';
-import { isInProgressStage } from './workflowEngine';
+import { getStageLabel, isInProgressStage } from './workflowEngine';
 
 // ---------------------------------------------------------------------------
 // React component wrapper
@@ -64,7 +64,7 @@ export function checkProductAccess(member, productId) {
   if (canAccessProduct(member, product)) return true;
 
   if (isInProgressStage(stage)) {
-    throw new Error(`Your application for ${product.name} is currently ${stage}. Access will be granted once approved.`);
+    throw new Error(`Your application for ${product.name} is currently ${getStageLabel(stage)}. Access will be granted once approved.`);
   }
 
   if (stage === WorkflowStage.Rejected) {

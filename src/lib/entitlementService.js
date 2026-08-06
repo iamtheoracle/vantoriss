@@ -90,7 +90,8 @@ function deriveStage(member, product) {
   // Default: check application status for remaining products
   if (application) {
     const appStatus = application.status?.toLowerCase();
-    if (['approved', 'active'].includes(appStatus)) return WorkflowStage.Approved;
+    if (appStatus === 'approved') return WorkflowStage.Approved;
+    if (appStatus === 'active') return WorkflowStage.Active;
     if (['submitted', 'under_review'].includes(appStatus)) return WorkflowStage.UnderReview;
     if (['pending', 'documents_pending'].includes(appStatus)) return WorkflowStage.DocumentsPending;
     if (appStatus === 'additional_info') return WorkflowStage.AdditionalInfoRequired;
@@ -253,7 +254,6 @@ export function shouldShowApplicationFlow(member, product) {
   return [
     WorkflowStage.NotApplied,
     WorkflowStage.EligibleToApply,
-    WorkflowStage.Rejected,
   ].includes(stage);
 }
 

@@ -57,7 +57,6 @@ const PRODUCTS = [
     icon: 'CreditCard',
 
     status: ProductStatus.Available,
-    availability: ProductStatus.Available,
 
     eligibilityRequirements: {
       minAge: 18,
@@ -124,7 +123,6 @@ const PRODUCTS = [
     icon: 'Users',
 
     status: ProductStatus.Available,
-    availability: ProductStatus.Available,
 
     eligibilityRequirements: {
       minAge: 18,
@@ -191,7 +189,6 @@ const PRODUCTS = [
     icon: 'PiggyBank',
 
     status: ProductStatus.Available,
-    availability: ProductStatus.Available,
 
     eligibilityRequirements: {
       minAge: 18,
@@ -255,7 +252,6 @@ const PRODUCTS = [
     icon: 'TrendingUp',
 
     status: ProductStatus.Available,
-    availability: ProductStatus.Available,
 
     eligibilityRequirements: {
       minAge: 18,
@@ -322,7 +318,6 @@ const PRODUCTS = [
     icon: 'Crown',
 
     status: ProductStatus.Available,
-    availability: ProductStatus.Available,
 
     eligibilityRequirements: {
       minAge: 21,
@@ -392,7 +387,6 @@ const PRODUCTS = [
     icon: 'Bitcoin',
 
     status: ProductStatus.ComingSoon,
-    availability: ProductStatus.ComingSoon,
 
     eligibilityRequirements: {
       minAge: 18,
@@ -456,7 +450,6 @@ const PRODUCTS = [
     icon: 'CreditCard',
 
     status: ProductStatus.Available,
-    availability: ProductStatus.Available,
 
     eligibilityRequirements: {
       minAge: 18,
@@ -523,7 +516,6 @@ const PRODUCTS = [
     icon: 'Banknote',
 
     status: ProductStatus.Available,
-    availability: ProductStatus.Available,
 
     eligibilityRequirements: {
       minAge: 18,
@@ -587,7 +579,6 @@ const PRODUCTS = [
     icon: 'Briefcase',
 
     status: ProductStatus.Available,
-    availability: ProductStatus.Available,
 
     eligibilityRequirements: {
       minAge: 18,
@@ -658,7 +649,6 @@ const PRODUCTS = [
     icon: 'Heart',
 
     status: ProductStatus.Available,
-    availability: ProductStatus.Available,
 
     eligibilityRequirements: {
       minAge: 0,
