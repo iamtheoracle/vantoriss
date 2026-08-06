@@ -5,7 +5,6 @@ import { Plug, Settings } from 'lucide-react';
 const integrations = [
   { name: 'Google Drive', category: 'Document Storage', status: 'available', description: 'Archive statements and documents to Google Drive' },
   { name: 'Slack', category: 'Notifications', status: 'available', description: 'Send critical alerts to Slack channels' },
-  { name: 'Stripe', category: 'Payments', status: 'available', description: 'Process card payments and deposits' },
   { name: 'Plaid', category: 'Banking', status: 'available', description: 'Connect bank accounts for verification' },
 ];
 

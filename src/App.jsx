@@ -8,12 +8,11 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import MemberRoute from '@/components/MemberRoute';
 import PageTransition from './components/vantoris/PageTransition';
 
 // Layouts & Guards (non-lazy — needed for route structure)
-import MemberLayout from './components/vantoris/MemberLayout';
 import AdminLayout from './components/vantoris/AdminLayout';
+import UnibudLayout from './components/unibud/UnibudLayout';
 import OperationsRoute from './components/OperationsRoute';
 
 // Lazy-loaded pages — Auth
@@ -21,26 +20,16 @@ const Login = React.lazy(() => import('./pages/Login'));
 const Register = React.lazy(() => import('./pages/Register'));
 const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = React.lazy(() => import('./pages/ResetPassword'));
-
-// Lazy-loaded pages — Member
-const Home = React.lazy(() => import('./pages/Home'));
-const Apply = React.lazy(() => import('./pages/Apply'));
-const ApplyKYC = React.lazy(() => import('./pages/ApplyKYC'));
-const Accounts = React.lazy(() => import('./pages/Accounts'));
-const AccountDetail = React.lazy(() => import('./pages/AccountDetail'));
-const Services = React.lazy(() => import('./pages/Services'));
-const Messages = React.lazy(() => import('./pages/Messages'));
-const Profile = React.lazy(() => import('./pages/Profile'));
-const MemberDocuments = React.lazy(() => import('./pages/MemberDocuments'));
-const MemberAdvisor = React.lazy(() => import('./pages/MemberAdvisor'));
-const Trading = React.lazy(() => import('./pages/Trading'));
-const MoveMoney = React.lazy(() => import('./pages/MoveMoney'));
-const Investments = React.lazy(() => import('./pages/Investments'));
-const More = React.lazy(() => import('./pages/More'));
-const TransactionDispute = React.lazy(() => import('./pages/TransactionDispute'));
+const UnibudHome = React.lazy(() => import('./pages/unibud/UnibudHome'));
+const Academics = React.lazy(() => import('./pages/unibud/Academics'));
+const Communities = React.lazy(() => import('./pages/unibud/Communities'));
+const Podcasts = React.lazy(() => import('./pages/unibud/Podcasts'));
+const Live = React.lazy(() => import('./pages/unibud/Live'));
+const News = React.lazy(() => import('./pages/unibud/News'));
+const Connect = React.lazy(() => import('./pages/unibud/Connect'));
+const Me = React.lazy(() => import('./pages/unibud/Me'));
 const BrandIdentity = React.lazy(() => import('./pages/BrandIdentity'));
 const BudCompanion = React.lazy(() => import('./components/runtime/BudCompanion'));
-const HeroBox = React.lazy(() => import('./pages/HeroBox'));
 
 // Lazy-loaded pages — Admin (Operations Center)
 const AdminOverview = React.lazy(() => import('./pages/admin/AdminOverview'));
@@ -129,24 +118,16 @@ const AuthenticatedApp = () => {
 
         <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
           {/* Member Portal */}
-          <Route element={<MemberLayout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/apply" element={<Apply />} />
-            <Route path="/apply/kyc" element={<ApplyKYC />} />
-            <Route path="/accounts" element={<Accounts />} />
-            <Route path="/accounts/:id" element={<AccountDetail />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/documents" element={<MemberDocuments />} />
-            <Route path="/advisor" element={<MemberAdvisor />} />
-            <Route path="/trading" element={<Trading />} />
-            <Route path="/move-money" element={<MoveMoney />} />
-            <Route path="/investments" element={<Investments />} />
-            <Route path="/more" element={<More />} />
-            <Route path="/dispute" element={<TransactionDispute />} />
+          <Route element={<UnibudLayout />}>
+            <Route path="/" element={<UnibudHome />} />
+            <Route path="/academics" element={<Academics />} />
+            <Route path="/communities" element={<Communities />} />
+            <Route path="/podcasts" element={<Podcasts />} />
+            <Route path="/live" element={<Live />} />
+            <Route path="/news" element={<News />} />
+            <Route path="/connect" element={<Connect />} />
+            <Route path="/me" element={<Me />} />
             <Route path="/assistant" element={<BudCompanion />} />
-            <Route path="/herobox" element={<HeroBox />} />
           </Route>
 
           {/* Backward-compatible redirect */}
