@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Wallet, ArrowLeftRight, LayoutGrid, Sparkles } from 'lucide-react';
+import { Home, Wallet, ArrowLeftRight, LayoutGrid, Heart } from 'lucide-react';
 import { TabHistoryContext } from '@/lib/TabHistoryContext';
 import { useContext } from 'react';
 
@@ -8,7 +8,7 @@ const navItems = [
   { label: 'Home', path: '/', icon: Home },
   { label: 'Accounts', path: '/accounts', icon: Wallet },
   { label: 'Move Money', path: '/move-money', icon: ArrowLeftRight },
-  { label: 'Assistant', path: '/assistant', icon: Sparkles },
+  { label: 'HeroBox', path: '/herobox', icon: Heart },
   { label: 'More', path: '/more', icon: LayoutGrid },
 ];
 

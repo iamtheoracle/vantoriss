@@ -1,13 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, ArrowRight, Send, FileText, Package, Plane, Wallet, Heart } from 'lucide-react';
+import { Sparkles, ArrowRight, Send, FileText, Package, Wallet, Heart } from 'lucide-react';
 
 const EXAMPLES = [
   { label: 'Transfer money', icon: Send, route: '/move-money' },
   { label: 'View accounts', icon: Wallet, route: '/accounts' },
   { label: 'Sponsor a Hero', icon: Package, route: '/herobox' },
-  { label: 'Send money internationally', icon: Plane, route: '/move-money' },
+  { label: 'Send with Zelle', icon: Send, route: '/move-money?tab=zelle' },
   { label: 'View statements', icon: FileText, route: '/documents' },
   { label: 'Track my package', icon: Heart, route: '/herobox' },
 ];

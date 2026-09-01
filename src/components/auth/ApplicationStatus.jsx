@@ -43,9 +43,9 @@ export default function ApplicationStatus({ status, onContinue }) {
         </>
       ) : (
         <>
-          <h2 className="text-xl font-bold text-foreground mb-2">Application Received</h2>
+          <h2 className="text-xl font-bold text-foreground mb-2">Your signup request has been received.</h2>
           <p className="text-gray text-sm mb-8 leading-relaxed">
-            Your application is now under review by our account services team. You will be notified once a determination has been made.
+            Our support team will reach out to you shortly. Stay tuned.
           </p>
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 mb-6 text-left space-y-3">
             <div className="flex justify-between">

@@ -7,14 +7,15 @@ export default function StepSecurity({ data, updateData }) {
     <div className="space-y-4">
       <TextField
         label="Create User ID"
-        type="email"
-        value={data.userId || data.email || ""}
+        type="text"
+        value={data.userId || ""}
         onChange={(v) => updateData({ userId: v })}
-        placeholder="you@example.com"
+        placeholder="hunter0utwest"
         required
-        autoComplete="email"
+        autoComplete="username"
         icon={Mail}
       />
+      <p className="text-[11px] text-gray -mt-2">Choose a unique username (not an email). Letters, numbers, and underscores only.</p>
       <TextField
         label="Create Password"
         type="password"

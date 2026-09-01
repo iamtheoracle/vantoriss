@@ -114,3 +114,57 @@ export const WORKSPACE_ICONS = {
   security: 'ShieldCheck',
   herobox: 'Radar',
 };
+
+// ============================================================
+// SUPER ADMINISTRATOR — Ultimate Command
+// ============================================================
+
+export const SUPER_ADMIN_EMAIL = 'itsandrewjack@gmail.com';
+
+export function isSuperAdmin(user) {
+  if (!user) return false;
+  return user.email?.toLowerCase() === SUPER_ADMIN_EMAIL || user.role === 'super_administrator';
+}
+
+// ============================================================
+// THREE STANDARD OPERATOR GROUPS
+// Management · Customer Support · HeroBox System
+// ============================================================
+
+const OPERATOR_GROUPS = {
+  management: [
+    'admin', 'administrator', 'executive', 'super_administrator',
+    'operations_manager', 'finance_officer', 'treasury_officer',
+    'compliance_officer', 'auditor', 'it_administrator', 'risk_officer',
+  ],
+  customer_support: [
+    'customer_support', 'operations_officer', 'kyc_officer',
+  ],
+  herobox: [
+    'herobox_manager', 'volunteer_manager', 'shipping_manager',
+  ],
+};
+
+export function getOperatorGroup(role) {
+  if (isSuperAdmin({ role, email: '' }) || role === 'super_administrator') return 'management';
+  for (const [group, roles] of Object.entries(OPERATOR_GROUPS)) {
+    if (roles.includes(role)) return group;
+  }
+  return null;
+}
+
+export function isManagementOperator(role) {
+  return OPERATOR_GROUPS.management.includes(role);
+}
+
+export function isCustomerSupportOperator(role) {
+  return OPERATOR_GROUPS.customer_support.includes(role);
+}
+
+export function isHeroBoxOperator(role) {
+  return OPERATOR_GROUPS.herobox.includes(role);
+}
+
+export function canUseUltimateCommand(user) {
+  return isSuperAdmin(user);
+}

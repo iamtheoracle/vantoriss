@@ -4,57 +4,43 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useWhatsAppConfig, whatsappLinkFromConfig } from '@/hooks/useWhatsAppConfig';
 import {
-  User, Shield, Bell, Settings, Gift, Users, Calendar,
-  FileText, CreditCard, MessageCircle, HelpCircle, Info,
-  ShieldCheck, FileCheck, History, Lock, LogOut,
-  ChevronRight, Sparkles, Award, ScrollText, Phone,
+  User, Bell, Settings, CreditCard, FileText,
+  MessageCircle, Sparkles, Phone, Info,
+  LogOut, ChevronRight, Shield,
 } from 'lucide-react';
 import ShieldLogo from '@/components/vantoris/ShieldLogo';
-import DeleteAccountDialog from '@/components/vantoris/DeleteAccountDialog';
-import { getRoleLabel } from '@/lib/operationsAccess';
+import { getRoleLabel, isSuperAdmin } from '@/lib/operationsAccess';
 
 const SECTIONS = [
   {
     title: 'Account',
     items: [
-      { id: 'profile', label: 'Profile', desc: 'Personal information & settings', icon: User, route: '/profile', color: 'bg-brass/10 text-brass' },
-      { id: 'security', label: 'Security Center', desc: 'PIN, sessions & security settings', icon: Shield, route: '/profile', color: 'bg-crimson/10 text-crimson' },
-      { id: 'notifications', label: 'Notifications', desc: 'Manage your notifications', icon: Bell, route: '/messages', color: 'bg-blue-500/10 text-blue-600' },
+      { id: 'profile', label: 'Profile', desc: 'Your personal information', icon: User, route: '/profile', color: 'bg-brass/10 text-brass' },
+      { id: 'security', label: 'Security Center', desc: 'PIN, sessions & security', icon: Shield, route: '/profile', color: 'bg-crimson/10 text-crimson' },
       { id: 'settings', label: 'Settings', desc: 'App preferences', icon: Settings, route: '/profile', color: 'bg-gray-100 text-gray' },
     ],
   },
   {
     title: 'Banking',
     items: [
-      { id: 'cards', label: 'Cards', desc: 'Manage your debit & credit cards', icon: CreditCard, route: '/services', color: 'bg-brass/10 text-brass' },
-      { id: 'statements', label: 'Statements', desc: 'Account statements', icon: FileText, route: '/documents', color: 'bg-blue-500/10 text-blue-600' },
-      { id: 'documents', label: 'Documents', desc: 'All your documents', icon: FileCheck, route: '/documents', color: 'bg-purple-500/10 text-purple-600' },
-      { id: 'tax', label: 'Tax Documents', desc: 'Tax forms & records', icon: ScrollText, route: '/documents', color: 'bg-emerald-500/10 text-emerald-600' },
+      { id: 'cards', label: 'Cards', desc: 'Manage your debit cards', icon: CreditCard, route: '/services', color: 'bg-brass/10 text-brass' },
+      { id: 'accounts', label: 'Accounts', desc: 'View your accounts', icon: CreditCard, route: '/accounts', color: 'bg-blue-500/10 text-blue-600' },
+      { id: 'move-money', label: 'Move Money', desc: 'Transfer, send & deposit', icon: CreditCard, route: '/move-money', color: 'bg-navy/8 text-navy' },
+      { id: 'statements', label: 'Statements & Documents', desc: 'Account documents', icon: FileText, route: '/documents', color: 'bg-blue-500/10 text-blue-600' },
     ],
   },
   {
-    title: 'Advisory & Support',
+    title: 'Support',
     items: [
-      { id: 'advisor', label: 'Member Advisor', desc: 'AI financial assistant with WhatsApp', icon: Sparkles, route: '/advisor', color: 'bg-brass/10 text-brass' },
-      { id: 'help', label: 'Help Center', desc: 'FAQs & guides', icon: HelpCircle, route: '/advisor', color: 'bg-blue-500/10 text-blue-600' },
+      { id: 'messages', label: 'Messages', desc: 'Your support conversations', icon: MessageCircle, route: '/messages', color: 'bg-navy/8 text-navy' },
+      { id: 'advisor', label: 'Member Advisor', desc: 'AI banking assistant', icon: Sparkles, route: '/advisor', color: 'bg-brass/10 text-brass' },
       { id: 'contact', label: 'Contact Support', desc: 'WhatsApp & email support', icon: Phone, external: true, color: 'bg-emerald-500/10 text-emerald-600' },
-      { id: 'appointments', label: 'Appointments', desc: 'Schedule a call', icon: Calendar, route: '/services', color: 'bg-purple-500/10 text-purple-600' },
     ],
   },
   {
-    title: 'Verification & History',
+    title: 'About',
     items: [
-      { id: 'kyc', label: 'Identity Verification', desc: 'KYC / KYB status', icon: ShieldCheck, route: '/apply/kyc', color: 'bg-brass/10 text-brass' },
-      { id: 'activity', label: 'Activity History', desc: 'Recent account activity', icon: History, route: '/accounts', color: 'bg-gray-100 text-gray' },
-      { id: 'rewards', label: 'Rewards', desc: 'Points & rewards', icon: Gift, color: 'bg-amber-500/10 text-amber-600' },
-    ],
-  },
-  {
-    title: 'Programs & Legal',
-    items: [
-      { id: 'referrals', label: 'Referral Program', desc: 'Invite friends & earn', icon: Users, route: '/profile', color: 'bg-brass/10 text-brass' },
-      { id: 'privacy', label: 'Privacy', desc: 'Privacy preferences', icon: Lock, route: '/profile', color: 'bg-gray-100 text-gray' },
-      { id: 'about', label: 'About VANTORIS', desc: 'Learn about us', icon: Info, color: 'bg-blue-500/10 text-blue-600' },
+      { id: 'about', label: 'About Vantoris', desc: 'Learn about us', icon: Info, color: 'bg-blue-500/10 text-blue-600' },
     ],
   },
 ];
@@ -63,7 +49,6 @@ export default function More() {
   const navigate = useNavigate();
   const whatsappNumber = useWhatsAppConfig();
   const [user, setUser] = useState(null);
-  const [showDelete, setShowDelete] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
 
   useEffect(() => {
@@ -104,7 +89,9 @@ export default function More() {
           <div className="flex-1 min-w-0">
             <p className="text-foreground font-semibold text-base truncate">{user?.full_name || 'Member'}</p>
             <p className="text-gray text-xs truncate">{user?.email}</p>
-            <span className="text-brass text-[10px] font-medium">{getRoleLabel(user?.role)}</span>
+            <span className="text-brass text-[10px] font-medium">
+              {isSuperAdmin(user) ? 'Super Administrator' : getRoleLabel(user?.role)}
+            </span>
           </div>
           <ChevronRight size={18} className="text-gray/40" />
         </div>
@@ -170,8 +157,6 @@ export default function More() {
         <p className="text-gray/40 text-[10px] tracking-widest uppercase">Secure. Trusted. Tailored for you.</p>
       </div>
 
-      <DeleteAccountDialog open={showDelete} onOpenChange={setShowDelete} />
-
       {/* About Modal */}
       {showAbout && (
         <motion.div
@@ -189,9 +174,9 @@ export default function More() {
             <div className="text-center">
               <ShieldLogo size={48} className="mx-auto mb-3" />
               <h3 className="text-foreground font-bold text-lg">VANTORIS</h3>
-              <p className="text-gray text-xs mt-1">Private Wealth Management</p>
+              <p className="text-gray text-xs mt-1">Private Banking Solutions</p>
               <p className="text-gray/60 text-[10px] mt-3 leading-relaxed">
-                An elite, private-label wealth management sanctuary providing transparent investment stewardship and seamless capital movement for sophisticated investors.
+                A secure, American banking platform providing personal banking, seamless money movement, and dedicated member support.
               </p>
               <button
                 onClick={() => setShowAbout(false)}

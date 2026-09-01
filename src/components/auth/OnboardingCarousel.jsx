@@ -15,19 +15,19 @@ const SLIDES = [
   {
     icon: Landmark,
     title: "Welcome to VANTORIS",
-    desc: "Private institutional banking, investments, digital assets, and wealth management in one secure platform.",
+    desc: "Private banking, checking, savings, and dedicated member support in one secure platform.",
     gradient: "from-navy/10 to-navy/5",
   },
   {
     icon: ArrowLeftRight,
     title: "Move Money With Confidence",
-    desc: "Send money, ACH transfers, domestic wires, international wires, Zelle, and real-time payments from one secure financial platform.",
+    desc: "Send money, ACH transfers, domestic wires, Zelle, and real-time payments from one secure banking platform.",
     gradient: "from-gold/10 to-gold/5",
   },
   {
     icon: TrendingUp,
-    title: "Grow and Protect Your Wealth",
-    desc: "Manage checking, savings, investments, digital assets, and private portfolios with institutional-grade security.",
+    title: "Bank With Confidence",
+    desc: "Manage checking, savings, and money market accounts with institutional-grade security.",
     gradient: "from-mint/10 to-mint/5",
   },
   {
@@ -39,7 +39,7 @@ const SLIDES = [
   {
     icon: Sparkles,
     title: "Designed Around You",
-    desc: "Personalized dashboards, Member Advisor, AI insights, portfolio management, and private financial services.",
+    desc: "Personalized dashboards, Member Advisor, AI insights, and private banking services.",
     gradient: "from-gold/10 to-navy/5",
   },
 ];

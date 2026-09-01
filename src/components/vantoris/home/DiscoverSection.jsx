@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Home, PiggyBank, Banknote, Crown, CalendarClock, Building2, CreditCard, Globe, Package, ChevronRight } from 'lucide-react';
+import { Shield, Home, PiggyBank, Banknote, Crown, CalendarClock, Building2, CreditCard, Package, ChevronRight } from 'lucide-react';
 
 // Each discover item has `hideIf` — an array of service IDs from YourServices.
 // If the user has ANY of those services, the discover item is hidden.
@@ -13,7 +13,6 @@ const DISCOVER_CATALOG = [
   { id: 'financial-planning', title: 'Financial Planning', subtitle: 'Plan your financial future', icon: CalendarClock, route: '/advisor', hideIf: [] },
   { id: 'business-banking', title: 'Business Banking', subtitle: 'Treasury & payroll solutions', icon: Building2, route: '/services', hideIf: ['business-treasury'] },
   { id: 'premium-cards', title: 'Premium Cards', subtitle: 'Exclusive card benefits', icon: CreditCard, route: '/services', hideIf: [] },
-  { id: 'international-banking', title: 'International Banking', subtitle: 'Global account access', icon: Globe, route: '/services', hideIf: ['global-transfers'] },
   { id: 'herobox-premium', title: 'HeroBox Premium', subtitle: 'Concierge care packages', icon: Package, route: '/herobox', hideIf: [] },
   { id: 'herobox', title: 'HeroBox', subtitle: 'Support our military heroes', icon: Package, route: '/herobox', hideIf: [] },
 ];

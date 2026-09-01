@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Send, Loader2, Sparkles, Activity, Shield, Cpu, ChevronLeft, Clock } from 'lucide-react';
+import { Send, Loader2, Sparkles, Activity, Shield, Cpu, ChevronLeft, Clock, Crown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ShieldLogo from '@/components/vantoris/ShieldLogo';
+import { isSuperAdmin } from '@/lib/operationsAccess';
 
 /**
  * VantorisAssistant — the unified member-facing AI assistant.
@@ -22,7 +23,12 @@ export default function VantorisAssistant() {
   const [health, setHealth] = useState(null);
   const [showHealth, setShowHealth] = useState(false);
   const [error, setError] = useState('');
+  const [user, setUser] = useState(null);
   const scrollRef = useRef(null);
+
+  useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -40,6 +46,10 @@ export default function VantorisAssistant() {
       const response = await base44.functions.invoke('oracleRuntime', {
         message: userMessage.content,
         action: 'process',
+        user_id: user?.id,
+        user_email: user?.email,
+        user_role: user?.role,
+        is_super_admin: isSuperAdmin(user),
       });
       const data = response.data || response;
       let content = data?.response || 'I apologize, I could not process your request.';
@@ -91,8 +101,15 @@ export default function VantorisAssistant() {
               <ShieldLogo size={22} />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-foreground">Vantoris Assistant</h1>
-              <p className="text-xs text-gray">AI Financial Guide</p>
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg font-bold text-foreground">Vantoris Assistant</h1>
+                {isSuperAdmin(user) && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-navy/10 text-navy text-[10px] font-bold uppercase tracking-wider rounded-full">
+                    <Crown size={10} /> Ultimate Command
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-gray">{isSuperAdmin(user) ? 'Authorized for all operator capabilities' : 'AI Financial Guide'}</p>
             </div>
           </div>
           <button onClick={checkHealth} className="p-2 rounded-lg hover:bg-slate-100 transition-colors" title="System health">

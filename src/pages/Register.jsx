@@ -82,6 +82,10 @@ export default function Register() {
       return;
     }
     if (step === 7) {
+      if (!/^[a-zA-Z0-9_]{3,}$/.test(data.userId)) {
+        setError("User ID must be at least 3 characters and contain only letters, numbers, and underscores.");
+        return;
+      }
       if (data.password !== data.confirmPassword) {
         setError("Passwords do not match.");
         return;
@@ -90,12 +94,16 @@ export default function Register() {
         setError("Password must be at least 8 characters.");
         return;
       }
+      if (!/[a-zA-Z]/.test(data.password) || !/[0-9]/.test(data.password)) {
+        setError("Password must contain at least one letter and one number.");
+        return;
+      }
       setLoading(true);
       try {
-        await base44.auth.register({ email: data.userId || data.email, password: data.password });
+        await base44.auth.register({ email: data.email, password: data.password });
         setOtpSent(true);
       } catch (err) {
-        setError(err.message || "Registration failed. This User ID may already be in use.");
+        setError(err.message || "Registration failed. This email may already be in use.");
       } finally {
         setLoading(false);
       }
@@ -110,7 +118,7 @@ export default function Register() {
     setError("");
     setLoading(true);
     try {
-      const result = await base44.auth.verifyOtp({ email: data.userId || data.email, otpCode });
+      const result = await base44.auth.verifyOtp({ email: data.email, otpCode });
       if (!result?.access_token) {
         setError("Verification completed but no session token was returned. Please try again.");
         return;
@@ -119,6 +127,7 @@ export default function Register() {
       await trackReferral();
       await base44.auth.updateMe({
         full_name: [data.firstName, data.middleName, data.lastName, data.suffix].filter(Boolean).join(" "),
+        username: data.userId,
       });
       setOtpSent(false);
       setStep(8);
@@ -132,7 +141,7 @@ export default function Register() {
   async function handleResendOtp() {
     setError("");
     try {
-      await base44.auth.resendOtp(data.userId || data.email);
+      await base44.auth.resendOtp(data.email);
       toast({ title: "Code sent", description: "Check your email for the new code." });
     } catch (err) {
       setError(err.message || "Failed to resend code.");
@@ -148,7 +157,7 @@ export default function Register() {
         await base44.entities.Referral.create({
           referrer_id: referrers[0].id,
           referred_id: me.id,
-          referred_email: data.userId || data.email,
+          referred_email: data.email,
           referred_name: `${data.firstName} ${data.lastName}`,
           status: "completed",
         });
@@ -265,7 +274,7 @@ export default function Register() {
 
   if (otpSent) {
     return (
-      <AuthLayout title="Verify Your Email" subtitle={`We sent a verification code to ${data.userId || data.email}`}>
+      <AuthLayout title="Verify Your Email" subtitle={`We sent a verification code to ${data.email}`}>
         {error && (
           <div className="mb-4 p-3 rounded-lg bg-crimson/10 border border-crimson/20 text-crimson text-sm">
             {error}

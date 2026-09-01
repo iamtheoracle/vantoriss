@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { User, Users, Building2, Landmark, KeyRound, TrendingUp, Wallet, Check, ArrowLeft } from "lucide-react";
+import { User, Users, Building2, Landmark, KeyRound, Wallet, Check, ArrowLeft } from "lucide-react";
 
 export const PRODUCTS = [
   { id: "personal", label: "Personal", accountType: "Personal", icon: User, desc: "Individual account for personal banking and transactions" },
@@ -9,7 +9,6 @@ export const PRODUCTS = [
   { id: "organization", label: "Organization", accountType: "Organization", icon: Landmark, desc: "Fund or organization accounts" },
   { id: "institutional", label: "Institutional", accountType: "Organization", icon: Landmark, desc: "Custodial and administrative services" },
   { id: "private", label: "Private Banking", accountType: "Personal", icon: KeyRound, desc: "Dedicated relationship management and bespoke services" },
-  { id: "investment", label: "Investment", accountType: "Personal", icon: TrendingUp, desc: "Self-directed trading and portfolio management" },
 ];
 
 export default function ProductSelection({ selected, onSelect, onBack }) {

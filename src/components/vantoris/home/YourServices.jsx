@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
-  Package, Wallet, CreditCard, Globe, Lock,
+  Package, Wallet, CreditCard, Lock,
   Building2, ChevronRight, Truck, Heart, RefreshCw
 } from 'lucide-react';
 
@@ -28,14 +28,6 @@ const SERVICE_REGISTRY = [
     title: 'Cards',
     subtitle: 'Debit & credit cards',
     icon: CreditCard,
-    route: '/move-money',
-    requiresAccount: true,
-  },
-  {
-    id: 'global-transfers',
-    title: 'Global Transfers',
-    subtitle: 'Send money internationally',
-    icon: Globe,
     route: '/move-money',
     requiresAccount: true,
   },

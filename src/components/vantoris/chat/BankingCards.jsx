@@ -6,7 +6,6 @@ import {
   CalendarClock,
   FileText,
   CreditCard,
-  TrendingUp,
   Search,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -19,7 +18,6 @@ const BANKING_ACTIONS = [
   { id: 'statement', label: 'Statements', icon: FileText, path: '/documents', color: 'bg-navy' },
   { id: 'card', label: 'Card Controls', icon: CreditCard, path: '/more', color: 'bg-crimson' },
   { id: 'wire', label: 'Wire Tracking', icon: Search, path: '/accounts', color: 'bg-champagne' },
-  { id: 'invest', label: 'Investments', icon: TrendingUp, path: '/investments', color: 'bg-mint' },
 ];
 
 export default function BankingCards() {

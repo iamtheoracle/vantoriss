@@ -20,9 +20,16 @@
         "treasury_officer",
         "auditor",
         "it_administrator",
-        "risk_officer"
+        "risk_officer",
+        "herobox_manager",
+        "volunteer_manager",
+        "shipping_manager"
       ],
       "default": "user"
+    },
+    "username": {
+      "type": "string",
+      "description": "The user's chosen unique username identifier (not an email, not a full name)"
     },
     "admin_notes": {
       "type": "string",
