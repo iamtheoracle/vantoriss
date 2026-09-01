@@ -15,7 +15,7 @@
 //   - view ≠ approve. Financially consequential actions need explicit
 //     approval capabilities.
 //   - Super Administrator-exclusive capabilities (system.*) require
-//     Exception Authentication via the existing SUPER_ADMIN_EXCEPTION_SECRET.
+//     Exception Authentication via the existing exception-authentication secret.
 //   - Frontend checks are a first line of defense, NOT a replacement for
 //     server-side enforcement. Protected operations fail closed when
 //     backend enforcement is unavailable.
@@ -80,10 +80,10 @@ export const CAPABILITY_REGISTRY = {
   'investment.escalate':           { domain: 'investment', category: 'Investment',  label: 'Escalate compliance/security issues to Management' },
 
   // ---- Administrator Management ----
-  'admin.users.view':         { domain: 'system', category: 'Admin Users', label: 'View administrator accounts' },
+  'admin.users.view':         { domain: 'system', category: 'Admin Users', label: 'View administrator accounts', superAdminExclusive: true },
   'admin.users.create':       { domain: 'system', category: 'Admin Users', label: 'Create administrator accounts', superAdminExclusive: true },
   'admin.users.deactivate':   { domain: 'system', category: 'Admin Users', label: 'Deactivate administrator accounts', superAdminExclusive: true },
-  'admin.permissions.view':   { domain: 'system', category: 'Admin Users', label: 'View administrator permissions' },
+  'admin.permissions.view':   { domain: 'system', category: 'Admin Users', label: 'View administrator permissions', superAdminExclusive: true },
   'admin.permissions.modify': { domain: 'system', category: 'Admin Users', label: 'Modify administrator capabilities', superAdminExclusive: true },
 
   // ---- System (Super Administrator-exclusive — require Exception Authentication) ----
@@ -136,7 +136,6 @@ const ROLE_CAPABILITIES = {
     'management.operations.correct', 'management.operations.withdrawals.approve', 'management.operations.adjustments.manage',
     'management.kyc.view', 'management.kyc.review', 'management.kyc.approve', 'management.kyc.escalate',
     'management.compliance.view', 'management.compliance.manage', 'management.compliance.escalate',
-    'admin.users.view', 'admin.permissions.view',
   ],
   administrator: [
     'management.customers.view', 'management.customers.manage', 'management.customers.escalate',
@@ -144,7 +143,6 @@ const ROLE_CAPABILITIES = {
     'management.operations.correct', 'management.operations.withdrawals.approve', 'management.operations.adjustments.manage',
     'management.kyc.view', 'management.kyc.review', 'management.kyc.approve', 'management.kyc.escalate',
     'management.compliance.view', 'management.compliance.manage', 'management.compliance.escalate',
-    'admin.users.view', 'admin.permissions.view',
   ],
   executive: [
     'management.customers.view', 'management.customers.manage', 'management.customers.escalate',
@@ -152,7 +150,6 @@ const ROLE_CAPABILITIES = {
     'management.operations.correct', 'management.operations.withdrawals.approve', 'management.operations.adjustments.manage',
     'management.kyc.view', 'management.kyc.review', 'management.kyc.approve', 'management.kyc.escalate',
     'management.compliance.view', 'management.compliance.manage', 'management.compliance.escalate',
-    'admin.users.view', 'admin.permissions.view',
   ],
   operations_manager: [
     'management.customers.view', 'management.customers.manage',
@@ -179,7 +176,6 @@ const ROLE_CAPABILITIES = {
     'management.kyc.view', 'management.kyc.review', 'management.kyc.approve', 'management.kyc.escalate',
   ],
   auditor: [
-    'admin.users.view', 'admin.permissions.view',
     'management.operations.view', 'management.operations.review',
     'management.kyc.view', 'management.kyc.review',
     'management.compliance.view',
