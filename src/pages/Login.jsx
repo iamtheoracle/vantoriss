@@ -43,7 +43,18 @@ export default function Login() {
       await base44.auth.loginViaEmailPassword(userId, password);
       window.location.href = "/";
     } catch (err) {
-      setError(err.message || "Invalid User ID or password.");
+      const status = err?.response?.status || err?.status;
+      if (status === 404) {
+        setError("Sign-in is temporarily unavailable. Please refresh the page and try again.");
+      } else if (status === 400 || status === 401) {
+        setError("Your User ID or password is incorrect.");
+      } else if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        setError("Unable to connect. Please check your internet connection and try again.");
+      } else if (err?.message?.includes('Network') || err?.code === 'ERR_NETWORK') {
+        setError("Unable to reach the server right now. Please try again in a moment.");
+      } else {
+        setError(err.message || "Invalid User ID or password.");
+      }
     } finally {
       setLoading(false);
     }
