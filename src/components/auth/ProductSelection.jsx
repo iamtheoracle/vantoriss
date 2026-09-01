@@ -3,12 +3,12 @@ import { motion } from "framer-motion";
 import { User, Users, Building2, Landmark, KeyRound, Wallet, Check, ArrowLeft } from "lucide-react";
 
 export const PRODUCTS = [
-  { id: "personal", label: "Personal", accountType: "Personal", icon: User, desc: "Individual account for personal banking and transactions" },
+  { id: "personal", label: "Personal", accountType: "Checking", icon: User, desc: "Individual account for personal banking and transactions" },
   { id: "joint", label: "Joint", accountType: "Joint", icon: Users, desc: "Shared account access for partners or family" },
   { id: "business", label: "Business", accountType: "Business", icon: Building2, desc: "Operating accounts and treasury services" },
-  { id: "organization", label: "Organization", accountType: "Organization", icon: Landmark, desc: "Fund or organization accounts" },
-  { id: "institutional", label: "Institutional", accountType: "Organization", icon: Landmark, desc: "Custodial and administrative services" },
-  { id: "private", label: "Private Banking", accountType: "Personal", icon: KeyRound, desc: "Dedicated relationship management and bespoke services" },
+  { id: "organization", label: "Organization", accountType: "Business", icon: Landmark, desc: "Fund or organization accounts" },
+  { id: "institutional", label: "Institutional", accountType: "Business", icon: Landmark, desc: "Custodial and administrative services" },
+  { id: "private", label: "Private Banking", accountType: "Checking", icon: KeyRound, desc: "Dedicated relationship management and bespoke services" },
 ];
 
 export default function ProductSelection({ selected, onSelect, onBack }) {

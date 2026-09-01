@@ -5,7 +5,7 @@ export default function AuthLayout({ title, subtitle, footer, children, bare = f
   return (
     <div className="min-h-screen flex flex-col bg-background vantoris-mesh-bg">
       <div className="h-1 bg-gradient-to-r from-navy via-gold to-navy" />
-      <div className="flex-1 flex items-center justify-center px-6 py-12 safe-top safe-bottom">
+      <div className="flex-1 flex items-start sm:items-center justify-center px-6 py-12 safe-top safe-bottom overflow-y-auto">
         <div className="w-full max-w-md">
           <div className="text-center mb-8 animate-fade-up">
             <ShieldLogo size={48} className="mx-auto mb-4" />

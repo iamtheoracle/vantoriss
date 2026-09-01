@@ -40,17 +40,49 @@ export default function Accounts() {
     setEnquiryError('');
     setEnquiryLoading(true);
     try {
-      const result = await base44.functions.invoke('submitApplication', {
-        account_type: enquiryProductType,
-        reason: enquiryReason,
-      });
-      if (result?.error) {
-        setEnquiryError(result.error);
-      } else {
-        setEnquiryResult(result);
+      const me = await base44.auth.me();
+
+      // Check if user already holds this account type
+      if (heldTypes.includes(enquiryProductType)) {
+        setEnquiryError('You already have an approved account of this type.');
+        return;
       }
+
+      // Check for existing open enquiry (idempotency)
+      const existing = await base44.entities.AccountEnquiry.filter({
+        created_by_id: me.id,
+        requested_product_type: enquiryProductType,
+      });
+      const openEnquiry = existing.find((en) => en.status === 'pending' || en.status === 'in_review');
+
+      if (openEnquiry) {
+        setEnquiryResult({ outcome: 'enquiry_exists', enquiry: openEnquiry });
+        return;
+      }
+
+      const enquiry = await base44.entities.AccountEnquiry.create({
+        requested_product_type: enquiryProductType,
+        reason: enquiryReason || '',
+        status: 'pending',
+      });
+
+      try {
+        await base44.entities.Notification.create({
+          user_id: me.id,
+          title: 'Enquiry Submitted',
+          message: `Your enquiry for a ${enquiryProductType} account has been received and is under review.`,
+          type: 'info',
+        });
+      } catch (e) { /* non-critical */ }
+
+      setEnquiryResult({ outcome: 'enquiry_created', enquiry });
     } catch (err) {
-      setEnquiryError(err.message || 'Failed to submit enquiry.');
+      const msg = err?.message || '';
+      if (msg.includes('402') || err?.status === 402) {
+        setEnquiryError('A service dependency is temporarily unavailable. Please try again.');
+      } else {
+        setEnquiryError(msg || 'Failed to submit enquiry.');
+      }
     } finally {
       setEnquiryLoading(false);
     }

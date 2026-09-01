@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import AuthLayout from "@/components/AuthLayout";
@@ -41,6 +41,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [status, setStatus] = useState(null);
+  const submittingRef = useRef(false);
 
   const updateData = useCallback((updates) => setData((prev) => ({ ...prev, ...updates })), []);
 
@@ -167,69 +168,196 @@ export default function Register() {
     }
   }
 
+  async function createComplianceNotifications(userId, accountType) {
+    const notifications = [
+      {
+        user_id: userId,
+        title: "Identity Verification Required",
+        message: `To activate your ${accountType} account, complete identity verification. Required: Government-issued photo ID, SSN or ITIN, proof of address, and selfie verification.`,
+        type: "action",
+      },
+    ];
+    if (accountType === "Joint") {
+      notifications.push({
+        user_id: userId,
+        title: "Co-Applicant Verification Required",
+        message: "Your Joint account requires co-applicant identity verification. Both account holders must complete KYC before activation.",
+        type: "action",
+      });
+    }
+    if (accountType === "Business") {
+      notifications.push({
+        user_id: userId,
+        title: "Business Verification Required",
+        message: "Your Business account requires enhanced verification: EIN, business formation documents, beneficial ownership disclosure, and authorized signer identification.",
+        type: "action",
+      });
+    }
+    notifications.push({
+      user_id: userId,
+      title: "Opening Deposit Required",
+      message: `An opening deposit is required to activate your ${accountType} account. Visit the Opening Deposit section to submit your payment.`,
+      type: "info",
+    });
+    for (const n of notifications) {
+      try { await base44.entities.Notification.create(n); } catch (e) { console.error("Notification failed:", e); }
+    }
+  }
+
   async function handleSubmitApplication() {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setLoading(true);
     setError("");
     try {
       const me = await base44.auth.me();
-      const fullName = [data.firstName, data.middleName, data.lastName, data.suffix].filter(Boolean).join(" ");
-      const fullAddress = [data.street, data.apt, data.city, `${data.state} ${data.zip}`, data.country].filter(Boolean).join(", ");
-
-      const docUrls = [];
-      for (const file of [data.govId, data.selfie]) {
-        if (file) {
-          const { file_url } = await base44.integrations.Core.UploadFile({ file });
-          docUrls.push(file_url);
-        }
+      if (!me?.id) {
+        setError("Your session has expired. Please sign in again.");
+        return;
       }
-
-      const result = await base44.functions.invoke('submitApplication', {
-        user_id: me.id,
-        full_name: fullName,
-        email: data.email,
-        phone: data.phone,
-        address: fullAddress,
-        business_name: ["Business", "Institutional", "Organization"].includes(selectedProduct?.label) ? data.employer || "" : "",
-        account_type: selectedProduct.accountType,
-        kyc_status: "not_started",
-        kyc_documents: docUrls,
-        kyc_notes: JSON.stringify({
-          product: selectedProduct.label,
-          dob: data.dob,
-          ssn: data.ssn,
-          employment: data.employment,
-          employer: data.employer,
-          occupation: data.occupation,
-          annualIncome: data.annualIncome,
-          sourceOfFunds: data.sourceOfFunds,
-          securityPin: data.securityPin ? "set" : "",
-          faceId: data.faceId,
-        }),
-      });
-
-      if (result?.error) {
-        setError(result.error);
+      if (!selectedProduct?.accountType) {
+        setError("Please select an account type before submitting.");
         return;
       }
 
-      if (result.outcome === 'application_created') {
-        await base44.entities.Notification.create({
-          user_id: me.id,
-          title: "Application Received",
-          message: `Your ${selectedProduct.label} application has been received and is under review. You will be notified once a determination has been made.`,
-          type: "info",
-        });
+      const fullName = [data.firstName, data.middleName, data.lastName, data.suffix].filter(Boolean).join(" ");
+      const fullAddress = [data.street, data.apt, data.city, `${data.state} ${data.zip}`, data.country].filter(Boolean).join(", ");
+      const accountType = selectedProduct.accountType;
+
+      // Upload KYC documents
+      const docUrls = [];
+      for (const file of [data.govId, data.selfie]) {
+        if (file) {
+          try {
+            const { file_url } = await base44.integrations.Core.UploadFile({ file });
+            docUrls.push(file_url);
+          } catch (uploadErr) {
+            setError("Failed to upload your documents. Please check your connection and try again.");
+            return;
+          }
+        }
       }
 
+      // Check for existing approved applications
+      const approvedApps = await base44.entities.Application.filter({
+        user_id: me.id,
+        application_status: "approved",
+      });
+      const heldTypes = approvedApps.map((a) => a.account_type);
+
+      // Already holds this type
+      if (heldTypes.includes(accountType)) {
+        setError("You already have an approved account of this type.");
+        return;
+      }
+
+      // No approved apps — create Application (with idempotency)
+      if (heldTypes.length === 0) {
+        const existingPending = await base44.entities.Application.filter({
+          user_id: me.id,
+          account_type: accountType,
+          application_status: "pending",
+        });
+
+        let application;
+        if (existingPending.length > 0) {
+          application = existingPending[0];
+        } else {
+          application = await base44.entities.Application.create({
+            user_id: me.id,
+            full_name: fullName,
+            email: data.email,
+            phone: data.phone,
+            address: fullAddress,
+            business_name: ["Business", "Institutional", "Organization"].includes(selectedProduct.label) ? data.employer || "" : "",
+            account_type: accountType,
+            kyc_status: "not_started",
+            kyc_documents: docUrls,
+            kyc_notes: JSON.stringify({
+              product: selectedProduct.label,
+              dob: data.dob,
+              ssn: data.ssn,
+              employment: data.employment,
+              employer: data.employer,
+              occupation: data.occupation,
+              annualIncome: data.annualIncome,
+              sourceOfFunds: data.sourceOfFunds,
+              securityPin: data.securityPin ? "set" : "",
+              faceId: data.faceId,
+            }),
+            application_status: "pending",
+          });
+
+          await createComplianceNotifications(me.id, accountType);
+        }
+
+        try {
+          await base44.entities.Notification.create({
+            user_id: me.id,
+            title: "Application Received",
+            message: `Your ${selectedProduct.label} application has been received and is under review. You will be notified once a determination has been made.`,
+            type: "info",
+          });
+        } catch (e) { /* non-critical */ }
+
+        setStatus({
+          type: "review",
+          reference: `VAN-${application.id.slice(-8).toUpperCase()}`,
+        });
+        setPhase("status");
+        return;
+      }
+
+      // Holds other type(s) — create AccountEnquiry
+      const existingEnquiries = await base44.entities.AccountEnquiry.filter({
+        created_by_id: me.id,
+        requested_product_type: accountType,
+      });
+      const openEnquiry = existingEnquiries.find((e) => e.status === "pending" || e.status === "in_review");
+
+      if (openEnquiry) {
+        setStatus({
+          type: "enquiry",
+          reference: `VAN-${openEnquiry.id.slice(-8).toUpperCase()}`,
+        });
+        setPhase("status");
+        return;
+      }
+
+      const enquiry = await base44.entities.AccountEnquiry.create({
+        requested_product_type: accountType,
+        reason: "",
+        status: "pending",
+      });
+
+      try {
+        await base44.entities.Notification.create({
+          user_id: me.id,
+          title: "Enquiry Submitted",
+          message: `Your enquiry for a ${accountType} account has been received and is under review.`,
+          type: "info",
+        });
+      } catch (e) { /* non-critical */ }
+
       setStatus({
-        type: result.outcome === 'enquiry_created' ? "enquiry" : "review",
-        reference: `VAN-${me.id.slice(-8).toUpperCase()}`,
+        type: "enquiry",
+        reference: `VAN-${enquiry.id.slice(-8).toUpperCase()}`,
       });
       setPhase("status");
     } catch (err) {
-      setError(err.message || "Failed to submit application. Please try again.");
+      const msg = err?.message || "";
+      if (msg.includes("402") || err?.status === 402) {
+        setError("A service dependency is temporarily unavailable. Please try again in a moment.");
+      } else if (msg.includes("401") || err?.status === 401) {
+        setError("Your session has expired. Please sign in again.");
+      } else if (msg.includes("409")) {
+        setError("You already have an application of this type.");
+      } else {
+        setError(msg || "Failed to submit application. Please try again.");
+      }
     } finally {
       setLoading(false);
+      submittingRef.current = false;
     }
   }
 
