@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
 import { Search, Loader2, RefreshCw, Globe, AlertTriangle, CheckCircle, Clock, ExternalLink, Activity, Database, ShieldAlert } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatCurrency';
-import { executeDiscoveryRun, checkFreshness, refreshProductCatalog, verifyDiscoveryRecord } from '@/lib/discoveryEngine';
+import { executeDiscoveryRun, checkFreshness, refreshProductCatalog, verifyDiscoveryRecord, refreshStaleRecords, detectProductChanges } from '@/lib/discoveryEngine';
 import { useToast } from '@/components/ui/use-toast';
 
 const DISCOVERY_DOMAINS = [
@@ -22,6 +22,7 @@ export default function DiscoveryNetwork() {
   const [runs, setRuns] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [sources, setSources] = useState([]);
+  const [changes, setChanges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeDomain, setActiveDomain] = useState(null);
   const [running, setRunning] = useState(false);
@@ -29,16 +30,18 @@ export default function DiscoveryNetwork() {
 
   const loadData = useCallback(async () => {
     try {
-      const [recs, recentRuns, openAlerts, srcs] = await Promise.all([
+      const [recs, recentRuns, openAlerts, srcs, recentChanges] = await Promise.all([
         base44.entities.DiscoveryRecord.filter({ status: 'active' }, '-discovered_date', 50).catch(() => []),
         base44.entities.DiscoveryRun.filter({}, '-started_at', 10).catch(() => []),
         base44.entities.DiscoveryAlert.filter({ status: 'open' }, '-created_date', 10).catch(() => []),
         base44.entities.DiscoverySource.filter({}, '-last_checked', 20).catch(() => []),
+        base44.entities.DiscoveryChange.filter({ requires_review: true }, '-detected_at', 10).catch(() => []),
       ]);
       setRecords(recs);
       setRuns(recentRuns);
       setAlerts(openAlerts);
       setSources(srcs);
+      setChanges(recentChanges);
     } catch (err) {
       // non-critical
     } finally {
@@ -108,6 +111,39 @@ export default function DiscoveryNetwork() {
     }
   }
 
+  async function handleStaleRefresh() {
+    setRunning(true);
+    toast({ title: 'Refreshing stale records...', description: 'Re-verifying stale discovery records.' });
+    try {
+      const result = await refreshStaleRecords();
+      toast({
+        title: 'Stale refresh complete',
+        description: `${result.refreshed} refreshed, ${result.stillStale} still stale, ${result.unavailable} unavailable.`,
+      });
+      loadData();
+    } catch (err) {
+      toast({ title: 'Refresh failed', description: err.message, variant: 'destructive' });
+    } finally {
+      setRunning(false);
+    }
+  }
+
+  async function handleProductChangeDetection() {
+    setRunning(true);
+    try {
+      const result = await detectProductChanges();
+      toast({
+        title: 'Product change detection complete',
+        description: `${result.changesDetected} changes detected across ${result.totalProducts} products.`,
+      });
+      loadData();
+    } catch (err) {
+      toast({ title: 'Detection failed', description: err.message, variant: 'destructive' });
+    } finally {
+      setRunning(false);
+    }
+  }
+
   const filteredRecords = activeDomain ? records.filter((r) => r.discovery_domain === activeDomain) : records;
 
   if (loading) {
@@ -124,13 +160,22 @@ export default function DiscoveryNetwork() {
       description="Autonomous research, discovery, verification, and monitoring"
       icon={Search}
       actions={
-        <button
-          onClick={handleFreshnessCheck}
-          disabled={running}
-          className="px-3 py-2 rounded-lg bg-navy/10 text-navy text-xs font-semibold flex items-center gap-1.5 disabled:opacity-50"
-        >
-          <RefreshCw size={14} className={running ? 'animate-spin' : ''} /> Check Freshness
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={handleStaleRefresh}
+            disabled={running}
+            className="px-3 py-2 rounded-lg bg-champagne/10 text-champagne text-xs font-semibold flex items-center gap-1.5 disabled:opacity-50"
+          >
+            <RefreshCw size={14} className={running ? 'animate-spin' : ''} /> Refresh Stale
+          </button>
+          <button
+            onClick={handleFreshnessCheck}
+            disabled={running}
+            className="px-3 py-2 rounded-lg bg-navy/10 text-navy text-xs font-semibold flex items-center gap-1.5 disabled:opacity-50"
+          >
+            <RefreshCw size={14} className={running ? 'animate-spin' : ''} /> Check Freshness
+          </button>
+        </div>
       }
     >
       {/* Discovery Domain Cards */}
@@ -167,6 +212,42 @@ export default function DiscoveryNetwork() {
                   <p className="text-xs font-medium text-foreground">{alert.description}</p>
                   <p className="text-[10px] text-gray mt-0.5 capitalize">{alert.alert_type.replace(/_/g, ' ')} · {alert.severity}</p>
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Change Detection */}
+      {changes.length > 0 && (
+        <div className="mb-6">
+          <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
+            <Activity size={16} className="text-champagne" /> Changes Requiring Review ({changes.length})
+          </h3>
+          <div className="space-y-2">
+            {changes.slice(0, 5).map((change) => (
+              <div key={change.id} className="vantoris-glass-flat p-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-medium text-foreground">{change.change_summary}</p>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-champagne/10 text-champagne font-medium capitalize">
+                    {change.change_type.replace(/_/g, ' ')}
+                  </span>
+                </div>
+                {change.previous_value && change.new_value && (
+                  <div className="mt-1.5 grid grid-cols-2 gap-2 text-[10px]">
+                    <div className="bg-crimson/5 p-1.5 rounded">
+                      <p className="text-gray font-medium mb-0.5">Previous:</p>
+                      <p className="text-gray break-all">{change.previous_value}</p>
+                    </div>
+                    <div className="bg-mint/5 p-1.5 rounded">
+                      <p className="text-gray font-medium mb-0.5">New:</p>
+                      <p className="text-gray break-all">{change.new_value}</p>
+                    </div>
+                  </div>
+                )}
+                <p className="text-[10px] text-gray mt-1">
+                  {change.detected_at ? new Date(change.detected_at).toLocaleString() : ''}
+                </p>
               </div>
             ))}
           </div>
@@ -286,6 +367,19 @@ export default function DiscoveryNetwork() {
                       {record.freshness_status}
                     </span>
                     <span className="text-[10px] text-gray">Confidence: {record.confidence_level}</span>
+                    {record.metadata && (() => {
+                      let meta = {};
+                      try { meta = JSON.parse(record.metadata || '{}'); } catch (e) {}
+                      return meta._reliability_tier ? (
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                          meta._reliability_tier === 'high' ? 'bg-mint/10 text-mint' :
+                          meta._reliability_tier === 'medium' ? 'bg-champagne/10 text-champagne' :
+                          'bg-crimson/10 text-crimson'
+                        }`}>
+                          Reliability: {meta._reliability_tier} ({meta._reliability_score})
+                        </span>
+                      ) : null;
+                    })()}
                   </div>
                 </div>
                 <div className="flex flex-col gap-1 items-end">

@@ -245,3 +245,142 @@ export function createOrderSnapshot(cartItems, packageData = null) {
   }
   return snapshot;
 }
+
+/**
+ * Regenerate a package when one or more of its products becomes unavailable.
+ * Intelligently replaces unavailable products with currently verified eligible
+ * alternatives from the same category where possible.
+ *
+ * @param {Object} pkgDef - Package definition from HEROBOX_PACKAGES
+ * @param {Array} currentItems - Current package items (may contain unavailable products)
+ * @param {Array} allProducts - Full current product catalog
+ * @param {Object} options - { destination, budget }
+ * @returns {Object} - { items, replacedCount, replacements, available }
+ */
+export function regeneratePackageWithReplacement(pkgDef, currentItems, allProducts, options = {}) {
+  const { destination, budget } = options;
+
+  // Identify which current items are still available
+  const stillAvailable = [];
+  const unavailableItems = [];
+
+  for (const item of currentItems) {
+    const product = allProducts.find((p) => p.id === item.product_id);
+    if (!product || product.availability !== 'available' || product.freshness_status === 'stale' || product.freshness_status === 'expired' || product.status !== 'active') {
+      unavailableItems.push(item);
+    } else {
+      stillAvailable.push(item);
+    }
+  }
+
+  if (unavailableItems.length === 0) {
+    // No replacements needed
+    return {
+      items: currentItems,
+      replacedCount: 0,
+      replacements: [],
+      available: currentItems.length >= pkgDef.minItems,
+    };
+  }
+
+  // Find replacement products for each unavailable item
+  const replacements = [];
+  const usedProductIds = new Set(stillAvailable.map((i) => i.product_id));
+
+  for (const unavailable of unavailableItems) {
+    // Find a replacement in the same category, available, not already used
+    let replacement = allProducts.find((p) =>
+      p.category === unavailable.category &&
+      p.status === 'active' &&
+      p.availability === 'available' &&
+      p.freshness_status !== 'stale' &&
+      p.freshness_status !== 'expired' &&
+      !usedProductIds.has(p.id) &&
+      (!destination || !p.destination || p.destination === '' || p.destination === destination)
+    );
+
+    // If no same-category replacement, find any eligible product in package categories
+    if (!replacement) {
+      replacement = allProducts.find((p) =>
+        pkgDef.categories.includes(p.category) &&
+        p.status === 'active' &&
+        p.availability === 'available' &&
+        p.freshness_status !== 'stale' &&
+        p.freshness_status !== 'expired' &&
+        !usedProductIds.has(p.id) &&
+        (!destination || !p.destination || p.destination === '' || p.destination === destination)
+      );
+    }
+
+    if (replacement) {
+      const unitPrice = replacement.discount > 0
+        ? replacement.price * (1 - replacement.discount / 100)
+        : replacement.price;
+
+      replacements.push({
+        replaced: unavailable.name,
+        replacement: replacement.name,
+        product_id: replacement.id,
+        name: replacement.name,
+        category: replacement.category,
+        price: unitPrice,
+        original_price: replacement.price,
+        discount: replacement.discount || 0,
+        quantity: 1,
+        source: replacement.source || '',
+        freshness_status: replacement.freshness_status || 'current',
+      });
+      usedProductIds.add(replacement.id);
+    }
+  }
+
+  // Combine still-available items with replacements
+  const newItems = [...stillAvailable, ...replacements];
+
+  // Recalculate subtotal
+  const subtotal = newItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+  // Check budget
+  if (budget && subtotal > budget) {
+    // Trim items to fit budget (keep lowest-price items)
+    newItems.sort((a, b) => (a.price || 0) - (b.price || 0));
+    while (newItems.length > 0 && newItems.reduce((s, i) => s + i.price, 0) > budget) {
+      newItems.pop();
+    }
+  }
+
+  return {
+    items: newItems,
+    replacedCount: replacements.length,
+    replacements: replacements.map((r) => ({ replaced: r.replaced, replacement: r.replacement })),
+    subtotal,
+    available: newItems.length >= pkgDef.minItems,
+  };
+}
+
+/**
+ * Mark products as stale based on their retrieval time.
+ * Stale products are suppressed from package generation.
+ *
+ * @param {Array} products - HeroBoxProduct records
+ * @param {number} maxAgeHours - Maximum age before stale (default 72)
+ * @returns {Array} - Products with updated freshness_status
+ */
+export function markStaleProducts(products, maxAgeHours = 72) {
+  return products.map((product) => {
+    const freshness = computeFreshnessStatus(product.retrieved_at, maxAgeHours);
+    return { ...product, freshness_status: freshness };
+  });
+}
+
+/**
+ * Get only products that are currently available and fresh for package building.
+ */
+export function getAvailableProducts(products) {
+  return products.filter(
+    (p) => p.status === 'active' &&
+    p.availability === 'available' &&
+    p.freshness_status !== 'stale' &&
+    p.freshness_status !== 'expired'
+  );
+}

@@ -31,18 +31,40 @@ export default function DonationFlow({ onClose, onOrderComplete }) {
   const loadCases = useCallback(async () => {
     setLoading(true);
     try {
-      // Only show verified/approved humanitarian cases
-      const verified = await base44.entities.HumanitarianCase.filter({
-        case_status: 'open',
+      // Only show donor-visible cases (approved/active) — never discovered/unverified
+      const allCases = await base44.entities.HumanitarianCase.filter({
         review_status: 'approved',
-      }).catch(() => []);
-      setCases(verified);
+      }, '-date_discovered', 30).catch(() => []);
+
+      // Filter to donor-visible pipeline states only
+      const donorVisible = allCases.filter((c) =>
+        ['approved', 'active', 'matched'].includes(c.case_status)
+      );
+
+      // Further filter by selected donation category if applicable
+      let filtered = donorVisible;
+      if (category) {
+        const categoryMap = {
+          food: ['food', 'essential_supplies'],
+          children: ['children_support'],
+          medical: ['surgery_medical'],
+          military: ['military_support'],
+          shelter: ['shelter'],
+          general: [],
+        };
+        const matchingCategories = categoryMap[category.id] || [];
+        if (matchingCategories.length > 0) {
+          filtered = donorVisible.filter((c) => matchingCategories.includes(c.category));
+        }
+      }
+
+      setCases(filtered);
     } catch (err) {
       // Truthful empty state — do NOT fabricate cases
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [category]);
 
   useEffect(() => {
     if (step === 2) loadCases();

@@ -18,6 +18,14 @@
  */
 
 import { base44 } from '@/api/base44Client';
+import {
+  findDuplicate,
+  consolidateDuplicate,
+  assessSourceReliability,
+  flagRisks,
+  transitionCaseState,
+  transitionOrgState,
+} from './discoveryPipeline';
 
 /**
  * The 8 discovery domains of the Vantoris Discovery & Intelligence Network.
@@ -92,14 +100,55 @@ export async function executeDiscoveryRun(domain, options = {}) {
     const items = llmResponse?.items || [];
     let discovered = 0;
     let updated = 0;
+    let consolidated = 0;
     const errors = [];
+
+    // Fetch existing records in this domain for deduplication
+    const existingRecords = await base44.entities.DiscoveryRecord.filter({
+      discovery_domain: domain,
+      status: 'active',
+    }, '-discovered_date', 100).catch(() => []);
 
     for (const item of items.slice(0, maxResults)) {
       try {
-        // Check for existing record by source_url
-        const existing = await base44.entities.DiscoveryRecord.filter({
-          source_url: item.source_url,
-        }).catch(() => []);
+        // === DEDUPLICATION ===
+        // Check if this item is a duplicate of an existing record
+        const dupCheck = findDuplicate(item, existingRecords);
+        if (dupCheck.isDuplicate && dupCheck.matchType === 'url') {
+          // Exact URL match — just update last_checked
+          await base44.entities.DiscoveryRecord.update(dupCheck.duplicateRecord.id, {
+            last_checked: new Date().toISOString(),
+            freshness_status: 'current',
+          }).catch(() => {});
+          updated++;
+          continue;
+        }
+        if (dupCheck.isDuplicate && dupCheck.matchType === 'title') {
+          // Title similarity match — consolidate by adding corroborating source
+          await consolidateDuplicate(dupCheck.duplicateRecord, item, 'DiscoveryRecord');
+          consolidated++;
+
+          // Log consolidation as a change
+          await base44.entities.DiscoveryChange.create({
+            discovery_record_id: dupCheck.duplicateRecord.id,
+            change_type: 'updated',
+            change_summary: `Consolidated duplicate source: ${item.source_name || item.source_url}`,
+            detected_at: new Date().toISOString(),
+            requires_review: false,
+          }).catch(() => {});
+          continue;
+        }
+
+        // === SOURCE RELIABILITY ASSESSMENT ===
+        const reliability = assessSourceReliability({
+          source_type: getSourceTypeForDomain(domain),
+          verification_status: item.verification_status || 'unverified',
+          corroborating_count: (item.corroborating_sources || []).length,
+          conflicting_count: 0,
+        });
+
+        // === RISK FLAGGING ===
+        const riskFlags = flagRisks(item, { result: item.verification_status });
 
         const recordData = {
           discovery_domain: domain,
@@ -121,34 +170,21 @@ export async function executeDiscoveryRun(domain, options = {}) {
           responsible_division: getDivisionForDomain(domain),
           next_recheck: computeNextRecheck(24),
           external_reference: item.external_reference || '',
-          metadata: JSON.stringify(item.domain_metadata || {}),
+          metadata: JSON.stringify({
+            ...(item.domain_metadata || {}),
+            _reliability_score: reliability.score,
+            _reliability_tier: reliability.tier,
+            _risk_flags: riskFlags,
+          }),
           status: 'active',
         };
 
-        if (existing && existing.length > 0) {
-          // Update existing record
-          await base44.entities.DiscoveryRecord.update(existing[0].id, {
-            ...recordData,
-            discovered_date: existing[0].discovered_date,
-          });
-          updated++;
+        // Create new record
+        const created = await base44.entities.DiscoveryRecord.create(recordData);
+        discovered++;
 
-          // Log change
-          await base44.entities.DiscoveryChange.create({
-            discovery_record_id: existing[0].id,
-            change_type: 'updated',
-            change_summary: `Refreshed during ${domain} discovery run`,
-            detected_at: new Date().toISOString(),
-            requires_review: false,
-          }).catch(() => {});
-        } else {
-          // Create new record
-          const created = await base44.entities.DiscoveryRecord.create(recordData);
-          discovered++;
-
-          // Route to domain-specific entity
-          await routeToDomainEntity(domain, created, item);
-        }
+        // Route to domain-specific entity with pipeline state
+        await routeToDomainEntity(domain, created, item, { reliability, riskFlags });
       } catch (err) {
         errors.push(err.message);
       }
@@ -161,13 +197,13 @@ export async function executeDiscoveryRun(domain, options = {}) {
         completed_at: new Date().toISOString(),
         sources_checked: items.length,
         records_discovered: discovered,
-        records_updated: updated,
+        records_updated: updated + consolidated,
         errors: JSON.stringify(errors),
-        summary: `Discovered ${discovered} new records, updated ${updated} existing records.`,
+        summary: `Discovered ${discovered} new records, updated ${updated} existing, consolidated ${consolidated} duplicates.`,
       }).catch(() => {});
     }
 
-    return { runId: run?.id, recordsDiscovered: discovered, recordsUpdated: updated, errors };
+    return { runId: run?.id, recordsDiscovered: discovered, recordsUpdated: updated, recordsConsolidated: consolidated, errors };
   } catch (err) {
     // Mark run as failed
     if (run) {
@@ -194,13 +230,28 @@ export async function executeDiscoveryRun(domain, options = {}) {
 
 /**
  * Route a discovered record to the appropriate domain-specific entity.
+ * All new cases start at 'discovered' state and must pass through the
+ * verification pipeline before becoming donor-visible.
  */
-async function routeToDomainEntity(domain, discoveryRecord, item) {
+async function routeToDomainEntity(domain, discoveryRecord, item, context = {}) {
   const metadata = item.domain_metadata || {};
+  const { reliability, riskFlags } = context;
 
   switch (domain) {
     case 'humanitarian':
       if (metadata.recipient_type && metadata.category) {
+        // Check for duplicate humanitarian case before creating
+        const existingCases = await base44.entities.HumanitarianCase.filter({
+          case_status: { $in: ['discovered', 'verification_pending', 'review_pending', 'approved', 'active'] },
+        }, '-date_discovered', 100).catch(() => []);
+
+        const caseDup = findDuplicate(item, existingCases);
+        if (caseDup.isDuplicate) {
+          // Consolidate — add source to existing case
+          await consolidateDuplicate(caseDup.duplicateRecord, item, 'HumanitarianCase');
+          break;
+        }
+
         await base44.entities.HumanitarianCase.create({
           case_title: item.title,
           recipient_type: metadata.recipient_type,
@@ -217,11 +268,12 @@ async function routeToDomainEntity(domain, discoveryRecord, item) {
           verification_status: item.verification_status || 'unverified',
           confidence_level: item.confidence_level || 'low',
           date_discovered: new Date().toISOString(),
-          case_status: 'open',
+          // Pipeline state — starts at 'discovered', NOT donor-visible
+          case_status: 'discovered',
           review_status: 'pending',
           expiration_recheck_date: computeNextRecheck(72),
           assigned_division: 'humanitarian',
-          risk_flags: JSON.stringify(metadata.risk_flags || []),
+          risk_flags: JSON.stringify([...(metadata.risk_flags || []), ...(riskFlags || [])]),
         }).catch(() => {});
       }
       break;
@@ -298,6 +350,20 @@ async function routeToDomainEntity(domain, discoveryRecord, item) {
 
     case 'organization':
       if (metadata.organization_type) {
+        // Check for duplicate organization before creating
+        const existingOrgs = await base44.entities.OrganizationProfile.filter({
+          status: { $in: ['discovered', 'verification_pending', 'verified', 'approved', 'active'] },
+        }, '-date_discovered', 100).catch(() => []);
+
+        const orgDup = findDuplicate(
+          { title: metadata.organization_name || item.title, source_url: item.source_url },
+          existingOrgs
+        );
+        if (orgDup.isDuplicate) {
+          await consolidateDuplicate(orgDup.duplicateRecord, item, 'OrganizationProfile');
+          break;
+        }
+
         await base44.entities.OrganizationProfile.create({
           name: metadata.organization_name || item.title,
           organization_type: metadata.organization_type,
@@ -310,9 +376,10 @@ async function routeToDomainEntity(domain, discoveryRecord, item) {
           source_name: item.source_name,
           discovery_record_id: discoveryRecord.id,
           date_discovered: new Date().toISOString(),
-          status: 'unverified',
+          // Pipeline state — starts at 'discovered', NOT donor-visible
+          status: 'discovered',
           responsible_division: 'humanitarian',
-          risk_flags: JSON.stringify(metadata.risk_flags || []),
+          risk_flags: JSON.stringify([...(metadata.risk_flags || []), ...(riskFlags || [])]),
         }).catch(() => {});
       }
       break;
@@ -345,11 +412,29 @@ export async function checkFreshness() {
     for (const record of records) {
       const nextRecheck = record.next_recheck ? new Date(record.next_recheck).getTime() : 0;
       if (nextRecheck > 0 && nextRecheck < now) {
+        // Record previous state for change detection
+        const previousState = {
+          freshness_status: record.freshness_status,
+          verification_status: record.verification_status,
+          confidence_level: record.confidence_level,
+        };
+
         // Mark as stale
         await base44.entities.DiscoveryRecord.update(record.id, {
           freshness_status: 'stale',
         }).catch(() => {});
         staleCount++;
+
+        // Record change with previous/new values
+        await base44.entities.DiscoveryChange.create({
+          discovery_record_id: record.id,
+          change_type: 'status_changed',
+          previous_value: JSON.stringify(previousState),
+          new_value: JSON.stringify({ freshness_status: 'stale' }),
+          change_summary: `Record marked stale — exceeded freshness window`,
+          detected_at: new Date().toISOString(),
+          requires_review: true,
+        }).catch(() => {});
 
         // Create alert for stale data
         await base44.entities.DiscoveryAlert.create({
@@ -360,6 +445,11 @@ export async function checkFreshness() {
           responsible_division: record.responsible_division || 'intelligence',
           status: 'open',
         }).catch(() => {});
+
+        // If this record is linked to a humanitarian case, transition to stale
+        if (record.linked_entity_type === 'HumanitarianCase' && record.linked_entity_id) {
+          await transitionCaseState(record.linked_entity_id, 'stale').catch(() => {});
+        }
       } else {
         updatedCount++;
       }
@@ -499,6 +589,12 @@ export async function verifyDiscoveryRecord(recordId) {
       },
     });
 
+    // Record previous state for change detection
+    const previousState = {
+      verification_status: record.verification_status,
+      confidence_level: record.confidence_level,
+    };
+
     // Create verification record
     await base44.entities.VerificationRecord.create({
       discovery_record_id: recordId,
@@ -512,12 +608,45 @@ export async function verifyDiscoveryRecord(recordId) {
       verifier_notes: '',
     });
 
+    const newVerificationStatus = llmResponse?.result || 'failed';
+
     // Update discovery record
     await base44.entities.DiscoveryRecord.update(recordId, {
-      verification_status: llmResponse?.result || 'failed',
+      verification_status: newVerificationStatus,
       confidence_level: llmResponse?.confidence_level || 'low',
       last_checked: new Date().toISOString(),
     });
+
+    // Record change if verification status changed
+    if (previousState.verification_status !== newVerificationStatus) {
+      await base44.entities.DiscoveryChange.create({
+        discovery_record_id: recordId,
+        change_type: 'verification_changed',
+        previous_value: JSON.stringify(previousState),
+        new_value: JSON.stringify({ verification_status: newVerificationStatus, confidence_level: llmResponse?.confidence_level }),
+        change_summary: `Verification status changed: ${previousState.verification_status} → ${newVerificationStatus}`,
+        detected_at: new Date().toISOString(),
+        requires_review: newVerificationStatus === 'conflicting' || newVerificationStatus === 'failed',
+      }).catch(() => {});
+    }
+
+    // Transition linked humanitarian case through pipeline
+    if (record.linked_entity_type === 'HumanitarianCase' && record.linked_entity_id) {
+      if (newVerificationStatus === 'verified' || newVerificationStatus === 'partially_verified') {
+        // Move to review_pending after successful verification
+        await transitionCaseState(record.linked_entity_id, 'verification_pending').catch(() => {});
+        await transitionCaseState(record.linked_entity_id, 'review_pending').catch(() => {});
+      } else if (newVerificationStatus === 'failed') {
+        await transitionCaseState(record.linked_entity_id, 'verification_failed').catch(() => {});
+      }
+    }
+
+    // Transition linked organization through pipeline
+    if (record.linked_entity_type === 'OrganizationProfile' && record.linked_entity_id) {
+      if (newVerificationStatus === 'verified') {
+        await transitionOrgState(record.linked_entity_id, 'verified').catch(() => {});
+      }
+    }
 
     return {
       verified: llmResponse?.result === 'verified',
@@ -530,6 +659,20 @@ export async function verifyDiscoveryRecord(recordId) {
 }
 
 // === HELPERS ===
+
+function getSourceTypeForDomain(domain) {
+  const map = {
+    humanitarian: 'ngo',
+    commerce: 'retailer',
+    news: 'news',
+    legal_regulatory: 'government',
+    market: 'market_data',
+    organization: 'ngo',
+    risk: 'other',
+    internal: 'other',
+  };
+  return map[domain] || 'other';
+}
 
 function getDivisionForDomain(domain) {
   const divisionMap = {
@@ -566,4 +709,169 @@ function buildDiscoveryPrompt(domain, query) {
   };
 
   return `${baseInstruction}\n\nDOMAIN: ${domain.toUpperCase()}\n${domainInstructions[domain] || ''}\n\nQUERY: ${query || 'Perform a general discovery sweep for this domain.'}\n\nReturn up to 10 real, verified items. For each item, provide: title, description, source_url, source_name, source_domain, source_classification (primary/secondary), publication_date, content_summary, confidence_level, verification_status, evidence_summary, corroborating_sources, external_reference, and domain_metadata with domain-specific fields.`;
+}
+
+/**
+ * Refresh stale records by re-checking their sources.
+ * Records marked 'stale' are re-verified; if the source is still available,
+ * the record is updated. If the source is broken, it's marked 'unavailable'.
+ */
+export async function refreshStaleRecords() {
+  const run = await base44.entities.DiscoveryRun.create({
+    run_type: 'freshness_check',
+    status: 'running',
+    started_at: new Date().toISOString(),
+    triggered_by: 'scheduled',
+    responsible_division: 'intelligence',
+  }).catch(() => null);
+
+  let refreshed = 0;
+  let stillStale = 0;
+  let unavailable = 0;
+
+  try {
+    const staleRecords = await base44.entities.DiscoveryRecord.filter({
+      freshness_status: 'stale',
+      status: 'active',
+    }, '-last_checked', 50).catch(() => []);
+
+    for (const record of staleRecords) {
+      try {
+        // Re-verify the record
+        const result = await verifyDiscoveryRecord(record.id);
+
+        if (result.verified) {
+          await base44.entities.DiscoveryRecord.update(record.id, {
+            freshness_status: 'current',
+            last_checked: new Date().toISOString(),
+            next_recheck: computeNextRecheck(24),
+          });
+          refreshed++;
+        } else if (result.result === 'failed') {
+          await base44.entities.DiscoveryRecord.update(record.id, {
+            freshness_status: 'unavailable',
+          });
+          unavailable++;
+
+          await base44.entities.DiscoveryAlert.create({
+            alert_type: 'source_unavailable',
+            severity: 'medium',
+            discovery_record_id: record.id,
+            description: `Source for "${record.title}" is no longer available.`,
+            responsible_division: record.responsible_division || 'intelligence',
+            status: 'open',
+          }).catch(() => {});
+        } else {
+          stillStale++;
+        }
+      } catch (err) {
+        stillStale++;
+      }
+    }
+
+    if (run) {
+      await base44.entities.DiscoveryRun.update(run.id, {
+        status: 'completed',
+        completed_at: new Date().toISOString(),
+        sources_checked: staleRecords.length,
+        records_updated: refreshed,
+        records_stale: stillStale,
+        summary: `Stale refresh: ${refreshed} refreshed, ${stillStale} still stale, ${unavailable} unavailable.`,
+      }).catch(() => {});
+    }
+
+    return { refreshed, stillStale, unavailable };
+  } catch (err) {
+    if (run) {
+      await base44.entities.DiscoveryRun.update(run.id, {
+        status: 'failed',
+        completed_at: new Date().toISOString(),
+        errors: JSON.stringify([err.message]),
+      }).catch(() => {});
+    }
+    return { refreshed: 0, stillStale: 0, unavailable: 0, error: err.message };
+  }
+}
+
+/**
+ * Detect changes in HeroBox product catalog.
+ * Compares current product state with stored state and records changes.
+ */
+export async function detectProductChanges() {
+  const products = await base44.entities.HeroBoxProduct.filter({
+    status: 'active',
+  }, '-retrieved_at', 200).catch(() => []);
+
+  let changesDetected = 0;
+  const alerts = [];
+
+  for (const product of products) {
+    // Check freshness
+    const freshness = computeProductFreshness(product.retrieved_at);
+
+    if (freshness === 'stale' && product.freshness_status !== 'stale') {
+      const previousState = { freshness_status: product.freshness_status };
+      await base44.entities.HeroBoxProduct.update(product.id, {
+        freshness_status: 'stale',
+      }).catch(() => {});
+
+      // Find discovery record for this product if linked
+      const discRecords = await base44.entities.DiscoveryRecord.filter({
+        linked_entity_type: 'HeroBoxProduct',
+        linked_entity_id: product.id,
+      }).catch(() => []);
+
+      for (const dr of discRecords) {
+        await base44.entities.DiscoveryChange.create({
+          discovery_record_id: dr.id,
+          change_type: 'status_changed',
+          previous_value: JSON.stringify(previousState),
+          new_value: JSON.stringify({ freshness_status: 'stale' }),
+          change_summary: `Product "${product.name}" marked stale`,
+          detected_at: new Date().toISOString(),
+          requires_review: true,
+        }).catch(() => {});
+      }
+
+      alerts.push({
+        alert_type: 'stale_data',
+        description: `Product "${product.name}" catalog data is stale`,
+        product_id: product.id,
+      });
+      changesDetected++;
+    }
+
+    // Check availability changes
+    if (product.availability === 'unavailable' || product.availability === 'discontinued') {
+      // These products should be suppressed from packages
+      if (product.freshness_status !== 'expired') {
+        await base44.entities.HeroBoxProduct.update(product.id, {
+          freshness_status: product.availability === 'discontinued' ? 'expired' : 'stale',
+        }).catch(() => {});
+        changesDetected++;
+      }
+    }
+  }
+
+  // Create alerts for detected changes
+  for (const alert of alerts) {
+    await base44.entities.DiscoveryAlert.create({
+      alert_type: alert.alert_type,
+      severity: 'medium',
+      description: alert.description,
+      responsible_division: 'reconnaissance',
+      status: 'open',
+    }).catch(() => {});
+  }
+
+  return { changesDetected, totalProducts: products.length };
+}
+
+function computeProductFreshness(retrievedAt) {
+  if (!retrievedAt) return 'unavailable';
+  const ageMs = Date.now() - new Date(retrievedAt).getTime();
+  const ageHours = ageMs / (1000 * 60 * 60);
+  if (ageHours > 72) return 'stale';
+  if (ageHours > 24) return 'recent';
+  return 'current';
 }
