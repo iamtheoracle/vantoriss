@@ -1,13 +1,105 @@
 // ============================================================
-// VANTORIS — Authority & Permission Model (Source of Truth)
+// VANTORIS — Definitive Administrator Permission Matrix
 // ============================================================
-// Domains: Management · Support · HeroBox · Investment
-// Super Administrator sits above all four domains.
-// Each domain has granular capabilities — domain alone does NOT
-// grant unlimited authority.
+// SOURCE OF TRUTH for all administrator authorization.
+//
+// HIERARCHY:
+//   SUPER ADMINISTRATOR
+//       ├── Management (Operations + KYC + Compliance)
+//       ├── Support
+//       ├── HeroBox
+//       └── Investment
+//
+// PRINCIPLES:
+//   - Domain access ≠ full authority. Capability-level checks required.
+//   - view ≠ approve. Financially consequential actions need explicit
+//     approval capabilities.
+//   - Super Administrator-exclusive capabilities (system.*) require
+//     Exception Authentication via the existing SUPER_ADMIN_EXCEPTION_SECRET.
+//   - Frontend checks are a first line of defense, NOT a replacement for
+//     server-side enforcement. Protected operations fail closed when
+//     backend enforcement is unavailable.
 // ============================================================
 
-// ---- Super Administrator ----
+// ============================================================
+// §1  CAPABILITY REGISTRY  (machine-readable source of truth)
+// ============================================================
+// Each capability has: domain, label, category, and flags.
+// superAdminExclusive = true  → requires Exception Authentication.
+// financiallyConsequential = true → explicit approval capability (view ≠ approve).
+
+export const CAPABILITY_REGISTRY = {
+  // ---- Management · Customers ----
+  'management.customers.view':      { domain: 'management', category: 'Customers',  label: 'View customer profiles and account information' },
+  'management.customers.manage':    { domain: 'management', category: 'Customers',  label: 'Manage permitted customer operational issues' },
+  'management.customers.escalate': { domain: 'management', category: 'Customers',  label: 'Escalate customer issues' },
+
+  // ---- Management · Operations ----
+  'management.operations.view':              { domain: 'management', category: 'Operations', label: 'View operational dashboards and transactions' },
+  'management.operations.manage':             { domain: 'management', category: 'Operations', label: 'Manage operational workflows' },
+  'management.operations.review':             { domain: 'management', category: 'Operations', label: 'Review transactions, exceptions, and discrepancies' },
+  'management.operations.correct':            { domain: 'management', category: 'Operations', label: 'Permitted operational corrections', financiallyConsequential: true },
+  'management.operations.withdrawals.approve':{ domain: 'management', category: 'Operations', label: 'Approve ordinary banking withdrawal requests', financiallyConsequential: true },
+  'management.operations.adjustments.manage': { domain: 'management', category: 'Operations', label: 'Correct balances and transaction records', financiallyConsequential: true },
+
+  // ---- Management · KYC ----
+  'management.kyc.view':     { domain: 'management', category: 'KYC', label: 'Review KYC applications and identity documents' },
+  'management.kyc.review':   { domain: 'management', category: 'KYC', label: 'Review ID front/back and verification status' },
+  'management.kyc.approve':  { domain: 'management', category: 'KYC', label: 'Approve or reject KYC', financiallyConsequential: true },
+  'management.kyc.escalate': { domain: 'management', category: 'KYC', label: 'Escalate suspicious or incomplete KYC cases' },
+
+  // ---- Management · Compliance ----
+  'management.compliance.view':     { domain: 'management', category: 'Compliance', label: 'Review compliance cases and flags' },
+  'management.compliance.manage':   { domain: 'management', category: 'Compliance', label: 'Manage compliance workflows' },
+  'management.compliance.escalate': { domain: 'management', category: 'Compliance', label: 'Escalate compliance cases' },
+
+  // ---- Support ----
+  'support.customers.view':        { domain: 'support', category: 'Support', label: 'View customer profiles necessary for support' },
+  'support.cases.view':            { domain: 'support', category: 'Support', label: 'View support cases' },
+  'support.cases.manage':          { domain: 'support', category: 'Support', label: 'Create and update support cases' },
+  'support.communication.manage':  { domain: 'support', category: 'Support', label: 'Communicate with customers' },
+  'support.escalate':              { domain: 'support', category: 'Support', label: 'Escalate KYC/compliance/operations issues to Management' },
+
+  // ---- HeroBox ----
+  'herobox.catalog.view':        { domain: 'herobox', category: 'Catalog',      label: 'View HeroBox products and categories' },
+  'herobox.catalog.manage':      { domain: 'herobox', category: 'Catalog',      label: 'Manage products, categories, packages, and availability' },
+  'herobox.orders.view':         { domain: 'herobox', category: 'Orders',       label: 'Review HeroBox orders and recipients' },
+  'herobox.orders.manage':       { domain: 'herobox', category: 'Orders',       label: 'Manage order states' },
+  'herobox.fulfillment.manage':  { domain: 'herobox', category: 'Fulfillment',  label: 'Manage packing, shipping, and delivery' },
+  'herobox.refunds.manage':      { domain: 'herobox', category: 'Refunds',      label: 'Process permitted refunds', financiallyConsequential: true },
+  'herobox.destinations.manage': { domain: 'herobox', category: 'Destinations', label: 'Manage verified organizations and support destinations' },
+
+  // ---- Investment ----
+  'investment.portfolios.view':     { domain: 'investment', category: 'Portfolios',  label: 'View investment portfolios' },
+  'investment.transactions.view':   { domain: 'investment', category: 'Transactions', label: 'View investment transactions' },
+  'investment.deposits.review':     { domain: 'investment', category: 'Deposits',    label: 'Review investment deposit requests' },
+  'investment.deposits.approve':    { domain: 'investment', category: 'Deposits',    label: 'Approve investment deposit requests', financiallyConsequential: true },
+  'investment.withdrawals.review': { domain: 'investment', category: 'Withdrawals', label: 'Review investment withdrawal requests' },
+  'investment.withdrawals.approve':{ domain: 'investment', category: 'Withdrawals', label: 'Approve investment withdrawal requests', financiallyConsequential: true },
+  'investment.signals.manage':     { domain: 'investment', category: 'Signals',     label: 'Manage investment signals' },
+  'investment.escalate':           { domain: 'investment', category: 'Investment',  label: 'Escalate compliance/security issues to Management' },
+
+  // ---- Administrator Management ----
+  'admin.users.view':         { domain: 'system', category: 'Admin Users', label: 'View administrator accounts' },
+  'admin.users.create':       { domain: 'system', category: 'Admin Users', label: 'Create administrator accounts', superAdminExclusive: true },
+  'admin.users.deactivate':   { domain: 'system', category: 'Admin Users', label: 'Deactivate administrator accounts', superAdminExclusive: true },
+  'admin.permissions.view':   { domain: 'system', category: 'Admin Users', label: 'View administrator permissions' },
+  'admin.permissions.modify': { domain: 'system', category: 'Admin Users', label: 'Modify administrator capabilities', superAdminExclusive: true },
+
+  // ---- System (Super Administrator-exclusive — require Exception Authentication) ----
+  'system.apis.manage':           { domain: 'system', category: 'System', label: 'Add, remove, or modify APIs', superAdminExclusive: true },
+  'system.integrations.manage':   { domain: 'system', category: 'System', label: 'Manage protected integrations and providers', superAdminExclusive: true },
+  'system.ai.manage':              { domain: 'system', category: 'System', label: 'Modify protected AI/LLM and Vantoris Assistant configuration', superAdminExclusive: true },
+  'system.security.manage':        { domain: 'system', category: 'System', label: 'Modify security architecture', superAdminExclusive: true },
+  'system.architecture.manage':    { domain: 'system', category: 'System', label: 'Modify authorization and Command architecture', superAdminExclusive: true },
+  'system.application.modify':     { domain: 'system', category: 'System', label: 'Modify protected application functionality', superAdminExclusive: true },
+  'system.data.modify':            { domain: 'system', category: 'System', label: 'Modify protected data and system configuration', superAdminExclusive: true },
+};
+
+// ============================================================
+// §2  SUPER ADMINISTRATOR
+// ============================================================
+
 export const SUPER_ADMIN_EMAIL = 'itsandrewjack@gmail.com';
 
 export function isSuperAdmin(user) {
@@ -15,7 +107,10 @@ export function isSuperAdmin(user) {
   return user.email?.toLowerCase() === SUPER_ADMIN_EMAIL || user.role === 'super_administrator';
 }
 
-// ---- Four Operational Domains ----
+// ============================================================
+// §3  FOUR OPERATIONAL DOMAINS
+// ============================================================
+
 export const DOMAINS = {
   management: 'Management',
   support: 'Support',
@@ -23,131 +118,189 @@ export const DOMAINS = {
   investment: 'Investment',
 };
 
-// ---- Domain Capabilities (granular permissions) ----
-export const DOMAIN_CAPABILITIES = {
-  management: {
-    operations: 'Operations — applications, accounts, transactions, cards, Zelle, statements, historical data',
-    kyc_compliance: 'KYC / Compliance — identity review, ID verification, compliance decisions',
-    customer_accounts: 'Customer & Account Management — profiles, account records, account requests',
-    security: 'Security — security events, sessions, access controls, policies',
-    system_admin: 'System Administration — configuration, integrations, notifications',
-    administration: 'Administration — admin accounts, roles, permissions, audit logs',
-  },
-  support: {
-    customer_support: 'Customer Support — conversations, escalations, status communication',
-  },
-  herobox: {
-    catalog: 'Catalog — products, categories, package stages, contents',
-    orders: 'Orders — order management, fulfillment, tracking',
-    shipping: 'Shipping — destinations, shipping rules, tracking',
-    herobox_operations: 'HeroBox Operations — verified needs, content, campaigns',
-  },
-  investment: {
-    portfolio_operations: 'Portfolio Operations — portfolios, positions, investment transactions',
-    deposits: 'Deposits — review and approve investment deposit requests',
-    withdrawals: 'Withdrawals — review and approve investment withdrawal requests',
-    investment_products: 'Investment Products — manage investment products',
-    signals: 'Signals — manage investment signals and risk information',
-    investment_operations: 'Investment Operations — investment-specific customer operations',
-  },
+// ============================================================
+// §4  ROLE → CAPABILITY MAPPING
+// ============================================================
+// Super Administrator: '*' (all capabilities, including system.*).
+// Ordinary roles: explicit arrays of capability IDs.
+// Existing roles are mapped to preserve their current authority.
+
+const ROLE_CAPABILITIES = {
+  // ---- Super Administrator ----
+  super_administrator: '*',
+
+  // ---- Management domain ----
+  admin: [
+    'management.customers.view', 'management.customers.manage', 'management.customers.escalate',
+    'management.operations.view', 'management.operations.manage', 'management.operations.review',
+    'management.operations.correct', 'management.operations.withdrawals.approve', 'management.operations.adjustments.manage',
+    'management.kyc.view', 'management.kyc.review', 'management.kyc.approve', 'management.kyc.escalate',
+    'management.compliance.view', 'management.compliance.manage', 'management.compliance.escalate',
+    'admin.users.view', 'admin.permissions.view',
+  ],
+  administrator: [
+    'management.customers.view', 'management.customers.manage', 'management.customers.escalate',
+    'management.operations.view', 'management.operations.manage', 'management.operations.review',
+    'management.operations.correct', 'management.operations.withdrawals.approve', 'management.operations.adjustments.manage',
+    'management.kyc.view', 'management.kyc.review', 'management.kyc.approve', 'management.kyc.escalate',
+    'management.compliance.view', 'management.compliance.manage', 'management.compliance.escalate',
+    'admin.users.view', 'admin.permissions.view',
+  ],
+  executive: [
+    'management.customers.view', 'management.customers.manage', 'management.customers.escalate',
+    'management.operations.view', 'management.operations.manage', 'management.operations.review',
+    'management.operations.correct', 'management.operations.withdrawals.approve', 'management.operations.adjustments.manage',
+    'management.kyc.view', 'management.kyc.review', 'management.kyc.approve', 'management.kyc.escalate',
+    'management.compliance.view', 'management.compliance.manage', 'management.compliance.escalate',
+    'admin.users.view', 'admin.permissions.view',
+  ],
+  operations_manager: [
+    'management.customers.view', 'management.customers.manage',
+    'management.operations.view', 'management.operations.manage', 'management.operations.review',
+    'management.operations.correct', 'management.operations.withdrawals.approve',
+  ],
+  operations_officer: [
+    'management.operations.view', 'management.operations.review',
+    'management.operations.withdrawals.approve',
+  ],
+  finance_officer: [
+    'management.operations.view', 'management.operations.review',
+    'management.operations.withdrawals.approve',
+  ],
+  treasury_officer: [
+    'management.operations.view', 'management.operations.review',
+    'management.operations.withdrawals.approve', 'management.operations.adjustments.manage',
+  ],
+  compliance_officer: [
+    'management.compliance.view', 'management.compliance.manage', 'management.compliance.escalate',
+    'management.kyc.view', 'management.kyc.review', 'management.kyc.escalate',
+  ],
+  kyc_officer: [
+    'management.kyc.view', 'management.kyc.review', 'management.kyc.approve', 'management.kyc.escalate',
+  ],
+  auditor: [
+    'admin.users.view', 'admin.permissions.view',
+    'management.operations.view', 'management.operations.review',
+    'management.kyc.view', 'management.kyc.review',
+    'management.compliance.view',
+  ],
+  it_administrator: [
+    'management.operations.view', 'management.operations.manage',
+  ],
+  risk_officer: [
+    'management.operations.view', 'management.compliance.view',
+  ],
+
+  // ---- Support domain ----
+  customer_support: [
+    'support.customers.view', 'support.cases.view', 'support.cases.manage',
+    'support.communication.manage', 'support.escalate',
+  ],
+
+  // ---- HeroBox domain ----
+  herobox_manager: [
+    'herobox.catalog.view', 'herobox.catalog.manage',
+    'herobox.orders.view', 'herobox.orders.manage',
+    'herobox.fulfillment.manage', 'herobox.refunds.manage', 'herobox.destinations.manage',
+  ],
+  volunteer_manager: [
+    'herobox.catalog.view', 'herobox.orders.view',
+    'herobox.destinations.manage',
+  ],
+  shipping_manager: [
+    'herobox.orders.view', 'herobox.orders.manage', 'herobox.fulfillment.manage',
+  ],
+
+  // ---- Investment domain ----
+  investment_manager: [
+    'investment.portfolios.view', 'investment.transactions.view',
+    'investment.deposits.review', 'investment.deposits.approve',
+    'investment.withdrawals.review', 'investment.withdrawals.approve',
+    'investment.signals.manage', 'investment.escalate',
+  ],
+  investment_officer: [
+    'investment.portfolios.view', 'investment.transactions.view',
+    'investment.deposits.review', 'investment.withdrawals.review',
+    'investment.escalate',
+  ],
 };
 
-// ---- Role → Domain + Capabilities Mapping ----
-// Super Administrator gets all domains + all capabilities.
-// Other roles get specific domains + specific capabilities.
-const ROLE_PERMISSIONS = {
-  super_administrator: {
-    domains: ['management', 'support', 'herobox', 'investment'],
-    capabilities: { management: 'all', support: 'all', herobox: 'all', investment: 'all' },
-  },
-  admin: {
-    domains: ['management'],
-    capabilities: { management: ['operations', 'kyc_compliance', 'customer_accounts', 'system_admin'] },
-  },
-  administrator: {
-    domains: ['management'],
-    capabilities: { management: ['operations', 'kyc_compliance', 'customer_accounts', 'system_admin'] },
-  },
-  executive: {
-    domains: ['management'],
-    capabilities: { management: ['operations', 'kyc_compliance', 'customer_accounts', 'administration'] },
-  },
-  operations_manager: {
-    domains: ['management'],
-    capabilities: { management: ['operations', 'customer_accounts'] },
-  },
-  operations_officer: {
-    domains: ['management'],
-    capabilities: { management: ['operations'] },
-  },
-  finance_officer: {
-    domains: ['management'],
-    capabilities: { management: ['operations'] },
-  },
-  treasury_officer: {
-    domains: ['management'],
-    capabilities: { management: ['operations'] },
-  },
-  compliance_officer: {
-    domains: ['management'],
-    capabilities: { management: ['kyc_compliance', 'security'] },
-  },
-  kyc_officer: {
-    domains: ['management'],
-    capabilities: { management: ['kyc_compliance'] },
-  },
-  auditor: {
-    domains: ['management'],
-    capabilities: { management: ['administration'] },
-  },
-  it_administrator: {
-    domains: ['management'],
-    capabilities: { management: ['system_admin', 'security'] },
-  },
-  risk_officer: {
-    domains: ['management'],
-    capabilities: { management: ['security'] },
-  },
-  customer_support: {
-    domains: ['support'],
-    capabilities: { support: ['customer_support'] },
-  },
-  herobox_manager: {
-    domains: ['herobox'],
-    capabilities: { herobox: ['catalog', 'orders', 'shipping', 'herobox_operations'] },
-  },
-  volunteer_manager: {
-    domains: ['herobox'],
-    capabilities: { herobox: ['herobox_operations'] },
-  },
-  shipping_manager: {
-    domains: ['herobox'],
-    capabilities: { herobox: ['shipping', 'orders'] },
-  },
-  investment_manager: {
-    domains: ['investment'],
-    capabilities: { investment: ['portfolio_operations', 'deposits', 'withdrawals', 'investment_products', 'signals', 'investment_operations'] },
-  },
-  investment_officer: {
-    domains: ['investment'],
-    capabilities: { investment: ['portfolio_operations', 'investment_operations'] },
-  },
+// ============================================================
+// §5  CORE PERMISSION CHECKS  (new capability-ID based)
+// ============================================================
+
+// Returns the full set of capability IDs for a role.
+// Super Administrator: all capabilities in the registry.
+export function getRoleCapabilities(role) {
+  if (role === 'super_administrator') return Object.keys(CAPABILITY_REGISTRY);
+  const caps = ROLE_CAPABILITIES[role];
+  return caps === '*' ? Object.keys(CAPABILITY_REGISTRY) : (caps || []);
+}
+
+// Check if a role has a specific capability by its dotted ID.
+// e.g. hasCapabilityById('admin', 'management.kyc.approve')
+export function hasCapabilityById(role, capabilityId) {
+  if (role === 'super_administrator') return true;
+  const caps = getRoleCapabilities(role);
+  return caps.includes(capabilityId);
+}
+
+// Check if a user object has a capability (resolves role from user).
+export function userHasCapability(user, capabilityId) {
+  if (!user) return false;
+  if (isSuperAdmin(user)) return true;
+  return hasCapabilityById(user.role, capabilityId);
+}
+
+// Does this capability require Super Administrator Exception Authentication?
+export function isSuperAdminExclusiveCapability(capabilityId) {
+  const cap = CAPABILITY_REGISTRY[capabilityId];
+  return !!(cap && cap.superAdminExclusive);
+}
+
+// Is this capability financially consequential (needs explicit approval cap)?
+export function isFinanciallyConsequential(capabilityId) {
+  const cap = CAPABILITY_REGISTRY[capabilityId];
+  return !!(cap && cap.financiallyConsequential);
+}
+
+// Map a system.* capability to the Exception Authentication action key.
+export const CAPABILITY_TO_EXCEPTION_ACTION = {
+  'system.apis.manage':            'modify_api_config',
+  'system.integrations.manage':    'change_integration_architecture',
+  'system.ai.manage':              'change_ai_config',
+  'system.security.manage':       'change_security_rules',
+  'system.architecture.manage':    'change_authorization_architecture',
+  'system.application.modify':     'edit_core_functionality',
+  'system.data.modify':            'modify_protected_config',
+  'admin.users.create':            'create_privileged_roles',
+  'admin.users.deactivate':        'disable_admin_beyond_normal',
+  'admin.permissions.modify':      'change_role_definitions',
 };
 
-// ---- Core Permission Checks ----
+export function getExceptionActionForCapability(capabilityId) {
+  return CAPABILITY_TO_EXCEPTION_ACTION[capabilityId] || null;
+}
+
+export function requiresExceptionAuthForCapability(capabilityId) {
+  return Object.prototype.hasOwnProperty.call(CAPABILITY_TO_EXCEPTION_ACTION, capabilityId);
+}
+
+// ============================================================
+// §6  DOMAIN-LEVEL CHECKS
+// ============================================================
 
 export function getDomainsForRole(role) {
   if (role === 'super_administrator') return ['management', 'support', 'herobox', 'investment'];
-  return ROLE_PERMISSIONS[role]?.domains || [];
-}
-
-export function getCapabilitiesForRole(role, domain) {
-  if (role === 'super_administrator') return 'all';
-  const perms = ROLE_PERMISSIONS[role];
-  if (!perms) return [];
-  const caps = perms.capabilities[domain];
-  if (!caps) return [];
-  return caps === 'all' ? Object.keys(DOMAIN_CAPABILITIES[domain] || {}) : caps;
+  const caps = getRoleCapabilities(role);
+  const domains = new Set();
+  for (const capId of caps) {
+    const entry = CAPABILITY_REGISTRY[capId];
+    if (entry) domains.add(entry.domain);
+  }
+  // Map system-domain capabilities to management for domain-access purposes
+  if (domains.has('system')) domains.add('management');
+  return Array.from(domains);
 }
 
 export function hasDomainAccess(role, domain) {
@@ -155,61 +308,216 @@ export function hasDomainAccess(role, domain) {
   return getDomainsForRole(role).includes(domain);
 }
 
-export function hasCapability(role, domain, capability) {
+// ============================================================
+// §7  BACKWARD-COMPATIBLE CAPABILITY CHECKS
+// ============================================================
+// Maps old-style domain+capability keys to the new granular model.
+// Existing pages call hasCapability(role, 'management', 'operations') etc.
+
+const LEGACY_CAPABILITY_MAP = {
+  // Management
+  operations: [
+    'management.operations.view', 'management.operations.manage', 'management.operations.review',
+    'management.operations.correct', 'management.operations.withdrawals.approve',
+    'management.operations.adjustments.manage',
+  ],
+  kyc_compliance: [
+    'management.kyc.view', 'management.kyc.review', 'management.kyc.approve', 'management.kyc.escalate',
+    'management.compliance.view', 'management.compliance.manage', 'management.compliance.escalate',
+  ],
+  customer_accounts: [
+    'management.customers.view', 'management.customers.manage', 'management.customers.escalate',
+  ],
+  security: [
+    'management.compliance.view',
+  ],
+  system_admin: [
+    'management.operations.view', 'management.operations.manage',
+  ],
+  administration: [
+    'admin.users.view', 'admin.permissions.view',
+  ],
+  // Support
+  customer_support: [
+    'support.customers.view', 'support.cases.view', 'support.cases.manage',
+    'support.communication.manage', 'support.escalate',
+  ],
+  // HeroBox
+  catalog: ['herobox.catalog.view', 'herobox.catalog.manage'],
+  orders: ['herobox.orders.view', 'herobox.orders.manage'],
+  shipping: ['herobox.fulfillment.manage'],
+  herobox_operations: ['herobox.destinations.manage'],
+  // Investment
+  portfolio_operations: ['investment.portfolios.view', 'investment.transactions.view'],
+  deposits: ['investment.deposits.review', 'investment.deposits.approve'],
+  withdrawals: ['investment.withdrawals.review', 'investment.withdrawals.approve'],
+  investment_products: ['investment.portfolios.view'],
+  signals: ['investment.signals.manage'],
+  investment_operations: ['investment.portfolios.view', 'investment.transactions.view'],
+};
+
+// Old-style: hasCapability(role, domain, oldCapabilityKey)
+// Returns true if the role has ANY of the mapped new capabilities.
+export function hasCapability(role, domain, legacyCapability) {
   if (role === 'super_administrator') return true;
-  const caps = getCapabilitiesForRole(role, domain);
-  if (caps === 'all') return true;
-  return Array.isArray(caps) && caps.includes(capability);
+  const mapped = LEGACY_CAPABILITY_MAP[legacyCapability];
+  if (!mapped) return false;
+  const roleCaps = getRoleCapabilities(role);
+  return mapped.some((capId) => roleCaps.includes(capId));
 }
 
+// Old-style: getCapabilitiesForRole(role, domain)
+// Returns old-style capability keys that the role possesses.
+export function getCapabilitiesForRole(role, domain) {
+  if (role === 'super_administrator') return 'all';
+  const roleCaps = getRoleCapabilities(role);
+  if (roleCaps === '*') return 'all';
+  // Return old-style keys whose mapped new caps overlap with the role's caps
+  const result = [];
+  for (const [oldKey, mapped] of Object.entries(LEGACY_CAPABILITY_MAP)) {
+    if (mapped.some((capId) => roleCaps.includes(capId))) {
+      // Check if this old key belongs to the requested domain
+      const sampleCap = CAPABILITY_REGISTRY[mapped[0]];
+      if (sampleCap && (sampleCap.domain === domain || (sampleCap.domain === 'system' && domain === 'management'))) {
+        result.push(oldKey);
+      }
+    }
+  }
+  return result;
+}
+
+// ============================================================
+// §8  DOMAIN CAPABILITIES (for display/UI — backward compat)
+// ============================================================
+
+export const DOMAIN_CAPABILITIES = {
+  management: {
+    operations: 'Operations — applications, accounts, transactions, statements, historical data',
+    kyc: 'KYC — identity review, ID verification, KYC approval',
+    compliance: 'Compliance — compliance cases, flags, workflows',
+    customer_accounts: 'Customer & Account Management — profiles, account records',
+    administration: 'Administration — admin accounts, roles, permissions, audit logs',
+  },
+  support: {
+    customer_support: 'Customer Support — conversations, escalations, case management',
+  },
+  herobox: {
+    catalog: 'Catalog — products, categories, packages',
+    orders: 'Orders — order management, fulfillment',
+    fulfillment: 'Fulfillment — packing, shipping, delivery',
+    destinations: 'Destinations — verified organizations, support destinations',
+  },
+  investment: {
+    portfolios: 'Portfolios — portfolio and position management',
+    deposits: 'Deposits — review and approve investment deposit requests',
+    withdrawals: 'Withdrawals — review and approve investment withdrawal requests',
+    signals: 'Signals — manage investment signals',
+  },
+};
+
+// ============================================================
+// §9  CONVENIENCE HELPERS (backward compatible)
+// ============================================================
+// These map to the new granular capabilities. Financially consequential
+// actions (approvals) use explicit approval capabilities, not view.
+
 export function canManageAdmins(role) {
-  return role === 'super_administrator' || hasCapability(role, 'management', 'administration');
+  if (role === 'super_administrator') return true;
+  return hasCapabilityById(role, 'admin.users.view');
 }
 
 export function canManageSecurity(role) {
-  return role === 'super_administrator' || hasCapability(role, 'management', 'security');
+  if (role === 'super_administrator') return true;
+  // Only Super Administrator can modify security architecture (system.security.manage)
+  // Ordinary management can view compliance, not modify security architecture
+  return false;
 }
 
 export function canManageSystemConfig(role) {
-  return role === 'super_administrator' || hasCapability(role, 'management', 'system_admin');
+  if (role === 'super_administrator') return true;
+  // Only Super Administrator can manage system config (system.* capabilities)
+  return false;
 }
 
 export function canApproveKYC(role) {
-  return role === 'super_administrator' || hasCapability(role, 'management', 'kyc_compliance');
+  if (role === 'super_administrator') return true;
+  return hasCapabilityById(role, 'management.kyc.approve');
+}
+
+export function canReviewKYC(role) {
+  if (role === 'super_administrator') return true;
+  return hasCapabilityById(role, 'management.kyc.view') || hasCapabilityById(role, 'management.kyc.review');
 }
 
 export function canApproveAccounts(role) {
-  return role === 'super_administrator' || hasCapability(role, 'management', 'operations');
+  if (role === 'super_administrator') return true;
+  return hasCapabilityById(role, 'management.operations.manage');
 }
 
 export function canApproveWithdrawals(role) {
-  return role === 'super_administrator' || hasCapability(role, 'management', 'operations');
+  if (role === 'super_administrator') return true;
+  return hasCapabilityById(role, 'management.operations.withdrawals.approve');
 }
 
 export function canManageHeroBoxCatalog(role) {
-  return role === 'super_administrator' || hasCapability(role, 'herobox', 'catalog');
+  if (role === 'super_administrator') return true;
+  return hasCapabilityById(role, 'herobox.catalog.manage');
 }
 
 export function canManageHeroBoxOrders(role) {
-  return role === 'super_administrator' || hasCapability(role, 'herobox', 'orders');
+  if (role === 'super_administrator') return true;
+  return hasCapabilityById(role, 'herobox.orders.manage');
 }
 
+export function canManageHeroBoxFulfillment(role) {
+  if (role === 'super_administrator') return true;
+  return hasCapabilityById(role, 'herobox.fulfillment.manage');
+}
+
+export function canManageHeroBoxRefunds(role) {
+  if (role === 'super_administrator') return true;
+  return hasCapabilityById(role, 'herobox.refunds.manage');
+}
+
+export function canReviewInvestmentDeposits(role) {
+  if (role === 'super_administrator') return true;
+  return hasCapabilityById(role, 'investment.deposits.review');
+}
+
+export function canApproveInvestmentDeposits(role) {
+  if (role === 'super_administrator') return true;
+  return hasCapabilityById(role, 'investment.deposits.approve');
+}
+
+export function canReviewInvestmentWithdrawals(role) {
+  if (role === 'super_administrator') return true;
+  return hasCapabilityById(role, 'investment.withdrawals.review');
+}
+
+export function canApproveInvestmentWithdrawals(role) {
+  if (role === 'super_administrator') return true;
+  return hasCapabilityById(role, 'investment.withdrawals.approve');
+}
+
+// Backward compat aliases
 export function canManageInvestmentDeposits(role) {
-  return role === 'super_administrator' || hasCapability(role, 'investment', 'deposits');
+  return canReviewInvestmentDeposits(role);
 }
 
 export function canManageInvestmentWithdrawals(role) {
-  return role === 'super_administrator' || hasCapability(role, 'investment', 'withdrawals');
+  return canReviewInvestmentWithdrawals(role);
 }
 
 export function canUseUltimateCommand(user) {
   return isSuperAdmin(user);
 }
 
-// ---- Operator Groups (backward compat) ----
+// ============================================================
+// §10  OPERATOR GROUPS  (backward compat)
+// ============================================================
 
 export function getOperatorGroup(role) {
-  if (isSuperAdmin({ role, email: '' }) || role === 'super_administrator') return 'management';
+  if (role === 'super_administrator') return 'management';
   const domains = getDomainsForRole(role);
   if (domains.includes('management')) return 'management';
   if (domains.includes('support')) return 'support';
@@ -234,7 +542,9 @@ export function isInvestmentOperator(role) {
   return getDomainsForRole(role).includes('investment');
 }
 
-// ---- Backward-compatible exports (preserved for existing pages) ----
+// ============================================================
+// §11  LEGACY ROLE-LIST COMPAT
+// ============================================================
 
 const OPERATIONS_ROLES = [
   'admin', 'operations_officer', 'finance_officer', 'compliance_officer',
@@ -278,7 +588,10 @@ export function getRoleLabel(role) {
   return labels[role] || 'Member';
 }
 
-// ---- Workspace compat (maps old workspaces → new domains) ----
+// ============================================================
+// §12  WORKSPACE COMPAT
+// ============================================================
+
 export const WORKSPACE_LABELS = {
   management: 'Management',
   support: 'Support',
@@ -302,7 +615,6 @@ export function getWorkspacesForRole(role) {
 }
 
 export function hasWorkspaceAccess(role, workspace) {
-  // Map legacy workspace names to domains
   const domainMap = { executive: 'management', operations: 'management', security: 'management' };
   const domain = domainMap[workspace] || workspace;
   return hasDomainAccess(role, domain);
@@ -313,4 +625,41 @@ export function getDefaultWorkspace(role) {
   if (domains.length === 0) return null;
   if (domains.includes('management')) return 'management';
   return domains[0];
+}
+
+// ============================================================
+// §13  PERMISSION MATRIX EXPORT  (machine-readable)
+// ============================================================
+
+export function getPermissionMatrix() {
+  const matrix = {};
+  for (const role of Object.keys(ROLE_CAPABILITIES)) {
+    matrix[role] = {
+      domains: getDomainsForRole(role),
+      capabilities: getRoleCapabilities(role),
+      isSuperAdmin: role === 'super_administrator',
+    };
+  }
+  return matrix;
+}
+
+// Get all capabilities for a domain (for UI display / filtering)
+export function getCapabilitiesByDomain(domain) {
+  return Object.entries(CAPABILITY_REGISTRY)
+    .filter(([, info]) => info.domain === domain || (domain === 'management' && info.domain === 'system' && !info.superAdminExclusive))
+    .map(([id, info]) => ({ id, ...info }));
+}
+
+// Get all financially consequential capabilities
+export function getFinanciallyConsequentialCapabilities() {
+  return Object.entries(CAPABILITY_REGISTRY)
+    .filter(([, info]) => info.financiallyConsequential)
+    .map(([id, info]) => ({ id, ...info }));
+}
+
+// Get all Super Administrator-exclusive capabilities
+export function getSuperAdminExclusiveCapabilities() {
+  return Object.entries(CAPABILITY_REGISTRY)
+    .filter(([, info]) => info.superAdminExclusive)
+    .map(([id, info]) => ({ id, ...info }));
 }
