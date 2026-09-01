@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { hasOperationsAccess } from '@/lib/operationsAccess';
 import { logAuditEntry } from '@/lib/auditLogger';
 import { useToast } from '@/components/ui/use-toast';
+import VantorisMonogram from '@/components/vantoris/brand/VantorisMonogram';
 import {
   Command, X, Sparkles, Lock, Check, Shield,
 } from 'lucide-react';
@@ -15,6 +16,7 @@ import {
 // ============================================================
 // - Perfectly circular (width === height, 50% border radius)
 // - Fixed positioning, floats above page content
+// - Responsive diameter (mobile 76 / tablet 82 / desktop 88)
 // - Pointer Events drag (mouse + touch + pen)
 // - Tap vs drag threshold so taps open the menu, drags move it
 // - Clamped to viewport with edge margin + safe-area insets
@@ -22,14 +24,22 @@ import {
 // - Re-clamped on resize / orientation change
 // - Accessible: button semantics, aria-label, keyboard activation
 
-const SIZE = 56;            // button diameter (px)
-const EDGE_MARGIN = 16;     // min distance from viewport edge (px)
-const DRAG_THRESHOLD = 6;   // px movement before a press counts as a drag
+const EDGE_MARGIN = 16;      // min distance from viewport edge (px)
+const DRAG_THRESHOLD = 6;    // px movement before a press counts as a drag
 const STORAGE_KEY = 'vantoris.quickAction.pos';
 const BOTTOM_NAV_RESERVE = 84; // keep clear of the bottom navigation
 
 function haptic(ms = 8) {
   if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(ms);
+}
+
+// Responsive button diameter
+function getSize() {
+  if (typeof window === 'undefined') return 82;
+  const vw = window.innerWidth;
+  if (vw < 768) return 76;    // mobile  72–84
+  if (vw < 1024) return 82;   // tablet  76–88
+  return 88;                  // desktop 80–92
 }
 
 function loadSavedPos() {
@@ -43,24 +53,24 @@ function loadSavedPos() {
   return null;
 }
 
-function clampPos(x, y) {
+function clampPos(x, y, size) {
   if (typeof window === 'undefined') return { x, y };
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  const maxX = Math.max(EDGE_MARGIN, vw - SIZE - EDGE_MARGIN);
-  const maxY = Math.max(EDGE_MARGIN, vh - SIZE - EDGE_MARGIN);
+  const maxX = Math.max(EDGE_MARGIN, vw - size - EDGE_MARGIN);
+  const maxY = Math.max(EDGE_MARGIN, vh - size - EDGE_MARGIN);
   return {
     x: Math.min(Math.max(x, EDGE_MARGIN), maxX),
     y: Math.min(Math.max(y, EDGE_MARGIN), maxY),
   };
 }
 
-function defaultPos() {
+function defaultPos(size) {
   if (typeof window === 'undefined') return { x: EDGE_MARGIN, y: EDGE_MARGIN };
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   // Bottom-right by default, clearing the bottom navigation.
-  return clampPos(vw - SIZE - EDGE_MARGIN, vh - SIZE - EDGE_MARGIN - BOTTOM_NAV_RESERVE);
+  return clampPos(vw - size - EDGE_MARGIN, vh - size - EDGE_MARGIN - BOTTOM_NAV_RESERVE, size);
 }
 
 export default function FloatingCommandDock() {
@@ -73,8 +83,11 @@ export default function FloatingCommandDock() {
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
+  // --- Responsive size ---
+  const [size, setSize] = useState(getSize);
+
   // --- Draggable position state ---
-  const [pos, setPos] = useState(() => loadSavedPos() || defaultPos());
+  const [pos, setPos] = useState(() => loadSavedPos() || defaultPos(getSize()));
   const [dragging, setDragging] = useState(false);
   const dragRef = useRef({ active: false, startX: 0, startY: 0, origX: 0, origY: 0, moved: false });
   const buttonRef = useRef(null);
@@ -94,9 +107,13 @@ export default function FloatingCommandDock() {
     return () => { cancelled = true; };
   }, [user, isMember]);
 
-  // Re-clamp on viewport resize / orientation change
+  // Re-clamp on viewport resize / orientation change (also updates size)
   useEffect(() => {
-    const handler = () => setPos((p) => clampPos(p.x, p.y));
+    const handler = () => {
+      const newSize = getSize();
+      setSize(newSize);
+      setPos((p) => clampPos(p.x, p.y, newSize));
+    };
     window.addEventListener('resize', handler);
     window.addEventListener('orientationchange', handler);
     return () => {
@@ -153,10 +170,10 @@ export default function FloatingCommandDock() {
     }
     if (d.moved) {
       e.preventDefault();
-      const next = clampPos(d.origX + dx, d.origY + dy);
+      const next = clampPos(d.origX + dx, d.origY + dy, size);
       setPos(next);
     }
-  }, []);
+  }, [size]);
 
   const endDrag = useCallback((e) => {
     const d = dragRef.current;
@@ -209,11 +226,11 @@ export default function FloatingCommandDock() {
   // Panel placement: above the button when room exists, otherwise below.
   const vw = typeof window !== 'undefined' ? window.innerWidth : 375;
   const panelMaxWidth = Math.min(380, vw - 32);
-  const panelX = Math.min(Math.max(pos.x + SIZE / 2 - panelMaxWidth / 2, 16), Math.max(16, vw - panelMaxWidth - 16));
+  const panelX = Math.min(Math.max(pos.x + size / 2 - panelMaxWidth / 2, 16), Math.max(16, vw - panelMaxWidth - 16));
   const roomAbove = pos.y > 260;
   const panelStyle = roomAbove
     ? { bottom: (window.innerHeight - pos.y) + 12, left: panelX, width: panelMaxWidth }
-    : { top: pos.y + SIZE + 12, left: panelX, width: panelMaxWidth };
+    : { top: pos.y + size + 12, left: panelX, width: panelMaxWidth };
 
   return (
     <>
@@ -277,7 +294,7 @@ export default function FloatingCommandDock() {
         )}
       </AnimatePresence>
 
-      {/* Circular floating Quick Action — draggable via Pointer Events */}
+      {/* Circular floating Quick Action — Vantoris V command mark */}
       <motion.button
         ref={buttonRef}
         type="button"
@@ -294,21 +311,32 @@ export default function FloatingCommandDock() {
             setExpanded((v) => !v);
           }
         }}
-        whileTap={{ scale: dragging ? 1 : 0.92 }}
+        whileTap={{ scale: dragging ? 1 : 0.94 }}
         style={{
           position: 'fixed',
           left: pos.x,
           top: pos.y,
-          width: SIZE,
-          height: SIZE,
+          width: size,
+          height: size,
           zIndex: 50,
           touchAction: 'none',
+          background: 'linear-gradient(145deg, #071C38 0%, #0E2A4A 100%)',
+          boxShadow: '0 10px 30px rgba(7, 28, 56, 0.28), 0 2px 8px rgba(7, 28, 56, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.10)',
         }}
-        className="vantoris-glass-dropdown rounded-full flex items-center justify-center shadow-float focus:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 focus-visible:ring-offset-2 cursor-pointer select-none"
+        className="rounded-full flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-brass/50 focus-visible:ring-offset-2 cursor-pointer select-none"
       >
-        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-navy to-navy/80 flex items-center justify-center pointer-events-none">
-          <Command size={18} className="text-white" strokeWidth={2.5} />
-        </div>
+        {/* Subtle secondary inner ring — restrained brass accent */}
+        <div
+          className="absolute rounded-full border border-brass/25 pointer-events-none"
+          style={{ inset: Math.round(size * 0.11) }}
+        />
+        {/* Vantoris V command mark — white against the dark center */}
+        <VantorisMonogram
+          size={Math.round(size * 0.54)}
+          variant="flat"
+          theme="dark"
+          className="pointer-events-none relative z-10"
+        />
       </motion.button>
 
       {/* Freeze Card Dialog */}

@@ -21,6 +21,7 @@ export default function VantorisAssistant() {
   const [user, setUser] = useState(null);
   const [conversation, setConversation] = useState(null);
   const scrollRef = useRef(null);
+  const textareaRef = useRef(null);
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -61,6 +62,7 @@ export default function VantorisAssistant() {
     const userMessage = { role: 'user', content: input.trim() };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
+    if (textareaRef.current) textareaRef.current.style.height = 'auto';
     setLoading(true);
     setError('');
 
@@ -171,19 +173,28 @@ export default function VantorisAssistant() {
       </div>
 
       <div className="vantoris-glass-nav sticky bottom-0 px-5 py-3 safe-bottom">
-        <div className="max-w-3xl mx-auto flex items-center gap-2">
-          <input
-            type="text"
+        <div className="max-w-3xl mx-auto flex items-end gap-2">
+          <textarea
+            ref={textareaRef}
             value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSend()}
-            placeholder="Message Vantoris Assistant..."
+            onChange={e => {
+              setInput(e.target.value);
+              const el = e.target;
+              el.style.height = 'auto';
+              el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+            }}
+            placeholder="Message Vantoris Assistant…"
             disabled={loading}
-            className="flex-1 bg-white border border-border rounded-full px-4 py-2.5 text-sm focus:border-brass/50 focus:outline-none disabled:opacity-50 selectable-content"
+            rows={1}
+            aria-label="Command input"
+            className="flex-1 bg-white border border-border rounded-2xl px-4 py-2.5 text-sm leading-relaxed focus:border-brass/50 focus:outline-none disabled:opacity-50 selectable-content resize-none overflow-y-auto"
+            style={{ maxHeight: '120px' }}
           />
           <button
             onClick={handleSend}
             disabled={loading || !input.trim()}
+            aria-label="Send command"
+            title="Send command"
             className="w-10 h-10 rounded-full bg-navy text-white flex items-center justify-center disabled:opacity-30 hover:bg-navy/90 transition-colors flex-shrink-0"
           >
             {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
