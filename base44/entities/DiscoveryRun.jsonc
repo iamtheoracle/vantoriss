@@ -1,0 +1,81 @@
+{
+  "name": "DiscoveryRun",
+  "type": "object",
+  "properties": {
+    "run_type": {
+      "type": "string",
+      "enum": [
+        "humanitarian_discovery",
+        "commerce_discovery",
+        "news_monitoring",
+        "legal_regulatory",
+        "market_monitoring",
+        "organization_discovery",
+        "risk_detection",
+        "internal_audit",
+        "product_refresh",
+        "freshness_check",
+        "package_rebuild"
+      ],
+      "description": "Type of discovery run"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "running",
+        "completed",
+        "failed",
+        "partial"
+      ],
+      "default": "pending"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sources_checked": {
+      "type": "number",
+      "default": 0
+    },
+    "records_discovered": {
+      "type": "number",
+      "default": 0
+    },
+    "records_updated": {
+      "type": "number",
+      "default": 0
+    },
+    "records_stale": {
+      "type": "number",
+      "default": 0
+    },
+    "errors": {
+      "type": "string",
+      "description": "JSON-serialized array of errors encountered"
+    },
+    "triggered_by": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "manual",
+        "event"
+      ],
+      "default": "scheduled"
+    },
+    "responsible_division": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Human-readable summary of the run"
+    }
+  },
+  "required": [
+    "run_type"
+  ]
+}

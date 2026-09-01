@@ -101,6 +101,8 @@ const InvestmentPortfolios = React.lazy(() => import('./pages/operations/Investm
 const InvestmentSignals = React.lazy(() => import('./pages/operations/InvestmentSignals'));
 const HeroBoxAdminProducts = React.lazy(() => import('./pages/operations/HeroBoxAdminProducts'));
 const HeroBoxAdminOrders = React.lazy(() => import('./pages/operations/HeroBoxAdminOrders'));
+const DiscoveryNetwork = React.lazy(() => import('./pages/operations/DiscoveryNetwork'));
+const HumanitarianCases = React.lazy(() => import('./pages/operations/HumanitarianCases'));
 
 const LoadingFallback = () => (
   <div className="fixed inset-0 flex items-center justify-center bg-background">
@@ -189,6 +191,8 @@ const AuthenticatedApp = () => {
               <Route path="/operations/herobox/volunteers" element={<HeroBoxVolunteers />} />
               <Route path="/operations/herobox/products" element={<HeroBoxAdminProducts />} />
               <Route path="/operations/herobox/orders" element={<HeroBoxAdminOrders />} />
+              <Route path="/operations/discovery-network" element={<DiscoveryNetwork />} />
+              <Route path="/operations/humanitarian-cases" element={<HumanitarianCases />} />
               <Route path="/operations/organizations" element={<Organizations />} />
               <Route path="/operations/finance" element={<Finance />} />
               <Route path="/operations/deposits" element={<Deposits />} />

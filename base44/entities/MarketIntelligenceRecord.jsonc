@@ -1,0 +1,108 @@
+{
+  "name": "MarketIntelligenceRecord",
+  "type": "object",
+  "properties": {
+    "asset_symbol": {
+      "type": "string",
+      "description": "Ticker symbol"
+    },
+    "asset_name": {
+      "type": "string"
+    },
+    "asset_type": {
+      "type": "string",
+      "enum": [
+        "stock",
+        "bond",
+        "etf",
+        "commodity",
+        "currency",
+        "index",
+        "other"
+      ]
+    },
+    "current_price": {
+      "type": "number"
+    },
+    "currency": {
+      "type": "string",
+      "default": "USD"
+    },
+    "price_timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Exact timestamp of the price data"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "source_name": {
+      "type": "string"
+    },
+    "source_domain": {
+      "type": "string"
+    },
+    "market_event": {
+      "type": "string",
+      "description": "Market-moving event description"
+    },
+    "corporate_action": {
+      "type": "string",
+      "description": "Corporate action (split, dividend, merger, etc.)"
+    },
+    "earnings_info": {
+      "type": "string"
+    },
+    "discovered_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_checked": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "freshness_status": {
+      "type": "string",
+      "enum": [
+        "current",
+        "recent",
+        "stale",
+        "unavailable"
+      ],
+      "default": "current"
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "unverified",
+        "verified",
+        "conflicting"
+      ],
+      "default": "unverified"
+    },
+    "confidence_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "low"
+    },
+    "responsible_division": {
+      "type": "string",
+      "default": "markets"
+    },
+    "provider_connected": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether real market data is connected"
+    },
+    "discovery_record_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "asset_symbol"
+  ]
+}

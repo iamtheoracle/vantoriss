@@ -74,6 +74,13 @@ const DOMAIN_CONFIG = {
         ],
       },
       {
+        label: 'Discovery & Intelligence',
+        items: [
+          { label: 'Discovery Network', path: '/operations/discovery-network', icon: Search },
+          { label: 'Humanitarian Cases', path: '/operations/humanitarian-cases', icon: Heart },
+        ],
+      },
+      {
         label: 'Security',
         items: [
           { label: 'Security Dashboard', path: '/operations/security-dashboard', icon: ShieldAlert },
@@ -156,6 +163,8 @@ const DOMAIN_CONFIG = {
       {
         label: 'Intelligence',
         items: [
+          { label: 'Discovery Network', path: '/operations/discovery-network', icon: Search },
+          { label: 'Humanitarian Cases', path: '/operations/humanitarian-cases', icon: Heart },
           { label: 'Impact Analytics', path: '/operations/impact-analytics', icon: BarChart3 },
           { label: 'Supporter Leaderboard', path: '/operations/leaderboard', icon: Trophy },
         ],

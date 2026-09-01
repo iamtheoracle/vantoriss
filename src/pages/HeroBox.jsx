@@ -6,11 +6,14 @@ import { useToast } from '@/components/ui/use-toast';
 import ProductCatalog from '@/components/vantoris/herobox/ProductCatalog';
 import CheckoutFlow from '@/components/vantoris/herobox/CheckoutFlow';
 import OrderHistory from '@/components/vantoris/herobox/OrderHistory';
+import DonationFlow from '@/components/vantoris/herobox/DonationFlow';
 
 const TABS = [
   { id: 'discover', label: 'Discover', icon: Sparkles },
+  { id: 'packages', label: 'Packages', icon: Package },
   { id: 'shop', label: 'Shop', icon: ShoppingBag },
   { id: 'orders', label: 'My Orders', icon: Package },
+  { id: 'donate', label: 'Donate', icon: Heart },
 ];
 
 export default function HeroBox() {
@@ -19,6 +22,7 @@ export default function HeroBox() {
   const [activeTab, setActiveTab] = useState('discover');
   const [cart, setCart] = useState([]);
   const [showCheckout, setShowCheckout] = useState(false);
+  const [showDonation, setShowDonation] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -129,14 +133,14 @@ export default function HeroBox() {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 mb-5 bg-slate-100 rounded-xl p-1">
+      <div className="flex items-center gap-1 mb-5 bg-slate-100 rounded-xl p-1 overflow-x-auto">
         {TABS.map(tab => {
           const Icon = tab.icon;
           return (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-semibold transition ${
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-semibold transition whitespace-nowrap ${
                 activeTab === tab.id ? 'bg-white text-navy shadow-sm' : 'text-gray'
               }`}
             >
@@ -160,7 +164,7 @@ export default function HeroBox() {
             <p className="text-gray text-sm">No verified stories are currently available.</p>
             <p className="text-xs text-gray mt-1">When verified needs are published by HeroBox administrators, they will appear here.</p>
             <button
-              onClick={() => setActiveTab('shop')}
+              onClick={() => setActiveTab('packages')}
               className="mt-4 px-6 py-2.5 rounded-xl bg-brass text-white text-sm font-semibold"
             >
               Browse Care Packages
@@ -169,9 +173,23 @@ export default function HeroBox() {
         </div>
       )}
 
+      {activeTab === 'packages' && (
+        <div>
+          <ProductCatalog cart={cart} onAddToCart={handleAddToCart} onRemoveFromCart={handleRemoveFromCart} view="packages" />
+          {cartCount > 0 && (
+            <button
+              onClick={() => setShowCheckout(true)}
+              className="fixed bottom-24 left-5 right-5 max-w-md mx-auto py-3.5 rounded-xl bg-brass text-white font-semibold shadow-lg flex items-center justify-center gap-2 z-40"
+            >
+              <ShoppingCart size={18} /> Checkout ({cartCount} item{cartCount !== 1 ? 's' : ''})
+            </button>
+          )}
+        </div>
+      )}
+
       {activeTab === 'shop' && (
         <div>
-          <ProductCatalog cart={cart} onAddToCart={handleAddToCart} onRemoveFromCart={handleRemoveFromCart} />
+          <ProductCatalog cart={cart} onAddToCart={handleAddToCart} onRemoveFromCart={handleRemoveFromCart} view="shop" />
           {cartCount > 0 && (
             <button
               onClick={() => setShowCheckout(true)}
@@ -185,11 +203,36 @@ export default function HeroBox() {
 
       {activeTab === 'orders' && <OrderHistory />}
 
+      {activeTab === 'donate' && (
+        <div>
+          <div className="vantoris-glass-premium p-6 mb-5 text-center">
+            <Heart size={28} className="text-brass mx-auto mb-3" />
+            <h3 className="text-base font-bold text-foreground mb-1">Donate to Verified Needs</h3>
+            <p className="text-gray text-xs leading-relaxed">
+              Support verified humanitarian cases discovered by the Vantoris Intelligence Network. Every case is verified — Vantoris never fabricates people, needs, or emergencies. You choose exactly where your donation goes.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowDonation(true)}
+            className="w-full py-3.5 rounded-xl bg-brass text-white font-semibold flex items-center justify-center gap-2"
+          >
+            <Heart size={18} /> Start a Donation
+          </button>
+        </div>
+      )}
+
       {showCheckout && (
         <CheckoutFlow
           cart={cart}
           onClose={() => setShowCheckout(false)}
           onOrderComplete={handleOrderComplete}
+        />
+      )}
+
+      {showDonation && (
+        <DonationFlow
+          onClose={() => setShowDonation(false)}
+          onOrderComplete={() => { setActiveTab('orders'); }}
         />
       )}
     </div>

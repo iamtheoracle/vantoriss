@@ -1,0 +1,116 @@
+{
+  "name": "DiscoverySource",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Human-readable name of the source"
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "government",
+        "court",
+        "regulator",
+        "retailer",
+        "market_data",
+        "news",
+        "ngo",
+        "charity",
+        "provider",
+        "other"
+      ],
+      "description": "Type of external source"
+    },
+    "discovery_domain": {
+      "type": "string",
+      "enum": [
+        "humanitarian",
+        "commerce",
+        "news",
+        "legal_regulatory",
+        "market",
+        "organization",
+        "risk",
+        "internal"
+      ],
+      "description": "Which discovery pipeline this source belongs to"
+    },
+    "domain": {
+      "type": "string",
+      "description": "URL domain of the source"
+    },
+    "base_url": {
+      "type": "string",
+      "description": "Base URL for API or web access"
+    },
+    "access_method": {
+      "type": "string",
+      "enum": [
+        "api",
+        "web_search",
+        "manual",
+        "connector"
+      ],
+      "default": "web_search",
+      "description": "How Vantoris accesses this source"
+    },
+    "api_available": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether a real API or connector integration exists"
+    },
+    "api_connector_id": {
+      "type": "string",
+      "description": "Reference to connected OAuth connector if applicable"
+    },
+    "freshness_interval_hours": {
+      "type": "number",
+      "default": 24,
+      "description": "How often (in hours) to recheck this source"
+    },
+    "robots_txt_respected": {
+      "type": "boolean",
+      "default": true
+    },
+    "terms_accepted": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether provider terms have been reviewed and accepted"
+    },
+    "requires_auth": {
+      "type": "boolean",
+      "default": false
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "unavailable",
+        "rate_limited"
+      ],
+      "default": "active"
+    },
+    "last_checked": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_error": {
+      "type": "string",
+      "description": "Last error encountered when accessing this source"
+    },
+    "responsible_division": {
+      "type": "string",
+      "description": "Which Vantoris Command division is responsible"
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "source_type",
+    "discovery_domain"
+  ]
+}

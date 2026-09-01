@@ -1,0 +1,98 @@
+{
+  "name": "LegalRegulatoryRecord",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "jurisdiction": {
+      "type": "string",
+      "description": "Legal jurisdiction (e.g. US Federal, US-CA, EU)"
+    },
+    "authority": {
+      "type": "string",
+      "description": "Issuing authority (e.g. CFPB, SEC, FinCEN)"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "source_name": {
+      "type": "string"
+    },
+    "document_identifier": {
+      "type": "string",
+      "description": "Official document/case identifier when available"
+    },
+    "publication_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "effective_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "record_status": {
+      "type": "string",
+      "enum": [
+        "proposed",
+        "enacted",
+        "effective",
+        "repealed",
+        "superseded"
+      ],
+      "default": "effective"
+    },
+    "affected_area": {
+      "type": "string",
+      "enum": [
+        "banking",
+        "financial",
+        "investment",
+        "payments",
+        "consumer_protection",
+        "ngo_charity",
+        "data_privacy",
+        "other"
+      ]
+    },
+    "summary": {
+      "type": "string"
+    },
+    "evidence": {
+      "type": "string"
+    },
+    "confidence_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "medium"
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "unverified",
+        "verified",
+        "conflicting"
+      ],
+      "default": "unverified"
+    },
+    "last_checked": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "responsible_division": {
+      "type": "string",
+      "default": "compliance"
+    },
+    "discovery_record_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title",
+    "affected_area"
+  ]
+}

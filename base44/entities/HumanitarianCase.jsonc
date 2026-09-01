@@ -1,0 +1,161 @@
+{
+  "name": "HumanitarianCase",
+  "type": "object",
+  "properties": {
+    "case_title": {
+      "type": "string"
+    },
+    "recipient_type": {
+      "type": "string",
+      "enum": [
+        "individual",
+        "family",
+        "childrens_home",
+        "orphanage",
+        "shelter",
+        "ngo",
+        "organization",
+        "military_personnel",
+        "military_family",
+        "community"
+      ]
+    },
+    "recipient_name": {
+      "type": "string",
+      "description": "Public name of the recipient (organization or individual if publicly documented)"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "financial_assistance",
+        "surgery_medical",
+        "food",
+        "essential_supplies",
+        "children_support",
+        "shelter",
+        "emergency",
+        "military_support",
+        "communication",
+        "other"
+      ]
+    },
+    "location": {
+      "type": "string",
+      "description": "Geographic location where appropriate"
+    },
+    "stated_need": {
+      "type": "string",
+      "description": "The documented need in the recipient's own words or the source's words"
+    },
+    "requested_assistance": {
+      "type": "string",
+      "description": "What assistance is being requested"
+    },
+    "estimated_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Estimated assistance amount in USD if documented"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "source_name": {
+      "type": "string"
+    },
+    "discovery_record_id": {
+      "type": "string",
+      "description": "Reference to the DiscoveryRecord"
+    },
+    "evidence": {
+      "type": "string",
+      "description": "JSON-serialized array of evidence items (URLs, descriptions, dates)"
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "unverified",
+        "partially_verified",
+        "verified",
+        "conflicting",
+        "failed"
+      ],
+      "default": "unverified"
+    },
+    "confidence_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "low"
+    },
+    "date_discovered": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "date_last_verified": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "case_status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "under_review",
+        "approved",
+        "matched",
+        "fulfilled",
+        "closed",
+        "expired",
+        "rejected"
+      ],
+      "default": "open"
+    },
+    "review_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "under_review",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending"
+    },
+    "expiration_recheck_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this case should be rechecked for freshness"
+    },
+    "assigned_division": {
+      "type": "string",
+      "default": "humanitarian"
+    },
+    "matched_order_id": {
+      "type": "string",
+      "description": "HeroBoxOrder ID if matched to a donation/fulfillment"
+    },
+    "risk_flags": {
+      "type": "string",
+      "description": "JSON-serialized array of risk indicators"
+    },
+    "reviewer_id": {
+      "type": "string"
+    },
+    "reviewer_name": {
+      "type": "string"
+    },
+    "review_notes": {
+      "type": "string"
+    },
+    "reviewed_date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "case_title",
+    "recipient_type",
+    "category"
+  ]
+}

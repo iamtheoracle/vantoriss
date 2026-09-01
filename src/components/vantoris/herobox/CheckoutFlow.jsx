@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { X, Loader2, MapPin, User, Package, Check } from 'lucide-react';
+import { X, Loader2, MapPin, User, Package, Check, ShoppingCart } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { useToast } from '@/components/ui/use-toast';
+import { createOrderSnapshot } from '@/lib/heroboxPackages';
 
-export default function CheckoutFlow({ cart, onClose, onOrderComplete }) {
+export default function CheckoutFlow({ cart, onClose, onOrderComplete, packageData = null }) {
   const [step, setStep] = useState(1);
   const [recipientName, setRecipientName] = useState('');
   const [destination, setDestination] = useState('');
@@ -32,24 +33,23 @@ export default function CheckoutFlow({ cart, onClose, onOrderComplete }) {
     setSubmitting(true);
     try {
       const me = await base44.auth.me();
+
+      // Create order snapshot — preserves exact purchased product state
+      const snapshot = createOrderSnapshot(cart, packageData);
+
       const order = await base44.entities.HeroBoxOrder.create({
         user_id: me.id,
         recipient_name: recipientName,
         destination,
         destination_address: address,
-        items: JSON.stringify(cart.map(c => ({
-          product_id: c.product_id,
-          name: c.name,
-          category: c.category,
-          price: c.discount > 0 ? c.price * (1 - c.discount / 100) : c.price,
-          quantity: c.quantity,
-        }))),
+        items: JSON.stringify(snapshot.items),
         subtotal,
         discount,
         shipping_cost: shippingCost,
         total,
         status: 'payment_pending',
         payment_status: 'pending',
+        package_id: packageData?.packageId || '',
       });
       setCompletedOrder(order);
       setStep(4);
@@ -93,13 +93,12 @@ export default function CheckoutFlow({ cart, onClose, onOrderComplete }) {
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold text-foreground">Checkout</h3>
+          <h3 className="text-lg font-bold text-foreground">{packageData ? `Checkout — ${packageData.name}` : 'Checkout'}</h3>
           <button onClick={onClose}><X size={20} className="text-gray" /></button>
         </div>
 
-        {/* Progress */}
         <div className="flex items-center gap-1 mb-5">
-          {[1, 2, 3].map(s => (
+          {[1, 2, 3].map((s) => (
             <div key={s} className={`h-1 flex-1 rounded-full ${s <= step ? 'bg-brass' : 'bg-slate-200'}`} />
           ))}
         </div>
@@ -112,7 +111,7 @@ export default function CheckoutFlow({ cart, onClose, onOrderComplete }) {
             </div>
             <input
               value={recipientName}
-              onChange={e => setRecipientName(e.target.value)}
+              onChange={(e) => setRecipientName(e.target.value)}
               placeholder="Recipient full name"
               className="w-full rounded-lg border border-border bg-white px-4 py-3 text-sm focus:border-brass/50 focus:outline-none"
             />
@@ -122,13 +121,13 @@ export default function CheckoutFlow({ cart, onClose, onOrderComplete }) {
             </div>
             <input
               value={destination}
-              onChange={e => setDestination(e.target.value)}
+              onChange={(e) => setDestination(e.target.value)}
               placeholder="Country / region"
               className="w-full rounded-lg border border-border bg-white px-4 py-3 text-sm focus:border-brass/50 focus:outline-none"
             />
             <textarea
               value={address}
-              onChange={e => setAddress(e.target.value)}
+              onChange={(e) => setAddress(e.target.value)}
               placeholder="Full shipping address (optional)"
               className="w-full rounded-lg border border-border bg-white px-4 py-3 text-sm focus:border-brass/50 focus:outline-none min-h-[80px]"
             />
@@ -148,7 +147,7 @@ export default function CheckoutFlow({ cart, onClose, onOrderComplete }) {
               <Package size={16} className="text-gray" />
               <p className="text-sm font-semibold text-foreground">Review Items</p>
             </div>
-            {cart.map(item => {
+            {cart.map((item) => {
               const price = item.discount > 0 ? item.price * (1 - item.discount / 100) : item.price;
               return (
                 <div key={item.product_id} className="flex items-center justify-between py-2 border-b border-slate-100">

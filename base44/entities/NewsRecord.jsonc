@@ -1,0 +1,110 @@
+{
+  "name": "NewsRecord",
+  "type": "object",
+  "properties": {
+    "headline": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "breaking",
+        "international",
+        "local",
+        "humanitarian",
+        "military",
+        "financial",
+        "corporate",
+        "regulatory",
+        "technology",
+        "vantoris_relevant"
+      ]
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "source_name": {
+      "type": "string"
+    },
+    "source_domain": {
+      "type": "string"
+    },
+    "publication_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "discovered_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_checked": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "freshness_status": {
+      "type": "string",
+      "enum": [
+        "current",
+        "recent",
+        "stale",
+        "unavailable"
+      ],
+      "default": "current"
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "unverified",
+        "partially_verified",
+        "verified",
+        "conflicting"
+      ],
+      "default": "unverified"
+    },
+    "confidence_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "low"
+    },
+    "corroborating_sources": {
+      "type": "string",
+      "description": "JSON-serialized array of corroborating source URLs"
+    },
+    "conflicting_reports": {
+      "type": "string",
+      "description": "JSON-serialized array of conflicting report URLs"
+    },
+    "is_confirmed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Confirmed fact vs allegation/speculation"
+    },
+    "responsible_division": {
+      "type": "string",
+      "default": "intelligence"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "archived",
+        "superseded"
+      ],
+      "default": "active"
+    },
+    "discovery_record_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "headline",
+    "category"
+  ]
+}

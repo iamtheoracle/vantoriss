@@ -1,0 +1,41 @@
+{
+  "name": "Daily HeroBox Product Freshness Check",
+  "description": "Daily scheduled workflow that checks HeroBox product catalog freshness, marks stale products, and attempts to refresh from connected commerce providers. If no real provider integration exists, it marks products as needing manual refresh without fabricating data. Requires the productFreshnessCheck backend function (Builder+ plan).",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 0 5 * * *",
+      "one_time_date": null,
+      "timezone": "America/New_York",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "daily_herobox_product_freshness_check",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "productFreshnessCheck",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

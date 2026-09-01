@@ -1,0 +1,61 @@
+{
+  "name": "DiscoveryAlert",
+  "type": "object",
+  "properties": {
+    "alert_type": {
+      "type": "string",
+      "enum": [
+        "stale_data",
+        "source_unavailable",
+        "verification_failed",
+        "conflict_detected",
+        "risk_detected",
+        "provider_error",
+        "integration_failure",
+        "freshness_expired"
+      ]
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "medium"
+    },
+    "discovery_record_id": {
+      "type": "string"
+    },
+    "source_id": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "responsible_division": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "acknowledged",
+        "resolved"
+      ],
+      "default": "open"
+    },
+    "resolved_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "resolution_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "alert_type",
+    "description"
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "name": "VerificationRecord",
+  "type": "object",
+  "properties": {
+    "discovery_record_id": {
+      "type": "string",
+      "description": "The DiscoveryRecord being verified"
+    },
+    "verification_type": {
+      "type": "string",
+      "enum": [
+        "source_check",
+        "cross_check",
+        "primary_source_verification",
+        "conflict_resolution",
+        "freshness_check"
+      ]
+    },
+    "verifier_division": {
+      "type": "string",
+      "description": "Which Command division performed the verification"
+    },
+    "sources_checked": {
+      "type": "string",
+      "description": "JSON-serialized array of sources checked"
+    },
+    "result": {
+      "type": "string",
+      "enum": [
+        "verified",
+        "partially_verified",
+        "conflicting",
+        "failed",
+        "stale"
+      ],
+      "default": "unverified"
+    },
+    "evidence_summary": {
+      "type": "string"
+    },
+    "conflicts_found": {
+      "type": "string"
+    },
+    "verification_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "verifier_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "discovery_record_id",
+    "verification_type"
+  ]
+}

@@ -1,0 +1,146 @@
+{
+  "name": "DiscoveryRecord",
+  "type": "object",
+  "properties": {
+    "source_id": {
+      "type": "string",
+      "description": "Reference to the DiscoverySource"
+    },
+    "source_url": {
+      "type": "string",
+      "description": "Direct URL of the discovered item"
+    },
+    "source_domain": {
+      "type": "string"
+    },
+    "source_name": {
+      "type": "string"
+    },
+    "source_classification": {
+      "type": "string",
+      "enum": [
+        "primary",
+        "secondary"
+      ],
+      "default": "secondary",
+      "description": "Primary = original source; Secondary = reporting about a primary source"
+    },
+    "discovery_domain": {
+      "type": "string",
+      "enum": [
+        "humanitarian",
+        "commerce",
+        "news",
+        "legal_regulatory",
+        "market",
+        "organization",
+        "risk",
+        "internal"
+      ],
+      "description": "Which discovery pipeline discovered this record"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "content_summary": {
+      "type": "string",
+      "description": "Structured summary of the discovered content"
+    },
+    "publication_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Original publication date when available"
+    },
+    "discovered_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When Vantoris discovered this item"
+    },
+    "last_checked": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "freshness_status": {
+      "type": "string",
+      "enum": [
+        "current",
+        "recent",
+        "stale",
+        "unavailable",
+        "provider_error"
+      ],
+      "default": "current"
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "unverified",
+        "partially_verified",
+        "verified",
+        "conflicting",
+        "failed"
+      ],
+      "default": "unverified"
+    },
+    "confidence_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "low"
+    },
+    "corroborating_sources": {
+      "type": "string",
+      "description": "JSON-serialized array of corroborating source URLs"
+    },
+    "conflicting_sources": {
+      "type": "string",
+      "description": "JSON-serialized array of conflicting source URLs"
+    },
+    "evidence_summary": {
+      "type": "string"
+    },
+    "responsible_division": {
+      "type": "string",
+      "description": "Which Vantoris Command division processed this"
+    },
+    "next_recheck": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "external_reference": {
+      "type": "string",
+      "description": "External ID (product ID, case number, document ID, ticker symbol, etc.)"
+    },
+    "linked_entity_type": {
+      "type": "string",
+      "description": "If routed to a domain entity, the entity name (e.g. HumanitarianCase, HeroBoxProduct)"
+    },
+    "linked_entity_id": {
+      "type": "string",
+      "description": "ID of the linked domain entity"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "archived",
+        "superseded"
+      ],
+      "default": "active"
+    },
+    "metadata": {
+      "type": "string",
+      "description": "JSON-serialized domain-specific metadata"
+    }
+  },
+  "required": [
+    "discovery_domain",
+    "title"
+  ]
+}

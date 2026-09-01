@@ -1,0 +1,41 @@
+{
+  "name": "Daily Discovery Freshness Check",
+  "description": "Daily scheduled workflow that checks freshness of all active DiscoveryRecords, marks stale records, and creates alerts for items needing recheck. Runs the Discovery & Intelligence Network freshness check across all domains. Requires the discoveryFreshnessCheck backend function (Builder+ plan).",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 0 6 * * *",
+      "one_time_date": null,
+      "timezone": "America/New_York",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "daily_discovery_freshness_check",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "discoveryFreshnessCheck",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

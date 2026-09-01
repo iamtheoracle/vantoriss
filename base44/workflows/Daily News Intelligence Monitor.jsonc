@@ -1,0 +1,41 @@
+{
+  "name": "Daily News Intelligence Monitor",
+  "description": "Daily scheduled workflow that monitors legitimate news sources for breaking news, international events, humanitarian developments, military developments, financial news, regulatory developments, and technology developments relevant to Vantoris. Never presents unverified breaking reports as established facts. Requires the newsIntelligenceMonitor backend function (Builder+ plan).",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 0 7 * * *",
+      "one_time_date": null,
+      "timezone": "America/New_York",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "daily_news_intelligence_monitor",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "newsIntelligenceMonitor",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

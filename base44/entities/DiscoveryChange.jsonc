@@ -1,0 +1,49 @@
+{
+  "name": "DiscoveryChange",
+  "type": "object",
+  "properties": {
+    "discovery_record_id": {
+      "type": "string",
+      "description": "The DiscoveryRecord that changed"
+    },
+    "change_type": {
+      "type": "string",
+      "enum": [
+        "created",
+        "updated",
+        "price_changed",
+        "availability_changed",
+        "status_changed",
+        "verification_changed",
+        "superseded"
+      ]
+    },
+    "previous_value": {
+      "type": "string",
+      "description": "JSON-serialized previous state"
+    },
+    "new_value": {
+      "type": "string",
+      "description": "JSON-serialized new state"
+    },
+    "change_summary": {
+      "type": "string"
+    },
+    "detected_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "requires_review": {
+      "type": "boolean",
+      "default": false
+    },
+    "reviewed": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "discovery_record_id",
+    "change_type"
+  ]
+}
