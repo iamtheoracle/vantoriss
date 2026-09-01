@@ -14,7 +14,6 @@ export default function Profile() {
   const [user, setUser] = useState(null);
   const [application, setApplication] = useState(null);
   const [accounts, setAccounts] = useState([]);
-  const [tradingAccounts, setTradingAccounts] = useState([]);
   const [heroProfile, setHeroProfile] = useState(null);
   const [heroRequests, setHeroRequests] = useState([]);
   const [heroActivities, setHeroActivities] = useState([]);
@@ -43,15 +42,13 @@ export default function Profile() {
     setApplication(apps[0] || null);
     setPhase(1);
 
-    // Phase 2: Products (accounts, trading, herobox)
-    const [accts, trading, heroProfs, heroReqs] = await Promise.all([
+    // Phase 2: Products (accounts, herobox)
+    const [accts, heroProfs, heroReqs] = await Promise.all([
       base44.entities.Account.filter({ user_id: me.id }),
-      base44.entities.TradingAccount.filter({ user_id: me.id }),
       base44.entities.HeroBoxProfile.filter({ user_id: me.id }),
       base44.entities.HeroBoxRequest.filter({ user_id: me.id }),
     ]);
     setAccounts(accts);
-    setTradingAccounts(trading);
     setHeroProfile(heroProfs[0] || null);
     setHeroRequests(heroReqs);
     setPhase(2);
@@ -92,8 +89,7 @@ export default function Profile() {
   const hasHeroBox = !!heroProfile;
   const hasDocuments = documents.length > 0;
 
-  const totalAssets = accounts.reduce((s, a) => s + (a.balance || 0), 0)
-    + tradingAccounts.reduce((s, a) => s + (a.balance || 0), 0);
+  const totalAssets = accounts.reduce((s, a) => s + (a.balance || 0), 0);
   const bankingTier = totalAssets >= 50000 ? 'Private Client'
     : totalAssets >= 10000 ? 'Premier'
     : totalAssets >= 1000 ? 'Preferred'
@@ -120,7 +116,6 @@ export default function Profile() {
       {phase >= 2 && (
         <RelationshipOverview
           accounts={accounts}
-          tradingAccounts={tradingAccounts}
           heroProfile={heroProfile}
           heroRequests={heroRequests}
         />

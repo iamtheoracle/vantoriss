@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 
 /**
  * useMemberAccess — Checks whether the current member is approved for
- * account-dependent features (Trading, Investments, Move Money, etc.).
+ * account-dependent features (Move Money, Statements, etc.).
  *
  * A member is "approved" when they have at least one active Account,
  * which is only created after application + KYC + opening contribution approval.
