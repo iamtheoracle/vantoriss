@@ -266,7 +266,7 @@ export async function requestExceptionAuth(user, action, target, credential) {
 // ---- Audit Logging ----
 // Records the exception auth event to the AuditLog entity.
 // NEVER records the actual credential/secret.
-export async function logExceptionAuthEvent(user, action, target, result, executionResult) {
+export async function logExceptionAuthEvent(user, action, target, result, executionResult, eventType) {
   try {
     await base44.entities.AuditLog.create({
       action_type: 'super_admin_exception_auth',
@@ -274,10 +274,11 @@ export async function logExceptionAuthEvent(user, action, target, result, execut
       admin_name: user?.full_name || user?.email || '',
       description: `Super Administrator Exception Authentication: ${getActionLabel(action)}`,
       details: JSON.stringify({
+        event_type: eventType || (result === 'EXCEPTION_AUTHORIZATION_VALID' ? 'EXCEPTION_AUTH_SUCCESS' : 'EXCEPTION_AUTH_FAILURE'),
         action,
         action_label: getActionLabel(action),
         target: target || '*',
-        result, // EXCEPTION_AUTHORIZATION_VALID or EXCEPTION_AUTHORIZATION_FAILED
+        result,
         execution_result: executionResult || null,
         timestamp: new Date().toISOString(),
         // NEVER includes the credential/secret
@@ -286,5 +287,29 @@ export async function logExceptionAuthEvent(user, action, target, result, execut
   } catch (e) {
     // Audit logging failure should not block the flow, but should be reported
     console.warn('Exception auth audit log write failed:', e?.message || e);
+  }
+}
+
+// Log the execution result of an authorized exception action.
+// eventType: EXCEPTION_ACTION_EXECUTED or EXCEPTION_ACTION_FAILED
+export async function logExceptionAction(user, action, target, executionResult) {
+  try {
+    await base44.entities.AuditLog.create({
+      action_type: 'super_admin_exception_auth',
+      user_id: user?.id || '',
+      admin_name: user?.full_name || user?.email || '',
+      description: `Super Administrator Exception Action: ${getActionLabel(action)}`,
+      details: JSON.stringify({
+        event_type: executionResult === 'success' ? 'EXCEPTION_ACTION_EXECUTED' : 'EXCEPTION_ACTION_FAILED',
+        action,
+        action_label: getActionLabel(action),
+        target: target || '*',
+        execution_result: executionResult,
+        timestamp: new Date().toISOString(),
+        // NEVER includes the credential/secret
+      }),
+    });
+  } catch (e) {
+    console.warn('Exception action audit log write failed:', e?.message || e);
   }
 }

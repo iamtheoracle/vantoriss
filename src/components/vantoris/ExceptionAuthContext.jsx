@@ -47,6 +47,9 @@ export function ExceptionAuthProvider({ children }) {
   const requestAuth = useCallback((user, actionKey, targetResource) => {
     userRef.current = user;
 
+    // Audit: exception auth requested (never logs the credential)
+    logExceptionAuthEvent(user, actionKey, targetResource, null, null, 'EXCEPTION_AUTH_REQUESTED');
+
     return new Promise((resolve) => {
       resolveRef.current = resolve;
       setAction(actionKey);
@@ -79,6 +82,7 @@ export function ExceptionAuthProvider({ children }) {
     if (isLockedOut()) {
       setLockoutRemaining(getLockoutRemaining());
       setError(`Temporarily locked out. Try again in ${Math.ceil(getLockoutRemaining() / 60000)} minute(s).`);
+      logExceptionAuthEvent(userRef.current, action, target, 'EXCEPTION_AUTHORIZATION_LOCKED', null, 'EXCEPTION_AUTH_LOCKOUT');
       return;
     }
 
@@ -92,7 +96,8 @@ export function ExceptionAuthProvider({ children }) {
     const result = await requestExceptionAuth(user, action, target, cred);
 
     // Audit log the event (never logs the credential)
-    await logExceptionAuthEvent(user, action, target, result.result, null);
+    const eventType = result.success ? 'EXCEPTION_AUTH_SUCCESS' : 'EXCEPTION_AUTH_FAILURE';
+    await logExceptionAuthEvent(user, action, target, result.result, null, eventType);
 
     if (result.success) {
       close({ success: true, grant: result.grant, reason: null });
@@ -108,7 +113,7 @@ export function ExceptionAuthProvider({ children }) {
   const handleCancel = useCallback(() => {
     // Log the cancellation as a failed attempt
     if (userRef.current && action) {
-      logExceptionAuthEvent(userRef.current, action, target, 'EXCEPTION_AUTHORIZATION_FAILED', 'cancelled_by_user');
+      logExceptionAuthEvent(userRef.current, action, target, 'EXCEPTION_AUTHORIZATION_FAILED', 'cancelled_by_user', 'EXCEPTION_AUTH_FAILURE');
     }
     close({ success: false, grant: null, reason: 'Cancelled by user' });
   }, [action, target, close]);
