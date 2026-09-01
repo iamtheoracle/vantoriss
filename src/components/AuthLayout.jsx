@@ -10,7 +10,7 @@ export default function AuthLayout({ title, subtitle, footer, children, bare = f
           <div className="text-center mb-8 animate-fade-up">
             <ShieldLogo size={48} className="mx-auto mb-4" />
             <h1 className="text-2xl font-bold tracking-[0.18em] text-foreground mb-1">VANTORIS</h1>
-            <p className="text-gray text-[10px] tracking-[0.3em] uppercase">Private Institutional Platform</p>
+            <p className="text-gray text-[10px] tracking-[0.3em] uppercase">Private Investment & Payments</p>
           </div>
           {bare ? (
             <div className="animate-scale-in">{children}</div>

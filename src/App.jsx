@@ -10,6 +10,7 @@ import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import MemberRoute from '@/components/MemberRoute';
 import PageTransition from './components/vantoris/PageTransition';
+import { ExceptionAuthProvider } from '@/components/vantoris/ExceptionAuthContext';
 
 // Layouts & Guards (non-lazy — needed for route structure)
 import MemberLayout from './components/vantoris/MemberLayout';
@@ -125,6 +126,7 @@ const AuthenticatedApp = () => {
 
   return (
     <Suspense fallback={<LoadingFallback />}>
+      <ExceptionAuthProvider>
       <Routes>
         <Route element={<PageTransition />}>
           <Route path="/login" element={<Login />} />
@@ -223,6 +225,7 @@ const AuthenticatedApp = () => {
 
         <Route path="*" element={<PageNotFound />} />
       </Routes>
+      </ExceptionAuthProvider>
     </Suspense>
   );
 };

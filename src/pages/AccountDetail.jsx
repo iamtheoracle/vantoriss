@@ -255,7 +255,7 @@ export default function AccountDetail() {
       doc.text('VANTORIS', 20, 25);
       doc.setFontSize(8);
       doc.setTextColor(170, 180, 195);
-      doc.text('PRIVATE INSTITUTIONAL PLATFORM', 20, 31);
+      doc.text('VANTORIS PIP · PRIVATE INVESTMENT & PAYMENTS', 20, 31);
 
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(16);

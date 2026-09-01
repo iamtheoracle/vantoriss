@@ -14,7 +14,7 @@ export default function VantorisSeal({ size = 160, theme = 'light', className = 
   const textColor = isDark ? 'rgba(248,250,252,0.7)' : 'rgba(18,58,110,0.8)';
 
   // circular text via textPath
-  const topText = 'VANTORIS · PRIVATE INSTITUTIONAL PLATFORM · ';
+  const topText = 'VANTORIS PIP · PRIVATE INVESTMENT & PAYMENTS · ';
   const bottomText = 'TRUST · STRUCTURE · PURPOSE · EST. MMXXV · ';
 
   return (

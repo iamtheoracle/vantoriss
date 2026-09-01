@@ -27,7 +27,8 @@
         "application_approved",
         "application_rejected",
         "kyc_approved",
-        "kyc_rejected"
+        "kyc_rejected",
+        "super_admin_exception_auth"
       ],
       "description": "The type of administrative action performed"
     },
@@ -37,7 +38,7 @@
     },
     "details": {
       "type": "string",
-      "description": "Additional context \u2014 notes, references, prior values"
+      "description": "Additional context \u2014 notes, references, prior values. For exception auth events: JSON with action, target, result, execution_result. NEVER includes the credential/secret."
     },
     "amount": {
       "type": "number",

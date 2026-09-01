@@ -44,7 +44,7 @@ export default function SplashScreen({ onDone }) {
         transition={{ delay: 0.9, duration: 0.6 }}
         className="relative z-10 mt-2 text-[10px] tracking-[0.32em] uppercase text-[#AAB4C3]"
       >
-        Private Institutional Financial Platform
+        Private Investment & Payments
       </motion.p>
 
       <motion.div
