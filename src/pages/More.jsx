@@ -6,7 +6,7 @@ import { useWhatsAppConfig, whatsappLinkFromConfig } from '@/hooks/useWhatsAppCo
 import {
   User, Bell, Settings, CreditCard, FileText,
   MessageCircle, Sparkles, Phone, Info,
-  LogOut, ChevronRight, Shield,
+  LogOut, ChevronRight, Shield, TrendingUp,
 } from 'lucide-react';
 import ShieldLogo from '@/components/vantoris/ShieldLogo';
 import { getRoleLabel, isSuperAdmin } from '@/lib/operationsAccess';
@@ -27,6 +27,12 @@ const SECTIONS = [
       { id: 'accounts', label: 'Accounts', desc: 'View your accounts', icon: CreditCard, route: '/accounts', color: 'bg-blue-500/10 text-blue-600' },
       { id: 'move-money', label: 'Move Money', desc: 'Transfer, send & deposit', icon: CreditCard, route: '/move-money', color: 'bg-navy/8 text-navy' },
       { id: 'statements', label: 'Statements & Documents', desc: 'Account documents', icon: FileText, route: '/documents', color: 'bg-blue-500/10 text-blue-600' },
+    ],
+  },
+  {
+    title: 'Investment',
+    items: [
+      { id: 'investment', label: 'Vantoris Investment', desc: 'A separate investment experience', icon: TrendingUp, route: '/investment', color: 'bg-mint/10 text-mint' },
     ],
   },
   {

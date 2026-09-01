@@ -39,6 +39,7 @@ const TransactionDispute = React.lazy(() => import('./pages/TransactionDispute')
 const BrandIdentity = React.lazy(() => import('./pages/BrandIdentity'));
 const VantorisAssistant = React.lazy(() => import('./components/vantoris/VantorisAssistant'));
 const HeroBox = React.lazy(() => import('./pages/HeroBox'));
+const Investment = React.lazy(() => import('./pages/Investment'));
 
 // Lazy-loaded pages — Admin (Operations Center)
 const AdminOverview = React.lazy(() => import('./pages/admin/AdminOverview'));
@@ -92,6 +93,13 @@ const FeatureFlags = React.lazy(() => import('./pages/operations/FeatureFlags'))
 const BackgroundJobs = React.lazy(() => import('./pages/operations/BackgroundJobs'));
 const SystemHealth = React.lazy(() => import('./pages/operations/SystemHealth'));
 const DataIntegrityAudit = React.lazy(() => import('./pages/operations/DataIntegrityAudit'));
+const InvestmentDashboard = React.lazy(() => import('./pages/operations/InvestmentDashboard'));
+const InvestmentDeposits = React.lazy(() => import('./pages/operations/InvestmentDeposits'));
+const InvestmentWithdrawals = React.lazy(() => import('./pages/operations/InvestmentWithdrawals'));
+const InvestmentPortfolios = React.lazy(() => import('./pages/operations/InvestmentPortfolios'));
+const InvestmentSignals = React.lazy(() => import('./pages/operations/InvestmentSignals'));
+const HeroBoxAdminProducts = React.lazy(() => import('./pages/operations/HeroBoxAdminProducts'));
+const HeroBoxAdminOrders = React.lazy(() => import('./pages/operations/HeroBoxAdminOrders'));
 
 const LoadingFallback = () => (
   <div className="fixed inset-0 flex items-center justify-center bg-background">
@@ -130,7 +138,7 @@ const AuthenticatedApp = () => {
           {/* Member Portal */}
           <Route element={<MemberLayout />}>
             <Route path="/" element={<Home />} />
-            <Route path="/apply" element={<Apply />} />
+            <Route path="/apply" element={<Navigate to="/register" replace />} />
             <Route path="/apply/kyc" element={<ApplyKYC />} />
             <Route path="/accounts" element={<Accounts />} />
             <Route path="/accounts/:id" element={<AccountDetail />} />
@@ -144,6 +152,7 @@ const AuthenticatedApp = () => {
             <Route path="/dispute" element={<TransactionDispute />} />
             <Route path="/assistant" element={<VantorisAssistant />} />
             <Route path="/herobox" element={<HeroBox />} />
+            <Route path="/investment" element={<Investment />} />
           </Route>
 
           {/* Backward-compatible redirect */}
@@ -176,6 +185,8 @@ const AuthenticatedApp = () => {
               <Route path="/operations/herobox/heroes" element={<HeroBoxHeroes />} />
               <Route path="/operations/herobox/care-packages" element={<HeroBoxCarePackages />} />
               <Route path="/operations/herobox/volunteers" element={<HeroBoxVolunteers />} />
+              <Route path="/operations/herobox/products" element={<HeroBoxAdminProducts />} />
+              <Route path="/operations/herobox/orders" element={<HeroBoxAdminOrders />} />
               <Route path="/operations/organizations" element={<Organizations />} />
               <Route path="/operations/finance" element={<Finance />} />
               <Route path="/operations/deposits" element={<Deposits />} />
@@ -201,6 +212,11 @@ const AuthenticatedApp = () => {
               <Route path="/operations/background-jobs" element={<BackgroundJobs />} />
               <Route path="/operations/system-health" element={<SystemHealth />} />
               <Route path="/operations/data-integrity" element={<DataIntegrityAudit />} />
+              <Route path="/operations/investment" element={<InvestmentDashboard />} />
+              <Route path="/operations/investment/deposits" element={<InvestmentDeposits />} />
+              <Route path="/operations/investment/withdrawals" element={<InvestmentWithdrawals />} />
+              <Route path="/operations/investment/portfolios" element={<InvestmentPortfolios />} />
+              <Route path="/operations/investment/signals" element={<InvestmentSignals />} />
             </Route>
           </Route>
         </Route>

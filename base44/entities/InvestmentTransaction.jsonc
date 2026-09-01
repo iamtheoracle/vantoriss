@@ -1,0 +1,79 @@
+{
+  "name": "InvestmentTransaction",
+  "type": "object",
+  "properties": {
+    "portfolio_id": {
+      "type": "string",
+      "description": "The portfolio this transaction belongs to"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "deposit",
+        "withdrawal",
+        "buy",
+        "sell",
+        "dividend",
+        "interest",
+        "fee",
+        "adjustment"
+      ]
+    },
+    "amount": {
+      "type": "number"
+    },
+    "description": {
+      "type": "string"
+    },
+    "asset_symbol": {
+      "type": "string",
+      "description": "Asset/ticker symbol for buy/sell transactions"
+    },
+    "quantity": {
+      "type": "number",
+      "description": "Number of units for buy/sell"
+    },
+    "price_per_unit": {
+      "type": "number",
+      "description": "Execution price per unit"
+    },
+    "transaction_date": {
+      "type": "string",
+      "format": "date",
+      "description": "The date the transaction occurred"
+    },
+    "settlement_date": {
+      "type": "string",
+      "format": "date",
+      "description": "The date the transaction settled (may differ from transaction_date)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "completed",
+        "failed",
+        "reversed"
+      ],
+      "default": "pending"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "live",
+        "operator_entry",
+        "system"
+      ],
+      "default": "operator_entry"
+    }
+  },
+  "required": [
+    "portfolio_id",
+    "user_id",
+    "type",
+    "amount"
+  ]
+}

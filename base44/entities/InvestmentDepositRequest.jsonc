@@ -1,0 +1,59 @@
+{
+  "name": "InvestmentDepositRequest",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "portfolio_id": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "source_account_id": {
+      "type": "string",
+      "description": "Vantoris banking account to fund from"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "requested",
+        "under_review",
+        "approved",
+        "processing",
+        "completed",
+        "rejected",
+        "failed",
+        "reconciliation_required"
+      ],
+      "default": "requested"
+    },
+    "reviewed_by": {
+      "type": "string",
+      "description": "Investment operator who reviewed"
+    },
+    "reviewed_by_name": {
+      "type": "string"
+    },
+    "review_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "review_notes": {
+      "type": "string"
+    },
+    "completed_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "failure_reason": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "portfolio_id",
+    "amount"
+  ]
+}

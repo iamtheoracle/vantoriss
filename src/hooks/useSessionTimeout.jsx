@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 
-const INACTIVITY_LIMIT = 10 * 60 * 1000; // 10 minutes
-const WARNING_AT = 9 * 60 * 1000; // Show warning at 9 minutes
+const INACTIVITY_LIMIT = 2 * 60 * 1000; // 2 minutes (Vantoris banking standard)
+const WARNING_AT = 105 * 1000; // Show warning at 1 min 45 sec
 
 const ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
 

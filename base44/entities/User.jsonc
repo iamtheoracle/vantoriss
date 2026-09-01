@@ -23,7 +23,9 @@
         "risk_officer",
         "herobox_manager",
         "volunteer_manager",
-        "shipping_manager"
+        "shipping_manager",
+        "investment_manager",
+        "investment_officer"
       ],
       "default": "user"
     },

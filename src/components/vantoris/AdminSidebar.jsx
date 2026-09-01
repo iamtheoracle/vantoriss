@@ -10,167 +10,119 @@ import {
   AlertTriangle, Scale, GitBranch, Database, ServerCog,
   Search, Eye, ShieldAlert, Network, Globe, Zap,
   PanelLeftClose, FileUp, CalendarDays, Gavel, FileSpreadsheet, Trophy, Radar,
-  Shield, Package, Heart,
+  Shield, Package, Heart, Headphones, PieChart, Coins, Signal,
 } from 'lucide-react';
 import ShieldLogo from './ShieldLogo';
 import {
-  getWorkspacesForRole, hasWorkspaceAccess, getDefaultWorkspace,
-  WORKSPACE_LABELS, getRoleLabel,
+  getDomainsForRole, hasDomainAccess, getDefaultWorkspace,
+  WORKSPACE_LABELS, getRoleLabel, isSuperAdmin,
 } from '@/lib/operationsAccess';
 
-const WORKSPACE_CONFIG = {
-  executive: {
-    icon: Crown,
-    accent: 'text-brass',
-    bg: 'bg-brass/10',
-    sections: [
-      {
-        label: 'Command',
-        items: [
-          { label: 'Executive Dashboard', path: '/operations/executive', icon: LayoutDashboard },
-          { label: 'HeroBox Mission Control', path: '/operations/herobox', icon: Radar },
-        ],
-      },
-      {
-        label: 'Financial Intelligence',
-        items: [
-          { label: 'Enterprise Analytics', path: '/operations', icon: BarChart3 },
-          { label: 'Financial Performance', path: '/operations/finance', icon: DollarSign },
-          { label: 'AUM Growth', path: '/operations/aum-growth', icon: TrendingUp },
-          { label: 'Transaction Summaries', path: '/operations/transaction-summaries', icon: CalendarDays },
-          { label: 'Treasury Overview', path: '/operations/transfers', icon: Wallet },
-          { label: 'Business Intelligence', path: '/operations/reports', icon: TrendingUp },
-          { label: 'Impact Analytics', path: '/operations/impact-analytics', icon: BarChart3 },
-          { label: 'Supporter Leaderboard', path: '/operations/leaderboard', icon: Trophy },
-          { label: 'Strategic Reports', path: '/operations/executive-reports', icon: TrendingUp },
-        ],
-      },
-      {
-        label: 'Risk & Governance',
-        items: [
-          { label: 'Risk Overview', path: '/operations/security-dashboard', icon: ShieldAlert },
-          { label: 'Audit Logs', path: '/operations/audit-logs', icon: ScrollText },
-          { label: 'Activity Timeline', path: '/operations/activity', icon: Activity },
-          { label: 'Data Integrity Audit', path: '/operations/data-integrity', icon: Database },
-        ],
-      },
-      {
-        label: 'AI & Administration',
-        items: [
-          { label: 'AI Executive Insights', path: '/operations/assistant', icon: Bot },
-          { label: 'Recommendation Review', path: '/operations/recommendations', icon: Gavel },
-          { label: 'Configuration', path: '/operations/configuration', icon: Settings },
-          { label: 'Feature Flags', path: '/operations/feature-flags', icon: Flag },
-          { label: 'System Health', path: '/operations/system-health', icon: HeartPulse },
-          { label: 'API Management', path: '/operations/api-management', icon: Code },
-          { label: 'Integrations', path: '/operations/integrations', icon: Plug },
-        ],
-      },
-    ],
-  },
-  operations: {
+const DOMAIN_CONFIG = {
+  management: {
     icon: Briefcase,
-    accent: 'text-champagne',
-    bg: 'bg-champagne/10',
+    accent: 'text-navy',
+    bg: 'bg-navy/10',
     sections: [
       {
         label: 'Dashboard',
         items: [
-          { label: 'Daily Operations', path: '/operations', icon: LayoutDashboard },
-          { label: 'HeroBox Mission Control', path: '/operations/herobox', icon: Radar },
+          { label: 'Operations Overview', path: '/operations', icon: LayoutDashboard },
         ],
       },
       {
-        label: 'Onboarding & KYC',
+        label: 'Operations',
         items: [
           { label: 'Pending Applications', path: '/operations/applications', icon: FileText },
+          { label: 'Accounts', path: '/operations/accounts', icon: Wallet },
+          { label: 'Pending Deposits', path: '/operations/deposits', icon: ArrowDownToLine },
+          { label: 'Pending Withdrawals', path: '/operations/withdrawals', icon: ArrowUpRight },
+          { label: 'Transfers', path: '/operations/transfers', icon: ArrowLeftRight },
+          { label: 'Cards', path: '/operations/cards', icon: CreditCard },
+          { label: 'Bulk Import', path: '/operations/bulk-import', icon: FileUp },
+          { label: 'Documents', path: '/operations/documents', icon: FolderOpen },
+        ],
+      },
+      {
+        label: 'KYC / Compliance',
+        items: [
           { label: 'KYC Queue', path: '/operations/kyc', icon: ShieldCheck },
+          { label: 'Verification Requests', path: '/operations/verification-requests', icon: Eye },
           { label: 'Members', path: '/operations/members', icon: Users },
           { label: 'Organizations', path: '/operations/organizations', icon: Building2 },
         ],
       },
       {
-        label: 'Payments & Transfers',
+        label: 'Customer & Account Management',
         items: [
-          { label: 'Pending Deposits', path: '/operations/deposits', icon: ArrowDownToLine },
-          { label: 'Pending Withdrawals', path: '/operations/withdrawals', icon: ArrowUpRight },
-          { label: 'ACH Queue', path: '/operations/verification-requests', icon: ArrowLeftRight },
-          { label: 'Domestic Wires', path: '/operations/transfers', icon: ArrowLeftRight },
-          { label: 'International Wires', path: '/operations/transfers', icon: Globe },
-          { label: 'Withdrawal Limits', path: '/operations/withdrawal-limits', icon: ShieldCheck },
-        ],
-      },
-      {
-        label: 'Banking Operations',
-        items: [
-          { label: 'Accounts', path: '/operations/accounts', icon: Wallet },
-          { label: 'Bulk Import', path: '/operations/bulk-import', icon: FileUp },
-          { label: 'Cards', path: '/operations/cards', icon: CreditCard },
-          { label: 'Support Queue', path: '/operations/service-requests', icon: Wrench },
+          { label: 'Service Requests', path: '/operations/service-requests', icon: Wrench },
           { label: 'Member Messages', path: '/operations/member-messages', icon: MessageSquare },
-          { label: 'Documents', path: '/operations/documents', icon: FolderOpen },
-          { label: 'Notifications', path: '/operations/notifications', icon: Bell },
+          { label: 'Operational Profiles', path: '/operations/operational-profiles', icon: UserCheck },
+          { label: 'Referrals', path: '/operations/referrals', icon: Users2 },
         ],
       },
       {
-        label: 'AI Operations',
+        label: 'Reports & Data',
         items: [
-          { label: 'Recommendation Review', path: '/operations/recommendations', icon: Gavel },
-          { label: 'Impact Analytics', path: '/operations/impact-analytics', icon: BarChart3 },
-          { label: 'Supporter Leaderboard', path: '/operations/leaderboard', icon: Trophy },
+          { label: 'Reports', path: '/operations/reports', icon: BarChart3 },
+          { label: 'Executive Reports', path: '/operations/executive-reports', icon: TrendingUp },
+          { label: 'AUM Growth', path: '/operations/aum-growth', icon: TrendingUp },
+          { label: 'Transaction Summaries', path: '/operations/transaction-summaries', icon: CalendarDays },
+          { label: 'Activity Timeline', path: '/operations/activity', icon: Activity },
+          { label: 'Data Integrity Audit', path: '/operations/data-integrity', icon: Database },
           { label: 'Transaction Export', path: '/operations/transaction-export', icon: FileSpreadsheet },
         ],
       },
       {
-        label: 'Reports',
+        label: 'Security',
         items: [
-          { label: 'AUM Growth', path: '/operations/aum-growth', icon: TrendingUp },
-          { label: 'Transaction Summaries', path: '/operations/transaction-summaries', icon: CalendarDays },
-          { label: 'Reports', path: '/operations/reports', icon: BarChart3 },
-          { label: 'Activity Timeline', path: '/operations/activity', icon: Activity },
+          { label: 'Security Dashboard', path: '/operations/security-dashboard', icon: ShieldAlert },
+          { label: 'Withdrawal Limits', path: '/operations/withdrawal-limits', icon: Scale },
+          { label: 'Security Center', path: '/operations/security', icon: Lock },
+          { label: 'System Health', path: '/operations/system-health', icon: HeartPulse },
+        ],
+      },
+      {
+        label: 'System Administration',
+        items: [
+          { label: 'Configuration', path: '/operations/configuration', icon: Settings },
+          { label: 'Feature Flags', path: '/operations/feature-flags', icon: Flag },
+          { label: 'API Management', path: '/operations/api-management', icon: Code },
+          { label: 'Integrations', path: '/operations/integrations', icon: Plug },
+          { label: 'Notifications', path: '/operations/notifications', icon: Bell },
+          { label: 'Background Jobs', path: '/operations/background-jobs', icon: ServerCog },
+        ],
+      },
+      {
+        label: 'Administration',
+        items: [
+          { label: 'Audit Logs', path: '/operations/audit-logs', icon: ScrollText },
+          { label: 'Withdrawal Audit Log', path: '/operations/withdrawal-audit-log', icon: GitBranch },
         ],
       },
     ],
   },
-  security: {
-    icon: ShieldCheck,
-    accent: 'text-crimson',
-    bg: 'bg-crimson/10',
+  support: {
+    icon: Headphones,
+    accent: 'text-champagne',
+    bg: 'bg-champagne/10',
     sections: [
       {
-        label: 'Monitoring',
+        label: 'Customer Support',
         items: [
-          { label: 'Security Dashboard', path: '/operations/security-dashboard', icon: ShieldAlert },
-          { label: 'Transaction Monitoring', path: '/operations/activity', icon: Activity },
-          { label: 'Audit Logs', path: '/operations/audit-logs', icon: ScrollText },
-          { label: 'Data Integrity Audit', path: '/operations/data-integrity', icon: Database },
+          { label: 'Support Overview', path: '/operations', icon: LayoutDashboard },
+          { label: 'Service Requests', path: '/operations/service-requests', icon: Wrench },
+          { label: 'Member Messages', path: '/operations/member-messages', icon: MessageSquare },
+          { label: 'Verification Requests', path: '/operations/verification-requests', icon: Eye },
+          { label: 'Members', path: '/operations/members', icon: Users },
         ],
       },
       {
-        label: 'Risk & Compliance',
+        label: 'Escalations',
         items: [
-          { label: 'Risk Management', path: '/operations/withdrawal-limits', icon: Scale },
-          { label: 'Compliance Reviews', path: '/operations/kyc', icon: ShieldCheck },
-          { label: 'Approval Queue', path: '/operations/verification-requests', icon: Eye },
-          { label: 'Security Center', path: '/operations/security', icon: Lock },
-        ],
-      },
-      {
-        label: 'Finance Controls',
-        items: [
-          { label: 'Treasury', path: '/operations/finance', icon: DollarSign },
-          { label: 'Withdrawals', path: '/operations/withdrawals', icon: ArrowUpRight },
-          { label: 'Transfers', path: '/operations/transfers', icon: ArrowLeftRight },
-        ],
-      },
-      {
-        label: 'System Security',
-        items: [
-          { label: 'Security Alerts', path: '/operations/notifications', icon: Bell },
-          { label: 'Documents', path: '/operations/documents', icon: FolderOpen },
-          { label: 'Configuration', path: '/operations/configuration', icon: Settings },
-          { label: 'API Management', path: '/operations/api-management', icon: Code },
-          { label: 'System Health', path: '/operations/system-health', icon: HeartPulse },
+          { label: 'Pending Applications', path: '/operations/applications', icon: FileText },
+          { label: 'Pending Withdrawals', path: '/operations/withdrawals', icon: ArrowUpRight },
+          { label: 'KYC Queue', path: '/operations/kyc', icon: ShieldCheck },
         ],
       },
     ],
@@ -187,36 +139,67 @@ const WORKSPACE_CONFIG = {
         ],
       },
       {
-        label: 'People',
+        label: 'Catalog',
         items: [
-          { label: 'Heroes', path: '/operations/herobox/heroes', icon: Shield },
-          { label: 'Supporters', path: '/operations/leaderboard', icon: Heart },
-          { label: 'Volunteers', path: '/operations/herobox/volunteers', icon: Users },
-          { label: 'Organizations', path: '/operations/organizations', icon: Building2 },
+          { label: 'Care Packages', path: '/operations/herobox/care-packages', icon: Package },
+          { label: 'Products', path: '/operations/herobox/products', icon: Package },
         ],
       },
       {
-        label: 'Operations',
+        label: 'Orders & Shipping',
         items: [
-          { label: 'Care Packages', path: '/operations/herobox/care-packages', icon: Package },
-          { label: 'Support Requests', path: '/operations/service-requests', icon: Wrench },
-          { label: 'Member Messages', path: '/operations/member-messages', icon: MessageSquare },
+          { label: 'Orders', path: '/operations/herobox/orders', icon: Package },
+          { label: 'Heroes', path: '/operations/herobox/heroes', icon: Shield },
+          { label: 'Volunteers', path: '/operations/herobox/volunteers', icon: Users },
         ],
       },
       {
         label: 'Intelligence',
         items: [
           { label: 'Impact Analytics', path: '/operations/impact-analytics', icon: BarChart3 },
-          { label: 'Finance', path: '/operations/finance', icon: DollarSign },
-          { label: 'Reports', path: '/operations/reports', icon: TrendingUp },
+          { label: 'Supporter Leaderboard', path: '/operations/leaderboard', icon: Trophy },
         ],
       },
       {
-        label: 'Administration',
+        label: 'Operations',
         items: [
-          { label: 'Settings', path: '/operations/configuration', icon: Settings },
+          { label: 'Support Requests', path: '/operations/service-requests', icon: Wrench },
+          { label: 'Member Messages', path: '/operations/member-messages', icon: MessageSquare },
+          { label: 'Finance', path: '/operations/finance', icon: DollarSign },
+        ],
+      },
+    ],
+  },
+  investment: {
+    icon: TrendingUp,
+    accent: 'text-mint',
+    bg: 'bg-mint/10',
+    sections: [
+      {
+        label: 'Investment Operations',
+        items: [
+          { label: 'Investment Dashboard', path: '/operations/investment', icon: PieChart },
+        ],
+      },
+      {
+        label: 'Deposits & Withdrawals',
+        items: [
+          { label: 'Deposit Requests', path: '/operations/investment/deposits', icon: ArrowDownToLine },
+          { label: 'Withdrawal Requests', path: '/operations/investment/withdrawals', icon: ArrowUpRight },
+        ],
+      },
+      {
+        label: 'Portfolio & Products',
+        items: [
+          { label: 'Portfolios', path: '/operations/investment/portfolios', icon: PieChart },
+          { label: 'Signals', path: '/operations/investment/signals', icon: Signal },
+        ],
+      },
+      {
+        label: 'Reports',
+        items: [
+          { label: 'Investment Reports', path: '/operations/investment/reports', icon: BarChart3 },
           { label: 'Audit Logs', path: '/operations/audit-logs', icon: ScrollText },
-          { label: 'Activity Timeline', path: '/operations/activity', icon: Activity },
         ],
       },
     ],
@@ -227,15 +210,15 @@ export default function AdminSidebar({ user, activeWorkspace, onWorkspaceChange,
   const location = useLocation();
   const navigate = useNavigate();
 
-  const availableWorkspaces = user ? getWorkspacesForRole(user.role) : [];
-  const currentWorkspace = activeWorkspace || getDefaultWorkspace(user?.role) || 'operations';
-  const config = WORKSPACE_CONFIG[currentWorkspace] || WORKSPACE_CONFIG.operations;
+  const availableDomains = user ? getDomainsForRole(user.role) : [];
+  const currentDomain = activeWorkspace || getDefaultWorkspace(user?.role) || 'management';
+  const config = DOMAIN_CONFIG[currentDomain] || DOMAIN_CONFIG.management;
 
-  function handleWorkspaceSelect(ws) {
-    onWorkspaceChange?.(ws);
-    const wsConfig = WORKSPACE_CONFIG[ws];
-    if (wsConfig?.sections[0]?.items[0]) {
-      navigate(wsConfig.sections[0].items[0].path);
+  function handleDomainSelect(domain) {
+    onWorkspaceChange?.(domain);
+    const domainConfig = DOMAIN_CONFIG[domain];
+    if (domainConfig?.sections[0]?.items[0]) {
+      navigate(domainConfig.sections[0].items[0].path);
     }
   }
 
@@ -259,27 +242,27 @@ export default function AdminSidebar({ user, activeWorkspace, onWorkspaceChange,
         )}
       </div>
 
-      {/* Workspace selector tabs */}
-      {availableWorkspaces.length > 1 && (
+      {/* Domain selector tabs */}
+      {availableDomains.length > 1 && (
         <div className="p-2 flex-shrink-0 border-b border-slate-200">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1">
-            {availableWorkspaces.map(ws => {
-              const wsConfig = WORKSPACE_CONFIG[ws];
-              const WsIcon = wsConfig.icon;
-              const isActive = currentWorkspace === ws;
+          <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${availableDomains.length}, 1fr)` }}>
+            {availableDomains.map(domain => {
+              const dConfig = DOMAIN_CONFIG[domain];
+              const DIcon = dConfig.icon;
+              const isActive = currentDomain === domain;
               return (
                 <button
-                  key={ws}
-                  onClick={() => handleWorkspaceSelect(ws)}
+                  key={domain}
+                  onClick={() => handleDomainSelect(domain)}
                   className={`flex flex-col items-center gap-1 py-2.5 rounded-lg transition-all text-[10px] font-semibold ${
                     isActive
-                      ? `${wsConfig.bg} ${wsConfig.accent} shadow-sm`
+                      ? `${dConfig.bg} ${dConfig.accent} shadow-sm`
                       : 'text-gray hover:bg-slate-100 hover:text-foreground'
                   }`}
-                  title={WORKSPACE_LABELS[ws]}
+                  title={WORKSPACE_LABELS[domain]}
                 >
-                  <WsIcon size={16} />
-                  <span className="truncate max-w-full px-1">{WORKSPACE_LABELS[ws].split(' ')[0]}</span>
+                  <DIcon size={16} />
+                  <span className="truncate max-w-full px-0.5">{WORKSPACE_LABELS[domain]}</span>
                 </button>
               );
             })}
@@ -334,6 +317,9 @@ export default function AdminSidebar({ user, activeWorkspace, onWorkspaceChange,
             <p className="text-foreground text-xs font-medium truncate">{user?.full_name || 'Administrator'}</p>
             <p className="text-gray/60 text-[10px]">{getRoleLabel(user?.role)}</p>
           </div>
+          {isSuperAdmin(user) && (
+            <Crown size={14} className="text-brass flex-shrink-0" />
+          )}
         </div>
       </div>
     </aside>

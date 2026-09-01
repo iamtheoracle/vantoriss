@@ -1,0 +1,108 @@
+{
+  "name": "HeroBoxProduct",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Product name"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "essential",
+        "comfort",
+        "body_care",
+        "snack_food",
+        "mobile_tech",
+        "premium",
+        "executive",
+        "phones",
+        "airtime_data",
+        "subscriptions",
+        "deployment_card"
+      ],
+      "description": "Product category / package stage"
+    },
+    "description": {
+      "type": "string"
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "price": {
+      "type": "number",
+      "description": "Base price in USD"
+    },
+    "currency": {
+      "type": "string",
+      "default": "USD"
+    },
+    "destination": {
+      "type": "string",
+      "description": "Destination country/region this product is available for (empty = global)"
+    },
+    "availability": {
+      "type": "string",
+      "enum": [
+        "available",
+        "unavailable",
+        "discontinued",
+        "requires_config"
+      ],
+      "default": "available"
+    },
+    "source": {
+      "type": "string",
+      "description": "Partner/source name for this product"
+    },
+    "source_product_id": {
+      "type": "string",
+      "description": "External product ID from partner catalog"
+    },
+    "package_id": {
+      "type": "string",
+      "description": "If this product belongs to a predefined package, the package reference"
+    },
+    "discount": {
+      "type": "number",
+      "default": 0,
+      "description": "Discount percentage (0-100)"
+    },
+    "shipping_required": {
+      "type": "boolean",
+      "default": true
+    },
+    "freshness_status": {
+      "type": "string",
+      "enum": [
+        "fresh",
+        "stale",
+        "expired"
+      ],
+      "default": "fresh",
+      "description": "Catalog data freshness \u2014 stale items cannot be purchased"
+    },
+    "retrieved_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the catalog data was last retrieved from source"
+    },
+    "specifications": {
+      "type": "string",
+      "description": "JSON-serialized product specifications (storage, condition, model, etc.)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    }
+  },
+  "required": [
+    "name",
+    "category",
+    "price"
+  ]
+}

@@ -144,7 +144,7 @@ export default function Home() {
             A secure platform for private institutions and approved members to manage capital with clarity and confidence.
           </p>
           <button
-            onClick={() => navigate('/apply')}
+            onClick={() => navigate('/register')}
             className="w-full py-3.5 bg-brass text-white font-semibold rounded-xl hover:bg-brass/90 transition-all"
           >
             Apply for Membership

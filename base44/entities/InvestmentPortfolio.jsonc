@@ -1,0 +1,70 @@
+{
+  "name": "InvestmentPortfolio",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "The investor who owns this portfolio"
+    },
+    "portfolio_name": {
+      "type": "string"
+    },
+    "total_value": {
+      "type": "number",
+      "default": 0,
+      "description": "Current total portfolio value (cash + invested)"
+    },
+    "cash_balance": {
+      "type": "number",
+      "default": 0,
+      "description": "Available investment cash (verified, not pending)"
+    },
+    "invested_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Amount currently invested in positions"
+    },
+    "unrealized_pnl": {
+      "type": "number",
+      "default": 0,
+      "description": "Unrealized gain/loss"
+    },
+    "realized_pnl": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "pending_setup",
+        "suspended",
+        "closed"
+      ],
+      "default": "pending_setup"
+    },
+    "provider_connected": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether a real brokerage/custody provider is connected"
+    },
+    "provider_name": {
+      "type": "string",
+      "description": "Name of the connected brokerage/custody provider (if any)"
+    },
+    "risk_profile": {
+      "type": "string",
+      "enum": [
+        "conservative",
+        "moderate",
+        "aggressive",
+        "not_set"
+      ],
+      "default": "not_set"
+    }
+  },
+  "required": [
+    "user_id",
+    "portfolio_name"
+  ]
+}

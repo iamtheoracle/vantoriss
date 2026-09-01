@@ -1,0 +1,88 @@
+{
+  "name": "InvestmentSignal",
+  "type": "object",
+  "properties": {
+    "asset_symbol": {
+      "type": "string",
+      "description": "Asset/ticker symbol"
+    },
+    "asset_name": {
+      "type": "string"
+    },
+    "signal_type": {
+      "type": "string",
+      "enum": [
+        "buy",
+        "sell",
+        "hold",
+        "watch",
+        "alert"
+      ],
+      "description": "Type of signal"
+    },
+    "timeframe": {
+      "type": "string",
+      "enum": [
+        "short",
+        "medium",
+        "long"
+      ],
+      "description": "Signal timeframe"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "medium",
+      "description": "Confidence/quality metric \u2014 NOT a guarantee of returns"
+    },
+    "supporting_indicators": {
+      "type": "string",
+      "description": "JSON-serialized supporting indicators and analysis"
+    },
+    "market_context": {
+      "type": "string",
+      "description": "Relevant market context"
+    },
+    "risk_considerations": {
+      "type": "string",
+      "description": "Risk factors and uncertainty disclosure"
+    },
+    "generated_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the signal was generated"
+    },
+    "expiry_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the signal expires"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "expired",
+        "acted_upon",
+        "dismissed"
+      ],
+      "default": "active"
+    },
+    "methodology": {
+      "type": "string",
+      "description": "Description of the signal methodology and uncertainty"
+    },
+    "provider_connected": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether real market data is connected for this signal"
+    }
+  },
+  "required": [
+    "asset_symbol",
+    "signal_type"
+  ]
+}

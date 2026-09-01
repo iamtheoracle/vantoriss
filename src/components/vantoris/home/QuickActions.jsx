@@ -15,7 +15,7 @@ export default function QuickActions() {
 
   return (
     <div className="mb-5">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="flex items-center justify-between gap-3">
         {actions.map((action, idx) => {
           const Icon = action.icon;
           return (
@@ -24,14 +24,13 @@ export default function QuickActions() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: idx * 0.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileTap={{ scale: 0.9 }}
               onClick={() => navigate(action.route)}
-              className="vantoris-balance-hero p-4 flex flex-col items-center gap-2 hover:shadow-lg transition-all min-h-[88px] justify-center"
+              title={action.label}
+              aria-label={action.label}
+              className="vantoris-balance-hero w-14 h-14 rounded-full flex items-center justify-center hover:shadow-lg transition-all flex-shrink-0"
             >
-              <div className="w-11 h-11 rounded-2xl bg-white/15 flex items-center justify-center backdrop-blur-sm">
-                <Icon size={20} className="text-white" strokeWidth={2} />
-              </div>
-              <span className="text-white text-xs font-semibold tracking-wide">{action.label}</span>
+              <Icon size={22} className="text-white" strokeWidth={2} />
             </motion.button>
           );
         })}

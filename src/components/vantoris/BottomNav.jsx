@@ -38,8 +38,7 @@ export default function BottomNav() {
               {isActive && (
                 <span className="absolute inset-0 rounded-2xl bg-brass/10" />
               )}
-              <Icon size={20} strokeWidth={isActive ? 2.4 : 1.5} className="relative z-10" />
-              <span className="relative z-10 text-[10px] font-semibold tracking-wide">{item.label}</span>
+              <Icon size={22} strokeWidth={isActive ? 2.4 : 1.5} className="relative z-10" />
             </Link>
           );
         })}

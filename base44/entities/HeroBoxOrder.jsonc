@@ -1,0 +1,110 @@
+{
+  "name": "HeroBoxOrder",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "The customer who placed this order"
+    },
+    "recipient_name": {
+      "type": "string"
+    },
+    "recipient_branch": {
+      "type": "string",
+      "description": "Military branch or organization (if applicable)"
+    },
+    "destination": {
+      "type": "string",
+      "description": "Destination country/region/address"
+    },
+    "destination_address": {
+      "type": "string",
+      "description": "Full shipping address"
+    },
+    "items": {
+      "type": "string",
+      "description": "JSON-serialized array of order items: [{product_id, name, category, price, quantity}]"
+    },
+    "package_id": {
+      "type": "string",
+      "description": "Predefined package reference if this order includes a staged package"
+    },
+    "subtotal": {
+      "type": "number",
+      "default": 0
+    },
+    "discount": {
+      "type": "number",
+      "default": 0,
+      "description": "Total discount amount in USD"
+    },
+    "shipping_cost": {
+      "type": "number",
+      "default": 0
+    },
+    "service_costs": {
+      "type": "number",
+      "default": 0,
+      "description": "Airtime/data/subscription service costs"
+    },
+    "total": {
+      "type": "number",
+      "default": 0,
+      "description": "Final customer total after discount + shipping + services"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "payment_pending",
+        "paid",
+        "processing",
+        "packed",
+        "shipped",
+        "in_transit",
+        "delivered",
+        "exception",
+        "cancelled",
+        "refunded"
+      ],
+      "default": "draft"
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "completed",
+        "failed",
+        "refunded"
+      ],
+      "default": "pending"
+    },
+    "payment_account_id": {
+      "type": "string",
+      "description": "Vantoris account used for payment"
+    },
+    "tracking_number": {
+      "type": "string"
+    },
+    "estimated_delivery": {
+      "type": "string",
+      "format": "date"
+    },
+    "shipped_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "delivered_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "order_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "recipient_name",
+    "destination"
+  ]
+}
