@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
@@ -7,11 +7,60 @@ import { hasOperationsAccess } from '@/lib/operationsAccess';
 import { logAuditEntry } from '@/lib/auditLogger';
 import { useToast } from '@/components/ui/use-toast';
 import {
-  Command, X, ChevronUp, Sparkles, Lock, Check, Shield,
+  Command, X, Sparkles, Lock, Check, Shield,
 } from 'lucide-react';
+
+// ============================================================
+// Circular, floating, movable Quick Action control
+// ============================================================
+// - Perfectly circular (width === height, 50% border radius)
+// - Fixed positioning, floats above page content
+// - Pointer Events drag (mouse + touch + pen)
+// - Tap vs drag threshold so taps open the menu, drags move it
+// - Clamped to viewport with edge margin + safe-area insets
+// - Position persisted per-device in localStorage
+// - Re-clamped on resize / orientation change
+// - Accessible: button semantics, aria-label, keyboard activation
+
+const SIZE = 56;            // button diameter (px)
+const EDGE_MARGIN = 16;     // min distance from viewport edge (px)
+const DRAG_THRESHOLD = 6;   // px movement before a press counts as a drag
+const STORAGE_KEY = 'vantoris.quickAction.pos';
+const BOTTOM_NAV_RESERVE = 84; // keep clear of the bottom navigation
 
 function haptic(ms = 8) {
   if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(ms);
+}
+
+function loadSavedPos() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const p = JSON.parse(raw);
+      if (typeof p.x === 'number' && typeof p.y === 'number') return p;
+    }
+  } catch {}
+  return null;
+}
+
+function clampPos(x, y) {
+  if (typeof window === 'undefined') return { x, y };
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const maxX = Math.max(EDGE_MARGIN, vw - SIZE - EDGE_MARGIN);
+  const maxY = Math.max(EDGE_MARGIN, vh - SIZE - EDGE_MARGIN);
+  return {
+    x: Math.min(Math.max(x, EDGE_MARGIN), maxX),
+    y: Math.min(Math.max(y, EDGE_MARGIN), maxY),
+  };
+}
+
+function defaultPos() {
+  if (typeof window === 'undefined') return { x: EDGE_MARGIN, y: EDGE_MARGIN };
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  // Bottom-right by default, clearing the bottom navigation.
+  return clampPos(vw - SIZE - EDGE_MARGIN, vh - SIZE - EDGE_MARGIN - BOTTOM_NAV_RESERVE);
 }
 
 export default function FloatingCommandDock() {
@@ -22,8 +71,13 @@ export default function FloatingCommandDock() {
   const [freezeOpen, setFreezeOpen] = useState(false);
   const [accounts, setAccounts] = useState([]);
   const [selectedAccount, setSelectedAccount] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // --- Draggable position state ---
+  const [pos, setPos] = useState(() => loadSavedPos() || defaultPos());
+  const [dragging, setDragging] = useState(false);
+  const dragRef = useRef({ active: false, startX: 0, startY: 0, origX: 0, origY: 0, moved: false });
+  const buttonRef = useRef(null);
 
   const isMember = user?.role === 'user';
 
@@ -40,6 +94,22 @@ export default function FloatingCommandDock() {
     return () => { cancelled = true; };
   }, [user, isMember]);
 
+  // Re-clamp on viewport resize / orientation change
+  useEffect(() => {
+    const handler = () => setPos((p) => clampPos(p.x, p.y));
+    window.addEventListener('resize', handler);
+    window.addEventListener('orientationchange', handler);
+    return () => {
+      window.removeEventListener('resize', handler);
+      window.removeEventListener('orientationchange', handler);
+    };
+  }, []);
+
+  // Persist position locally (UI position only — no sensitive data)
+  useEffect(() => {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(pos)); } catch {}
+  }, [pos]);
+
   const actions = [
     { id: 'assistant', label: 'Assistant', icon: Sparkles, color: 'bg-navy/8 text-navy', onClick: () => navigate('/assistant') },
     { id: 'freeze', label: 'Freeze My Card', icon: Lock, color: 'bg-crimson/10 text-crimson', onClick: () => { setFreezeOpen(true); setExpanded(false); } },
@@ -55,6 +125,50 @@ export default function FloatingCommandDock() {
     setExpanded(false);
     action.onClick();
   }
+
+  // --- Pointer-based drag with tap detection ---
+  const onPointerDown = useCallback((e) => {
+    // Only primary button / touch
+    if (e.button && e.button !== 0) return;
+    dragRef.current = {
+      active: true,
+      startX: e.clientX,
+      startY: e.clientY,
+      origX: pos.x,
+      origY: pos.y,
+      moved: false,
+    };
+    setDragging(false);
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch {}
+  }, [pos.x, pos.y]);
+
+  const onPointerMove = useCallback((e) => {
+    const d = dragRef.current;
+    if (!d.active) return;
+    const dx = e.clientX - d.startX;
+    const dy = e.clientY - d.startY;
+    if (!d.moved && Math.hypot(dx, dy) > DRAG_THRESHOLD) {
+      d.moved = true;
+      setDragging(true);
+    }
+    if (d.moved) {
+      e.preventDefault();
+      const next = clampPos(d.origX + dx, d.origY + dy);
+      setPos(next);
+    }
+  }, []);
+
+  const endDrag = useCallback((e) => {
+    const d = dragRef.current;
+    dragRef.current = { active: false, startX: 0, startY: 0, origX: 0, origY: 0, moved: false };
+    try { e?.currentTarget?.releasePointerCapture?.(e.pointerId); } catch {}
+    // If it never crossed the drag threshold, treat as a tap → toggle menu
+    if (!d.moved) {
+      haptic(8);
+      setExpanded((v) => !v);
+    }
+    setDragging(false);
+  }, []);
 
   async function handleFreeze() {
     if (!selectedAccount) return;
@@ -92,6 +206,15 @@ export default function FloatingCommandDock() {
 
   if (!user) return null;
 
+  // Panel placement: above the button when room exists, otherwise below.
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 375;
+  const panelMaxWidth = Math.min(380, vw - 32);
+  const panelX = Math.min(Math.max(pos.x + SIZE / 2 - panelMaxWidth / 2, 16), Math.max(16, vw - panelMaxWidth - 16));
+  const roomAbove = pos.y > 260;
+  const panelStyle = roomAbove
+    ? { bottom: (window.innerHeight - pos.y) + 12, left: panelX, width: panelMaxWidth }
+    : { top: pos.y + SIZE + 12, left: panelX, width: panelMaxWidth };
+
   return (
     <>
       <AnimatePresence>
@@ -107,70 +230,86 @@ export default function FloatingCommandDock() {
         )}
       </AnimatePresence>
 
-      <div
-        className="fixed left-1/2 -translate-x-1/2 z-50 flex flex-col items-center"
-        style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 5rem)' }}
-      >
-        <AnimatePresence>
-          {expanded && (
-            <motion.div
-              initial={{ opacity: 0, y: 24, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 24, scale: 0.9 }}
-              transition={{ type: 'spring', stiffness: 380, damping: 28 }}
-              className="mb-3 w-[calc(100vw-2rem)] max-w-sm sm:max-w-md"
-            >
-              <div className="vantoris-glass-dropdown p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <Command size={14} className="text-navy" strokeWidth={2.5} />
-                    <span className="text-foreground font-bold text-sm">Quick Actions</span>
-                  </div>
-                  <button
-                    onClick={() => { haptic(5); setExpanded(false); }}
-                    className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors"
-                  >
-                    <X size={14} className="text-gray" />
-                  </button>
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ opacity: 0, y: roomAbove ? 24 : -24, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: roomAbove ? 24 : -24, scale: 0.9 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+            style={{ position: 'fixed', zIndex: 50, ...panelStyle }}
+          >
+            <div className="vantoris-glass-dropdown p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Command size={14} className="text-navy" strokeWidth={2.5} />
+                  <span className="text-foreground font-bold text-sm">Quick Actions</span>
                 </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  {actions.map(action => {
-                    const Icon = action.icon;
-                    return (
-                      <motion.button
-                        key={action.id}
-                        whileTap={{ scale: 0.92 }}
-                        onClick={() => handleAction(action)}
-                        className="flex flex-col items-center gap-2 p-4 rounded-2xl hover:bg-slate-50 transition-colors"
-                      >
-                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${action.color}`}>
-                          <Icon size={20} strokeWidth={2} />
-                        </div>
-                        <span className="text-foreground text-xs font-medium text-center">{action.label}</span>
-                      </motion.button>
-                    );
-                  })}
-                </div>
+                <button
+                  onClick={() => { haptic(5); setExpanded(false); }}
+                  className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors"
+                  aria-label="Close Quick Actions"
+                >
+                  <X size={14} className="text-gray" />
+                </button>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
-        <motion.button
-          whileTap={{ scale: 0.96 }}
-          onClick={() => { haptic(8); setExpanded(!expanded); }}
-          className="vantoris-glass-dropdown flex items-center gap-2 px-4 py-2.5 rounded-full shadow-float"
-        >
-          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-navy to-navy/80 flex items-center justify-center">
-            <Command size={13} className="text-white" strokeWidth={2.5} />
-          </div>
-          <span className="text-foreground font-semibold text-sm">Quick Actions</span>
-          <motion.div animate={{ rotate: expanded ? 180 : 0 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }}>
-            <ChevronUp size={14} className="text-gray" />
+              <div className="grid grid-cols-2 gap-2">
+                {actions.map(action => {
+                  const Icon = action.icon;
+                  return (
+                    <motion.button
+                      key={action.id}
+                      whileTap={{ scale: 0.92 }}
+                      onClick={() => handleAction(action)}
+                      className="flex flex-col items-center gap-2 p-4 rounded-2xl hover:bg-slate-50 transition-colors"
+                    >
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${action.color}`}>
+                        <Icon size={20} strokeWidth={2} />
+                      </div>
+                      <span className="text-foreground text-xs font-medium text-center">{action.label}</span>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </div>
           </motion.div>
-        </motion.button>
-      </div>
+        )}
+      </AnimatePresence>
+
+      {/* Circular floating Quick Action — draggable via Pointer Events */}
+      <motion.button
+        ref={buttonRef}
+        type="button"
+        aria-label="Quick Actions"
+        aria-expanded={expanded}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            haptic(8);
+            setExpanded((v) => !v);
+          }
+        }}
+        whileTap={{ scale: dragging ? 1 : 0.92 }}
+        style={{
+          position: 'fixed',
+          left: pos.x,
+          top: pos.y,
+          width: SIZE,
+          height: SIZE,
+          zIndex: 50,
+          touchAction: 'none',
+        }}
+        className="vantoris-glass-dropdown rounded-full flex items-center justify-center shadow-float focus:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 focus-visible:ring-offset-2 cursor-pointer select-none"
+      >
+        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-navy to-navy/80 flex items-center justify-center pointer-events-none">
+          <Command size={18} className="text-white" strokeWidth={2.5} />
+        </div>
+      </motion.button>
 
       {/* Freeze Card Dialog */}
       <AnimatePresence>
