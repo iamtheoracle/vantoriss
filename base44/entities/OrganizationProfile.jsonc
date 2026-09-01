@@ -3,7 +3,8 @@
   "type": "object",
   "properties": {
     "name": {
-      "type": "string"
+      "type": "string",
+      "description": "Official organization name"
     },
     "organization_type": {
       "type": "string",
@@ -15,20 +16,77 @@
         "shelter",
         "humanitarian",
         "military_support",
+        "veteran_support",
+        "military_family_support",
+        "deployed_support",
+        "medical_relief",
+        "food_assistance",
+        "emergency_relief",
+        "disaster_response",
         "community",
         "business",
         "provider",
         "government"
-      ]
+      ],
+      "description": "Primary classification of the organization"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "Official logo image URL if publicly available"
     },
     "description": {
       "type": "string"
     },
+    "mission": {
+      "type": "string",
+      "description": "The organization's stated mission"
+    },
     "location": {
-      "type": "string"
+      "type": "string",
+      "description": "Headquarters or primary location"
+    },
+    "areas_served": {
+      "type": "string",
+      "description": "Geographic areas or populations served"
     },
     "website_url": {
       "type": "string"
+    },
+    "charity_navigator_url": {
+      "type": "string",
+      "description": "Charity Navigator profile URL if available"
+    },
+    "charity_navigator_rating": {
+      "type": "string",
+      "description": "Charity Navigator rating if available, otherwise 'Not rated by Charity Navigator'"
+    },
+    "ein": {
+      "type": "string",
+      "description": "IRS Employer Identification Number if publicly documented"
+    },
+    "form_990_url": {
+      "type": "string",
+      "description": "Link to Form 990 if publicly available"
+    },
+    "financial_info": {
+      "type": "string",
+      "description": "Financial accountability and transparency summary"
+    },
+    "programs": {
+      "type": "string",
+      "description": "JSON-serialized array of program descriptions"
+    },
+    "current_needs": {
+      "type": "string",
+      "description": "JSON-serialized array of current needs"
+    },
+    "active_campaigns": {
+      "type": "string",
+      "description": "JSON-serialized array of active campaigns"
+    },
+    "contact_info": {
+      "type": "string",
+      "description": "JSON-serialized contact information"
     },
     "verification_status": {
       "type": "string",
@@ -55,6 +113,17 @@
     "source_name": {
       "type": "string"
     },
+    "corroborating_sources": {
+      "type": "string",
+      "description": "JSON-serialized array of corroborating source URLs"
+    },
+    "conflicting_sources": {
+      "type": "string",
+      "description": "JSON-serialized array of conflicting source URLs"
+    },
+    "evidence_summary": {
+      "type": "string"
+    },
     "discovery_record_id": {
       "type": "string"
     },
@@ -66,15 +135,25 @@
       "type": "string",
       "format": "date-time"
     },
+    "next_verification_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this record should next be re-verified"
+    },
     "status": {
       "type": "string",
       "enum": [
+        "discovered",
+        "verification_pending",
+        "verified",
+        "approved",
         "active",
         "inactive",
-        "unverified",
-        "flagged"
+        "flagged",
+        "rejected",
+        "closed"
       ],
-      "default": "unverified"
+      "default": "discovered"
     },
     "responsible_division": {
       "type": "string",

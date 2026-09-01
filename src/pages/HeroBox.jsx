@@ -7,6 +7,7 @@ import ProductCatalog from '@/components/vantoris/herobox/ProductCatalog';
 import CheckoutFlow from '@/components/vantoris/herobox/CheckoutFlow';
 import OrderHistory from '@/components/vantoris/herobox/OrderHistory';
 import DonationFlow from '@/components/vantoris/herobox/DonationFlow';
+import DiscoverFeed from '@/components/vantoris/herobox/DiscoverFeed';
 
 const TABS = [
   { id: 'discover', label: 'Discover', icon: Sparkles },
@@ -152,25 +153,10 @@ export default function HeroBox() {
 
       {/* Content */}
       {activeTab === 'discover' && (
-        <div>
-          <div className="vantoris-glass-premium p-6 mb-5 text-center">
-            <Sparkles size={28} className="text-brass mx-auto mb-3" />
-            <h3 className="text-base font-bold text-foreground mb-1">Verified Needs & Stories</h3>
-            <p className="text-gray text-xs leading-relaxed">
-              Real stories from real people who need support. Every story is verified — Vantoris never fabricates people, needs, or emergencies.
-            </p>
-          </div>
-          <div className="vantoris-glass p-6 text-center">
-            <p className="text-gray text-sm">No verified stories are currently available.</p>
-            <p className="text-xs text-gray mt-1">When verified needs are published by HeroBox administrators, they will appear here.</p>
-            <button
-              onClick={() => setActiveTab('packages')}
-              className="mt-4 px-6 py-2.5 rounded-xl bg-brass text-white text-sm font-semibold"
-            >
-              Browse Care Packages
-            </button>
-          </div>
-        </div>
+        <DiscoverFeed
+          onShop={() => setActiveTab('packages')}
+          onDonate={() => setShowDonation(true)}
+        />
       )}
 
       {activeTab === 'packages' && (

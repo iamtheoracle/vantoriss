@@ -36,6 +36,7 @@
         "emergency",
         "military_support",
         "communication",
+        "disaster_relief",
         "other"
       ]
     },
@@ -70,6 +71,10 @@
       "type": "string",
       "description": "JSON-serialized array of evidence items (URLs, descriptions, dates)"
     },
+    "corroborating_sources": {
+      "type": "string",
+      "description": "JSON-serialized array of corroborating source URLs"
+    },
     "verification_status": {
       "type": "string",
       "enum": [
@@ -98,19 +103,31 @@
       "type": "string",
       "format": "date-time"
     },
+    "next_verification_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this case should be rechecked for freshness"
+    },
     "case_status": {
       "type": "string",
       "enum": [
+        "discovered",
+        "verification_pending",
+        "review_pending",
         "open",
         "under_review",
         "approved",
+        "active",
         "matched",
         "fulfilled",
         "closed",
         "expired",
+        "verification_failed",
+        "source_unavailable",
+        "stale",
         "rejected"
       ],
-      "default": "open"
+      "default": "discovered"
     },
     "review_status": {
       "type": "string",
@@ -121,11 +138,6 @@
         "rejected"
       ],
       "default": "pending"
-    },
-    "expiration_recheck_date": {
-      "type": "string",
-      "format": "date-time",
-      "description": "When this case should be rechecked for freshness"
     },
     "assigned_division": {
       "type": "string",
