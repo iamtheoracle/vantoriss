@@ -2,8 +2,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
-  Package, Wallet, CreditCard, Globe, Lock, Bitcoin,
-  LineChart, TrendingUp, Building2, ChevronRight, Truck, Heart, RefreshCw
+  Package, Wallet, CreditCard, Globe, Lock,
+  Building2, ChevronRight, Truck, Heart, RefreshCw
 } from 'lucide-react';
 
 const SERVICE_REGISTRY = [
@@ -48,30 +48,6 @@ const SERVICE_REGISTRY = [
     accountTypes: ['Savings', 'Money Market'],
   },
   {
-    id: 'crypto',
-    title: 'Crypto',
-    subtitle: 'Digital asset trading',
-    icon: Bitcoin,
-    route: '/trading',
-    tradingTypes: ['Crypto'],
-  },
-  {
-    id: 'stocks',
-    title: 'Stocks',
-    subtitle: 'Equities & ETFs',
-    icon: LineChart,
-    route: '/investments',
-    tradingTypes: ['Stocks'],
-  },
-  {
-    id: 'forex',
-    title: 'Forex',
-    subtitle: 'Currency trading',
-    icon: TrendingUp,
-    route: '/trading',
-    tradingTypes: ['Forex'],
-  },
-  {
     id: 'business-treasury',
     title: 'Business Treasury',
     subtitle: 'Business banking suite',
@@ -81,22 +57,20 @@ const SERVICE_REGISTRY = [
   },
 ];
 
-export function getAvailableServices(accounts, tradingAccounts, heroboxProfile) {
+export function getAvailableServices(accounts, heroboxProfile) {
   const accountTypes = new Set(accounts.map(a => a.account_type));
-  const tradingTypes = new Set(tradingAccounts.map(a => a.account_type));
   const hasAccount = accounts.length > 0;
 
   return SERVICE_REGISTRY.filter(service => {
     if (service.requiresHeroBox) return !!heroboxProfile;
     if (service.requiresAccount && hasAccount) return true;
     if (service.accountTypes?.some(t => accountTypes.has(t))) return true;
-    if (service.tradingTypes?.some(t => tradingTypes.has(t))) return true;
     return false;
   });
 }
 
-export function getDiscoverServices(accounts, tradingAccounts, heroboxProfile) {
-  const available = new Set(getAvailableServices(accounts, tradingAccounts, heroboxProfile).map(s => s.id));
+export function getDiscoverServices(accounts, heroboxProfile) {
+  const available = new Set(getAvailableServices(accounts, heroboxProfile).map(s => s.id));
   return SERVICE_REGISTRY.filter(s => !available.has(s.id));
 }
 
@@ -187,9 +161,9 @@ function HeroBoxCard({ navigate, transactions }) {
   );
 }
 
-export default function YourServices({ accounts, tradingAccounts, transactions, heroboxProfile }) {
+export default function YourServices({ accounts, transactions, heroboxProfile }) {
   const navigate = useNavigate();
-  const services = getAvailableServices(accounts, tradingAccounts, heroboxProfile);
+  const services = getAvailableServices(accounts, heroboxProfile);
 
   if (services.length === 0) return null;
 

@@ -7,7 +7,7 @@ import { hasOperationsAccess } from '@/lib/operationsAccess';
 import { useWhatsAppConfig, whatsappLinkFromConfig } from '@/hooks/useWhatsAppConfig';
 import {
   Command, X, ChevronUp, ArrowLeftRight, ArrowDownToLine, ArrowUpRight,
-  Send, TrendingUp, PieChart, Heart, Target, Sparkles, MessageCircle,
+  Send, Heart, Target, Sparkles, MessageCircle,
   FileText, LifeBuoy, Plus, Shield,
 } from 'lucide-react';
 
@@ -33,7 +33,7 @@ export default function FloatingCommandDock() {
   const navigate = useNavigate();
   const whatsappNumber = useWhatsAppConfig();
   const [expanded, setExpanded] = useState(false);
-  const [products, setProducts] = useState({ accounts: false, trading: false, herobox: false });
+  const [products, setProducts] = useState({ accounts: false, herobox: false });
   const [badges, setBadges] = useState({});
 
   const isMember = user?.role === 'user';
@@ -45,15 +45,13 @@ export default function FloatingCommandDock() {
 
     async function loadProducts() {
       try {
-        const [accts, trading, heroProfs] = await Promise.all([
+        const [accts, heroProfs] = await Promise.all([
           base44.entities.Account.filter({ user_id: user.id }, null, 1),
-          base44.entities.TradingAccount.filter({ user_id: user.id }, null, 1),
           base44.entities.HeroBoxProfile.filter({ user_id: user.id }, null, 1),
         ]);
         if (cancelled) return;
         setProducts({
           accounts: accts.length > 0,
-          trading: trading.length > 0,
           herobox: heroProfs.length > 0,
         });
 
@@ -103,12 +101,6 @@ export default function FloatingCommandDock() {
       list.push({ id: 'withdraw', label: 'Withdraw', icon: ArrowUpRight, to: '/move-money?tab=withdraw', color: 'bg-crimson/10 text-crimson', badge: badges.withdraw });
     }
 
-    // Investment actions
-    if (products.trading) {
-      list.push({ id: 'trade', label: 'Trade', icon: TrendingUp, to: '/trading', color: 'bg-brass/10 text-brass' });
-      list.push({ id: 'portfolio', label: 'Portfolio', icon: PieChart, to: '/investments', color: 'bg-brass/10 text-brass' });
-    }
-
     // HeroBox actions
     if (products.herobox) {
       list.push({ id: 'sponsor', label: 'Sponsor', icon: Heart, to: '/herobox', color: 'bg-brass/15 text-brass', badge: badges.sponsor });
@@ -116,7 +108,7 @@ export default function FloatingCommandDock() {
     }
 
     // Onboarding for new members with no products
-    if (isMember && !products.accounts && !products.trading && !products.herobox) {
+    if (isMember && !products.accounts && !products.herobox) {
       list.push({ id: 'open-account', label: 'Open Account', icon: Plus, to: '/apply', color: 'bg-navy text-white', highlight: true });
     }
 

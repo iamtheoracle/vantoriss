@@ -12,7 +12,6 @@ export const SPECIALIST_TYPES = {
   PAYMENTS: 'payments',
   BANKING: 'banking',
   COMPLIANCE: 'compliance',
-  INVESTMENT: 'investment',
   DOCUMENT: 'document',
   PLATFORM: 'platform',
 };
@@ -21,7 +20,6 @@ export const SPECIALIST_AGENTS = {
   [SPECIALIST_TYPES.PAYMENTS]: 'payments_specialist',
   [SPECIALIST_TYPES.BANKING]: 'banking_specialist',
   [SPECIALIST_TYPES.COMPLIANCE]: 'compliance_specialist',
-  [SPECIALIST_TYPES.INVESTMENT]: 'investment_specialist',
   [SPECIALIST_TYPES.DOCUMENT]: 'document_specialist',
   [SPECIALIST_TYPES.PLATFORM]: 'platform_specialist',
 };
@@ -30,7 +28,6 @@ export const SPECIALIST_LABELS = {
   [SPECIALIST_TYPES.PAYMENTS]: 'Payments Assistant',
   [SPECIALIST_TYPES.BANKING]: 'Banking Assistant',
   [SPECIALIST_TYPES.COMPLIANCE]: 'Compliance Assistant',
-  [SPECIALIST_TYPES.INVESTMENT]: 'Investment Assistant',
   [SPECIALIST_TYPES.DOCUMENT]: 'Document Assistant',
   [SPECIALIST_TYPES.PLATFORM]: 'Platform Assistant',
 };
@@ -58,13 +55,6 @@ const ROUTING_PATTERNS = [
       'kyc', 'verification', 'identity', 'id upload', 'document upload',
       'verification status', 'compliance', 'approved', 'rejected', 'application',
       'joint account', 'business account', 'ein',
-    ],
-  },
-  {
-    type: SPECIALIST_TYPES.INVESTMENT,
-    keywords: [
-      'investment', 'portfolio', 'trading', 'trade', 'stock', 'crypto',
-      'forex', 'margin', 'equity', 'leverage', 'brokerage', 'securities',
     ],
   },
   {

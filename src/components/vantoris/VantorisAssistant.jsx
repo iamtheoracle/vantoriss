@@ -2,13 +2,26 @@ import React, { useState, useRef, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Send, Loader2, Sparkles, Activity, Shield, Cpu, ChevronLeft, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import ShieldLogo from '@/components/vantoris/ShieldLogo';
 
-export default function BudCompanion() {
+/**
+ * VantorisAssistant — the unified member-facing AI assistant.
+ *
+ * Delegates all reasoning to the Oracle runtime pipeline via the
+ * `oracleRuntime` backend function. The frontend owns no business logic;
+ * it only renders messages, streams output, and displays pipeline progress.
+ *
+ * Provider-specific LLM calls remain behind the ModelService / ModelRegistry
+ * abstraction layer in the backend — this component never knows which
+ * provider produced a response.
+ */
+export default function VantorisAssistant() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [health, setHealth] = useState(null);
   const [showHealth, setShowHealth] = useState(false);
+  const [error, setError] = useState('');
   const scrollRef = useRef(null);
 
   useEffect(() => {
@@ -21,6 +34,7 @@ export default function BudCompanion() {
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setLoading(true);
+    setError('');
 
     try {
       const response = await base44.functions.invoke('oracleRuntime', {
@@ -42,10 +56,11 @@ export default function BudCompanion() {
         pendingApproval: data?.pendingApproval,
         escalated: data?.escalated,
       }]);
-    } catch (error) {
+    } catch (err) {
+      setError('The assistant is temporarily unavailable. Please try again.');
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: 'I encountered an error. Please try again.',
+        content: 'I encountered an error processing your request. Please try again in a moment.',
         error: true,
       }]);
     } finally {
@@ -73,14 +88,14 @@ export default function BudCompanion() {
               <ChevronLeft size={20} className="text-gray" />
             </Link>
             <div className="w-10 h-10 rounded-xl bg-navy flex items-center justify-center">
-              <Sparkles size={20} className="text-white" />
+              <ShieldLogo size={22} />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-foreground">Bud</h1>
-              <p className="text-xs text-gray">AI Runtime Companion</p>
+              <h1 className="text-lg font-bold text-foreground">Vantoris Assistant</h1>
+              <p className="text-xs text-gray">AI Financial Guide</p>
             </div>
           </div>
-          <button onClick={checkHealth} className="p-2 rounded-lg hover:bg-slate-100 transition-colors">
+          <button onClick={checkHealth} className="p-2 rounded-lg hover:bg-slate-100 transition-colors" title="System health">
             <Activity size={18} className="text-gray" />
           </button>
         </div>
@@ -102,6 +117,14 @@ export default function BudCompanion() {
                 <Loader2 size={12} className="animate-spin" /> Checking...
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="px-5 py-2 max-w-3xl mx-auto w-full">
+          <div className="bg-crimson/8 border border-crimson/15 rounded-lg px-3 py-2 text-xs text-crimson">
+            {error}
           </div>
         </div>
       )}
@@ -176,9 +199,9 @@ export default function BudCompanion() {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSend()}
-            placeholder="Message Bud..."
+            placeholder="Message Vantoris Assistant..."
             disabled={loading}
-            className="flex-1 bg-white border border-border rounded-full px-4 py-2.5 text-sm focus:border-brass/50 focus:outline-none disabled:opacity-50"
+            className="flex-1 bg-white border border-border rounded-full px-4 py-2.5 text-sm focus:border-brass/50 focus:outline-none disabled:opacity-50 selectable-content"
           />
           <button
             onClick={handleSend}

@@ -7,10 +7,9 @@ import { Shield, Home, PiggyBank, Banknote, Crown, CalendarClock, Building2, Cre
 // If the user has ANY of those services, the discover item is hidden.
 const DISCOVER_CATALOG = [
   { id: 'insurance', title: 'Insurance', subtitle: 'Protect what matters', icon: Shield, route: '/services', hideIf: [] },
-  { id: 'property', title: 'Property Investments', subtitle: 'Real estate portfolio', icon: Home, route: '/investments', hideIf: [] },
   { id: 'retirement', title: 'Retirement Plans', subtitle: 'Plan for tomorrow', icon: PiggyBank, route: '/services', hideIf: [] },
   { id: 'loans', title: 'Loans & Credit', subtitle: 'Flexible financing', icon: Banknote, route: '/services', hideIf: [] },
-  { id: 'wealth-management', title: 'Wealth Management', subtitle: 'Expert advisory services', icon: Crown, route: '/advisor', hideIf: ['stocks', 'forex', 'wealth-vault'] },
+  { id: 'wealth-management', title: 'Wealth Management', subtitle: 'Expert advisory services', icon: Crown, route: '/advisor', hideIf: ['wealth-vault'] },
   { id: 'financial-planning', title: 'Financial Planning', subtitle: 'Plan your financial future', icon: CalendarClock, route: '/advisor', hideIf: [] },
   { id: 'business-banking', title: 'Business Banking', subtitle: 'Treasury & payroll solutions', icon: Building2, route: '/services', hideIf: ['business-treasury'] },
   { id: 'premium-cards', title: 'Premium Cards', subtitle: 'Exclusive card benefits', icon: CreditCard, route: '/services', hideIf: [] },

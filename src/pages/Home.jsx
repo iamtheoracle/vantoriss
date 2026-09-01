@@ -14,14 +14,12 @@ import AIConcierge from '@/components/vantoris/home/AIConcierge';
 import YourServices, { getAvailableServices } from '@/components/vantoris/home/YourServices';
 import DiscoverSection from '@/components/vantoris/home/DiscoverSection';
 import AccountsSection from '@/components/vantoris/home/AccountsSection';
-import InvestmentsSection from '@/components/vantoris/home/InvestmentsSection';
 import ActivityTimeline from '@/components/vantoris/home/ActivityTimeline';
 
 export default function Home() {
   const [user, setUser] = useState(null);
   const [accounts, setAccounts] = useState([]);
   const [transactions, setTransactions] = useState([]);
-  const [tradingAccounts, setTradingAccounts] = useState([]);
   const [pendingWithdrawals, setPendingWithdrawals] = useState([]);
   const [heroBoxProfile, setHeroBoxProfile] = useState(null);
   const [application, setApplication] = useState(null);
@@ -35,18 +33,16 @@ export default function Home() {
   const loadData = useCallback(async () => {
     const me = await base44.auth.me();
     setUser(me);
-    const [apps, accts, notifs, trading, pendingWrs, hbProfiles] = await Promise.all([
+    const [apps, accts, notifs, pendingWrs, hbProfiles] = await Promise.all([
       base44.entities.Application.filter({ user_id: me.id }),
       base44.entities.Account.filter({ user_id: me.id }),
       base44.entities.Notification.filter({ user_id: me.id }, '-created_date', 5),
-      base44.entities.TradingAccount.filter({ user_id: me.id }).catch(() => []),
       base44.entities.WithdrawalRequest.filter({ user_id: me.id, status: 'pending' }).catch(() => []),
       base44.entities.HeroBoxProfile.filter({ user_id: me.id }).catch(() => []),
     ]);
     setApplication(apps[0] || null);
     setAccounts(accts);
     setNotifications(notifs);
-    setTradingAccounts(trading);
     setPendingWithdrawals(pendingWrs);
     setHeroBoxProfile(hbProfiles[0] || null);
     if (accts.length > 0) {
@@ -219,8 +215,7 @@ export default function Home() {
   }
 
   // Compute financial metrics
-  const investmentValue = tradingAccounts.reduce((s, a) => s + (a.balance || 0), 0);
-  const netWorth = totalBalance + investmentValue;
+  const netWorth = totalBalance;
 
   // Daily P&L from today's transactions
   const today = new Date().toLocaleDateString('en-US');
@@ -233,7 +228,7 @@ export default function Home() {
     }, 0);
 
   // Services the user has — used to filter Discover section
-  const availableServiceIds = getAvailableServices(accounts, tradingAccounts, heroBoxProfile).map(s => s.id);
+  const availableServiceIds = getAvailableServices(accounts, heroBoxProfile).map(s => s.id);
 
   // Approved member dashboard — financial headquarters
   return (
@@ -246,7 +241,6 @@ export default function Home() {
         greeting={greeting}
         netWorth={netWorth}
         availableCash={availableBalance}
-        investmentValue={investmentValue}
         dailyChange={dailyChange}
         hideBalance={hideBalance}
         onToggleBalance={() => setHideBalance(!hideBalance)}
@@ -259,7 +253,6 @@ export default function Home() {
       {/* === Your Services (only what the user has) === */}
       <YourServices
         accounts={accounts}
-        tradingAccounts={tradingAccounts}
         transactions={transactions}
         heroboxProfile={heroBoxProfile}
       />
@@ -269,9 +262,6 @@ export default function Home() {
 
       {/* === Accounts (only existing) === */}
       <AccountsSection accounts={accounts} hideBalance={hideBalance} />
-
-      {/* === Investments (portfolio or invitation) === */}
-      <InvestmentsSection tradingAccounts={tradingAccounts} hideBalance={hideBalance} />
 
       {/* === Recent Activity (unified timeline) === */}
       <ActivityTimeline transactions={transactions} />

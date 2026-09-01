@@ -33,13 +33,11 @@ const Messages = React.lazy(() => import('./pages/Messages'));
 const Profile = React.lazy(() => import('./pages/Profile'));
 const MemberDocuments = React.lazy(() => import('./pages/MemberDocuments'));
 const MemberAdvisor = React.lazy(() => import('./pages/MemberAdvisor'));
-const Trading = React.lazy(() => import('./pages/Trading'));
 const MoveMoney = React.lazy(() => import('./pages/MoveMoney'));
-const Investments = React.lazy(() => import('./pages/Investments'));
 const More = React.lazy(() => import('./pages/More'));
 const TransactionDispute = React.lazy(() => import('./pages/TransactionDispute'));
 const BrandIdentity = React.lazy(() => import('./pages/BrandIdentity'));
-const BudCompanion = React.lazy(() => import('./components/runtime/BudCompanion'));
+const VantorisAssistant = React.lazy(() => import('./components/vantoris/VantorisAssistant'));
 const HeroBox = React.lazy(() => import('./pages/HeroBox'));
 
 // Lazy-loaded pages — Admin (Operations Center)
@@ -140,12 +138,10 @@ const AuthenticatedApp = () => {
             <Route path="/profile" element={<Profile />} />
             <Route path="/documents" element={<MemberDocuments />} />
             <Route path="/advisor" element={<MemberAdvisor />} />
-            <Route path="/trading" element={<Trading />} />
             <Route path="/move-money" element={<MoveMoney />} />
-            <Route path="/investments" element={<Investments />} />
             <Route path="/more" element={<More />} />
             <Route path="/dispute" element={<TransactionDispute />} />
-            <Route path="/assistant" element={<BudCompanion />} />
+            <Route path="/assistant" element={<VantorisAssistant />} />
             <Route path="/herobox" element={<HeroBox />} />
           </Route>
 

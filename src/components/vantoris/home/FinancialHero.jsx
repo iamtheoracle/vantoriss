@@ -9,7 +9,6 @@ export default function FinancialHero({
   greeting,
   netWorth,
   availableCash,
-  investmentValue,
   dailyChange,
   hideBalance,
   onToggleBalance,
@@ -92,20 +91,12 @@ export default function FinancialHero({
           )}
         </div>
 
-        {/* Split: Available Cash + Investment Value */}
-        <div className="grid grid-cols-2 gap-3 pt-4 border-t border-white/8 mb-4">
-          <div>
-            <p className="text-white/40 text-[10px] uppercase tracking-wider font-medium mb-1">Available Cash</p>
-            <p className="text-white font-semibold text-base">
-              {hideBalance ? '••••••' : formatCurrency(availableCash)}
-            </p>
-          </div>
-          <div>
-            <p className="text-white/40 text-[10px] uppercase tracking-wider font-medium mb-1">Investments</p>
-            <p className="text-white font-semibold text-base">
-              {hideBalance ? '••••••' : formatCurrency(investmentValue)}
-            </p>
-          </div>
+        {/* Available Cash */}
+        <div className="pt-4 border-t border-white/8 mb-4">
+          <p className="text-white/40 text-[10px] uppercase tracking-wider font-medium mb-1">Available Cash</p>
+          <p className="text-white font-semibold text-base">
+            {hideBalance ? '••••••' : formatCurrency(availableCash)}
+          </p>
         </div>
 
         {/* Search + Quick Transfer */}

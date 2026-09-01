@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Users, Building2, CreditCard, TrendingUp, Check, Clock, BarChart3, Landmark, ShieldCheck } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Users, Building2, CreditCard, Check, Clock, Landmark, ShieldCheck } from 'lucide-react';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
@@ -11,11 +10,6 @@ const services = [
   { type: 'Business Account', icon: Building2, desc: 'Request a business checking or savings account', color: 'bg-olive/20 text-emerald-400', requiresApproval: true },
   { type: 'Savings Account', icon: Landmark, desc: 'Open a savings account to earn interest', color: 'bg-blue-500/15 text-blue-400' },
   { type: 'Debit Card', icon: CreditCard, desc: 'Request a debit card for your account', color: 'bg-purple-500/15 text-purple-400' },
-  { type: 'Investment Access', icon: TrendingUp, desc: 'Request access to investment opportunities', color: 'bg-teal-500/15 text-teal-400' },
-];
-
-const quickLinks = [
-  { path: '/trading', icon: BarChart3, label: 'Trading', desc: 'Manage trading accounts & live market charts', color: 'bg-purple-500/15 text-purple-400' },
 ];
 
 export default function Services() {
@@ -98,29 +92,6 @@ export default function Services() {
     <div className="px-5 pt-6">
       <h1 className="text-2xl font-bold text-white mb-1">Services</h1>
       <p className="text-[#AAB4C3] text-sm mb-6">Request additional accounts and services</p>
-
-      {/* Quick Access Links */}
-      <h3 className="text-white font-semibold text-sm mb-3">Trading & Markets</h3>
-      <div className="space-y-3 mb-8">
-        {quickLinks.map(link => {
-          const Icon = link.icon;
-          return (
-            <Link
-              key={link.path}
-              to={link.path}
-              className="vantoris-card p-4 w-full text-left flex items-center gap-4 hover:border-brass/30 transition-all"
-            >
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${link.color}`}>
-                <Icon size={20} />
-              </div>
-              <div className="flex-1">
-                <p className="text-white font-medium text-sm">{link.label}</p>
-                <p className="text-[#AAB4C3] text-xs">{link.desc}</p>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
 
       {/* Available Services */}
       <h3 className="text-white font-semibold text-sm mb-3">Available Services</h3>
