@@ -5,6 +5,7 @@ import AuthLayout from "@/components/AuthLayout";
 import SplashScreen from "@/components/auth/SplashScreen";
 import OnboardingCarousel from "@/components/auth/OnboardingCarousel";
 import { Loader2, Lock, User } from "lucide-react";
+import { hasOperationsAccess } from "@/lib/operationsAccess";
 
 export default function Login() {
   const [phase, setPhase] = useState("splash");
@@ -40,8 +41,8 @@ export default function Login() {
     try {
       if (rememberId) localStorage.setItem("vantoris_user_id", userId);
       else localStorage.removeItem("vantoris_user_id");
-      await base44.auth.loginViaEmailPassword(userId, password);
-      window.location.href = "/";
+      const { user } = await base44.auth.loginViaEmailPassword(userId, password);
+      window.location.href = hasOperationsAccess(user?.role) ? "/operations" : "/";
     } catch (err) {
       const status = err?.response?.status || err?.status;
       if (status === 404) {
