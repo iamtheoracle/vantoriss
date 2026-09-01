@@ -51,6 +51,7 @@ const WORKSPACE_CONFIG = {
           { label: 'Risk Overview', path: '/operations/security-dashboard', icon: ShieldAlert },
           { label: 'Audit Logs', path: '/operations/audit-logs', icon: ScrollText },
           { label: 'Activity Timeline', path: '/operations/activity', icon: Activity },
+          { label: 'Data Integrity Audit', path: '/operations/data-integrity', icon: Database },
         ],
       },
       {
@@ -142,6 +143,7 @@ const WORKSPACE_CONFIG = {
           { label: 'Security Dashboard', path: '/operations/security-dashboard', icon: ShieldAlert },
           { label: 'Transaction Monitoring', path: '/operations/activity', icon: Activity },
           { label: 'Audit Logs', path: '/operations/audit-logs', icon: ScrollText },
+          { label: 'Data Integrity Audit', path: '/operations/data-integrity', icon: Database },
         ],
       },
       {

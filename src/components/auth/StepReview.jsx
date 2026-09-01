@@ -60,8 +60,9 @@ export default function StepReview({ data, product, onEditStep, onConsentChange,
         onEdit={() => onEditStep(5)}
         fields={[
           { label: "SSN", value: data.ssn ? "•••-••-" + data.ssn.slice(-4) : "" },
-          { label: "Government ID", value: data.govId?.name || "Not uploaded" },
-          { label: "Selfie", value: data.selfie?.name || "Not uploaded" },
+          { label: "ID — Front", value: data.govIdFront?.name || "Not uploaded" },
+          { label: "ID — Back", value: data.govIdBack?.name || "Not uploaded" },
+          { label: "Selfie Photo", value: data.selfie?.name || "Not uploaded" },
         ]}
       />
       <ReviewSection

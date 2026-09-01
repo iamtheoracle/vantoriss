@@ -91,6 +91,7 @@ const Security = React.lazy(() => import('./pages/operations/Security'));
 const FeatureFlags = React.lazy(() => import('./pages/operations/FeatureFlags'));
 const BackgroundJobs = React.lazy(() => import('./pages/operations/BackgroundJobs'));
 const SystemHealth = React.lazy(() => import('./pages/operations/SystemHealth'));
+const DataIntegrityAudit = React.lazy(() => import('./pages/operations/DataIntegrityAudit'));
 
 const LoadingFallback = () => (
   <div className="fixed inset-0 flex items-center justify-center bg-background">
@@ -199,6 +200,7 @@ const AuthenticatedApp = () => {
               <Route path="/operations/feature-flags" element={<FeatureFlags />} />
               <Route path="/operations/background-jobs" element={<BackgroundJobs />} />
               <Route path="/operations/system-health" element={<SystemHealth />} />
+              <Route path="/operations/data-integrity" element={<DataIntegrityAudit />} />
             </Route>
           </Route>
         </Route>

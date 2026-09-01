@@ -52,20 +52,37 @@ export default function StepIdentity({ data, updateData }) {
         icon={CreditCard}
       />
       <p className="text-[11px] text-gray -mt-2">Or jurisdiction equivalent (e.g. ITIN, National ID number).</p>
+
+      <div className="grid grid-cols-2 gap-3">
+        <FileUpload
+          label="ID — Front"
+          file={data.govIdFront}
+          onChange={(f) => updateData({ govIdFront: f })}
+          description="Front of license, passport, or state ID"
+        />
+        <FileUpload
+          label="ID — Back"
+          file={data.govIdBack}
+          onChange={(f) => updateData({ govIdBack: f })}
+          description="Back of license or state ID (if applicable)"
+        />
+      </div>
+
       <FileUpload
-        label="Government ID"
-        file={data.govId}
-        onChange={(f) => updateData({ govId: f })}
-        description="Driver's license, passport, or state ID"
-      />
-      <FileUpload
-        label="Selfie Verification"
+        label="Selfie Photo"
         file={data.selfie}
         onChange={(f) => updateData({ selfie: f })}
-        description="Clear front-facing photo"
+        description="Clear, well-lit front-facing photo of your face"
       />
-      <p className="text-xs text-gray leading-relaxed">
-        Your documents are encrypted and stored securely. They will be reviewed by our compliance team as part of the account opening process.
+      <p className="text-[11px] text-gray -mt-2 leading-relaxed">
+        A clear photo of your face is used to match your identity documents during compliance review.
+        Biometric liveness verification is not performed at upload — a compliance officer will review all
+        submitted materials before activation.
+      </p>
+
+      <p className="text-xs text-gray leading-relaxed pt-1">
+        Your documents are encrypted and stored securely. They will be reviewed by our compliance team
+        as part of the account opening process.
       </p>
     </div>
   );

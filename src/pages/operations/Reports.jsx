@@ -74,7 +74,9 @@ export default function Reports() {
       const monthName = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-      const monthTxns = transactions.filter(t => new Date(t.created_date) >= monthStart);
+      // Use effective transaction date — respects transaction_date > posting_date > created_date
+      const getEffDate = (t) => new Date(t.transaction_date || t.posting_date || t.created_date);
+      const monthTxns = transactions.filter(t => getEffDate(t) >= monthStart);
       const monthDeposits = monthTxns.filter(t => t.type === 'deposit' || t.type === 'opening_balance').reduce((s, t) => s + Math.abs(t.amount || 0), 0);
       const monthWithdrawals = monthTxns.filter(t => t.type === 'withdrawal').reduce((s, t) => s + Math.abs(t.amount || 0), 0);
       const monthVolume = monthDeposits + monthWithdrawals;
@@ -82,7 +84,7 @@ export default function Reports() {
       const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
       const prevMonthTxns = transactions.filter(t => {
-        const d = new Date(t.created_date);
+        const d = getEffDate(t);
         return d >= prevMonthStart && d <= prevMonthEnd;
       });
       const prevAUM = prevMonthTxns.reduce((s, t) => s + (t.amount || 0), 0);

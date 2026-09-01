@@ -21,7 +21,7 @@ const INITIAL_DATA = {
   firstName: "", middleName: "", lastName: "", suffix: "", dob: "",
   email: "", phone: "",
   street: "", apt: "", city: "", state: "", zip: "", country: "US",
-  ssn: "", govId: null, selfie: null,
+  ssn: "", govId: null, govIdFront: null, govIdBack: null, selfie: null,
   employment: "", employer: "", occupation: "", annualIncome: "", sourceOfFunds: "",
   userId: "", password: "", confirmPassword: "", securityPin: "", faceId: false,
 };
@@ -65,7 +65,7 @@ export default function Register() {
       case 2: return data.email && data.phone;
       case 3: return !!data.phone;
       case 4: return data.street && data.city && data.state && data.zip && data.country;
-      case 5: return data.ssn && data.govId && data.selfie;
+      case 5: return data.ssn && data.govIdFront && data.selfie;
       case 6: return data.employment && data.annualIncome && data.sourceOfFunds;
       case 7: return data.userId && data.password && data.confirmPassword && data.securityPin && data.password === data.confirmPassword;
       case 8: return consents.regulatory && consents.privacy && consents.electronic;
@@ -224,9 +224,9 @@ export default function Register() {
       const fullAddress = [data.street, data.apt, data.city, `${data.state} ${data.zip}`, data.country].filter(Boolean).join(", ");
       const accountType = selectedProduct.accountType;
 
-      // Upload KYC documents
+      // Upload KYC documents — ID front, ID back (optional), selfie
       const docUrls = [];
-      for (const file of [data.govId, data.selfie]) {
+      for (const file of [data.govIdFront, data.govIdBack, data.selfie]) {
         if (file) {
           try {
             const { file_url } = await base44.integrations.Core.UploadFile({ file });
