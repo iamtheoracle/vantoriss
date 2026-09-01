@@ -101,8 +101,8 @@ export default function MemberAdvisorChat() {
   async function loadConversations() {
     setLoadingConv(true);
     try {
-      const convs = await base44.agents.listConversations({ agent_name: 'member_advisor' });
-      const deleted = getDeletedIds('member_advisor');
+      const convs = await base44.agents.listConversations({ agent_name: 'vantoris_assistant' });
+      const deleted = getDeletedIds('vantoris_assistant');
       const filtered = (convs || []).filter(c => !deleted.has(c.id));
       setConversations(filtered);
       if (filtered.length > 0) {
@@ -117,7 +117,7 @@ export default function MemberAdvisorChat() {
   }
 
   function deleteConversation(convId) {
-    addDeletedId('member_advisor', convId);
+    addDeletedId('vantoris_assistant', convId);
     const remaining = conversations.filter(c => c.id !== convId);
     setConversations(remaining);
     if (activeConv?.id === convId) {
@@ -154,7 +154,7 @@ export default function MemberAdvisorChat() {
     if (!conv) {
       const title = await generateConversationTitle(text);
       conv = await base44.agents.createConversation({
-        agent_name: 'member_advisor',
+        agent_name: 'vantoris_assistant',
         metadata: { name: title, description: 'Member advisory chat' },
       });
       if (!conv.metadata) conv.metadata = { name: title };

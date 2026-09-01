@@ -14,7 +14,7 @@ export default function TransactionDispute() {
       <h1 className="text-2xl font-bold text-white mb-1">Transaction Dispute Resolution</h1>
       <p className="text-[#AAB4C3] text-sm mb-4">Identify and resolve discrepancies in your transaction history</p>
       <AgentChat
-        agentName="transaction_dispute_agent"
+        agentName="vantoris_assistant"
         title="Dispute Resolution Assistant"
         subtitle="Transaction discrepancy investigation"
         suggestions={DISPUTE_SUGGESTIONS}
