@@ -16,6 +16,7 @@
         "kyc_document",
         "tax_document",
         "agreement",
+        "historical_statement",
         "other"
       ],
       "default": "other"
@@ -33,7 +34,27 @@
     },
     "statement_period": {
       "type": "string",
-      "description": "Date range covered, e.g. 2025-01-01 to 2025-03-31"
+      "description": "Date range covered, e.g. 2025-01-01 to 2025-03-31 (human-readable)"
+    },
+    "statement_date": {
+      "type": "string",
+      "format": "date",
+      "description": "The actual statement date from the source (NOT the upload/created date)"
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date",
+      "description": "Statement period start date"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date",
+      "description": "Statement period end date"
+    },
+    "issue_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the statement was issued (may differ from statement_date)"
     },
     "archived": {
       "type": "boolean",

@@ -1,0 +1,101 @@
+{
+  "name": "HistoricalStatement",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "The member who imported this statement"
+    },
+    "account_id": {
+      "type": "string",
+      "description": "The account this historical statement belongs to"
+    },
+    "account_name": {
+      "type": "string",
+      "description": "Account name as shown on the source statement"
+    },
+    "account_identifier": {
+      "type": "string",
+      "description": "Account number or identifier from the source document"
+    },
+    "statement_date": {
+      "type": "string",
+      "format": "date",
+      "description": "The actual statement date from the source document (NOT the upload date)"
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date",
+      "description": "Statement period start date"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date",
+      "description": "Statement period end date"
+    },
+    "issue_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the statement was issued by the source institution"
+    },
+    "opening_balance": {
+      "type": "number",
+      "default": 0
+    },
+    "closing_balance": {
+      "type": "number",
+      "default": 0
+    },
+    "total_credits": {
+      "type": "number",
+      "default": 0
+    },
+    "total_debits": {
+      "type": "number",
+      "default": 0
+    },
+    "transaction_count": {
+      "type": "number",
+      "default": 0
+    },
+    "source_document_url": {
+      "type": "string",
+      "description": "URL of the uploaded source document (PDF/image)"
+    },
+    "source_institution": {
+      "type": "string",
+      "description": "Name of the institution that issued the original statement"
+    },
+    "imported_by_name": {
+      "type": "string",
+      "description": "Name of the user who imported this statement"
+    },
+    "import_notes": {
+      "type": "string",
+      "description": "User notes about corrections or context"
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "unverified",
+        "user_reviewed",
+        "operator_verified"
+      ],
+      "default": "unverified"
+    },
+    "overlap_detected": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this statement overlaps an existing statement period"
+    },
+    "overlap_details": {
+      "type": "string",
+      "description": "JSON-serialized details of any detected overlaps"
+    }
+  },
+  "required": [
+    "user_id",
+    "account_id",
+    "statement_date"
+  ]
+}

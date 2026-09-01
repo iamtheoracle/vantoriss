@@ -18,12 +18,14 @@ import {
 } from 'lucide-react';
 import SecurityPinModal from '@/components/vantoris/SecurityPinModal';
 import StatusBadge from '@/components/vantoris/StatusBadge';
+import HistoricalStatementImport from '@/components/vantoris/HistoricalStatementImport';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { useToast } from '@/components/ui/use-toast';
 import TransactionFilters from '@/components/TransactionFilters';
 import MonthlySummary from '@/components/vantoris/home/MonthlySummary';
+import { getEffectiveTxnDate, formatTxnDate, getWeekday, formatPeriod } from '@/lib/statementDates';
 
 const WITHDRAWAL_METHODS = [
   {
@@ -107,8 +109,7 @@ export default function AccountDetail() {
   const [currentUser, setCurrentUser] = useState(null);
   const { toast } = useToast();
   const [filteredTransactions, setFilteredTransactions] = useState([]);
-  const [showImport, setShowImport] = useState(false);
-  const [importFile, setImportFile] = useState(null);
+  const [showHistoricalImport, setShowHistoricalImport] = useState(false);
 
   const loadData = useCallback(async () => {
     const [user, acct, txns, pendingWds] = await Promise.all([
@@ -149,36 +150,6 @@ export default function AccountDetail() {
       filtered = filtered.filter(t => Math.abs(t.amount) <= parseFloat(amountMax));
     }
     setFilteredTransactions(filtered);
-  }
-
-  async function handleImportHistory() {
-    if (!importFile) return;
-    try {
-      const text = await importFile.text();
-      const rows = text.split('\n').filter(r => r.trim());
-      const imported = [];
-      for (const row of rows) {
-        const [date, desc, type, amt, ref] = row.split(',').map(s => s.trim());
-        if (!amt || !type) continue;
-        const txn = await base44.entities.Transaction.create({
-          account_id: id,
-          type: type || 'adjustment',
-          amount: parseFloat(amt),
-          description: desc || 'Imported transaction',
-          reference: ref || '',
-          transaction_date: date || new Date().toISOString(),
-          created_by_admin: false,
-        });
-        imported.push(txn);
-      }
-      toast({ title: 'Success', description: `Imported ${imported.length} historical transactions` });
-      setShowImport(false);
-      setImportFile(null);
-      loadData();
-    } catch (e) {
-      console.error(e);
-      toast({ title: 'Import failed', description: 'Check CSV format (date, description, type, amount, reference)', variant: 'destructive' });
-    }
   }
 
   const { containerProps, PullIndicator } = usePullToRefresh(loadData);
@@ -229,19 +200,25 @@ export default function AccountDetail() {
       const jsPDF = (await import('jspdf')).default;
       const doc = new jsPDF();
 
+      // Use getEffectiveTxnDate — respects transaction_date, then posting_date, then created_date
+      // NEVER substitutes today's date for historical dates
       const allTxns = [...transactions].sort((a, b) =>
-        new Date(a.transaction_date || a.created_date) - new Date(b.transaction_date || b.created_date)
+        new Date(getEffectiveTxnDate(a)) - new Date(getEffectiveTxnDate(b))
       );
 
       const filtered = allTxns.filter(t => {
-        const d = new Date(t.transaction_date || t.created_date);
+        const d = new Date(getEffectiveTxnDate(t));
+        if (isNaN(d.getTime())) return false;
         if (stmtRange.from && d < new Date(stmtRange.from)) return false;
         if (stmtRange.to && d > new Date(stmtRange.to + 'T23:59:59')) return false;
         return true;
       });
 
       const beforeRange = stmtRange.from
-        ? allTxns.filter(t => new Date(t.transaction_date || t.created_date) < new Date(stmtRange.from))
+        ? allTxns.filter(t => {
+            const d = new Date(getEffectiveTxnDate(t));
+            return !isNaN(d.getTime()) && d < new Date(stmtRange.from);
+          })
         : [];
       const openingBalance = beforeRange.reduce((sum, t) => sum + (t.amount || 0), 0);
 
@@ -259,9 +236,15 @@ export default function AccountDetail() {
       const refRand = Math.random().toString(36).substring(2, 6).toUpperCase();
       const referenceNumber = `VST-${refDate}-${refRand}`;
 
-      const periodText = stmtRange.from && stmtRange.to
-        ? `${stmtRange.from} to ${stmtRange.to}`
-        : 'All Transactions';
+      // Statement date = the end of the selected period (or latest transaction date, or today for live statements)
+      // This is SEPARATE from the generated/upload date
+      const statementDate = stmtRange.to
+        ? stmtRange.to
+        : filtered.length > 0
+          ? formatTxnDate(getEffectiveTxnDate(filtered[filtered.length - 1])).replace(/,/g, '')
+          : now.toISOString().split('T')[0];
+
+      const periodText = formatPeriod(stmtRange.from, stmtRange.to);
 
       doc.setFillColor(14, 26, 43);
       doc.rect(0, 0, 210, 297, 'F');
@@ -282,9 +265,12 @@ export default function AccountDetail() {
       doc.setFontSize(8);
       doc.setFont(undefined, 'normal');
       doc.setTextColor(170, 180, 195);
-      doc.text(`Reference: ${referenceNumber}`, 130, 33);
-      doc.text(`Generated: ${now.toLocaleString('en-US')}`, 130, 38);
-      doc.text(`Period: ${periodText}`, 130, 43);
+      doc.text(`Reference Number: ${referenceNumber}`, 130, 33);
+      // Statement Date — the actual date of the statement (calculated, not today)
+      doc.text(`Statement Date: ${formatTxnDate(statementDate)}`, 130, 38);
+      doc.text(`Statement Period: ${periodText}`, 130, 43);
+      // Generated Date — when the PDF was created (system timestamp, separate from statement date)
+      doc.text(`Generated: ${now.toLocaleString('en-US')}`, 130, 48);
 
       doc.setDrawColor(176, 141, 87);
       doc.setLineWidth(0.5);
@@ -317,8 +303,8 @@ export default function AccountDetail() {
       doc.setTextColor(170, 180, 195);
       doc.setFontSize(7);
       doc.text('OPENING BALANCE', 25, 85);
-      doc.text('CREDITS', 80, 85);
-      doc.text('DEBITS', 120, 85);
+      doc.text('TOTAL CREDITS', 80, 85);
+      doc.text('TOTAL DEBITS', 120, 85);
       doc.text('CLOSING BALANCE', 155, 85);
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(10);
@@ -341,15 +327,15 @@ export default function AccountDetail() {
       doc.setTextColor(170, 180, 195);
       doc.setFontSize(7);
       doc.setFont(undefined, 'bold');
-      doc.text('DATE', 22, y);
-      doc.text('DESCRIPTION', 50, y);
-      doc.text('REFERENCE', 100, y);
-      doc.text('DEBIT', 140, y);
-      doc.text('CREDIT', 165, y);
+      doc.text('TRANSACTION DATE', 22, y);
+      doc.text('DESCRIPTION', 58, y);
+      doc.text('REFERENCE', 108, y);
+      doc.text('DEBIT', 145, y);
+      doc.text('CREDIT', 168, y);
       y += 8;
 
       doc.setFont(undefined, 'normal');
-      doc.setFontSize(8);
+      doc.setFontSize(7);
       filtered.forEach(txn => {
         if (y > 275) {
           doc.addPage();
@@ -357,21 +343,38 @@ export default function AccountDetail() {
           doc.rect(0, 0, 210, 297, 'F');
           y = 20;
         }
-        const txnDate = new Date(txn.transaction_date || txn.created_date);
+        // Use getEffectiveTxnDate — respects transaction_date > posting_date > created_date
+        const effDate = getEffectiveTxnDate(txn);
+        // Weekday calculated from the ACTUAL date — never hardcoded
+        const weekday = getWeekday(effDate, true);
+        const dateStr = formatTxnDate(effDate);
         doc.setTextColor(170, 180, 195);
-        doc.text(txnDate.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }), 22, y);
+        doc.text(`${weekday}, ${dateStr}`, 22, y);
+        // Description — use natural banking language
+        let descText = txn.description || txn.type || '';
+        // For transfers, show direction
+        if (txn.type === 'transfer') {
+          if (txn.transfer_direction === 'in') descText = `Transfer In — ${descText}`;
+          else if (txn.transfer_direction === 'out') descText = `Transfer Out — ${descText}`;
+          else if (txn.transfer_direction === 'external') descText = `External Transfer — ${descText}`;
+          else if (txn.transfer_direction === 'internal') descText = `Internal Transfer — ${descText}`;
+        }
+        // Mark historical imports
+        if (txn.source === 'historical_import') {
+          descText = `[Historical] ${descText}`;
+        }
         doc.setTextColor(255, 255, 255);
-        doc.text((txn.description || txn.type).substring(0, 25), 50, y);
+        doc.text(descText.substring(0, 30), 58, y);
         doc.setTextColor(170, 180, 195);
-        doc.text((txn.reference || '-').substring(0, 18), 100, y);
+        doc.text((txn.reference || '-').substring(0, 16), 108, y);
         if (txn.amount < 0) {
           doc.setTextColor(140, 47, 57);
-          doc.text(formatCurrency(Math.abs(txn.amount)), 140, y);
-          doc.text('-', 168, y);
+          doc.text(formatCurrency(Math.abs(txn.amount)), 145, y);
+          doc.text('-', 173, y);
         } else {
-          doc.text('-', 143, y);
+          doc.text('-', 148, y);
           doc.setTextColor(62, 76, 58);
-          doc.text(formatCurrency(Math.abs(txn.amount)), 165, y);
+          doc.text(formatCurrency(Math.abs(txn.amount)), 168, y);
         }
         doc.setDrawColor(36, 45, 56);
         doc.line(20, y + 2, 190, y + 2);
@@ -404,6 +407,10 @@ export default function AccountDetail() {
           reference_number: referenceNumber,
           account_id: account.id,
           statement_period: periodText,
+          statement_date: statementDate,
+          period_start: stmtRange.from || '',
+          period_end: stmtRange.to || '',
+          issue_date: statementDate,
           status: 'active',
         });
       } catch (archiveErr) {
@@ -514,11 +521,11 @@ export default function AccountDetail() {
             {account.status === 'frozen' ? 'Unfreeze' : 'Freeze'}
           </button>
           <button
-            onClick={() => setShowImport(true)}
+            onClick={() => setShowHistoricalImport(true)}
             className="py-3 bg-slate-100 text-foreground font-medium rounded-xl text-sm hover:bg-slate-200 transition-all flex items-center justify-center gap-2"
           >
             <Upload size={16} />
-            Import History
+            Import Statement
           </button>
         </div>
       )}
@@ -566,9 +573,17 @@ export default function AccountDetail() {
                   }
                 </div>
                 <div>
-                  <p className="text-foreground text-sm font-medium">{txn.description || txn.type.replace('_', ' ')}</p>
+                  <p className="text-foreground text-sm font-medium flex items-center gap-1.5">
+                    {txn.description || txn.type.replace('_', ' ')}
+                    {txn.source === 'historical_import' && (
+                      <span className="inline-block px-1.5 py-0.5 bg-brass/10 text-brass text-[9px] font-semibold uppercase rounded">Historical</span>
+                    )}
+                  </p>
                   <p className="text-gray text-[11px]">
-                    {new Date(txn.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    {formatTxnDate(getEffectiveTxnDate(txn))}
+                    {txn.posting_date && txn.posting_date !== txn.transaction_date && (
+                      <span className="text-gray/60"> · Posted: {formatTxnDate(txn.posting_date)}</span>
+                    )}
                   </p>
                 </div>
               </div>
@@ -764,41 +779,14 @@ export default function AccountDetail() {
         </DialogContent>
       </Dialog>
 
-      {/* Import Historical Transactions Dialog */}
-      <Dialog open={showImport} onOpenChange={setShowImport}>
-        <DialogContent className="bg-white border-slate-200 max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-foreground flex items-center gap-2">
-              <Upload size={18} className="text-brass" />
-              Import Transaction History
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 mt-2">
-            <p className="text-gray text-sm">Upload a CSV file with historical transactions from your old account. Format: date, description, type, amount, reference</p>
-            <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-lg p-6 text-center cursor-pointer hover:border-brass/50 transition-all">
-              <input
-                type="file"
-                accept=".csv"
-                onChange={e => setImportFile(e.target.files?.[0] || null)}
-                className="hidden"
-                id="import-file"
-              />
-              <label htmlFor="import-file" className="cursor-pointer">
-                <Upload size={24} className="text-brass mx-auto mb-2" />
-                <p className="text-foreground text-sm font-medium">{importFile ? importFile.name : 'Click to upload CSV'}</p>
-                <p className="text-gray text-xs mt-1">or drag and drop</p>
-              </label>
-            </div>
-            <button
-              onClick={handleImportHistory}
-              disabled={!importFile}
-              className="w-full py-3 bg-brass text-white font-semibold rounded-xl disabled:opacity-40"
-            >
-              Import Transactions
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Historical Statement Import — proper import with date separation, dedup, review */}
+      <HistoricalStatementImport
+        open={showHistoricalImport}
+        onClose={() => setShowHistoricalImport(false)}
+        accountId={id}
+        account={account}
+        onImported={loadData}
+      />
     </div>
   );
 }

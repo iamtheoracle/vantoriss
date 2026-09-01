@@ -36,12 +36,14 @@ export default function UnifiedTimeline({ transactions, heroActivities, notifica
   const items = [
     ...transactions.map(t => {
       const cfg = TXN_ICONS[t.type] || { icon: Activity, color: 'text-gray', bg: 'bg-slate-100' };
+      // Use effective date — respects transaction_date > posting_date > created_date
+      const effDate = t.transaction_date || t.posting_date || t.created_date;
       return {
         id: `txn-${t.id}`,
-        date: new Date(t.created_date),
+        date: new Date(effDate),
         icon: cfg.icon, iconColor: cfg.color, iconBg: cfg.bg,
         title: t.description || t.type,
-        subtitle: new Date(t.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        subtitle: new Date(effDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
         amount: (t.type === 'withdrawal' || t.type === 'fee') ? -Math.abs(t.amount) : t.amount,
         isCurrency: true,
       };
