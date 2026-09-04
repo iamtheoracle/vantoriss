@@ -1,0 +1,21 @@
+{
+  "name": "ZelleProfile",
+  "type": "object",
+  "properties": {
+    "user_id": { "type": "string" },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "enrolled", "suspended", "closed"],
+      "default": "pending"
+    },
+    "display_name": { "type": "string" },
+    "zelle_email": { "type": "string" },
+    "zelle_phone": { "type": "string" },
+    "bank_name": { "type": "string" },
+    "bank_account_last4": { "type": "string" },
+    "eligible_account_id": { "type": "string" },
+    "enrolled_at": { "type": "string", "format": "date" },
+    "verified_at": { "type": "string", "format": "date" }
+  },
+  "required": ["user_id", "status", "display_name"]
+}
