@@ -26,8 +26,11 @@ export const AuthProvider = ({ children }) => {
       
       // First, check app public settings (with token if available)
       // This will tell us if auth is required, user not registered, etc.
+      // baseURL must point at the configured Base44 backend (appParams.serverUrl),
+      // not the frontend origin — this app is hosted separately from Base44 (e.g. on Netlify),
+      // so a relative `/api/...` path would resolve against the frontend host and 404.
       const appClient = createAxiosClient({
-        baseURL: `/api/apps/public`,
+        baseURL: `${appParams.serverUrl}/api/apps/public`,
         headers: {
           'X-App-Id': appParams.appId
         },
