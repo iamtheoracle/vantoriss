@@ -46,3 +46,15 @@ export function buildDemoFinancialState(user = {}) {
     portfolios: [{ ...DEMO_PORTFOLIO, user_id: user.id }],
   };
 }
+
+export function selectFinancialExperience(accounts = [], cards = [], portfolios = [], user = {}) {
+  const realAccounts = accounts.filter((record) => record.provider === 'unit' && Boolean(record.provider_account_id));
+  const realCards = cards.filter((record) => record.provider === 'unit' && Boolean(record.provider_card_id));
+  const realPortfolios = portfolios.filter((record) => Boolean(record.provider && record.provider_portfolio_id));
+
+  if (realAccounts.length || realCards.length || realPortfolios.length) {
+    return { mode: 'real', label: 'Live provider data', notice: '', accounts: realAccounts, cards: realCards, portfolios: realPortfolios };
+  }
+
+  return buildDemoFinancialState(user);
+}
