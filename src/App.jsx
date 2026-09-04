@@ -8,7 +8,6 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import MemberRoute from '@/components/MemberRoute';
 import PageTransition from './components/vantoris/PageTransition';
 import { ExceptionAuthProvider } from '@/components/vantoris/ExceptionAuthContext';
 
@@ -31,7 +30,6 @@ const Messages = React.lazy(() => import('./pages/Messages'));
 const Profile = React.lazy(() => import('./pages/Profile'));
 const MemberDocuments = React.lazy(() => import('./pages/MemberDocuments'));
 const MemberAdvisor = React.lazy(() => import('./pages/MemberAdvisor'));
-const MoveMoney = React.lazy(() => import('./pages/MoveMoney'));
 const More = React.lazy(() => import('./pages/More'));
 const Discovery = React.lazy(() => import('./pages/Discovery'));
 const TransactionDispute = React.lazy(() => import('./pages/TransactionDispute'));
@@ -136,7 +134,7 @@ const AuthenticatedApp = () => {
               <Route path="/" element={<Home />} />
               <Route path="/apply" element={<Navigate to="/register" replace />} />
               <Route path="/apply/kyc" element={<ApplyKYC />} />
-              <Route path="/accounts" element={<MoveMoney />} />
+              <Route path="/accounts" element={<Accounts />} />
               <Route path="/accounts/:id" element={<AccountDetail />} />
               <Route path="/services" element={<Services />} />
               <Route path="/messages" element={<Messages />} />
