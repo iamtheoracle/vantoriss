@@ -2,135 +2,32 @@
   "name": "Application",
   "type": "object",
   "properties": {
-    "user_id": {
-      "type": "string",
-      "description": "The user who submitted the application"
-    },
-    "full_name": {
-      "type": "string"
-    },
-    "email": {
-      "type": "string"
-    },
-    "phone": {
-      "type": "string"
-    },
-    "account_type": {
-      "type": "string",
-      "enum": [
-        "Checking",
-        "Savings",
-        "Money Market",
-        "CD",
-        "Joint",
-        "Business"
-      ]
-    },
-    "kyc_status": {
-      "type": "string",
-      "enum": [
-        "not_started",
-        "pending",
-        "approved",
-        "rejected"
-      ],
-      "default": "not_started"
-    },
-    "kyc_documents": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "description": "Uploaded KYC document URLs"
-    },
-    "kyc_notes": {
-      "type": "string"
-    },
-    "application_status": {
-      "type": "string",
-      "enum": [
-        "pending",
-        "approved",
-        "rejected"
-      ],
-      "default": "pending"
-    },
-    "admin_notes": {
-      "type": "string"
-    },
-    "opening_balance": {
-      "type": "number",
-      "default": 0
-    },
-    "business_name": {
-      "type": "string",
-      "description": "Business name (for Business accounts) or beneficiary name (for CD accounts)"
-    },
-    "business_type": {
-      "type": "string",
-      "enum": [
-        "LLC",
-        "Corporation",
-        "Partnership",
-        "Sole Proprietorship",
-        "Non-Profit"
-      ],
-      "description": "Legal business structure (Business accounts only)"
-    },
-    "ein": {
-      "type": "string",
-      "description": "Employer Identification Number (Business accounts only, 9 digits)"
-    },
-    "joint_account_holder_name": {
-      "type": "string",
-      "description": "Full legal name of the co-applicant (Joint accounts only)"
-    },
-    "joint_account_holder_ssn": {
-      "type": "string",
-      "description": "Last 4 digits of co-applicant SSN (Joint accounts only)"
-    },
-    "address": {
-      "type": "string"
-    },
-    "opening_receipt_url": {
-      "type": "string",
-      "description": "URL of the uploaded opening deposit payment receipt"
-    },
-    "opening_payment_method": {
-      "type": "string",
-      "enum": [
-        "Direct Deposit",
-        "ACH Transfer",
-        "Wire Transfer",
-        "Mobile Check Deposit",
-        "Cashier's Check",
-        "Personal Check"
-      ],
-      "description": "Method used for the opening deposit"
-    },
-    "opening_contribution_status": {
-      "type": "string",
-      "enum": [
-        "not_started",
-        "pending",
-        "approved",
-        "rejected"
-      ],
-      "default": "not_started"
-    },
-    "deposit_account_details": {
-      "type": "string",
-      "description": "Account details (reference number, account holder name, etc.) for time-limited deposit methods"
-    },
-    "deposit_details_expires": {
-      "type": "string",
-      "format": "date-time",
-      "description": "Expiration date for deposit account details validity"
-    }
+    "user_id": { "type": "string", "description": "The user who submitted the application" },
+    "full_name": { "type": "string" },
+    "email": { "type": "string" },
+    "phone": { "type": "string" },
+    "account_type": { "type": "string", "enum": ["Checking", "Savings", "Money Market", "CD", "Joint", "Business"] },
+    "kyc_status": { "type": "string", "enum": ["not_started", "pending", "approved", "rejected"], "default": "not_started" },
+    "kyc_documents": { "type": "array", "items": { "type": "string" } },
+    "kyc_notes": { "type": "string" },
+    "application_status": { "type": "string", "enum": ["pending", "approved", "rejected"], "default": "pending" },
+    "admin_notes": { "type": "string" },
+    "opening_balance": { "type": "number", "default": 0 },
+    "business_name": { "type": "string" },
+    "business_type": { "type": "string", "enum": ["LLC", "Corporation", "Partnership", "Sole Proprietorship", "Non-Profit"] },
+    "ein": { "type": "string" },
+    "joint_account_holder_name": { "type": "string" },
+    "joint_account_holder_ssn": { "type": "string" },
+    "address": { "type": "string" },
+    "opening_receipt_url": { "type": "string" },
+    "opening_payment_method": { "type": "string", "enum": ["Direct Deposit", "ACH Transfer", "Wire Transfer", "Mobile Check Deposit", "Cashier's Check", "Personal Check"] },
+    "opening_contribution_status": { "type": "string", "enum": ["not_started", "pending", "approved", "rejected"], "default": "not_started" },
+    "deposit_account_details": { "type": "string" },
+    "deposit_details_expires": { "type": "string", "format": "date-time" },
+    "provider": { "type": "string", "enum": ["unit"] },
+    "provider_application_id": { "type": "string" },
+    "provider_customer_id": { "type": "string" },
+    "provider_status": { "type": "string" }
   },
-  "required": [
-    "full_name",
-    "email",
-    "account_type"
-  ]
+  "required": ["full_name", "email", "account_type"]
 }
