@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import MemberRoute from '@/components/MemberRoute';
 import PageTransition from './components/vantoris/PageTransition';
 import { ExceptionAuthProvider } from '@/components/vantoris/ExceptionAuthContext';
 
@@ -130,24 +131,26 @@ const AuthenticatedApp = () => {
           </Route>
 
           <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
-            <Route element={<MemberLayout />}>
-              <Route path="/" element={<Home />} />
-              <Route path="/apply" element={<Navigate to="/register" replace />} />
-              <Route path="/apply/kyc" element={<ApplyKYC />} />
-              <Route path="/accounts" element={<Accounts />} />
-              <Route path="/accounts/:id" element={<AccountDetail />} />
-              <Route path="/services" element={<Services />} />
-              <Route path="/messages" element={<Messages />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/documents" element={<MemberDocuments />} />
-              <Route path="/advisor" element={<MemberAdvisor />} />
-              <Route path="/discovery" element={<Discovery />} />
-              <Route path="/move-money" element={<Navigate to="/accounts" replace />} />
-              <Route path="/more" element={<More />} />
-              <Route path="/dispute" element={<TransactionDispute />} />
-              <Route path="/assistant" element={<VantorisAssistant />} />
-              <Route path="/herobox" element={<HeroBox />} />
-              <Route path="/investment" element={<Investment />} />
+            <Route element={<MemberRoute />}>
+              <Route element={<MemberLayout />}>
+                <Route path="/" element={<Home />} />
+                <Route path="/apply" element={<Navigate to="/register" replace />} />
+                <Route path="/apply/kyc" element={<ApplyKYC />} />
+                <Route path="/accounts" element={<Accounts />} />
+                <Route path="/accounts/:id" element={<AccountDetail />} />
+                <Route path="/services" element={<Services />} />
+                <Route path="/messages" element={<Messages />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/documents" element={<MemberDocuments />} />
+                <Route path="/advisor" element={<MemberAdvisor />} />
+                <Route path="/discovery" element={<Discovery />} />
+                <Route path="/move-money" element={<Navigate to="/accounts" replace />} />
+                <Route path="/more" element={<More />} />
+                <Route path="/dispute" element={<TransactionDispute />} />
+                <Route path="/assistant" element={<VantorisAssistant />} />
+                <Route path="/herobox" element={<HeroBox />} />
+                <Route path="/investment" element={<Investment />} />
+              </Route>
             </Route>
 
             <Route path="/admin/*" element={<Navigate to="/operations" replace />} />
