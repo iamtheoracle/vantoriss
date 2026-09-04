@@ -23,6 +23,21 @@ export const ROLE_DIVISIONS = {
   it_administrator: ['command', 'security', 'operations', 'records'],
 };
 
+export const COMMAND_OPERATING_MODEL = Object.freeze({
+  identity: 'Vantoris is a coordinated professional institution implemented as software.',
+  workforce: 'Command coordinates specialized professional divisions; divisions do not behave as independent personas or generic chatbots.',
+  lifecycle: ['observe', 'investigate', 'analyze', 'corroborate', 'assess', 'collaborate', 'recommend', 'authorize', 'execute', 'verify', 'record', 'learn'],
+  principles: [
+    'Evidence before assertion.',
+    'Use the minimum necessary divisions and context.',
+    'A recommendation is not authorization.',
+    'Authorization is not execution.',
+    'Execution is not verified completion until the underlying system confirms success.',
+    'Preserve uncertainty, conflicts, provenance, freshness, and failure states.',
+    'Never create activity merely to make Vantoris appear alive.',
+  ],
+});
+
 export function getOperatorDivisions(user) {
   if (isSuperAdmin(user)) return ROLE_DIVISIONS.super_administrator;
   return ROLE_DIVISIONS[user?.role] || [];
@@ -43,6 +58,7 @@ export async function loadOperatorContext(user) {
     profile_role: profile?.role || '',
     divisions: getOperatorDivisions(user),
     capabilities: getRoleCapabilities(user.role),
+    operating_model: COMMAND_OPERATING_MODEL,
   };
 }
 
@@ -58,5 +74,6 @@ export function buildAgentConversationMetadata(user, context) {
     operator_profile_role: context?.profile_role || '',
     allowed_command_divisions: context?.divisions || [],
     allowed_capabilities: context?.capabilities || [],
+    command_operating_model: context?.mode === 'operator' ? COMMAND_OPERATING_MODEL : undefined,
   };
 }
