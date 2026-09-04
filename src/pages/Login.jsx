@@ -42,7 +42,13 @@ export default function Login() {
       if (rememberId) localStorage.setItem("vantoris_user_id", userId);
       else localStorage.removeItem("vantoris_user_id");
       const { user } = await base44.auth.loginViaEmailPassword(userId, password);
-      window.location.href = hasOperationsAccess(user?.role) ? "/operations" : "/";
+
+      // Keep the post-login transition inside the React SPA. A hard
+      // window.location navigation requests /operations from Netlify as a
+      // new document and can produce a Netlify 404 when SPA rewrites have
+      // not propagated yet. React Router keeps the authenticated session and
+      // lets OperationsRoute enforce the authorization boundary.
+      navigate(hasOperationsAccess(user?.role) ? "/operations" : "/", { replace: true });
     } catch (err) {
       const status = err?.response?.status || err?.status;
       if (status === 404) {
