@@ -1,17 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Send, Loader2, Sparkles, ChevronLeft, Clock, Crown } from 'lucide-react';
+import { Send, Loader2, Sparkles, ChevronLeft, Crown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ShieldLogo from '@/components/vantoris/ShieldLogo';
 import { isSuperAdmin } from '@/lib/operationsAccess';
+import { buildAgentConversationMetadata, loadOperatorContext } from '@/lib/operatorContext';
 
 /**
- * VantorisAssistant — the single customer-facing AI assistant.
+ * Vantoris Assistant — the single customer-facing AI assistant.
  *
- * Uses the Vantoris Assistant agent via the Base44 agents SDK.
- * Internally, the agent coordinates through Vantoris Command with 16
- * specialist divisions. The frontend owns no business logic — it renders
- * messages and streams the agent's responses.
+ * The same assistant serves members and operators, but every operator
+ * conversation is created with the authenticated operator's role, profile,
+ * capability set, and permitted Command divisions in its metadata.
  */
 export default function VantorisAssistant() {
   const [messages, setMessages] = useState([]);
@@ -19,35 +19,57 @@ export default function VantorisAssistant() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [user, setUser] = useState(null);
+  const [operatorContext, setOperatorContext] = useState(null);
   const [conversation, setConversation] = useState(null);
   const scrollRef = useRef(null);
   const textareaRef = useRef(null);
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    let mounted = true;
+    (async () => {
+      try {
+        const me = await base44.auth.me();
+        if (!mounted) return;
+        setUser(me);
+        const context = await loadOperatorContext(me);
+        if (mounted) setOperatorContext(context);
+      } catch {
+        if (mounted) setOperatorContext({ mode: 'member', role: 'member', divisions: [], capabilities: [] });
+      }
+    })();
+    return () => { mounted = false; };
   }, []);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
-  // Load or create a conversation with the vantoris_assistant agent
+  // Use only a conversation belonging to this authenticated user and role.
+  // A staff account never inherits a member conversation, and operators with
+  // different roles do not inherit one another's Command context.
   useEffect(() => {
+    if (!user || !operatorContext) return undefined;
+    let mounted = true;
     async function loadConversation() {
       try {
         const convs = await base44.agents.listConversations({ agent_name: 'vantoris_assistant' });
-        if (convs && convs.length > 0) {
-          setConversation(convs[0]);
-          setMessages(convs[0].messages || []);
+        const compatible = (convs || []).find((conv) => (
+          conv.metadata?.user_id === user.id &&
+          conv.metadata?.user_role === operatorContext.role &&
+          conv.metadata?.account_mode === operatorContext.mode
+        ));
+        if (mounted && compatible) {
+          setConversation(compatible);
+          setMessages(compatible.messages || []);
         }
-      } catch (e) {
-        // Conversations will be created on first message
+      } catch {
+        // Conversation will be created on first message.
       }
     }
     loadConversation();
-  }, []);
+    return () => { mounted = false; };
+  }, [user, operatorContext]);
 
-  // Subscribe to conversation updates
   useEffect(() => {
     if (!conversation) return;
     const unsubscribe = base44.agents.subscribeToConversation(conversation.id, (data) => {
@@ -69,9 +91,10 @@ export default function VantorisAssistant() {
     try {
       let conv = conversation;
       if (!conv) {
+        const metadata = buildAgentConversationMetadata(user, operatorContext || { mode: 'member', role: 'member', divisions: [], capabilities: [] });
         conv = await base44.agents.createConversation({
           agent_name: 'vantoris_assistant',
-          metadata: { name: 'Vantoris Assistant', description: 'Member assistance session' },
+          metadata,
         });
         setConversation(conv);
       }
@@ -86,6 +109,10 @@ export default function VantorisAssistant() {
       setLoading(false);
     }
   };
+
+  const operatorLabel = operatorContext?.mode === 'operator'
+    ? `${operatorContext.position || operatorContext.profile_role || operatorContext.role} · ${operatorContext.department || 'Operations'}`
+    : 'AI Financial Guide';
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -107,7 +134,7 @@ export default function VantorisAssistant() {
                   </span>
                 )}
               </div>
-              <p className="text-xs text-gray">{isSuperAdmin(user) ? 'Authorized for all operator capabilities' : 'AI Financial Guide'}</p>
+              <p className="text-xs text-gray">{operatorLabel}</p>
             </div>
           </div>
         </div>
@@ -115,18 +142,13 @@ export default function VantorisAssistant() {
 
       {error && (
         <div className="px-5 py-2 max-w-3xl mx-auto w-full">
-          <div className="bg-crimson/8 border border-crimson/15 rounded-lg px-3 py-2 text-xs text-crimson">
-            {error}
-          </div>
+          <div className="bg-crimson/8 border border-crimson/15 rounded-lg px-3 py-2 text-xs text-crimson">{error}</div>
         </div>
       )}
 
       {loading && (
         <div className="px-5 py-2 max-w-3xl mx-auto w-full">
-          <div className="flex items-center gap-2 text-xs text-gray">
-            <Sparkles size={12} />
-            <span>Vantoris Command processing...</span>
-          </div>
+          <div className="flex items-center gap-2 text-xs text-gray"><Sparkles size={12} /><span>Vantoris Command processing...</span></div>
         </div>
       )}
 
@@ -134,40 +156,20 @@ export default function VantorisAssistant() {
         <div className="max-w-3xl mx-auto space-y-4">
           {messages.length === 0 && (
             <div className="text-center py-20">
-              <div className="w-16 h-16 rounded-2xl bg-navy/8 flex items-center justify-center mx-auto mb-4">
-                <Sparkles size={28} className="text-navy" />
-              </div>
+              <div className="w-16 h-16 rounded-2xl bg-navy/8 flex items-center justify-center mx-auto mb-4"><Sparkles size={28} className="text-navy" /></div>
               <h2 className="text-lg font-semibold text-foreground mb-1">How can I help?</h2>
-              <p className="text-sm text-gray">Ask me anything about your accounts, transactions, investments, HeroBox, or platform features.</p>
+              <p className="text-sm text-gray">{operatorContext?.mode === 'operator' ? `Your ${operatorContext.profile_role || operatorContext.role} context is active.` : 'Ask me anything about your accounts, transactions, investments, HeroBox, or platform features.'}</p>
             </div>
           )}
           {messages.map((msg, i) => (
             <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                msg.role === 'user'
-                  ? 'vantoris-chat-bubble-out rounded-br-md'
-                  : 'vantoris-chat-bubble-in rounded-bl-md'
-              }`}>
+              <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${msg.role === 'user' ? 'vantoris-chat-bubble-out rounded-br-md' : 'vantoris-chat-bubble-in rounded-bl-md'}`}>
                 <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                {msg.created_date && (
-                  <p className="text-[10px] text-gray/50 mt-1">
-                    {new Date(msg.created_date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
-                  </p>
-                )}
+                {msg.created_date && <p className="text-[10px] text-gray/50 mt-1">{new Date(msg.created_date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</p>}
               </div>
             </div>
           ))}
-          {loading && (
-            <div className="flex justify-start">
-              <div className="vantoris-chat-bubble-in rounded-2xl rounded-bl-md px-4 py-3">
-                <div className="flex items-center gap-1.5">
-                  {[0, 1, 2].map(i => (
-                    <div key={i} className="w-2 h-2 rounded-full bg-gray/40 animate-typing-bounce" style={{ animationDelay: `${i * 0.2}s` }} />
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+          {loading && <div className="flex justify-start"><div className="vantoris-chat-bubble-in rounded-2xl rounded-bl-md px-4 py-3"><div className="flex items-center gap-1.5">{[0, 1, 2].map(i => <div key={i} className="w-2 h-2 rounded-full bg-gray/40 animate-typing-bounce" style={{ animationDelay: `${i * 0.2}s` }} />)}</div></div></div>}
           <div ref={scrollRef} />
         </div>
       </div>
@@ -190,13 +192,7 @@ export default function VantorisAssistant() {
             className="flex-1 bg-white border border-border rounded-2xl px-4 py-2.5 text-sm leading-relaxed focus:border-brass/50 focus:outline-none disabled:opacity-50 selectable-content resize-none overflow-y-auto"
             style={{ maxHeight: '120px' }}
           />
-          <button
-            onClick={handleSend}
-            disabled={loading || !input.trim()}
-            aria-label="Send command"
-            title="Send command"
-            className="w-10 h-10 rounded-full bg-navy text-white flex items-center justify-center disabled:opacity-30 hover:bg-navy/90 transition-colors flex-shrink-0"
-          >
+          <button onClick={handleSend} disabled={loading || !input.trim()} aria-label="Send command" title="Send command" className="w-10 h-10 rounded-full bg-navy text-white flex items-center justify-center disabled:opacity-30 hover:bg-navy/90 transition-colors flex-shrink-0">
             {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
           </button>
         </div>
