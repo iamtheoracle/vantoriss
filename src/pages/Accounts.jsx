@@ -5,8 +5,8 @@ export default function Accounts() {
   return (
     <div className="accounts-combined-page">
       <style>{`
-        .accounts-combined-page > .accounts-money-content > header { display: none; }
-        .accounts-combined-page > .accounts-money-content { padding-top: 0; }
+        .accounts-combined-page .accounts-money-content header { display: none; }
+        .accounts-combined-page .accounts-money-content > div { padding-top: 0; }
       `}</style>
 
       <header className="px-5 pt-6 pb-1 max-w-[430px] mx-auto">
