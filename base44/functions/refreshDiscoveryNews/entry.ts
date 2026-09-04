@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 const GDELT_URL = 'https://api.gdeltproject.org/api/v2/doc/doc';
 const TRUSTED_DOMAINS = new Set([
@@ -125,17 +125,8 @@ Deno.serve(async (req) => {
       }).catch(() => {});
     }
 
-    return Response.json({
-      ok: true,
-      source: 'GDELT',
-      discovered,
-      updated,
-      refreshed_at: completedAt,
-    });
+    return Response.json({ ok: true, source: 'GDELT', discovered, updated, refreshed_at: completedAt });
   } catch (error) {
-    return Response.json({
-      ok: false,
-      error: error instanceof Error ? error.message : 'News refresh failed',
-    }, { status: 500 });
+    return Response.json({ ok: false, error: error instanceof Error ? error.message : 'News refresh failed' }, { status: 500 });
   }
 });
