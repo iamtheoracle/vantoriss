@@ -2,6 +2,9 @@ const isNode = typeof window === 'undefined';
 const windowObj = isNode ? { localStorage: new Map() } : window;
 const storage = windowObj.localStorage;
 
+const DEFAULT_BASE44_APP_ID = '6a3d85c1632966fefe16f3d4';
+const DEFAULT_BASE44_SERVER_URL = 'https://vantoris.base44.app';
+
 const toSnakeCase = (str) => {
 	return str.replace(/([A-Z])/g, '_$1').toLowerCase();
 }
@@ -40,15 +43,17 @@ const getAppParams = () => {
 		storage.removeItem('token');
 	}
 	return {
-		appId: getAppParamValue("app_id", { defaultValue: import.meta.env.VITE_BASE44_APP_ID }),
+		// These are public application configuration values, not secrets.
+		// Defaults keep the Netlify frontend functional even when Netlify
+		// environment variables are missing.
+		appId: getAppParamValue("app_id", { defaultValue: import.meta.env.VITE_BASE44_APP_ID || DEFAULT_BASE44_APP_ID }),
 		token: getAppParamValue("access_token", { removeFromUrl: true }),
 		fromUrl: getAppParamValue("from_url", { defaultValue: window.location.href }),
 		functionsVersion: getAppParamValue("functions_version", { defaultValue: import.meta.env.VITE_BASE44_FUNCTIONS_VERSION }),
 		appBaseUrl: getAppParamValue("app_base_url", { defaultValue: import.meta.env.VITE_BASE44_APP_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '') }),
-		serverUrl: getAppParamValue("server_url", { defaultValue: import.meta.env.VITE_BASE44_SERVER_URL || '' }),
+		serverUrl: getAppParamValue("server_url", { defaultValue: import.meta.env.VITE_BASE44_SERVER_URL || DEFAULT_BASE44_SERVER_URL }),
 	}
 }
-
 
 export const appParams = {
 	...getAppParams()
