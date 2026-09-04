@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { hasOperationsAccess } from '@/lib/operationsAccess';
+import { isOperatorAccount } from '@/lib/accountAccess';
 
 export default function MemberRoute() {
   const [user, setUser] = useState(null);
@@ -29,13 +29,15 @@ export default function MemberRoute() {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-[#F8FAFC]">
-        <div className="h-9 w-9 animate-spin rounded-full border-2 border-[#D8DEE8] border-t-[#E31837]" />
+      <div className="fixed inset-0 flex items-center justify-center bg-background">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-brass" />
       </div>
     );
   }
 
-  if (user && hasOperationsAccess(user.role)) {
+  // Staff/operator credentials are never member credentials. If an operator
+  // reaches a member route, send them directly to their operator workspace.
+  if (user && isOperatorAccount(user)) {
     return <Navigate to="/operations" replace />;
   }
 
