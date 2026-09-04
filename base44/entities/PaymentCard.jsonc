@@ -10,7 +10,10 @@
     "status": { "type": "string", "enum": ["active", "frozen", "closed"], "default": "active" },
     "network": { "type": "string" },
     "expires_month": { "type": "number" },
-    "expires_year": { "type": "number" }
+    "expires_year": { "type": "number" },
+    "provider": { "type": "string", "enum": ["unit"] },
+    "provider_card_id": { "type": "string" },
+    "provider_account_id": { "type": "string" }
   },
   "required": ["user_id", "card_type", "last4", "status"],
   "rls": {
