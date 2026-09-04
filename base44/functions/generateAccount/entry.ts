@@ -1,54 +1,106 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { extractResource, resourceAttributes, unitRequest } from '../../shared/unit.ts';
+
+function errorResponse(message: string, status = 400) {
+  return Response.json({ success: false, error: message }, { status });
+}
+
+function isStaff(user: any) {
+  return ['super_administrator', 'admin', 'operations_officer'].includes(user?.role);
+}
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!user) return errorResponse('Unauthorized', 401);
 
     const body = await req.json().catch(() => ({}));
-    const { user_id, account_type, account_name, application_id, opening_balance } = body;
-
+    const { user_id, account_type, account_name, application_id } = body;
     if (!user_id || !account_type || !account_name) {
-      return Response.json({ error: 'user_id, account_type, and account_name are required' }, { status: 400 });
+      return errorResponse('user_id, account_type, and account_name are required');
+    }
+    if (user_id !== user.id && !isStaff(user)) return errorResponse('You are not authorized to open an account for this user.', 403);
+
+    const applications = await base44.asServiceRole.entities.Application.filter({ user_id }, '-created_date', 50);
+    const application = application_id
+      ? (applications || []).find((item: any) => item.id === application_id)
+      : (applications || []).find((item: any) => item.provider === 'unit' && item.provider_status === 'Approved' && item.provider_customer_id);
+
+    if (!application?.provider_customer_id || application.provider !== 'unit' || application.provider_status !== 'Approved') {
+      return errorResponse('A verified and approved live banking-provider customer is required before an account can be opened.', 409);
     }
 
-    // Generate a unique 10-digit account number and 9-digit routing number
-    const existingAccounts = await base44.asServiceRole.entities.Account.list('-created_date', 500);
-    const existingNumbers = new Set((existingAccounts || []).map(a => a.account_number).filter(Boolean));
+    const existing = await base44.asServiceRole.entities.Account.filter({ user_id, provider: 'unit', provider_customer_id: application.provider_customer_id }, '-created_date', 50);
+    const sameType = (existing || []).find((item: any) => item.account_type === account_type && item.status !== 'closed');
+    if (sameType) {
+      return Response.json({
+        success: true,
+        provider: 'unit',
+        account_id: sameType.id,
+        provider_account_id: sameType.provider_account_id,
+        account_number: sameType.account_number,
+        routing_number: sameType.routing_number,
+        balance: sameType.balance || 0,
+        existing: true,
+      });
+    }
 
-    let accountNumber;
-    let attempts = 0;
-    do {
-      accountNumber = String(Math.floor(1000000000 + Math.random() * 9000000000));
-      attempts++;
-    } while (existingNumbers.has(accountNumber) && attempts < 100);
+    const depositProduct = account_type === 'Savings' ? 'savings' : 'checking';
+    const idempotencyKey = `vantoris-account-${user_id}-${depositProduct}`;
+    const response = await unitRequest('/accounts', {
+      method: 'POST',
+      idempotencyKey,
+      body: {
+        data: {
+          type: 'depositAccount',
+          attributes: {
+            depositProduct,
+            tags: { vantorisUserId: user_id },
+            idempotencyKey,
+          },
+          relationships: {
+            customer: { data: { type: 'customer', id: application.provider_customer_id } },
+          },
+        },
+      },
+    });
 
-    // Vantoris institutional routing number (fixed, as it's a single institution)
-    const routingNumber = '021000021';
+    const resource = extractResource(response);
+    const attrs = resourceAttributes(resource);
+    if (!resource?.id || !attrs.accountNumber || !attrs.routingNumber) {
+      return errorResponse('The banking provider did not return a complete account. No Vantoris account was created.', 502);
+    }
 
     const account = await base44.asServiceRole.entities.Account.create({
       user_id,
       account_type,
       account_name,
-      account_number: accountNumber,
-      routing_number: routingNumber,
-      balance: opening_balance || 0,
-      status: 'active',
-      application_id: application_id || null,
+      account_number: attrs.accountNumber,
+      routing_number: attrs.routingNumber,
+      balance: Number(attrs.balance || 0) / 100,
+      available_balance: Number(attrs.available || 0) / 100,
+      status: attrs.status === 'Frozen' ? 'frozen' : attrs.status === 'Closed' ? 'closed' : 'active',
+      application_id: application.id,
+      provider: 'unit',
+      provider_account_id: resource.id,
+      provider_customer_id: application.provider_customer_id,
+      provider_status: attrs.status || 'Open',
+      currency: attrs.currency || 'USD',
+      last_provider_sync_at: new Date().toISOString(),
     });
 
     await base44.asServiceRole.entities.Notification.create({
       user_id,
       title: 'Account Opened',
-      message: `Your ${account_type} account has been opened. Account Number: ${accountNumber}, Routing Number: ${routingNumber}.`,
+      message: `Your ${account_type} account has been opened by the banking provider.`,
       type: 'success',
     });
 
     await base44.asServiceRole.entities.AuditLog.create({
       action_type: 'account_created',
-      description: `Account created via AI Assistant: ${account_type} for user ${user_id}`,
-      details: `Account #: ${accountNumber}, Routing #: ${routingNumber}`,
+      description: `Provider-backed ${account_type} account created for user ${user_id}`,
+      details: `Provider: Unit; Provider Account ID: ${resource.id}`,
       target_user_id: user_id,
       user_id: user.id,
       admin_name: user.full_name || user.email || 'Admin',
@@ -56,14 +108,19 @@ Deno.serve(async (req) => {
 
     return Response.json({
       success: true,
+      provider: 'unit',
       account_id: account.id,
-      account_number: accountNumber,
-      routing_number: routingNumber,
+      provider_account_id: resource.id,
+      account_number: attrs.accountNumber,
+      routing_number: attrs.routingNumber,
       account_type,
       account_name,
-      balance: opening_balance || 0,
+      balance: Number(attrs.balance || 0) / 100,
+      available_balance: Number(attrs.available || 0) / 100,
+      status: attrs.status || 'Open',
     });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    const status = Number(error?.status || 500);
+    return errorResponse(error?.message || 'Unable to create provider-backed account.', status >= 400 && status < 600 ? status : 500);
   }
 });
