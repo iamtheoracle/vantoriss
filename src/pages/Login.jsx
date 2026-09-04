@@ -5,6 +5,7 @@ import AuthLayout from "@/components/AuthLayout";
 import SplashScreen from "@/components/auth/SplashScreen";
 import OnboardingCarousel from "@/components/auth/OnboardingCarousel";
 import { Loader2, Lock, User } from "lucide-react";
+import { getPostLoginRoute } from "@/lib/accountAccess";
 
 export default function Login() {
   const [phase, setPhase] = useState("splash");
@@ -40,16 +41,15 @@ export default function Login() {
     try {
       if (rememberId) localStorage.setItem("vantoris_user_id", userId);
       else localStorage.removeItem("vantoris_user_id");
-      await base44.auth.loginViaEmailPassword(userId, password);
 
-      // Authentication establishes the session; it does not decide which
-      // Vantoris experience the user is allowed to access. All authenticated
-      // accounts enter the normal member portal by default. Authorized
-      // administrators/operators retain access to /operations through the
-      // existing OperationsRoute authorization boundary and Mission Control.
-      // This keeps member banking and the Operations OS as separate
-      // experiences without requiring separate credentials or accounts.
-      navigate("/", { replace: true });
+      await base44.auth.loginViaEmailPassword(userId, password);
+      const authenticatedUser = await base44.auth.me();
+
+      // One shared login, two distinct account types. Staff credentials go
+      // directly to the operator workspace; member credentials go to banking.
+      // A staff member only gets member access through a separately created
+      // member account and its own credentials.
+      navigate(getPostLoginRoute(authenticatedUser), { replace: true });
     } catch (err) {
       const status = err?.response?.status || err?.status;
       if (status === 404) {
