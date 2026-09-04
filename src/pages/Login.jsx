@@ -5,7 +5,6 @@ import AuthLayout from "@/components/AuthLayout";
 import SplashScreen from "@/components/auth/SplashScreen";
 import OnboardingCarousel from "@/components/auth/OnboardingCarousel";
 import { Loader2, Lock, User } from "lucide-react";
-import { hasOperationsAccess } from "@/lib/operationsAccess";
 
 export default function Login() {
   const [phase, setPhase] = useState("splash");
@@ -41,14 +40,16 @@ export default function Login() {
     try {
       if (rememberId) localStorage.setItem("vantoris_user_id", userId);
       else localStorage.removeItem("vantoris_user_id");
-      const { user } = await base44.auth.loginViaEmailPassword(userId, password);
+      await base44.auth.loginViaEmailPassword(userId, password);
 
-      // Keep the post-login transition inside the React SPA. A hard
-      // window.location navigation requests /operations from Netlify as a
-      // new document and can produce a Netlify 404 when SPA rewrites have
-      // not propagated yet. React Router keeps the authenticated session and
-      // lets OperationsRoute enforce the authorization boundary.
-      navigate(hasOperationsAccess(user?.role) ? "/operations" : "/", { replace: true });
+      // Authentication establishes the session; it does not decide which
+      // Vantoris experience the user is allowed to access. All authenticated
+      // accounts enter the normal member portal by default. Authorized
+      // administrators/operators retain access to /operations through the
+      // existing OperationsRoute authorization boundary and Mission Control.
+      // This keeps member banking and the Operations OS as separate
+      // experiences without requiring separate credentials or accounts.
+      navigate("/", { replace: true });
     } catch (err) {
       const status = err?.response?.status || err?.status;
       if (status === 404) {
