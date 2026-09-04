@@ -35,7 +35,5 @@ export function buildVantorisQrPayload(profile) {
     type: 'vantoris-zelle',
     version: 1,
     user_id: profile.user_id,
-    zelle_email: profile.zelle_email || null,
-    zelle_phone: profile.zelle_phone || null,
   });
 }
