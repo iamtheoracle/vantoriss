@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { loadHeroBoxDiscoverContent, executeHeroBoxDiscovery } from '@/lib/heroboxDiscovery';
+import { loadHeroBoxDiscoverContent } from '@/lib/heroboxDiscovery';
+import { refreshDiscoveryNews, loadDiscoveryRunHistory } from '@/lib/discoveryWorker';
 import DiscoverCard from './DiscoverCard';
 import DiscoverSection from './DiscoverSection';
-import { Search, Sparkles, Heart, Stethoscope, Shield, Users, Utensils, AlertCircle, Package, Newspaper, Loader2, RefreshCw, Compass } from 'lucide-react';
+import { Search, Sparkles, Heart, Stethoscope, Shield, Users, Utensils, AlertCircle, Package, Newspaper, Loader2, RefreshCw, Compass, Activity } from 'lucide-react';
 
 const CATEGORIES = [
   { id: 'all', label: 'Browse All', icon: Compass },
@@ -16,7 +17,7 @@ const CATEGORIES = [
   { id: 'emergency', label: 'Emergency Support', icon: AlertCircle },
   { id: 'food', label: 'Food Assistance', icon: Utensils },
   { id: 'care', label: 'Care Package Opportunities', icon: Package },
-  { id: 'news', label: 'Humanitarian News', icon: Newspaper },
+  { id: 'news', label: 'News & Intelligence', icon: Newspaper },
 ];
 
 const ORG_TYPE_MAP = {
@@ -45,6 +46,8 @@ export default function DiscoverFeed({ onShop, onDonate, standalone = false }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [data, setData] = useState({ organizations: [], cases: [], news: [] });
   const [discoveryStatus, setDiscoveryStatus] = useState(null);
+  const [newsStatus, setNewsStatus] = useState(null);
+  const [history, setHistory] = useState([]);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -58,17 +61,43 @@ export default function DiscoverFeed({ onShop, onDonate, standalone = false }) {
     }
   }, []);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  const loadHistory = useCallback(async () => {
+    if (!standalone) return;
+    const runs = await loadDiscoveryRunHistory(12);
+    setHistory(runs || []);
+  }, [standalone]);
+
+  useEffect(() => {
+    let mounted = true;
+    async function bootstrap() {
+      if (standalone) {
+        setDiscovering(true);
+        try {
+          const result = await refreshDiscoveryNews();
+          if (mounted) setNewsStatus(result);
+        } catch (e) {
+          if (mounted) setNewsStatus({ ok: false, error: e.message });
+        } finally {
+          if (mounted) setDiscovering(false);
+        }
+      }
+      await loadData();
+      await loadHistory();
+    }
+    bootstrap();
+    return () => { mounted = false; };
+  }, [loadData, loadHistory, standalone]);
 
   async function handleRefreshDiscovery() {
     setDiscovering(true);
     setDiscoveryStatus(null);
     try {
-      const result = await executeHeroBoxDiscovery({ autoApproveHighConfidence: true });
-      setDiscoveryStatus(result);
+      const result = await refreshDiscoveryNews();
+      setNewsStatus(result);
       await loadData();
+      await loadHistory();
     } catch (e) {
-      setDiscoveryStatus({ errors: [e.message] });
+      setNewsStatus({ ok: false, error: e.message });
     } finally {
       setDiscovering(false);
     }
@@ -103,8 +132,9 @@ export default function DiscoverFeed({ onShop, onDonate, standalone = false }) {
   const featuredCases = allCases.slice(0, 4);
   const hasAnyContent = allOrgs.length > 0 || allCases.length > 0 || allNews.length > 0;
   const title = standalone ? 'Discovery' : 'HeroBox';
-  const subtitle = standalone ? 'Verified opportunities, needs and humanitarian intelligence.' : 'They are our heroes. We can be theirs too.';
+  const subtitle = standalone ? 'Live intelligence, verified opportunities and humanitarian needs.' : 'They are our heroes. We can be theirs too.';
   const searchPlaceholder = standalone ? 'Search Discovery...' : 'Search HeroBox...';
+  const lastRun = history[0];
 
   return (
     <div className="vantoris-scroll">
@@ -115,23 +145,35 @@ export default function DiscoverFeed({ onShop, onDonate, standalone = false }) {
           <div className="w-14 h-14 rounded-2xl bg-white/12 flex items-center justify-center mx-auto mb-3 border border-white/10"><Compass size={24} className="text-brass" /></div>
           <h1 className="text-white text-xl font-bold mb-1">{title}</h1>
           <p className="text-white/70 text-sm mb-1">{subtitle}</p>
-          <p className="text-white/40 text-[11px] leading-relaxed max-w-sm mx-auto">{standalone ? 'Continuously refreshed from legitimate public sources through the Vantoris Discovery Engine.' : 'Discover verified organizations, humanitarian needs, and care package opportunities — sourced from legitimate public sources by the Vantoris Discovery Engine.'}</p>
+          <p className="text-white/40 text-[11px] leading-relaxed max-w-sm mx-auto">{standalone ? 'Continuously refreshed from trusted public news sources and retained as Vantoris intelligence history.' : 'Discover verified organizations, humanitarian needs, and care package opportunities — sourced from legitimate public sources by the Vantoris Discovery Engine.'}</p>
         </div>
       </motion.div>
 
-      <div className="vantoris-glass-premium px-4 py-3 mb-4 flex items-center gap-3">
+      <div className="vantoris-glass-premium px-4 py-3 mb-3 flex items-center gap-3">
         <Search size={18} className="text-gray flex-shrink-0" />
         <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder={searchPlaceholder} className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-gray/50 selectable-content" />
         <button onClick={handleRefreshDiscovery} disabled={discovering} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brass/10 border border-brass/15 text-brass text-[11px] font-semibold hover:bg-brass/20 transition disabled:opacity-50 flex-shrink-0">
           {discovering ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
-          {discovering ? 'Discovering...' : 'Refresh'}
+          {discovering ? 'Refreshing...' : 'Refresh'}
         </button>
       </div>
 
+      {standalone && <div className="vantoris-glass p-3 mb-4 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0"><Activity size={15} className="text-emerald-600" /></div>
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold text-foreground">Intelligence worker</p>
+            <p className="text-[10px] text-gray truncate">{lastRun ? `${lastRun.records_discovered || 0} new records · ${new Date(lastRun.started_at).toLocaleString()}` : 'Initializing live news history…'}</p>
+          </div>
+        </div>
+        <span className={`text-[10px] font-semibold flex-shrink-0 ${newsStatus?.ok === false ? 'text-crimson' : 'text-emerald-600'}`}>{newsStatus?.ok === false ? 'Attention' : 'Live'}</span>
+      </div>}
+
+      {newsStatus?.error && <div className="vantoris-glass p-3 mb-4 border border-crimson/10"><p className="text-[11px] text-crimson">Live news refresh could not complete: {newsStatus.error}</p><p className="text-[10px] text-gray mt-1">Previously stored intelligence remains available.</p></div>}
+
       {discoveryStatus && <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="vantoris-glass p-3 mb-4">
         <p className="text-xs text-foreground font-medium mb-1">Discovery Complete</p>
-        <p className="text-[11px] text-gray">{discoveryStatus.organizations?.discovered || 0} organizations discovered ({discoveryStatus.organizations?.approved || 0} auto-approved) · {discoveryStatus.cases?.discovered || 0} humanitarian cases ({discoveryStatus.cases?.approved || 0} auto-approved) · {discoveryStatus.news?.discovered || 0} news items</p>
-        {discoveryStatus.errors?.length > 0 && <p className="text-[10px] text-crimson mt-1">{discoveryStatus.errors.length} errors — see admin Discovery Network for details.</p>}
+        <p className="text-[11px] text-gray">{discoveryStatus.organizations?.discovered || 0} organizations discovered · {discoveryStatus.cases?.discovered || 0} humanitarian cases · {discoveryStatus.news?.discovered || 0} news items</p>
       </motion.div>}
 
       <div className="flex items-center gap-1.5 mb-5 overflow-x-auto vantoris-scroll pb-1">
@@ -145,10 +187,20 @@ export default function DiscoverFeed({ onShop, onDonate, standalone = false }) {
 
         {activeCategory !== 'all' && activeCategory !== 'organizations' && activeCategory !== 'news' && CASE_CATEGORY_MAP[activeCategory] && <DiscoverSection title={CATEGORIES.find(c => c.id === activeCategory)?.label || 'Needs'} icon={CATEGORIES.find(c => c.id === activeCategory)?.icon || Heart} items={allCases} renderItem={(item, i) => <DiscoverCard key={item.id} item={item} type="case" onShop={onShop} onDonate={onDonate} index={i} />} />}
 
-        {(activeCategory === 'all' || activeCategory === 'news') && allNews.length > 0 && <DiscoverSection title="Humanitarian News" icon={Newspaper} items={allNews} renderItem={(item, i) => <DiscoverCard key={item.id} item={item} type="news" onShop={onShop} onDonate={onDonate} index={i} />} />}
+        {(activeCategory === 'all' || activeCategory === 'news') && allNews.length > 0 && <DiscoverSection title="News & Intelligence" icon={Newspaper} items={allNews} renderItem={(item, i) => <DiscoverCard key={item.id} item={item} type="news" onShop={onShop} onDonate={onDonate} index={i} />} />}
 
-        {!standalone && activeCategory === 'all' && <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="vantoris-glass-premium p-5 mb-5"><div className="flex items-center gap-3 mb-3"><div className="w-10 h-10 rounded-xl bg-brass/10 flex items-center justify-center"><Package size={18} className="text-brass" /></div><div><h3 className="text-foreground font-semibold text-sm">Care Package Opportunities</h3><p className="text-gray text-[11px]">Send meaningful support to deployed service members and families.</p></div></div><button onClick={onShop} className="w-full py-3 rounded-xl bg-navy text-white text-sm font-semibold hover:bg-navy/90 transition flex items-center justify-center gap-2"><Package size={16} /> Browse Care Packages</button></motion.div>}
+        {!standalone && activeCategory === 'all' && <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="vantoris-glass-premium p-5 mb-5"><div className="flex items-center gap-3 mb-3"><div className="w-10 h-10 rounded-xl bg-brass/10 flex items-center justify-center"><Package size={18} className="text-brass" /></div><div><h3 className="text-foreground font-semibold text-sm">Care Package Opportunities</h3><p className="text-gray text-[11px]">Send meaningful support to deployed service members and families.</p></div></div><button onClick={onShop} className="w-full py-3 rounded-xl bg-navy text-white text-sm font-semibold hover:bg-navy/90 transition flex items-center justify-center gap-2"><Package size={16} /> Browse Care Packages</button></div>}
       </div>}
+
+      {standalone && history.length > 0 && <section className="mt-5 mb-5">
+        <div className="flex items-center justify-between mb-2"><h2 className="text-sm font-semibold text-foreground">Intelligence history</h2><span className="text-[10px] text-gray">{history.length} recent runs</span></div>
+        <div className="vantoris-glass overflow-hidden">
+          {history.slice(0, 5).map((run, index) => <div key={run.id || index} className="px-4 py-3 border-b border-border/60 last:border-0 flex items-center justify-between gap-3">
+            <div className="min-w-0"><p className="text-[11px] font-medium text-foreground">News monitoring</p><p className="text-[10px] text-gray truncate">{run.summary || 'Intelligence refresh'}</p></div>
+            <div className="text-right flex-shrink-0"><p className="text-[10px] font-semibold text-foreground">{run.status}</p><p className="text-[9px] text-gray">{run.started_at ? new Date(run.started_at).toLocaleDateString() : '—'}</p></div>
+          </div>)}
+        </div>
+      </section>}
 
       <div className="vantoris-glass p-4 mb-4"><div className="flex items-start gap-2.5"><Shield size={14} className="text-brass mt-0.5 flex-shrink-0" /><div><p className="text-[11px] font-semibold text-foreground mb-1">Discovery is not authorization.</p><p className="text-[10px] text-gray leading-relaxed">Vantoris discovers information from legitimate public sources. Discovering an organization or need does not authorize spending money. All financial actions remain subject to Vantoris authorization. You remain in control of what you support.</p></div></div></div>
     </div>
@@ -156,5 +208,5 @@ export default function DiscoverFeed({ onShop, onDonate, standalone = false }) {
 }
 
 function EmptyState({ onRefresh, discovering }) {
-  return <div className="vantoris-glass p-8 text-center"><div className="w-14 h-14 rounded-2xl bg-brass/10 flex items-center justify-center mx-auto mb-4"><Compass size={24} className="text-brass" /></div><h3 className="text-foreground font-semibold text-sm mb-2">No verified content available yet</h3><p className="text-gray text-xs leading-relaxed mb-5 max-w-sm mx-auto">The Vantoris Discovery Engine continuously browses legitimate public sources — Charity Navigator, IRS nonprofit records, official NGO websites, and recognized humanitarian news — to find verified organizations and needs.</p><p className="text-gray text-[11px] leading-relaxed mb-4">Only approved records appear here. Content is reviewed through the Vantoris verification pipeline before publishing.</p><button onClick={onRefresh} disabled={discovering} className="px-6 py-3 rounded-xl bg-brass text-white text-sm font-semibold hover:bg-brass/90 transition disabled:opacity-50 flex items-center justify-center gap-2 mx-auto">{discovering ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}{discovering ? 'Discovering...' : 'Start Discovery'}</button></div>;
+  return <div className="vantoris-glass p-8 text-center"><div className="w-14 h-14 rounded-2xl bg-brass/10 flex items-center justify-center mx-auto mb-4"><Compass size={24} className="text-brass" /></div><h3 className="text-foreground font-semibold text-sm mb-2">No verified content available yet</h3><p className="text-gray text-xs leading-relaxed mb-5 max-w-sm mx-auto">The Vantoris Discovery Engine keeps approved organizations, humanitarian cases, and live trusted-source news available here.</p><p className="text-gray text-[11px] leading-relaxed mb-4">Live news refresh runs independently of the older LLM discovery path, so a provider integration limit cannot erase stored intelligence.</p><button onClick={onRefresh} disabled={discovering} className="px-6 py-3 rounded-xl bg-brass text-white text-sm font-semibold hover:bg-brass/90 transition disabled:opacity-50 flex items-center justify-center gap-2 mx-auto">{discovering ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}{discovering ? 'Refreshing...' : 'Refresh Intelligence'}</button></div>;
 }
