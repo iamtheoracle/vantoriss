@@ -12,18 +12,15 @@ import MemberRoute from '@/components/MemberRoute';
 import PageTransition from './components/vantoris/PageTransition';
 import { ExceptionAuthProvider } from '@/components/vantoris/ExceptionAuthContext';
 
-// Layouts & Guards (non-lazy — needed for route structure)
 import MemberLayout from './components/vantoris/MemberLayout';
 import AdminLayout from './components/vantoris/AdminLayout';
 import OperationsRoute from './components/OperationsRoute';
 
-// Lazy-loaded pages — Auth
 const Login = React.lazy(() => import('./pages/Login'));
 const Register = React.lazy(() => import('./pages/Register'));
 const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = React.lazy(() => import('./pages/ResetPassword'));
 
-// Lazy-loaded pages — Member
 const Home = React.lazy(() => import('./pages/Home'));
 const Apply = React.lazy(() => import('./pages/Apply'));
 const ApplyKYC = React.lazy(() => import('./pages/ApplyKYC'));
@@ -36,13 +33,13 @@ const MemberDocuments = React.lazy(() => import('./pages/MemberDocuments'));
 const MemberAdvisor = React.lazy(() => import('./pages/MemberAdvisor'));
 const MoveMoney = React.lazy(() => import('./pages/MoveMoney'));
 const More = React.lazy(() => import('./pages/More'));
+const Discovery = React.lazy(() => import('./pages/Discovery'));
 const TransactionDispute = React.lazy(() => import('./pages/TransactionDispute'));
 const BrandIdentity = React.lazy(() => import('./pages/BrandIdentity'));
 const VantorisAssistant = React.lazy(() => import('./components/vantoris/VantorisAssistant'));
 const HeroBox = React.lazy(() => import('./pages/HeroBox'));
 const Investment = React.lazy(() => import('./pages/Investment'));
 
-// Lazy-loaded pages — Admin (Operations Center)
 const AdminOverview = React.lazy(() => import('./pages/admin/AdminOverview'));
 const ExecutiveDashboard = React.lazy(() => import('./pages/operations/ExecutiveDashboard'));
 const SecurityComplianceDashboard = React.lazy(() => import('./pages/operations/SecurityComplianceDashboard'));
@@ -61,7 +58,6 @@ const HeroBoxHeroes = React.lazy(() => import('./pages/operations/HeroBoxHeroes'
 const HeroBoxCarePackages = React.lazy(() => import('./pages/operations/HeroBoxCarePackages'));
 const HeroBoxVolunteers = React.lazy(() => import('./pages/operations/HeroBoxVolunteers'));
 
-// Lazy-loaded pages — Operations Center
 const WithdrawalLimits = React.lazy(() => import('./pages/operations/WithdrawalLimits'));
 const Organizations = React.lazy(() => import('./pages/operations/Organizations'));
 const Finance = React.lazy(() => import('./pages/operations/Finance'));
@@ -113,14 +109,11 @@ const LoadingFallback = () => (
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
 
-  if (isLoadingPublicSettings || isLoadingAuth) {
-    return <LoadingFallback />;
-  }
+  if (isLoadingPublicSettings || isLoadingAuth) return <LoadingFallback />;
 
   if (authError) {
-    if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />;
-    } else if (authError.type === 'auth_required') {
+    if (authError.type === 'user_not_registered') return <UserNotRegisteredError />;
+    if (authError.type === 'auth_required') {
       navigateToLogin();
       return null;
     }
@@ -129,106 +122,104 @@ const AuthenticatedApp = () => {
   return (
     <Suspense fallback={<LoadingFallback />}>
       <ExceptionAuthProvider>
-      <Routes>
-        <Route element={<PageTransition />}>
-          <Route path="/login" element={<Login />} />
-          <Route path="/brand" element={<BrandIdentity />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-        </Route>
-
-        <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
-          {/* Member Portal */}
-          <Route element={<MemberLayout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/apply" element={<Navigate to="/register" replace />} />
-            <Route path="/apply/kyc" element={<ApplyKYC />} />
-            <Route path="/accounts" element={<Accounts />} />
-            <Route path="/accounts/:id" element={<AccountDetail />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/documents" element={<MemberDocuments />} />
-            <Route path="/advisor" element={<MemberAdvisor />} />
-            <Route path="/move-money" element={<MoveMoney />} />
-            <Route path="/more" element={<More />} />
-            <Route path="/dispute" element={<TransactionDispute />} />
-            <Route path="/assistant" element={<VantorisAssistant />} />
-            <Route path="/herobox" element={<HeroBox />} />
-            <Route path="/investment" element={<Investment />} />
+        <Routes>
+          <Route element={<PageTransition />}>
+            <Route path="/login" element={<Login />} />
+            <Route path="/brand" element={<BrandIdentity />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
           </Route>
 
-          {/* Backward-compatible redirect */}
-          <Route path="/admin/*" element={<Navigate to="/operations" replace />} />
+          <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+            <Route element={<MemberLayout />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/apply" element={<Navigate to="/register" replace />} />
+              <Route path="/apply/kyc" element={<ApplyKYC />} />
+              <Route path="/accounts" element={<MoveMoney />} />
+              <Route path="/accounts/:id" element={<AccountDetail />} />
+              <Route path="/services" element={<Services />} />
+              <Route path="/messages" element={<Messages />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/documents" element={<MemberDocuments />} />
+              <Route path="/advisor" element={<MemberAdvisor />} />
+              <Route path="/discovery" element={<Discovery />} />
+              <Route path="/move-money" element={<Navigate to="/accounts" replace />} />
+              <Route path="/more" element={<More />} />
+              <Route path="/dispute" element={<TransactionDispute />} />
+              <Route path="/assistant" element={<VantorisAssistant />} />
+              <Route path="/herobox" element={<HeroBox />} />
+              <Route path="/investment" element={<Investment />} />
+            </Route>
 
-          {/* Operations Center routes */}
-          <Route element={<OperationsRoute />}>
-            <Route element={<AdminLayout />}>
-              <Route path="/operations" element={<AdminOverview />} />
-              <Route path="/operations/executive" element={<ExecutiveDashboard />} />
-              <Route path="/operations/security-dashboard" element={<SecurityComplianceDashboard />} />
-              <Route path="/operations/applications" element={<AdminApplications />} />
-              <Route path="/operations/kyc" element={<AdminKYC />} />
-              <Route path="/operations/members" element={<AdminMembers />} />
-              <Route path="/operations/operational-profiles" element={<OperationalProfiles />} />
-              <Route path="/operations/accounts" element={<AdminAccounts />} />
-              <Route path="/operations/withdrawals" element={<AdminWithdrawals />} />
-              <Route path="/operations/withdrawal-limits" element={<WithdrawalLimits />} />
-              <Route path="/operations/verification-requests" element={<VerificationRequests />} />
-              <Route path="/operations/service-requests" element={<ServiceRequests />} />
-              <Route path="/operations/member-messages" element={<MemberMessages />} />
-              <Route path="/operations/referrals" element={<Referrals />} />
-              <Route path="/operations/response-templates" element={<ResponseTemplates />} />
-              <Route path="/operations/assistant" element={<AdminAgent />} />
-              <Route path="/operations/recommendations" element={<RecommendationReview />} />
-              <Route path="/operations/transaction-export" element={<TransactionExportDashboard />} />
-              <Route path="/operations/impact-analytics" element={<ImpactAnalytics />} />
-              <Route path="/operations/leaderboard" element={<SupporterLeaderboard />} />
-              <Route path="/operations/herobox" element={<HeroBoxMissionControl />} />
-              <Route path="/operations/herobox/heroes" element={<HeroBoxHeroes />} />
-              <Route path="/operations/herobox/care-packages" element={<HeroBoxCarePackages />} />
-              <Route path="/operations/herobox/volunteers" element={<HeroBoxVolunteers />} />
-              <Route path="/operations/herobox/products" element={<HeroBoxAdminProducts />} />
-              <Route path="/operations/herobox/orders" element={<HeroBoxAdminOrders />} />
-              <Route path="/operations/discovery-network" element={<DiscoveryNetwork />} />
-              <Route path="/operations/humanitarian-cases" element={<HumanitarianCases />} />
-              <Route path="/operations/organizations" element={<Organizations />} />
-              <Route path="/operations/finance" element={<Finance />} />
-              <Route path="/operations/deposits" element={<Deposits />} />
-              <Route path="/operations/transfers" element={<Transfers />} />
-              <Route path="/operations/documents" element={<OperationsDocuments />} />
-              <Route path="/operations/cards" element={<Cards />} />
-              <Route path="/operations/wallet-assignment" element={<WalletAssignment />} />
-              <Route path="/operations/account-assignment" element={<AccountAssignment />} />
-              <Route path="/operations/reports" element={<Reports />} />
-              <Route path="/operations/executive-reports" element={<ExecutiveReports />} />
-              <Route path="/operations/audit-logs" element={<AuditLogs />} />
-              <Route path="/operations/aum-growth" element={<AumGrowth />} />
-              <Route path="/operations/bulk-import" element={<BulkTransactionImport />} />
-              <Route path="/operations/transaction-summaries" element={<TransactionSummaries />} />
-              <Route path="/operations/withdrawal-audit-log" element={<WithdrawalAuditLog />} />
-              <Route path="/operations/activity" element={<ActivityTimeline />} />
-              <Route path="/operations/configuration" element={<Configuration />} />
-              <Route path="/operations/api-management" element={<ApiManagement />} />
-              <Route path="/operations/integrations" element={<Integrations />} />
-              <Route path="/operations/notifications" element={<OperationsNotifications />} />
-              <Route path="/operations/security" element={<Security />} />
-              <Route path="/operations/feature-flags" element={<FeatureFlags />} />
-              <Route path="/operations/background-jobs" element={<BackgroundJobs />} />
-              <Route path="/operations/system-health" element={<SystemHealth />} />
-              <Route path="/operations/data-integrity" element={<DataIntegrityAudit />} />
-              <Route path="/operations/investment" element={<InvestmentDashboard />} />
-              <Route path="/operations/investment/deposits" element={<InvestmentDeposits />} />
-              <Route path="/operations/investment/withdrawals" element={<InvestmentWithdrawals />} />
-              <Route path="/operations/investment/portfolios" element={<InvestmentPortfolios />} />
-              <Route path="/operations/investment/signals" element={<InvestmentSignals />} />
+            <Route path="/admin/*" element={<Navigate to="/operations" replace />} />
+
+            <Route element={<OperationsRoute />}>
+              <Route element={<AdminLayout />}>
+                <Route path="/operations" element={<AdminOverview />} />
+                <Route path="/operations/executive" element={<ExecutiveDashboard />} />
+                <Route path="/operations/security-dashboard" element={<SecurityComplianceDashboard />} />
+                <Route path="/operations/applications" element={<AdminApplications />} />
+                <Route path="/operations/kyc" element={<AdminKYC />} />
+                <Route path="/operations/members" element={<AdminMembers />} />
+                <Route path="/operations/operational-profiles" element={<OperationalProfiles />} />
+                <Route path="/operations/accounts" element={<AdminAccounts />} />
+                <Route path="/operations/withdrawals" element={<AdminWithdrawals />} />
+                <Route path="/operations/withdrawal-limits" element={<WithdrawalLimits />} />
+                <Route path="/operations/verification-requests" element={<VerificationRequests />} />
+                <Route path="/operations/service-requests" element={<ServiceRequests />} />
+                <Route path="/operations/member-messages" element={<MemberMessages />} />
+                <Route path="/operations/referrals" element={<Referrals />} />
+                <Route path="/operations/response-templates" element={<ResponseTemplates />} />
+                <Route path="/operations/assistant" element={<AdminAgent />} />
+                <Route path="/operations/recommendations" element={<RecommendationReview />} />
+                <Route path="/operations/transaction-export" element={<TransactionExportDashboard />} />
+                <Route path="/operations/impact-analytics" element={<ImpactAnalytics />} />
+                <Route path="/operations/leaderboard" element={<SupporterLeaderboard />} />
+                <Route path="/operations/herobox" element={<HeroBoxMissionControl />} />
+                <Route path="/operations/herobox/heroes" element={<HeroBoxHeroes />} />
+                <Route path="/operations/herobox/care-packages" element={<HeroBoxCarePackages />} />
+                <Route path="/operations/herobox/volunteers" element={<HeroBoxVolunteers />} />
+                <Route path="/operations/herobox/products" element={<HeroBoxAdminProducts />} />
+                <Route path="/operations/herobox/orders" element={<HeroBoxAdminOrders />} />
+                <Route path="/operations/discovery-network" element={<DiscoveryNetwork />} />
+                <Route path="/operations/humanitarian-cases" element={<HumanitarianCases />} />
+                <Route path="/operations/organizations" element={<Organizations />} />
+                <Route path="/operations/finance" element={<Finance />} />
+                <Route path="/operations/deposits" element={<Deposits />} />
+                <Route path="/operations/transfers" element={<Transfers />} />
+                <Route path="/operations/documents" element={<OperationsDocuments />} />
+                <Route path="/operations/cards" element={<Cards />} />
+                <Route path="/operations/wallet-assignment" element={<WalletAssignment />} />
+                <Route path="/operations/account-assignment" element={<AccountAssignment />} />
+                <Route path="/operations/reports" element={<Reports />} />
+                <Route path="/operations/executive-reports" element={<ExecutiveReports />} />
+                <Route path="/operations/audit-logs" element={<AuditLogs />} />
+                <Route path="/operations/aum-growth" element={<AumGrowth />} />
+                <Route path="/operations/bulk-import" element={<BulkTransactionImport />} />
+                <Route path="/operations/transaction-summaries" element={<TransactionSummaries />} />
+                <Route path="/operations/withdrawal-audit-log" element={<WithdrawalAuditLog />} />
+                <Route path="/operations/activity" element={<ActivityTimeline />} />
+                <Route path="/operations/configuration" element={<Configuration />} />
+                <Route path="/operations/api-management" element={<ApiManagement />} />
+                <Route path="/operations/integrations" element={<Integrations />} />
+                <Route path="/operations/notifications" element={<OperationsNotifications />} />
+                <Route path="/operations/security" element={<Security />} />
+                <Route path="/operations/feature-flags" element={<FeatureFlags />} />
+                <Route path="/operations/background-jobs" element={<BackgroundJobs />} />
+                <Route path="/operations/system-health" element={<SystemHealth />} />
+                <Route path="/operations/data-integrity" element={<DataIntegrityAudit />} />
+                <Route path="/operations/investment" element={<InvestmentDashboard />} />
+                <Route path="/operations/investment/deposits" element={<InvestmentDeposits />} />
+                <Route path="/operations/investment/withdrawals" element={<InvestmentWithdrawals />} />
+                <Route path="/operations/investment/portfolios" element={<InvestmentPortfolios />} />
+                <Route path="/operations/investment/signals" element={<InvestmentSignals />} />
+              </Route>
             </Route>
           </Route>
-        </Route>
 
-        <Route path="*" element={<PageNotFound />} />
-      </Routes>
+          <Route path="*" element={<PageNotFound />} />
+        </Routes>
       </ExceptionAuthProvider>
     </Suspense>
   );
