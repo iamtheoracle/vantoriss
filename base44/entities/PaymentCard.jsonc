@@ -12,5 +12,11 @@
     "expires_month": { "type": "number" },
     "expires_year": { "type": "number" }
   },
-  "required": ["user_id", "card_type", "last4", "status"]
+  "required": ["user_id", "card_type", "last4", "status"],
+  "rls": {
+    "create": { "data.user_id": "{{user.id}}" },
+    "read": { "data.user_id": "{{user.id}}" },
+    "update": { "data.user_id": "{{user.id}}" },
+    "delete": { "data.user_id": "{{user.id}}" }
+  }
 }
