@@ -12,10 +12,28 @@
     "zelle_email": { "type": "string" },
     "zelle_phone": { "type": "string" },
     "bank_name": { "type": "string" },
-    "bank_account_last4": { "type": "string" },
-    "eligible_account_id": { "type": "string" },
+    "bank_account_last4": {
+      "type": "string",
+      "rls": {
+        "read": { "data.user_id": "{{user.id}}" },
+        "write": { "data.user_id": "{{user.id}}" }
+      }
+    },
+    "eligible_account_id": {
+      "type": "string",
+      "rls": {
+        "read": { "data.user_id": "{{user.id}}" },
+        "write": { "data.user_id": "{{user.id}}" }
+      }
+    },
     "enrolled_at": { "type": "string", "format": "date" },
     "verified_at": { "type": "string", "format": "date" }
   },
-  "required": ["user_id", "status", "display_name"]
+  "required": ["user_id", "status", "display_name"],
+  "rls": {
+    "create": { "data.user_id": "{{user.id}}" },
+    "read": { "data.status": "enrolled" },
+    "update": { "data.user_id": "{{user.id}}" },
+    "delete": { "data.user_id": "{{user.id}}" }
+  }
 }
