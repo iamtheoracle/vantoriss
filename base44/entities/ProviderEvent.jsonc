@@ -1,0 +1,13 @@
+{
+  "name": "ProviderEvent",
+  "type": "object",
+  "properties": {
+    "provider": { "type": "string", "enum": ["unit"] },
+    "event_id": { "type": "string" },
+    "event_type": { "type": "string" },
+    "processed_at": { "type": "string", "format": "date-time" },
+    "status": { "type": "string", "enum": ["processed", "ignored", "failed"] },
+    "resource_id": { "type": "string" }
+  },
+  "required": ["provider", "event_id", "event_type", "status"]
+}
