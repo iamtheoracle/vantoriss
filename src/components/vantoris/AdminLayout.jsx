@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
-import { Menu, PanelLeftOpen } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
 import AdminTopBar from './AdminTopBar';
 import PageTransition from './PageTransition';
@@ -9,18 +8,13 @@ import FloatingAIDock from './FloatingAIDock';
 import { base44 } from '@/api/base44Client';
 import { getDefaultWorkspace } from '@/lib/operationsAccess';
 
+const PHONE_SHELL = 'w-full max-w-[430px] mx-auto min-h-[100dvh] flex flex-col overflow-hidden bg-white lg:rounded-[28px] lg:shadow-2xl lg:ring-1 lg:ring-slate-200/80';
+
 export default function AdminLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [sidebarHidden, setSidebarHidden] = useState(() => localStorage.getItem('vantoris_sidebar_hidden') === 'true');
   const [user, setUser] = useState(null);
   const [activeWorkspace, setActiveWorkspace] = useState(null);
   const location = useLocation();
-
-  function toggleSidebar() {
-    const next = !sidebarHidden;
-    setSidebarHidden(next);
-    localStorage.setItem('vantoris_sidebar_hidden', String(next));
-  }
 
   useEffect(() => {
     base44.auth.me()
@@ -47,60 +41,40 @@ export default function AdminLayout() {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen vantoris-mesh-bg">
+      <div className="flex items-center justify-center min-h-[100dvh] w-full vantoris-mesh-bg">
         <div className="w-8 h-8 border-2 border-brass/30 border-t-brass rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen vantoris-mesh-bg flex">
-      {/* Desktop sidebar — fixed */}
-      {!sidebarHidden && (
-        <div className="hidden lg:flex fixed left-0 top-0 bottom-0 z-40">
-          <AdminSidebar
-            user={user}
-            activeWorkspace={activeWorkspace}
-            onWorkspaceChange={handleWorkspaceChange}
-            onHide={toggleSidebar}
-          />
+    <div className="min-h-[100dvh] w-full vantoris-mesh-bg flex justify-center overflow-x-hidden">
+      <div className={PHONE_SHELL}>
+        {/* Navigation stays available as a phone-style drawer at every viewport size. */}
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <SheetContent
+            side="left"
+            className="vantoris-glass-sidebar p-0 w-72 max-w-[85vw]"
+            style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+          >
+            <AdminSidebar
+              user={user}
+              activeWorkspace={activeWorkspace}
+              onWorkspaceChange={handleWorkspaceChange}
+              onNavigate={() => setMobileOpen(false)}
+            />
+          </SheetContent>
+        </Sheet>
+
+        <div className="flex-1 flex flex-col min-h-[100dvh] min-w-0">
+          <AdminTopBar user={user} onMenuClick={() => setMobileOpen(true)} />
+          <main className="flex-1 min-w-0 p-3 sm:p-4 pb-6 vantoris-scroll overflow-x-hidden">
+            <PageTransition />
+          </main>
         </div>
-      )}
 
-      {/* Floating show button when sidebar is hidden */}
-      {sidebarHidden && (
-        <button
-          onClick={toggleSidebar}
-          className="hidden lg:flex fixed left-3 top-3 z-40 items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200 shadow-md text-foreground text-xs font-medium hover:bg-slate-50 transition-all"
-          title="Show sidebar"
-        >
-          <PanelLeftOpen size={16} />
-          Menu
-        </button>
-      )}
-
-      {/* Mobile drawer */}
-      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="vantoris-glass-sidebar p-0 w-72" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
-          <AdminSidebar
-            user={user}
-            activeWorkspace={activeWorkspace}
-            onWorkspaceChange={handleWorkspaceChange}
-            onNavigate={() => setMobileOpen(false)}
-          />
-        </SheetContent>
-      </Sheet>
-
-      {/* Main content area */}
-      <div className={`flex-1 flex flex-col min-h-screen ${sidebarHidden ? 'lg:ml-0' : 'lg:ml-64'}`}>
-        <AdminTopBar user={user} onMenuClick={() => setMobileOpen(true)} />
-        <main className="flex-1 p-4 lg:p-6 vantoris-scroll">
-          <PageTransition />
-        </main>
+        <FloatingAIDock />
       </div>
-
-      {/* Floating AI Assistant — available on every Operations page */}
-      <FloatingAIDock />
     </div>
   );
 }
