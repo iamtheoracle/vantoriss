@@ -2,14 +2,15 @@
 
 Vantoris now expects live banking operations to come from Unit. Unit documents separate Sandbox and Live API environments; this integration intentionally targets the Live API and does not use sandbox simulation endpoints.
 
-## Required server secret
+## Required server secrets
 
 Configure the Base44 backend function environment with:
 
 - `UNIT_API_TOKEN` — the live Unit API bearer token issued for the approved Vantoris program.
 - `UNIT_API_BASE_URL` — optional; if omitted, the integration uses `https://api.unit.co`.
+- `UNIT_WEBHOOK_SECRET` — the webhook signing secret configured in Unit for the Vantoris webhook endpoint.
 
-Never place the token in React/Vite environment variables, GitHub, browser storage, chat, audit records, or frontend requests.
+Never place these secrets in React/Vite environment variables, GitHub, browser storage, chat, audit records, or frontend requests.
 
 ## Provider onboarding prerequisites
 
@@ -26,6 +27,7 @@ Vantoris must also complete any bank-partner and compliance requirements that ap
 5. Unit-issued routing/account numbers and balances are stored as provider references and synchronized state.
 6. Financial actions use provider IDs and idempotency keys.
 7. A payment is shown as pending/reviewed/sent/returned according to the provider status; Vantoris never upgrades a payment to successful without provider confirmation.
+8. Unit webhook events update provider status and synchronized balances. Webhook delivery is verified using the configured `UNIT_WEBHOOK_SECRET` and event IDs are recorded for idempotent processing.
 
 ## Zelle
 
