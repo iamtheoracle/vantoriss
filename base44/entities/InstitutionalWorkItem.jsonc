@@ -1,0 +1,48 @@
+{
+  "name": "InstitutionalWorkItem",
+  "type": "object",
+  "properties": {
+    "workspace_id": { "type": "string", "description": "Related CaseWorkspace identifier" },
+    "user_id": { "type": "string", "description": "Member or institutional subject associated with the work" },
+    "objective": { "type": "string", "description": "The outcome the institution is trying to establish or achieve" },
+    "lead_division": { "type": "string", "description": "Command division leading the work" },
+    "participating_divisions": { "type": "array", "items": { "type": "string" }, "description": "Divisions contributing to the work" },
+    "lifecycle_stage": {
+      "type": "string",
+      "enum": ["observe", "investigate", "analyze", "corroborate", "assess", "collaborate", "recommend", "authorize", "execute", "verify", "record", "learn", "closed"],
+      "default": "observe"
+    },
+    "work_status": {
+      "type": "string",
+      "enum": ["active", "waiting", "awaiting_authorization", "executing", "verifying", "completed", "blocked", "rejected"],
+      "default": "active"
+    },
+    "authorization_state": {
+      "type": "string",
+      "enum": ["not_required", "required", "pending", "approved", "rejected"],
+      "default": "not_required"
+    },
+    "execution_state": {
+      "type": "string",
+      "enum": ["not_started", "authorized", "in_progress", "provider_confirmed", "failed", "not_applicable"],
+      "default": "not_started"
+    },
+    "verification_state": {
+      "type": "string",
+      "enum": ["not_started", "pending", "verified", "partially_verified", "failed", "not_applicable"],
+      "default": "not_started"
+    },
+    "evidence": { "type": "string", "description": "JSON-serialized evidence and provenance references" },
+    "findings": { "type": "string", "description": "JSON-serialized findings produced by participating divisions" },
+    "handoffs": { "type": "string", "description": "JSON-serialized division-to-division handoff history" },
+    "recommendation_ids": { "type": "array", "items": { "type": "string" }, "description": "Recommendations produced from this work" },
+    "authorization_record": { "type": "string", "description": "JSON-serialized authorization evidence" },
+    "execution_record": { "type": "string", "description": "JSON-serialized execution and provider confirmation evidence" },
+    "verification_record": { "type": "string", "description": "JSON-serialized outcome verification" },
+    "timeline": { "type": "string", "description": "JSON-serialized institutional lifecycle timeline" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "closed_at": { "type": "string", "format": "date-time" }
+  },
+  "required": ["objective", "lead_division", "lifecycle_stage", "work_status"]
+}
