@@ -2,119 +2,32 @@
   "name": "AssistantRecommendation",
   "type": "object",
   "properties": {
-    "workspace_id": {
-      "type": "string",
-      "description": "The case workspace this recommendation belongs to"
-    },
-    "user_id": {
-      "type": "string",
-      "description": "The member this recommendation concerns"
-    },
+    "workspace_id": { "type": "string", "description": "The institutional case workspace this recommendation belongs to" },
+    "work_item_id": { "type": "string", "description": "The institutional work item that produced this recommendation" },
+    "user_id": { "type": "string", "description": "The member this recommendation concerns" },
     "specialist": {
       "type": "string",
-      "enum": [
-        "payments",
-        "banking",
-        "compliance",
-        "investment",
-        "document",
-        "credit",
-        "fraud",
-        "platform"
-      ],
-      "description": "Which specialist assistant produced this recommendation"
+      "enum": ["payments", "banking", "compliance", "investment", "document", "credit", "fraud", "platform", "command", "intelligence", "operations", "security", "support", "logistics", "humanitarian", "reconnaissance", "finance", "markets", "portfolio", "risk", "navigation", "records", "communications"],
+      "description": "The Command division producing the recommendation"
     },
-    "member_message": {
-      "type": "string",
-      "description": "The original member request that triggered this recommendation"
-    },
-    "summary": {
-      "type": "string",
-      "description": "Concise summary of the recommendation"
-    },
-    "supporting_evidence": {
-      "type": "string",
-      "description": "Data and evidence supporting the recommendation"
-    },
-    "confidence_level": {
-      "type": "string",
-      "enum": [
-        "low",
-        "medium",
-        "high"
-      ],
-      "default": "medium"
-    },
-    "potential_risks": {
-      "type": "string",
-      "description": "Identified risks and mitigations"
-    },
-    "applicable_policies": {
-      "type": "string",
-      "description": "Relevant platform policies and procedures"
-    },
-    "recommended_action": {
-      "type": "string",
-      "description": "Specific next action the assistant recommends"
-    },
-    "required_approver": {
-      "type": "string",
-      "enum": [
-        "admin",
-        "operations",
-        "compliance",
-        "executive"
-      ],
-      "default": "admin"
-    },
-    "status": {
-      "type": "string",
-      "enum": [
-        "pending",
-        "approved",
-        "rejected",
-        "executed",
-        "escalated"
-      ],
-      "default": "pending"
-    },
-    "reviewer_id": {
-      "type": "string",
-      "description": "Staff member who reviewed this recommendation"
-    },
-    "reviewer_name": {
-      "type": "string"
-    },
-    "review_notes": {
-      "type": "string",
-      "description": "Staff notes from the review"
-    },
-    "reviewed_date": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "escalation_reason": {
-      "type": "string",
-      "description": "Why this recommendation was escalated"
-    },
-    "escalated_to": {
-      "type": "string",
-      "description": "Who this was escalated to"
-    },
-    "collaboration_notes": {
-      "type": "string",
-      "description": "Contributions from collaborating specialists"
-    },
-    "is_action_impacting": {
-      "type": "boolean",
-      "default": false,
-      "description": "Whether this recommendation requires staff approval before any action"
-    }
+    "collaborating_divisions": { "type": "array", "items": { "type": "string" }, "description": "Other divisions whose work informed the recommendation" },
+    "member_message": { "type": "string", "description": "The original member request" },
+    "summary": { "type": "string", "description": "Concise recommendation" },
+    "supporting_evidence": { "type": "string", "description": "Evidence and provenance supporting the recommendation" },
+    "confidence_level": { "type": "string", "enum": ["low", "medium", "high"], "default": "medium" },
+    "potential_risks": { "type": "string", "description": "Identified risks and mitigations" },
+    "applicable_policies": { "type": "string", "description": "Relevant policies and procedures" },
+    "recommended_action": { "type": "string", "description": "Proposed next action; not authorization" },
+    "required_approver": { "type": "string", "enum": ["admin", "operations", "compliance", "executive"], "default": "admin" },
+    "status": { "type": "string", "enum": ["pending", "approved", "rejected", "executed", "escalated"], "default": "pending" },
+    "reviewer_id": { "type": "string", "description": "Staff reviewer" },
+    "reviewer_name": { "type": "string" },
+    "review_notes": { "type": "string" },
+    "reviewed_date": { "type": "string", "format": "date-time" },
+    "escalation_reason": { "type": "string" },
+    "escalated_to": { "type": "string" },
+    "collaboration_notes": { "type": "string" },
+    "is_action_impacting": { "type": "boolean", "default": false, "description": "Requires explicit authorization before protected execution" }
   },
-  "required": [
-    "workspace_id",
-    "user_id",
-    "specialist",
-    "summary"
-  ]
+  "required": ["workspace_id", "user_id", "specialist", "summary"]
 }
