@@ -3,9 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  Crown, TrendingUp, Wallet, Users, FileText,
-  ArrowUpRight, Activity, ScrollText,
-  AlertTriangle,
+  Crown, Wallet, Users, FileText,
+  ArrowUpRight, Activity, AlertTriangle,
 } from 'lucide-react';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
 import PremiumStatCard from '@/components/vantoris/PremiumStatCard';
@@ -14,41 +13,39 @@ import LiveBankingActivity from '@/components/vantoris/widgets/LiveBankingActivi
 import PendingApprovalsWidget from '@/components/vantoris/widgets/PendingApprovalsWidget';
 import AIRecommendationsWidget from '@/components/vantoris/widgets/AIRecommendationsWidget';
 import SystemHealthWidget from '@/components/vantoris/widgets/SystemHealthWidget';
+import InstitutionalWorkQueue from '@/components/vantoris/widgets/InstitutionalWorkQueue';
 import VantorisLoading from '@/components/vantoris/system/VantorisLoading';
 
 export default function ExecutiveDashboard() {
   const navigate = useNavigate();
-  const [stats, setStats] = useState({ members: 0, totalBalance: 0, pendingApps: 0, pendingWithdrawals: 0, totalAccounts: 0, frozenAccounts: 0, totalDeposits: 0, totalWithdrawals: 0 });
+  const [stats, setStats] = useState({ members: 0, totalBalance: 0, pendingApps: 0, pendingWithdrawals: 0 });
   const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   async function loadData() {
     try {
-      const [users, apps, withdrawals, accounts, transactions, auditLogs] = await Promise.all([
+      const [users, apps, withdrawals, accounts, auditLogs] = await Promise.all([
         base44.entities.User.list('-created_date', 200),
         base44.entities.Application.list('-created_date', 50),
         base44.entities.WithdrawalRequest.list('-created_date', 50),
         base44.entities.Account.list('-created_date', 200),
-        base44.entities.Transaction.list('-created_date', 100),
         base44.entities.AuditLog.list('-created_date', 15),
       ]);
 
-      const memberCount = users.filter(u => u.role === 'user').length;
-      const totalBalance = accounts.reduce((s, a) => s + (a.balance || 0), 0);
-      const pendingApps = apps.filter(a => a.application_status === 'pending').length;
-      const pendingWithdrawals = withdrawals.filter(w => w.status === 'pending').length;
-      const frozenAccounts = accounts.filter(a => a.status === 'frozen').length;
-      const totalDeposits = transactions.filter(t => t.type === 'deposit' || t.type === 'opening_balance').reduce((s, t) => s + Math.abs(t.amount || 0), 0);
-      const totalWithdrawals = transactions.filter(t => t.type === 'withdrawal').reduce((s, t) => s + Math.abs(t.amount || 0), 0);
-
-      setStats({ members: memberCount, totalBalance, pendingApps, pendingWithdrawals, totalAccounts: accounts.length, frozenAccounts, totalDeposits, totalWithdrawals });
+      setStats({
+        members: users.filter(u => u.role === 'user').length,
+        totalBalance: accounts.reduce((s, a) => s + (a.balance || 0), 0),
+        pendingApps: apps.filter(a => a.application_status === 'pending').length,
+        pendingWithdrawals: withdrawals.filter(w => w.status === 'pending').length,
+      });
       setRecentActivity(auditLogs.slice(0, 8).map(log => ({
-        id: log.id, action: log.action_type?.replace(/_/g, ' ') || 'Action',
-        description: log.description || '', admin: log.admin_name || 'System', date: log.created_date,
+        id: log.id,
+        action: log.action_type?.replace(/_/g, ' ') || 'Action',
+        description: log.description || '',
+        admin: log.admin_name || 'System',
+        date: log.created_date,
       })));
     } catch (e) { console.error(e); }
     setLoading(false);
@@ -64,7 +61,6 @@ export default function ExecutiveDashboard() {
 
   return (
     <OperationsPageLayout title="Executive Dashboard" description="Enterprise overview and strategic metrics" icon={Crown} breadcrumb="Executive Workspace">
-      {/* Executive KPI Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         <PremiumStatCard hero label="Assets Under Management" value={formatCurrency(stats.totalBalance)} sublabel="Total across all member accounts" icon={Wallet} accent="navy" onClick={() => navigate('/operations/finance')} />
         <PremiumStatCard label="Total Members" value={stats.members} icon={Users} accent="blue" onClick={() => navigate('/operations/members')} />
@@ -72,20 +68,18 @@ export default function ExecutiveDashboard() {
         <PremiumStatCard label="Pending Withdrawals" value={stats.pendingWithdrawals} icon={ArrowUpRight} accent="crimson" alert={stats.pendingWithdrawals > 0 ? stats.pendingWithdrawals : ''} alertIcon={AlertTriangle} onClick={() => navigate('/operations/withdrawals')} />
       </div>
 
-      {/* Treasury Position + Live Activity */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-6">
         <TreasuryPosition />
         <LiveBankingActivity />
+        <InstitutionalWorkQueue />
       </div>
 
-      {/* Pending Approvals + AI Recommendations + System Health */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
         <PendingApprovalsWidget />
         <AIRecommendationsWidget />
         <SystemHealthWidget />
       </div>
 
-      {/* Recent Governance Activity */}
       <div className="vantoris-glass-premium p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
@@ -104,7 +98,7 @@ export default function ExecutiveDashboard() {
         ) : (
           <div className="space-y-0">
             {recentActivity.map(item => (
-              <div key={item.id || Math.random()} className="flex items-center gap-3 py-3 border-b border-slate-100 last:border-0">
+              <div key={item.id} className="flex items-center gap-3 py-3 border-b border-slate-100 last:border-0">
                 <div className="w-8 h-8 rounded-lg bg-navy/8 border border-navy/10 flex items-center justify-center flex-shrink-0">
                   <Activity size={14} className="text-navy" />
                 </div>
@@ -114,7 +108,7 @@ export default function ExecutiveDashboard() {
                 </div>
                 <div className="text-right flex-shrink-0">
                   <p className="text-gray text-[10px]">{item.admin}</p>
-                  <p className="text-gray/60 text-[10px]">{new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                  <p className="text-gray/60 text-[10px]">{item.date ? new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}</p>
                 </div>
               </div>
             ))}
