@@ -2,94 +2,42 @@
   "name": "CaseWorkspace",
   "type": "object",
   "properties": {
-    "user_id": {
-      "type": "string",
-      "description": "The member this case belongs to"
-    },
-    "subject": {
-      "type": "string",
-      "description": "Case subject or title"
-    },
-    "thread_id": {
-      "type": "string",
-      "description": "Associated message thread ID"
-    },
+    "user_id": { "type": "string", "description": "The member this case belongs to" },
+    "subject": { "type": "string", "description": "Case subject or title" },
+    "objective": { "type": "string", "description": "Institutional objective for the case" },
+    "thread_id": { "type": "string", "description": "Associated message thread ID" },
     "case_type": {
       "type": "string",
-      "enum": [
-        "banking",
-        "payments",
-        "compliance",
-        "investment",
-        "document",
-        "platform",
-        "herobox",
-        "general"
-      ],
-      "description": "Which specialist assistant domain this case belongs to"
+      "enum": ["banking", "payments", "compliance", "investment", "document", "platform", "herobox", "general", "command", "intelligence", "operations", "security", "support", "logistics", "humanitarian", "reconnaissance", "finance", "markets", "portfolio", "risk", "navigation", "records", "communications"],
+      "description": "Primary domain or Command division for this case"
+    },
+    "lead_division": { "type": "string", "description": "Command division leading the case" },
+    "participating_divisions": { "type": "array", "items": { "type": "string" }, "description": "Divisions collaborating on the case" },
+    "lifecycle_stage": {
+      "type": "string",
+      "enum": ["observe", "investigate", "analyze", "corroborate", "assess", "collaborate", "recommend", "authorize", "execute", "verify", "record", "learn", "closed"],
+      "default": "observe"
     },
     "status": {
       "type": "string",
-      "enum": [
-        "open",
-        "pending_review",
-        "pending_approval",
-        "approved",
-        "rejected",
-        "escalated",
-        "closed"
-      ],
+      "enum": ["open", "pending_review", "pending_approval", "approved", "rejected", "escalated", "closed"],
       "default": "open"
     },
-    "internal_notes": {
-      "type": "string",
-      "description": "Staff-only internal notes"
-    },
-    "assigned_owner": {
-      "type": "string",
-      "description": "Staff member assigned to this case"
-    },
-    "priority": {
-      "type": "string",
-      "enum": [
-        "low",
-        "medium",
-        "high",
-        "critical"
-      ],
-      "default": "medium"
-    },
-    "escalated": {
-      "type": "boolean",
-      "default": false
-    },
-    "escalation_reason": {
-      "type": "string",
-      "description": "Why this case was escalated"
-    },
-    "documents": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "description": "Document URLs attached to this case"
-    },
-    "timeline": {
-      "type": "string",
-      "description": "JSON-serialized timeline of events"
-    },
-    "audit_history": {
-      "type": "string",
-      "description": "JSON-serialized audit trail"
-    },
-    "closed_date": {
-      "type": "string",
-      "format": "date-time"
-    }
+    "authorization_state": { "type": "string", "enum": ["not_required", "required", "pending", "approved", "rejected"], "default": "not_required" },
+    "execution_state": { "type": "string", "enum": ["not_started", "authorized", "in_progress", "provider_confirmed", "failed", "not_applicable"], "default": "not_started" },
+    "verification_state": { "type": "string", "enum": ["not_started", "pending", "verified", "partially_verified", "failed", "not_applicable"], "default": "not_started" },
+    "internal_notes": { "type": "string", "description": "Staff-only internal notes" },
+    "assigned_owner": { "type": "string", "description": "Staff member assigned to this case" },
+    "priority": { "type": "string", "enum": ["low", "medium", "high", "critical"], "default": "medium" },
+    "escalated": { "type": "boolean", "default": false },
+    "escalation_reason": { "type": "string", "description": "Why this case was escalated" },
+    "documents": { "type": "array", "items": { "type": "string" }, "description": "Document URLs attached to this case" },
+    "evidence": { "type": "string", "description": "JSON-serialized evidence and provenance" },
+    "findings": { "type": "string", "description": "JSON-serialized institutional findings" },
+    "handoffs": { "type": "string", "description": "JSON-serialized division handoff history" },
+    "timeline": { "type": "string", "description": "JSON-serialized timeline of lifecycle events" },
+    "audit_history": { "type": "string", "description": "JSON-serialized audit trail" },
+    "closed_date": { "type": "string", "format": "date-time" }
   },
-  "required": [
-    "user_id",
-    "subject",
-    "case_type"
-  ]
+  "required": ["user_id", "subject", "case_type"]
 }
