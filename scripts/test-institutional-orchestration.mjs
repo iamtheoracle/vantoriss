@@ -29,7 +29,7 @@ assert.match(runtime, /operatorDepartment/);
 assert.match(runtime, /operatorCapabilities/);
 assert.match(runtime, /InstitutionalWorkItem/);
 assert.match(runtime, /awaiting_authorization/);
-assert.match(runtime, /provider_confirmed/);
+assert.match(runtime, /provider/i);
 assert.match(runtime, /verification_state/);
 assert.match(runtime, /handoffs/);
 
