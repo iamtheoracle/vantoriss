@@ -18,7 +18,7 @@ for (const name of requiredAgents) {
   assert.match(source, /unavailable/i, `${name}: missing unavailable-state rule`);
   assert.match(
     source,
-    /Never report.*(?:completed|complete|execution completion)|Never claim success until.*verified/i,
+    /Never report.*(?:completed|complete|completion|execution completion)|Never claim success until.*verified/i,
     `${name}: missing execution-verification rule`
   );
   assert.doesNotMatch(source, /Generates a unique account number and routing number/i, `${name}: obsolete synthetic account generation instruction remains`);
