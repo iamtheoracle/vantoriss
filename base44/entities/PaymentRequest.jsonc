@@ -1,0 +1,19 @@
+{
+  "name": "PaymentRequest",
+  "type": "object",
+  "properties": {
+    "requester_user_id": { "type": "string" },
+    "payer_user_id": { "type": "string" },
+    "account_id": { "type": "string" },
+    "provider_account_id": { "type": "string" },
+    "amount": { "type": "number" },
+    "currency": { "type": "string", "default": "USD" },
+    "note": { "type": "string" },
+    "status": { "type": "string", "enum": ["pending", "accepted", "paid", "declined", "canceled", "expired"], "default": "pending" },
+    "provider_payment_id": { "type": "string" },
+    "paid_transaction_id": { "type": "string" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "paid_at": { "type": "string", "format": "date-time" }
+  },
+  "required": ["requester_user_id", "amount", "currency", "status"]
+}
