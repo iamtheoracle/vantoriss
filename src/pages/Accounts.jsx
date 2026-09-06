@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import MoveMoney from './MoveMoney';
+import ProviderMoveMoney from '@/components/vantoris/ProviderMoveMoney';
 import DemoAccounts from './DemoAccounts';
 import { selectFinancialExperience } from '@/lib/demoFinancials';
 
@@ -31,13 +31,12 @@ export default function Accounts() {
 
   return (
     <div className="accounts-combined-page">
-      <style>{`.accounts-combined-page .accounts-money-content header { display: none; }.accounts-combined-page .accounts-money-content > div { padding-top: 0; }`}</style>
       <header className="px-5 pt-6 pb-1 max-w-[430px] mx-auto">
         <p className="text-gray text-sm">Your banking relationship</p>
         <h1 className="text-3xl font-bold mt-1">Accounts</h1>
-        <p className="text-gray text-sm mt-1">Accounts, cards, payments and transfers in one place.</p>
+        <p className="text-gray text-sm mt-1">Accounts, payments, transfers and history.</p>
       </header>
-      {experience?.mode === 'real' ? <div className="accounts-money-content"><MoveMoney /></div> : user ? <DemoAccounts user={user} /> : <div className="px-5 py-10 text-center text-sm text-gray">Loading Vantoris...</div>}
+      {experience?.mode === 'real' ? <div className="px-5 pb-28 max-w-[430px] mx-auto"><ProviderMoveMoney /></div> : user ? <DemoAccounts user={user} /> : <div className="px-5 py-10 text-center text-sm text-gray">Loading Vantoris...</div>}
     </div>
   );
 }
