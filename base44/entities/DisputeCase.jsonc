@@ -1,0 +1,18 @@
+{
+  "name": "DisputeCase",
+  "type": "object",
+  "properties": {
+    "user_id": { "type": "string" },
+    "account_id": { "type": "string" },
+    "provider_account_id": { "type": "string" },
+    "provider_dispute_id": { "type": "string" },
+    "provider_transaction_id": { "type": "string" },
+    "amount": { "type": "number" },
+    "reason": { "type": "string", "enum": ["Fraud", "Unauthorized", "GoodsNotReceived", "Other"] },
+    "description": { "type": "string" },
+    "status": { "type": "string", "enum": ["submitted", "investigation_started", "provisional_credit", "resolved_won", "resolved_lost", "denied", "failed"], "default": "submitted" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "required": ["user_id", "account_id", "amount", "reason", "status"]
+}
