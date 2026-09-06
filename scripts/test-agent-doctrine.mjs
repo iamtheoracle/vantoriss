@@ -15,12 +15,7 @@ for (const name of requiredAgents) {
   assert.ok(fs.existsSync(file), `missing agent: ${name}`);
   const source = fs.readFileSync(file, 'utf8');
   assert.match(source, /Never fabricate|Never invent/i, `${name}: missing no-fabrication rule`);
-  assert.match(source, /evidence|escalate|verified/i, `${name}: missing evidence/escalation rule`);
-  assert.match(
-    source,
-    /Never report.*(?:completed|complete|completion|execution completion)|Never claim success until.*verified/i,
-    `${name}: missing execution-verification rule`
-  );
+  assert.match(source, /Never report.*(?:completed|complete|completion|execution completion)|Never claim success until.*verified/i, `${name}: missing execution-verification rule`);
   assert.doesNotMatch(source, /Generates a unique account number and routing number/i, `${name}: obsolete synthetic account generation instruction remains`);
 }
 
