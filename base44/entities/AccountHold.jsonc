@@ -1,0 +1,18 @@
+{
+  "name": "AccountHold",
+  "type": "object",
+  "properties": {
+    "user_id": { "type": "string" },
+    "account_id": { "type": "string" },
+    "provider_account_id": { "type": "string" },
+    "provider_hold_id": { "type": "string" },
+    "amount": { "type": "number" },
+    "remaining_amount": { "type": "number" },
+    "currency": { "type": "string", "default": "USD" },
+    "description": { "type": "string" },
+    "status": { "type": "string", "enum": ["active", "partially_released", "released", "expired", "failed"], "default": "active" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "released_at": { "type": "string", "format": "date-time" }
+  },
+  "required": ["user_id", "account_id", "amount", "status"]
+}
