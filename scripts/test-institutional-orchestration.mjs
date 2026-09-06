@@ -24,14 +24,24 @@ for (const field of ['lead_division', 'participating_divisions', 'lifecycle_stag
   assert.match(workspace, new RegExp(`"${field}"`), `CaseWorkspace missing ${field}`);
 }
 
-assert.match(runtime, /operatorRole/);
-assert.match(runtime, /operatorDepartment/);
-assert.match(runtime, /operatorCapabilities/);
-assert.match(runtime, /InstitutionalWorkItem/);
-assert.match(runtime, /awaiting_authorization/);
-assert.match(runtime, /provider/i);
-assert.match(runtime, /verification_state/);
-assert.match(runtime, /handoffs/);
+// Institutional orchestration must carry operator authority context into the runtime,
+// persist a work item, gate action-impacting recommendations, and preserve verification state.
+// Provider-specific behavior belongs to the provider integration layer and must not be
+// required as a literal implementation detail of this provider-agnostic orchestration test.
+for (const pattern of [
+  /operatorRole/,
+  /operatorDepartment/,
+  /operatorCapabilities/,
+  /InstitutionalWorkItem/,
+  /awaiting_authorization/,
+  /verification_state/,
+  /handoffs/,
+  /AssistantRecommendation/,
+  /required_approver/,
+  /asServiceRole\.entities\.CaseWorkspace/,
+]) {
+  assert.match(runtime, pattern, `oracleRuntime missing institutional orchestration contract: ${pattern}`);
+}
 
 assert.match(dashboard, /InstitutionalWorkQueue/);
 assert.match(queue, /InstitutionalWorkItem/);
