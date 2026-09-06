@@ -16,7 +16,11 @@ for (const name of requiredAgents) {
   const source = fs.readFileSync(file, 'utf8');
   assert.match(source, /Never fabricate|Never invent/i, `${name}: missing no-fabrication rule`);
   assert.match(source, /unavailable/i, `${name}: missing unavailable-state rule`);
-  assert.match(source, /Never report.*completed|Never report.*complete/i, `${name}: missing execution-verification rule`);
+  assert.match(
+    source,
+    /Never report.*(?:completed|complete|execution completion)|Never claim success until.*verified/i,
+    `${name}: missing execution-verification rule`
+  );
   assert.doesNotMatch(source, /Generates a unique account number and routing number/i, `${name}: obsolete synthetic account generation instruction remains`);
 }
 
