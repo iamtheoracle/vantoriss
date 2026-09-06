@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { base44 } from '@/api/base44Client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { ShieldCheck, Loader2 } from 'lucide-react';
@@ -18,16 +19,18 @@ export default function SecurityPinModal({ open, onVerified, onClose, title = 'S
   }, [open]);
 
   async function handleVerify() {
-    if (pin.length < 6) return;
+    if (pin.length < 6 || verifying) return;
     setError('');
     setVerifying(true);
     try {
-      // In production this would validate against a stored PIN hash via backend
-      // For now, we accept any 6-digit PIN as the PIN setup flow isn't built yet
-      await new Promise(resolve => setTimeout(resolve, 600));
+      const response = await base44.functions.invoke('verifySecurityPin', { pin });
+      const result = response?.data || response;
+      if (!result?.ok || !result?.verified) {
+        throw new Error(result?.error || 'Incorrect PIN.');
+      }
       onVerified();
     } catch (err) {
-      setError('Incorrect PIN. Please try again.');
+      setError(err?.message || 'Unable to verify PIN.');
       setPin('');
     } finally {
       setVerifying(false);
@@ -35,9 +38,7 @@ export default function SecurityPinModal({ open, onVerified, onClose, title = 'S
   }
 
   function handleOpenChange(val) {
-    if (!val) {
-      if (!verifying) onClose();
-    }
+    if (!val && !verifying) onClose();
   }
 
   return (
@@ -58,13 +59,7 @@ export default function SecurityPinModal({ open, onVerified, onClose, title = 'S
           </div>
         )}
         <div className="flex justify-center mt-4">
-          <InputOTP
-            maxLength={6}
-            value={pin}
-            onChange={setPin}
-            autoFocus
-            onComplete={handleVerify}
-          >
+          <InputOTP maxLength={6} value={pin} onChange={setPin} autoFocus onComplete={handleVerify} disabled={verifying}>
             <InputOTPGroup>
               <InputOTPSlot index={0} />
               <InputOTPSlot index={1} />
@@ -75,23 +70,10 @@ export default function SecurityPinModal({ open, onVerified, onClose, title = 'S
             </InputOTPGroup>
           </InputOTP>
         </div>
-        <button
-          onClick={handleVerify}
-          disabled={pin.length < 6 || verifying}
-          className="w-full mt-4 py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl hover:bg-brass/90 transition-all disabled:opacity-40"
-        >
-          {verifying ? (
-            <span className="flex items-center justify-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Verifying...
-            </span>
-          ) : (
-            'Authorize'
-          )}
+        <button onClick={handleVerify} disabled={pin.length < 6 || verifying} className="w-full mt-4 py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl hover:bg-brass/90 transition-all disabled:opacity-40">
+          {verifying ? <span className="flex items-center justify-center gap-2"><Loader2 className="w-4 h-4 animate-spin" />Verifying...</span> : 'Authorize'}
         </button>
-        <p className="text-center text-[10px] text-[#AAB4C3]/60 mt-2">
-          For your security, this action requires PIN verification.
-        </p>
+        <p className="text-center text-[10px] text-[#AAB4C3]/60 mt-2">For your security, this action requires PIN verification.</p>
       </DialogContent>
     </Dialog>
   );
