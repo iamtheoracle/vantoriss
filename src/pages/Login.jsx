@@ -6,6 +6,7 @@ import SplashScreen from "@/components/auth/SplashScreen";
 import OnboardingCarousel from "@/components/auth/OnboardingCarousel";
 import { Loader2, Lock, User } from "lucide-react";
 import { getPostLoginRoute } from "@/lib/accountAccess";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function Login() {
   const [phase, setPhase] = useState("splash");
@@ -15,6 +16,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { checkUserAuth } = useAuth();
 
   useEffect(() => {
     const saved = localStorage.getItem("vantoris_user_id");
@@ -44,6 +46,12 @@ export default function Login() {
 
       await base44.auth.loginViaEmailPassword(userId, password);
       const authenticatedUser = await base44.auth.me();
+
+      // Synchronize the shared auth context before navigating. The initial
+      // anonymous auth check may already be complete, so navigating first
+      // can otherwise race ProtectedRoute and bounce a valid login back to
+      // /login.
+      await checkUserAuth();
 
       // One shared login, two distinct account types. Staff credentials go
       // directly to the operator workspace; member credentials go to banking.
