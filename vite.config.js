@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
+// Vantoris — Vite configuration (restart trigger for dep re-optimization)
 export default defineConfig({
   plugins: [
     base44({
