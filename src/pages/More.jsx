@@ -17,11 +17,20 @@ const SECTIONS = [
     ],
   },
   {
-    title: 'Banking',
+    title: 'Money',
     items: [
-      { id: 'cards', label: 'Cards', desc: 'Manage your debit cards', icon: CreditCard, route: '/services', color: 'bg-brass/10 text-brass' },
-      { id: 'accounts', label: 'Accounts', desc: 'Accounts, payments and transfers', icon: CreditCard, route: '/accounts', color: 'bg-blue-500/10 text-blue-600' },
+      { id: 'accounts', label: 'Money', desc: 'Accounts, payments and transfers', icon: CreditCard, route: '/accounts', color: 'bg-blue-500/10 text-blue-600' },
+      { id: 'cards', label: 'Cards', desc: 'Manage your cards', icon: CreditCard, route: '/cards', color: 'bg-brass/10 text-brass' },
+      { id: 'investment', label: 'Investments', desc: 'Portfolio and investment activity', icon: FileText, route: '/investment', color: 'bg-blue-500/10 text-blue-600' },
       { id: 'statements', label: 'Statements & Documents', desc: 'Account documents', icon: FileText, route: '/documents', color: 'bg-blue-500/10 text-blue-600' },
+    ],
+  },
+  {
+    title: 'Lifestyle',
+    items: [
+      { id: 'travel', label: 'Travel', desc: 'Flights, hotels, cars, and trips', icon: CreditCard, route: '/travel', color: 'bg-blue-500/10 text-blue-600' },
+      { id: 'homes', label: 'Homes', desc: 'Search, save, and explore properties', icon: CreditCard, route: '/homes', color: 'bg-blue-500/10 text-blue-600' },
+      { id: 'news', label: 'News', desc: 'Daily briefing and personalized news', icon: CreditCard, route: '/news', color: 'bg-blue-500/10 text-blue-600' },
     ],
   },
   {

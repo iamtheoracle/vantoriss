@@ -37,6 +37,10 @@ const BrandIdentity = React.lazy(() => import('./pages/BrandIdentity'));
 const VantorisAssistant = React.lazy(() => import('./components/vantoris/VantorisAssistant'));
 const HeroBox = React.lazy(() => import('./pages/HeroBox'));
 const Investment = React.lazy(() => import('./pages/Investment'));
+const Travel = React.lazy(() => import('./pages/Travel'));
+const Homes = React.lazy(() => import('./pages/Homes'));
+const News = React.lazy(() => import('./pages/News'));
+const MemberCards = React.lazy(() => import('./pages/Cards'));
 
 const AdminOverview = React.lazy(() => import('./pages/admin/AdminOverview'));
 const ExecutiveDashboard = React.lazy(() => import('./pages/operations/ExecutiveDashboard'));
@@ -148,6 +152,10 @@ const AuthenticatedApp = () => {
               <Route path="/assistant" element={<VantorisAssistant />} />
               <Route path="/herobox" element={<HeroBox />} />
               <Route path="/investment" element={<Investment />} />
+              <Route path="/travel" element={<Travel />} />
+              <Route path="/homes" element={<Homes />} />
+              <Route path="/news" element={<News />} />
+              <Route path="/cards" element={<MemberCards />} />
             </Route>
 
             <Route path="/admin/*" element={<Navigate to="/operations" replace />} />

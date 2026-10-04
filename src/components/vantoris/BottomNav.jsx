@@ -1,14 +1,17 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Wallet, Compass, Heart, LayoutGrid } from 'lucide-react';
+import { Home, Wallet, Heart, Sparkles, LayoutGrid } from 'lucide-react';
 import { TabHistoryContext } from '@/lib/TabHistoryContext';
 import { useContext } from 'react';
 
+// Global navigation — Spec §3.
+// Mobile prioritizes the most important destinations; secondary
+// functionality lives inside the More menu.
 const navItems = [
   { label: 'Home', path: '/', icon: Home },
-  { label: 'Accounts', path: '/accounts', icon: Wallet },
-  { label: 'Discovery', path: '/discovery', icon: Compass },
+  { label: 'Money', path: '/accounts', icon: Wallet },
   { label: 'HeroBox', path: '/herobox', icon: Heart },
+  { label: 'Ask', path: '/assistant', icon: Sparkles },
   { label: 'More', path: '/more', icon: LayoutGrid },
 ];
 
