@@ -31,14 +31,14 @@
 
 ### Atomic service contract
 
-The application-review, date-correction, funding-review, withdrawal-processing, bulk-import, and account-status endpoints use `base44/shared/financialMutationGateway.ts`; all five fail closed when the provider is unavailable and do not perform financial entity writes themselves. Configuration requires server-only environment variables:
+The application-review, date-correction, funding-review, withdrawal-processing, bulk-import, account-status, account-provisioning, and withdrawal-initiation endpoints use `base44/shared/financialMutationGateway.ts`; all eight fail closed when the provider is unavailable and do not perform financial entity writes themselves. Configuration requires server-only environment variables:
 
 - `VANTORIS_ATOMIC_MUTATION_URL` — HTTPS endpoint for the service that owns the authoritative records and can commit state plus audit atomically.
 - `VANTORIS_ATOMIC_MUTATION_SECRET` — server-only bearer credential for that service.
 
 The service must enforce idempotency, re-check the supplied revision/state inside its own transaction, and persist the business mutation and audit record in the same commit. It must return `success: true`, `audit_recorded: true`, and `operation_id` equal to the supplied idempotency key. A successful-looking response without those fields is treated as a contract violation.
 
-**Important blocker:** these environment variables are not configured or verified in the repository context. Until the transactional service is implemented and configured against the same authoritative records, all five endpoints return 503 without applying changes. The optimistic preflight check is not presented as concurrency protection on its own.
+**Important blocker:** these environment variables are not configured or verified in the repository context. Until the transactional service is implemented and configured against the same authoritative records, all eight endpoints return 503 without applying changes. The optimistic preflight check is not presented as concurrency protection on its own.
 
 Blocked operations are recorded as `financial_mutation_blocked` when the audit write succeeds. Audit-write failure is surfaced in the response.
 
