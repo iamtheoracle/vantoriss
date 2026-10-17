@@ -96,12 +96,13 @@ Recent UI reliability work on `fix/dashboard-loading-and-error-ui` adds an expli
 ## Current blockers and next actions
 
 - The GitHub repository provides schemas and function source, but it does not prove that production data, credentials, files, or connector state have been backed up.
-- No Vercel project matching “Vantoris” was found in the connected Vercel account; a preview deployment has not been created.
-- The repository's current `main` tree has no `.github/workflows/` CI workflow, so no automated build/lint result is currently available from that branch.
-- Local build execution was not possible in this session because the execution environment could not resolve GitHub for a clone. Do not represent this pass as tested or deployed.
-- Next: connect or export the canonical Base44 project and production data inventory; then establish a staging environment and CI/preview path before any backend cutover.
+- No Vercel project matching “Vantoris” was found in the connected Vercel account, and no Base44 editor preview session is available here; a browser-based visual preview of this branch remains pending.
+- The current `main` branch had no `.github/workflows/` CI workflow. This feature branch adds `.github/workflows/quality.yml` so validation can run on future pushes and pull requests.
+- GitHub Actions on this branch: changed-UI-file ESLint passed; `npm run build` passed. Repository-wide lint reports 102 unused-import errors across the wider codebase. `npm run typecheck` reports 428 errors across 112 files; none of those reported errors point to the four UI files changed in this branch. The quality workflow therefore remains red until the existing repository-wide lint/typecheck debt is addressed.
+- Next: obtain a safe visual preview environment and continue resolving baseline lint/typecheck debt; separately connect/export the canonical Base44 project and production data inventory before any backend cutover.
 
 ## Change log
 
 - **2026-10-17:** Inspected repository metadata, app entry/routes, Home dashboard, Money page, account/transaction entity schemas, Base44 configuration, package scripts, and repository tree.
-- **2026-10-17:** Added dashboard request-failure handling and retry UI; wired quick actions to send/request/add panels and account history. Build and visual preview remain pending.
+- **2026-10-17:** Added dashboard request-failure handling and retry UI; wired quick actions to send/request/add panels and account history; corrected card-data failure messaging and several MoveMoney type issues.
+- **2026-10-17:** Added branch CI for changed-file lint, repository lint, typecheck, and production build. Changed-file lint and production build pass; full-repository lint and typecheck remain blocked by existing codebase-wide errors. Browser-based visual preview remains pending.
