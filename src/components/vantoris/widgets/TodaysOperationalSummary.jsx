@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
-import { Activity, TrendingUp, FileText, ArrowUpRight } from 'lucide-react';
+import { Activity } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function TodaysOperationalSummary() {

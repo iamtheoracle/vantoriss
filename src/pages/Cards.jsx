@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ChevronLeft, CreditCard, Plus } from 'lucide-react';
+import { ChevronLeft, CreditCard } from 'lucide-react';
 import ProviderUnavailableCard from '@/components/vantoris/ProviderUnavailableCard';
 
 // Cards product — Spec §6.
