@@ -7,7 +7,7 @@ import ProviderUnavailableCard from '@/components/vantoris/ProviderUnavailableCa
 // Personalized dashboard modules — Spec §4.
 // Each module shows real state or a truthful unavailable state.
 // No fabricated activity, transactions, trips, or listings.
-export default function DashboardModules({ accounts, cards, portfolios }) {
+export default function DashboardModules({ accounts, cards, cardsUnavailable = false, portfolios }) {
   const navigate = useNavigate();
 
   const hasAccounts = accounts.length > 0;
@@ -34,7 +34,19 @@ export default function DashboardModules({ accounts, cards, portfolios }) {
       )}
 
       {/* Cards — real cards or truthful unavailable */}
-      {hasCards ? (
+      {cardsUnavailable ? (
+        <div className="w-full rounded-2xl border border-dashed border-border bg-white p-4" role="status">
+          <div className="flex items-start gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-700">
+              <CreditCard size={16} aria-hidden="true" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold">Card information unavailable</p>
+              <p className="mt-1 text-xs leading-5 text-gray">Card data could not be refreshed. Use the dashboard refresh option to try again.</p>
+            </div>
+          </div>
+        </div>
+      ) : hasCards ? (
         <button
           onClick={() => navigate('/cards')}
           className="w-full text-left vantoris-card p-4"
