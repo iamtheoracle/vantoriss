@@ -11,6 +11,14 @@
 - Use a feature branch and reviewable pull request for changes; do not force-push or overwrite the production branch.
 - Maintain an explicit rollback route throughout migration.
 
+## Repository identity — keep the projects separate
+
+- **Canonical full application for this migration and PR #7:** [`iamtheoracle/vantoriss`](https://github.com/iamtheoracle/vantoriss). This repository contains the broader React/Vite app, Base44 entities/functions, agents, and connectors.
+- **Separate partial shell:** [`The-Oracle-Arc/vantoris-x-money`](https://github.com/The-Oracle-Arc/vantoris-x-money). Its `main` branch is a small Vite shell and its README explicitly says the complete application tree is absent. It is not a replacement source of truth for `iamtheoracle/vantoriss`.
+- The legacy `iamtheoracle/vantoris-x-money` URL resolves to the same repository as `The-Oracle-Arc/vantoris-x-money`; that redirect does **not** make it the same repository as `iamtheoracle/vantoriss` (note the different repository name).
+- Do not copy the full app over the shell, force-push either repository's `main`, or move PR #7's branch between repositories. Preserve the current Base44 integration and use reviewed branches/PRs only.
+- PR #7 belongs to `iamtheoracle/vantoriss`, branch `fix/dashboard-loading-and-error-ui`; it remains a draft pending quality-gate and review work.
+
 ## Repository inventory (verified on `main`)
 
 The inspected `iamtheoracle/vantoriss` repository contains the main React/Vite application and Base44-specific assets, including:
@@ -96,7 +104,7 @@ Recent UI reliability work on `fix/dashboard-loading-and-error-ui` adds an expli
 ## Current blockers and next actions
 
 - The GitHub repository provides schemas and function source, but it does not prove that production data, credentials, files, or connector state have been backed up.
-- No Vercel project matching “Vantoris” was found in the connected Vercel account, and no Base44 editor preview session is available here; a browser-based visual preview of this branch remains pending.
+- Netlify has reported deploy previews for this PR at [vantoris-app preview](https://deploy-preview-7--vantoris-app.netlify.app) and [vantorisapp preview](https://deploy-preview-7--vantorisapp.netlify.app). Their existence is not proof that either is the canonical production site; confirm the intended Netlify project and complete browser-based visual QA before approval. No Base44 editor preview session is available here.
 - The current `main` branch had no `.github/workflows/` CI workflow. This feature branch adds `.github/workflows/quality.yml` so validation can run on future pushes and pull requests.
 - GitHub Actions on this branch: changed-UI-file ESLint passed; `npm run build` passed. Repository-wide lint reports 102 unused-import errors across the wider codebase. `npm run typecheck` reports 428 errors across 112 files; none of those reported errors point to the four UI files changed in this branch. The quality workflow therefore remains red until the existing repository-wide lint/typecheck debt is addressed.
 - Next: obtain a safe visual preview environment and continue resolving baseline lint/typecheck debt; separately connect/export the canonical Base44 project and production data inventory before any backend cutover.
