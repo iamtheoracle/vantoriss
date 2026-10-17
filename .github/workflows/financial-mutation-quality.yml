@@ -59,3 +59,13 @@ jobs:
           if [ "$AUDIT_OUTCOME" = "failure" ]; then
             echo "::warning::Dependency audit reported high-severity advisories. Review the full audit output before changing locked versions."
           fi
+      - name: Enforce repository quality gate
+        if: always()
+        env:
+          FULL_LINT_OUTCOME: ${{ steps.full_lint.outcome }}
+          AUDIT_OUTCOME: ${{ steps.audit.outcome }}
+        run: |
+          if [ "$FULL_LINT_OUTCOME" != "success" ] || [ "$AUDIT_OUTCOME" != "success" ]; then
+            echo "Repository quality gate failed: resolve full lint debt and high-severity dependency advisories before merge."
+            exit 1
+          fi
