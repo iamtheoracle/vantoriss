@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate, useParams } from 'react-router-dom';
 import { formatCurrency } from '@/lib/formatCurrency';
+import { clearMutationIdempotencyKey, fingerprintMutationScope, getMutationIdempotencyKey } from '@/lib/mutationIdempotency';
 import {
   ArrowDownLeft,
   ArrowLeft,
@@ -110,6 +111,7 @@ export default function AccountDetail() {
   const { toast } = useToast();
   const [filteredTransactions, setFilteredTransactions] = useState([]);
   const [showHistoricalImport, setShowHistoricalImport] = useState(false);
+  const [updatingAccountStatus, setUpdatingAccountStatus] = useState(false);
 
   const loadData = useCallback(async () => {
     const [user, acct, txns, pendingWds] = await Promise.all([
@@ -158,6 +160,74 @@ export default function AccountDetail() {
     navigator.clipboard.writeText(text);
     setCopiedField(field);
     setTimeout(() => setCopiedField(''), 2000);
+  }
+
+  async function handleAccountStatusToggle() {
+    if (!account || !currentUser || currentUser.role !== 'admin') return;
+    if (
+      (account.status !== 'active' && account.status !== 'frozen') ||
+      typeof account.updated_date !== 'string' ||
+      !account.updated_date
+    ) {
+      toast({
+        title: 'Status change unavailable',
+        description: 'The account status or revision is missing. Refresh the account before trying again.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const expectedStatus = account.status;
+    const targetStatus = expectedStatus === 'frozen' ? 'active' : 'frozen';
+    setUpdatingAccountStatus(true);
+    try {
+      const operationScope = `account-status:${await fingerprintMutationScope(JSON.stringify({
+        account_id: id,
+        status: targetStatus,
+        expected_status: expectedStatus,
+        expected_updated_date: account.updated_date,
+      }))}`;
+      const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+      const response = await base44.functions.invoke('setAccountStatus', {
+        account_id: id,
+        status: targetStatus,
+        expected_status: expectedStatus,
+        expected_updated_date: account.updated_date,
+        idempotency_key: idempotencyKey,
+      });
+      const payload = response?.data ?? response;
+      if (
+        payload?.success !== true ||
+        payload?.operation_id !== idempotencyKey ||
+        payload?.audit_recorded !== true ||
+        payload?.account?.id !== id ||
+        payload?.account?.status !== targetStatus ||
+        typeof payload?.account?.updated_date !== 'string' ||
+        payload.account.updated_date === account.updated_date
+      ) {
+        throw new Error('The server did not confirm the account status and audit record. Refresh and retry the same operation.');
+      }
+
+      await clearMutationIdempotencyKey(operationScope);
+      try {
+        await loadData();
+      } catch (refreshError) {
+        console.error('Account status changed, but the account view could not be refreshed.', refreshError);
+      }
+      toast({
+        title: targetStatus === 'frozen' ? 'Account frozen' : 'Account unfrozen',
+        description: `${account.account_name || 'Account'} is now ${targetStatus}.`,
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: 'Account status change failed',
+        description: error.message || 'Unable to change account status. If the outcome is uncertain, retry the same operation.',
+        variant: 'destructive',
+      });
+    } finally {
+      setUpdatingAccountStatus(false);
+    }
   }
 
   async function handlePinVerified() {
@@ -507,18 +577,17 @@ export default function AccountDetail() {
       {currentUser?.role === 'admin' && (
         <div className="grid grid-cols-2 gap-3 mb-6">
           <button
-            onClick={async () => {
-              await base44.entities.Account.update(id, { status: account.status === 'frozen' ? 'active' : 'frozen' });
-              loadData();
-            }}
-            className={`py-3 font-semibold rounded-xl text-sm transition-all flex items-center justify-center gap-2 ${
+            type="button"
+            onClick={handleAccountStatusToggle}
+            disabled={updatingAccountStatus}
+            className={`py-3 font-semibold rounded-xl text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 ${
               account.status === 'frozen'
                 ? 'bg-mint/10 text-mint hover:bg-mint/20'
                 : 'bg-crimson/10 text-crimson hover:bg-crimson/20'
             }`}
           >
             <Snowflake size={16} />
-            {account.status === 'frozen' ? 'Unfreeze' : 'Freeze'}
+            {updatingAccountStatus ? 'Updating...' : account.status === 'frozen' ? 'Unfreeze' : 'Freeze'}
           </button>
           <button
             onClick={() => setShowHistoricalImport(true)}
