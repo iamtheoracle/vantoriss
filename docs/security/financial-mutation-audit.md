@@ -134,7 +134,7 @@ The completed workflow run `39009653505` verified `npm ci`, all 11 financial-mut
 
 ### Latest validation status
 
-- Workflow run [39043956565](https://github.com/iamtheoracle/vantoriss/actions/runs/39043956565), at code commit `52ffc0d15dd73e49970bf8dcabc9d7a469478361`, passed **22/22 financial-mutation tests**, changed-UI ESLint, Deno lint, Deno type-check, and the Vite production build.
-- The run failed the final repository quality gate because full-repository lint still reports **91 errors** (primarily unused imports) and the dependency audit still reports **34 advisories (1 low, 13 moderate, 20 high)**. The changed UI files and server endpoints are linted independently and passed.
-- The tested code revision includes the historical statement import and HeroBox sponsorship boundaries. A subsequent security hardening change requires the provider to verify that uploaded statement URLs belong to the authenticated actor and originate from the configured upload provider; that new head requires another CI run.
-- The atomic mutation provider remains unconfigured. All successful mutations are therefore blocked until the provider is implemented, configured, and verified. No production financial mutation was executed and PR #8 remains draft/unmerged.
+- Workflow run [39059354189](https://github.com/iamtheoracle/vantoriss/actions/runs/39059354189), at commit `92d315385ffdb46e6c56809211f919d3966f5e99`, passed **22/22 financial-mutation tests**, changed-UI ESLint, Deno lint, Deno type-check, the full-repository lint, and the Vite production build.
+- The run failed only the final repository quality gate because `npm audit --audit-level=high` still reports **34 advisories (1 low, 13 moderate, 20 high)**. The 91 unused-import lint errors reported in the prior run have been removed; full-repository lint now passes.
+- A subsequent dependency-remediation change must update the locked dependency tree without using force upgrades, then rerun the complete audit, tests, lint, type-check, and production build. The current lockfile has not been changed as part of this lint cleanup.
+- The atomic mutation provider remains unconfigured. All successful financial mutations are therefore blocked until the provider is implemented, configured, and verified. No production financial mutation was executed and PR #8 remains draft/unmerged.
