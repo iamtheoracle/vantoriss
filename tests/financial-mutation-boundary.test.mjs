@@ -216,3 +216,14 @@ test('member account provisioning is atomic, zero-balance only, and member delet
   assert.ok(!ui.includes('Opening Balance (USD)'));
   assert.ok(ui.includes('Deletion Unavailable'));
 });
+
+
+test('account detail freeze/unfreeze uses the shared revision-checked server boundary', async () => {
+  const ui = await read('src/pages/AccountDetail.jsx');
+  assert.ok(ui.includes("base44.functions.invoke('setAccountStatus'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey('));
+  assert.ok(ui.includes('clearMutationIdempotencyKey('));
+  assert.ok(ui.includes('expected_updated_date: account.updated_date'));
+  assert.ok(ui.includes('payload?.audit_recorded !== true'));
+  assert.ok(!ui.includes("base44.entities.Account.update(id, { status: account.status"));
+});
