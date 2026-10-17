@@ -4,7 +4,7 @@ import { formatCurrency } from '@/lib/formatCurrency';
 import { exportToCsv } from '@/lib/exportCsv';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Plus, Search, Download, History, Pencil, ArrowLeft, ScrollText, Mail, Lock, Unlock, Upload } from 'lucide-react';
+import { Plus, Search, Download, History, Pencil, ArrowLeft, ScrollText, Lock, Unlock, Upload } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
 import { sendTransactionEmail } from '@/lib/transactionEmails';
 import { useToast } from '@/components/ui/use-toast';
