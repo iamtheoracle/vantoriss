@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ExternalLink, Heart, ShoppingBag, Package, MapPin, Star, Shield, Stethoscope, Users, Utensils, AlertCircle, Building2 } from 'lucide-react';
+import { ExternalLink, Heart, Package, MapPin, Star, Shield, Stethoscope, Users, Utensils, AlertCircle, Building2 } from 'lucide-react';
 
 const TYPE_ICONS = {
   medical_relief: Stethoscope,

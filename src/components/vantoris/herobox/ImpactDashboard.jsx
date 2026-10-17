@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { Users, Package, Mail, Heart, Wifi, Clock, Building2, Award, TrendingUp, DollarSign, Globe, Target } from 'lucide-react';
+
+import { Users, Package, Mail, Heart, Wifi, Clock, Building2, Award, TrendingUp, DollarSign, Target } from 'lucide-react';
 import ImpactKpiCard from './ImpactKpiCard';
 import CommunityGrowthChart from './CommunityGrowthChart';
 import FundsDistributedChart from './FundsDistributedChart';

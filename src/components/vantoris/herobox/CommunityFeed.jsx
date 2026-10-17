@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { formatCurrency } from '@/lib/formatCurrency';
-import { TrendingUp, Users, Award, Heart, Package, Mail, Clock, Wifi, Check } from 'lucide-react';
+import { TrendingUp, Users, Award } from 'lucide-react';
 
 const COMMUNITY_TYPES = ['impact_report', 'community_update', 'mission_milestone'];
 

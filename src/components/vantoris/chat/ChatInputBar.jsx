@@ -1,16 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Plus,
-  Camera,
-  Mic,
-  Send,
-  X,
-  FileText,
-  Image,
-  MapPin,
-  Paperclip,
-} from 'lucide-react';
+import { Plus, Camera, Mic, Send, X, FileText, Image, MapPin } from 'lucide-react';
 
 const ATTACHMENT_OPTIONS = [
   { id: 'document', label: 'Document', icon: FileText },

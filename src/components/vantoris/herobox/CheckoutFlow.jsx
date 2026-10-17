@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { X, Loader2, MapPin, User, Package, Check, ShoppingCart } from 'lucide-react';
+import { X, Loader2, MapPin, User, Package, Check } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { useToast } from '@/components/ui/use-toast';
 import { createOrderSnapshot } from '@/lib/heroboxPackages';

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Heart, Loader2, Check, AlertCircle, ArrowRight, Globe } from 'lucide-react';
+import { Heart, Loader2, AlertCircle, Globe } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { useToast } from '@/components/ui/use-toast';
 
