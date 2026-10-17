@@ -166,6 +166,9 @@ test('member withdrawal initiation uses an atomic ownership, balance, and audit 
   ]) assert.ok(endpoint.includes(required), `withdrawal creation boundary must include ${required}`);
   assert.ok(!endpoint.includes('entities.WithdrawalRequest.create('));
   assert.ok(!endpoint.includes('entities.Notification.create('));
+  const workflow = await read('.github/workflows/financial-mutation-quality.yml');
+  const typeCheckCommand = workflow.split('\n').find(line => line.trim().startsWith('run: deno check')) || '';
+  assert.ok(typeCheckCommand.includes('base44/functions/createWithdrawalRequest/entry.ts'), 'withdrawal endpoint must be type-checked in CI');
   const handler = ui.slice(ui.indexOf('async function handlePinVerified'), ui.indexOf('async function generateStatement'));
   assert.ok(handler.includes("base44.functions.invoke('createWithdrawalRequest'"));
   assert.ok(handler.includes('getMutationIdempotencyKey('));
