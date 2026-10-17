@@ -2,12 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
+import { clearMutationIdempotencyKey, fingerprintMutationScope, getMutationIdempotencyKey } from '@/lib/mutationIdempotency';
 import {
   UploadCloud, FileSpreadsheet, Download, CheckCircle2,
   AlertTriangle, Loader2, ArrowRight, RotateCcw, FileUp,
 } from 'lucide-react';
 
-const VALID_TYPES = ['deposit', 'withdrawal', 'adjustment', 'opening_balance'];
+const VALID_TYPES = ['deposit', 'withdrawal'];
 
 export default function BulkTransactionImport() {
   const [file, setFile] = useState(null);
@@ -81,13 +82,25 @@ export default function BulkTransactionImport() {
     setImporting(true);
     setError(null);
     try {
-      const res = await base44.functions.invoke('bulkImportTransactions', { transactions: parsedData });
-      setResults(res.data || res);
+      const transactions = parsedData.map(row => ({ ...row, amount: Number(row.amount) }));
+      const fingerprint = await fingerprintMutationScope(JSON.stringify(transactions));
+      const operationScope = `transactions.bulk_import:${fingerprint}`;
+      const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+      const res = await base44.functions.invoke('bulkImportTransactions', {
+        transactions,
+        idempotency_key: idempotencyKey,
+      });
+      const payload = res.data || res;
+      if (payload.success !== true || payload.operation_id !== idempotencyKey || payload.audit_recorded !== true) {
+        throw new Error(payload.error || 'The import result could not be verified. Retry the same import without changing its contents.');
+      }
+      setResults(payload);
+      await clearMutationIdempotencyKey(operationScope);
       setParsedData(null);
       setFile(null);
       if (fileRef.current) fileRef.current.value = '';
     } catch (e) {
-      setError(e.response?.data?.error || e.message || 'Import failed');
+      setError(e.response?.data?.error || e.message || 'Import failed. Retry the same import without changing its contents.');
     }
     setImporting(false);
   };
@@ -97,7 +110,6 @@ export default function BulkTransactionImport() {
       'account_number,type,amount,description,reference,transaction_date',
       '1234567890,deposit,5000.00,Monthly deposit,REF001,2026-08-01',
       '9876543210,withdrawal,1500.00,ATM withdrawal,REF002,2026-08-01',
-      '1234567890,adjustment,-250.00,Fee adjustment,REF003,2026-08-01',
     ].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
