@@ -50,8 +50,10 @@ test('server endpoints require authenticated roles, revision tokens, and atomic 
     assert.ok(source.includes('invokeAtomicMutationService('));
     assert.ok(source.includes('writeBlockedMutationAudit('));
   }
-  assert.ok(review.includes('canTransitionApplication(application.application_status, decision)'));
-  assert.ok(review.includes("application.kyc_status !== 'approved'"));
-  assert.ok(correction.includes('isCorrectableTransactionStatus(transaction.status)'));
+  assert.ok(review.includes("expected_application_status: 'pending'"));
+  assert.ok(review.includes("required_kyc_status: decision === 'approved' ? 'approved' : undefined"));
+  assert.ok(review.includes('disallowed_applicant_roles: ACCOUNT_HOLDER_BLOCKED_ROLES'));
+  assert.ok(correction.includes("allowed_statuses: ['completed', 'reversed']"));
+  assert.ok(correction.includes('expected_updated_date: body.expected_updated_date'));
   assert.ok(correction.includes("allowed_fields: ['transaction_date']"));
 });
