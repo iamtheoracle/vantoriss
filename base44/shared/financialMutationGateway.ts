@@ -22,6 +22,8 @@ type AtomicMutationResult = {
   audit_recorded?: boolean;
   operation_id?: string;
   application?: Record<string, unknown>;
+  verificationRequest?: Record<string, unknown>;
+  withdrawalRequest?: Record<string, unknown>;
   account?: Record<string, unknown> | null;
   transaction?: Record<string, unknown>;
   code?: string;
