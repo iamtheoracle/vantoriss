@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Plus, Search, Download, History, Pencil, ArrowLeft, ScrollText, Lock, Unlock, Upload } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
 import { sendTransactionEmail } from '@/lib/transactionEmails';
+import { clearMutationIdempotencyKey, getMutationIdempotencyKey } from '@/lib/mutationIdempotency';
 import { useToast } from '@/components/ui/use-toast';
 
 export default function AdminAccounts() {
@@ -131,6 +132,15 @@ export default function AdminAccounts() {
     }
     setSubmitting(true);
     try {
+      const operationScope = JSON.stringify([
+        'transaction.date.correct',
+        editingTxn.id,
+        editingTxn.account_id,
+        editingTxn.updated_date,
+        editingTxn.transaction_date || null,
+        txnForm.transaction_date,
+      ]);
+      const idempotencyKey = await getMutationIdempotencyKey(operationScope);
       const response = await base44.functions.invoke('correctTransactionDate', {
         transaction_id: editingTxn.id,
         account_id: editingTxn.account_id,
@@ -138,12 +148,13 @@ export default function AdminAccounts() {
         expected_current_transaction_date: editingTxn.transaction_date ? editingTxn.transaction_date.split('T')[0] : null,
         expected_status: editingTxn.status,
         expected_updated_date: editingTxn.updated_date,
-        idempotency_key: crypto.randomUUID(),
+        idempotency_key: idempotencyKey,
       });
       const result = response?.data || response;
       if (result?.success !== true) {
         throw new Error(result?.error || 'The server did not confirm the date correction.');
       }
+      await clearMutationIdempotencyKey(operationScope);
       const corrected = result.transaction || { ...editingTxn, transaction_date: txnForm.transaction_date };
       setEditingTxn(null);
       setTxnForm({ type: 'deposit', amount: '', description: '', reference: '', transaction_date: '' });
