@@ -46,14 +46,14 @@ export default function QuickActionsMenu({ onActionComplete }) {
     }
 
     const expectedStatus = status === 'frozen' ? 'active' : 'frozen';
-    const operationScope = `account-status:${await fingerprintMutationScope(JSON.stringify({
-      account_id: selectedAccount,
-      status,
-      expected_status: expectedStatus,
-      expected_updated_date: account.updated_date,
-    }))}`;
     setSubmitting(true);
     try {
+      const operationScope = `account-status:${await fingerprintMutationScope(JSON.stringify({
+        account_id: selectedAccount,
+        status,
+        expected_status: expectedStatus,
+        expected_updated_date: account.updated_date,
+      }))}`;
       const idempotencyKey = await getMutationIdempotencyKey(operationScope);
       const response = await base44.functions.invoke('setAccountStatus', {
         account_id: selectedAccount,
