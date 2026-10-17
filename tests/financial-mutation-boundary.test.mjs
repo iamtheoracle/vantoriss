@@ -182,3 +182,37 @@ test('account status changes use an authenticated atomic boundary for operators 
   }
   assert.ok(!quickActions.includes('async function handleAdjustment'));
 });
+
+
+test('member account provisioning is atomic, zero-balance only, and member deletion cannot erase ledger history from the browser', async () => {
+  const endpoint = await read('base44/functions/createMemberAccount/entry.ts');
+  const ui = await read('src/pages/admin/AdminMembers.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    'isAllowedFinancialRole(actor)',
+    'validateMutationEnvelope(body)',
+    "invokeAtomicMutationService('account.create'",
+    'require_authoritative_member_lookup: true',
+    "require_target_member_role: 'user'",
+    'require_target_member_revision_match: true',
+    'generate_unique_account_number_server_side: true',
+    'create_account_only_with_zero_balance: true',
+    'notification_outbox_required: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `account provisioning boundary must include ${required}`);
+  assert.ok(!endpoint.includes('entities.Account.create('));
+  assert.ok(!endpoint.includes('entities.Transaction.create('));
+  assert.ok(!endpoint.includes('entities.Notification.create('));
+  assert.ok(ui.includes("base44.functions.invoke('createMemberAccount'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey('));
+  assert.ok(ui.includes('clearMutationIdempotencyKey('));
+  assert.ok(ui.includes('account?.balance !== 0'));
+  assert.ok(!ui.includes('base44.entities.Account.create('));
+  assert.ok(!ui.includes('base44.entities.Transaction.create('));
+  assert.ok(!ui.includes('base44.entities.Transaction.deleteMany('));
+  assert.ok(!ui.includes('base44.entities.Account.delete('));
+  assert.ok(!ui.includes('base44.entities.User.delete('));
+  assert.ok(!ui.includes('Opening Balance (USD)'));
+  assert.ok(ui.includes('Deletion Unavailable'));
+});
