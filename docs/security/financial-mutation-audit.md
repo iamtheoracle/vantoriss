@@ -31,7 +31,7 @@
 
 ### Atomic service contract
 
-The application-review, date-correction, funding-review, withdrawal-processing, bulk-import, account-status, account-provisioning, and withdrawal-initiation endpoints use `base44/shared/financialMutationGateway.ts`; all eight fail closed when the provider is unavailable and do not perform financial entity writes themselves. Configuration requires server-only environment variables:
+The application-review, date-correction, funding-review, withdrawal-processing, bulk-import, account-status, account-provisioning, withdrawal-initiation, manual transaction, and historical statement import endpoints use `base44/shared/financialMutationGateway.ts`; all eight fail closed when the provider is unavailable and do not perform financial entity writes themselves. Configuration requires server-only environment variables:
 
 - `VANTORIS_ATOMIC_MUTATION_URL` — HTTPS endpoint for the service that owns the authoritative records and can commit state plus audit atomically.
 - `VANTORIS_ATOMIC_MUTATION_SECRET` — server-only bearer credential for that service.
