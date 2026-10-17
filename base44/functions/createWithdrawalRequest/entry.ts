@@ -108,8 +108,7 @@ export default async function createWithdrawalRequest(req: Request): Promise<Res
     savedRequest.amount !== amount ||
     savedRequest.method !== method ||
     savedRequest.status !== 'pending' ||
-    typeof savedRequest.updated_date !== 'string' ||
-    savedRequest.updated_date === expectedUpdatedDate
+    typeof savedRequest.updated_date !== 'string'
   ) {
     const auditRecorded = await writeUncertainMutationAudit(
       base44, actor, 'withdrawal.create', accountId, 'ATOMIC_MUTATION_CONTRACT_VIOLATION', idempotencyKey,
