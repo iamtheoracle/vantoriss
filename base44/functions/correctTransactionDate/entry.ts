@@ -1,0 +1,118 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
+import {
+  invokeAtomicMutationService,
+  isAllowedFinancialRole,
+  jsonResponse,
+  validateDateCorrection,
+  validateMutationEnvelope,
+  writeBlockedMutationAudit,
+} from '../../shared/financialMutationGateway.ts';
+import {
+  isCorrectableTransactionStatus,
+  isDateOnly,
+} from '../../shared/financialMutationRules.mjs';
+
+export default async function correctTransactionDate(req: Request): Promise<Response> {
+  if (req.method !== 'POST') {
+    return jsonResponse({ error: 'Method not allowed.' }, 405);
+  }
+
+  let base44: any;
+  let actor: any;
+  try {
+    base44 = createClientFromRequest(req);
+    actor = await base44.auth.me();
+  } catch {
+    return jsonResponse({ error: 'Authentication could not be verified.' }, 401);
+  }
+  if (!actor?.id) return jsonResponse({ error: 'Authentication required.' }, 401);
+
+  if (!isAllowedFinancialRole(actor)) {
+    await writeBlockedMutationAudit(base44, actor, 'transaction.date.correct', 'unknown', 'role_not_authorized');
+    return jsonResponse({ error: 'You are not authorized to correct transaction dates.' }, 403);
+  }
+
+  const body = await req.json().catch(() => null);
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    return jsonResponse({ error: 'A valid JSON object is required.' }, 400);
+  }
+
+  const envelopeError = validateMutationEnvelope(body);
+  if (envelopeError) return jsonResponse({ error: envelopeError }, 400);
+  const correctionError = validateDateCorrection(body);
+  if (correctionError) return jsonResponse({ error: correctionError }, 400);
+
+  const transactionId = body.transaction_id.trim();
+  if (transactionId.length > 128) return jsonResponse({ error: 'transaction_id is invalid.' }, 400);
+
+  let transaction: any;
+  try {
+    transaction = await base44.asServiceRole.entities.Transaction.get(transactionId);
+  } catch {
+    return jsonResponse({ error: 'Transaction could not be loaded.' }, 404);
+  }
+  if (!transaction?.id) return jsonResponse({ error: 'Transaction not found.' }, 404);
+
+  if (!isCorrectableTransactionStatus(transaction.status)) {
+    await writeBlockedMutationAudit(base44, actor, 'transaction.date.correct', transactionId, 'transaction_state_not_correctable', body.idempotency_key);
+    return jsonResponse({
+      error: 'Only completed or reversed transactions can have their transaction date corrected.',
+      code: 'INVALID_TRANSACTION_STATE',
+    }, 409);
+  }
+  if (!transaction.updated_date || transaction.updated_date !== body.expected_updated_date) {
+    await writeBlockedMutationAudit(base44, actor, 'transaction.date.correct', transactionId, 'revision_mismatch', body.idempotency_key);
+    return jsonResponse({
+      error: 'The transaction changed since it was loaded. Reload and review it before retrying.',
+      code: 'REVISION_CONFLICT',
+    }, 409);
+  }
+  if (transaction.transaction_date === body.transaction_date) {
+    return jsonResponse({
+      success: true,
+      unchanged: true,
+      transaction_id: transactionId,
+      transaction_date: body.transaction_date,
+    });
+  }
+
+  // Never let this endpoint change amounts, balances, posting dates, status,
+  // references, or descriptions. The atomic service must re-check revision,
+  // transaction state, and current date inside its own transaction.
+  const command = {
+    transaction_id: transactionId,
+    account_id: transaction.account_id,
+    transaction_date: body.transaction_date,
+    expected_current_transaction_date: transaction.transaction_date || null,
+    expected_updated_date: transaction.updated_date,
+    expected_status: transaction.status,
+    allowed_fields: ['transaction_date'],
+    audit_action: 'transaction_edited',
+  };
+
+  const outcome = await invokeAtomicMutationService('transaction.date.correct', actor, command, body.idempotency_key);
+  if (!outcome.ok) {
+    if (outcome.status === 503) {
+      const auditRecorded = await writeBlockedMutationAudit(
+        base44, actor, 'transaction.date.correct', transactionId, outcome.code, body.idempotency_key,
+      );
+      return jsonResponse({ error: outcome.message, code: outcome.code, audit_recorded: auditRecorded }, outcome.status);
+    }
+    return jsonResponse({ error: outcome.message, code: outcome.code }, outcome.status);
+  }
+
+  const savedDate = outcome.result.transaction?.transaction_date;
+  if (!isDateOnly(savedDate) || savedDate !== body.transaction_date) {
+    return jsonResponse({
+      error: 'The transactional service did not confirm the requested transaction date.',
+      code: 'ATOMIC_MUTATION_CONTRACT_VIOLATION',
+    }, 502);
+  }
+
+  return jsonResponse({
+    success: true,
+    operation_id: body.idempotency_key,
+    transaction: outcome.result.transaction,
+    audit_recorded: true,
+  });
+}
