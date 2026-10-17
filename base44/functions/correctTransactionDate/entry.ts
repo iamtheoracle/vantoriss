@@ -7,10 +7,7 @@ import {
   validateMutationEnvelope,
   writeBlockedMutationAudit,
 } from '../../shared/financialMutationGateway.ts';
-import {
-  isCorrectableTransactionStatus,
-  isDateOnly,
-} from '../../shared/financialMutationRules.mjs';
+import { isDateOnly } from '../../shared/financialMutationRules.mjs';
 
 export default async function correctTransactionDate(req: Request): Promise<Response> {
   if (req.method !== 'POST') {
