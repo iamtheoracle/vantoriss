@@ -85,3 +85,31 @@ test('bulk transaction imports cannot write ledger records outside the atomic se
   assert.ok(ui.includes('payload.operation_id !== idempotencyKey'));
   assert.ok(ui.includes("const VALID_TYPES = ['deposit', 'withdrawal']"));
 });
+
+test('funding review decisions cannot post credits or status changes from the browser', async () => {
+  const endpoint = await read('base44/functions/reviewFundingRequest/entry.ts');
+  const ui = await read('src/pages/operations/VerificationRequests.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    'isAllowedFinancialRole(actor)',
+    'validateMutationEnvelope(body)',
+    "invokeAtomicMutationService('funding.review'",
+    "expected_request_status: 'pending'",
+    'require_authoritative_request_lookup: true',
+    'require_verified_funding_evidence: decision === \'approved\'',
+    'prevent_negative_balances: true',
+    'notification_outbox_required: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `funding review boundary must include ${required}`);
+  assert.ok(!endpoint.includes('entities.VerificationRequest.update('));
+  assert.ok(!endpoint.includes('entities.Transaction.create('));
+  assert.ok(!endpoint.includes('entities.Account.update('));
+  assert.ok(ui.includes("base44.functions.invoke('reviewFundingRequest'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes('clearMutationIdempotencyKey(operationScope)'));
+  const mutationUi = ui.slice(ui.indexOf('async function mutateFundingRequest'), ui.indexOf('if (loading)'));
+  assert.ok(!mutationUi.includes('base44.entities.VerificationRequest.update('));
+  assert.ok(!mutationUi.includes('base44.entities.Transaction.create('));
+  assert.ok(!mutationUi.includes('base44.entities.Account.update('));
+});
