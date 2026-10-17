@@ -324,7 +324,7 @@ export default function AdminMembers() {
               </div>
               <p className="text-[#AAB4C3] text-xs">Joined {new Date(member.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
               <div className="flex items-center gap-2">
-                <button onClick={() => { setShowCreate(member); setAcctForm({ account_type: 'Personal', account_name: '', opening_balance: '' }); }} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-brass/15 text-brass rounded-lg text-xs font-medium">
+                <button onClick={() => { setShowCreate(member); setAcctForm({ account_type: 'Personal', account_name: '' }); }} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-brass/15 text-brass rounded-lg text-xs font-medium">
                   <Plus size={12} /> Add Account
                 </button>
                 <button onClick={() => { setNotesMember(member); setNotesText(member.admin_notes || ''); }} className={`flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-medium ${member.admin_notes ? 'bg-brass/25 text-brass' : 'bg-[#242D38] text-[#AAB4C3]'}`}>
