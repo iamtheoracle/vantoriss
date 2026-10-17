@@ -113,3 +113,33 @@ test('funding review decisions cannot post credits or status changes from the br
   assert.ok(!mutationUi.includes('base44.entities.Transaction.create('));
   assert.ok(!mutationUi.includes('base44.entities.Account.update('));
 });
+
+test('withdrawal settlement requires atomic payout confirmation and never writes balances from the browser', async () => {
+  const endpoint = await read('base44/functions/processWithdrawalRequest/entry.ts');
+  const ui = await read('src/pages/admin/AdminWithdrawals.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    'isAllowedFinancialRole(actor)',
+    'validateMutationEnvelope(body)',
+    "invokeAtomicMutationService('withdrawal.review'",
+    "expected_request_status: 'pending'",
+    'require_authoritative_request_lookup: true',
+    "require_sufficient_available_funds: decision === 'paid'",
+    "require_payout_confirmation: decision === 'paid'",
+    'prevent_negative_balances: true',
+    'notification_outbox_required: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `withdrawal boundary must include ${required}`);
+  assert.ok(!endpoint.includes('entities.WithdrawalRequest.update('));
+  assert.ok(!endpoint.includes('entities.Transaction.create('));
+  assert.ok(!endpoint.includes('entities.Account.update('));
+  assert.ok(ui.includes("base44.functions.invoke('processWithdrawalRequest'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes('clearMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes("payload?.request?.payout_confirmed !== true"));
+  const mutationUi = ui.slice(ui.indexOf('async function mutateWithdrawalRequest'), ui.indexOf('function clearFilters()'));
+  assert.ok(!mutationUi.includes('base44.entities.WithdrawalRequest.update('));
+  assert.ok(!mutationUi.includes('base44.entities.Transaction.create('));
+  assert.ok(!mutationUi.includes('base44.entities.Account.update('));
+});
