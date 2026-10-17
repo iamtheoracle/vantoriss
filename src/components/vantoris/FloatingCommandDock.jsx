@@ -195,15 +195,15 @@ export default function FloatingCommandDock() {
       return;
     }
 
-    const operationScope = `member-freeze:${await fingerprintMutationScope(JSON.stringify({
-      account_id: selectedAccount,
-      status: 'frozen',
-      expected_status: 'active',
-      expected_updated_date: account.updated_date,
-      actor_id: user.id,
-    }))}`;
     setSubmitting(true);
     try {
+      const operationScope = `member-freeze:${await fingerprintMutationScope(JSON.stringify({
+        account_id: selectedAccount,
+        status: 'frozen',
+        expected_status: 'active',
+        expected_updated_date: account.updated_date,
+        actor_id: user.id,
+      }))}`;
       const idempotencyKey = await getMutationIdempotencyKey(operationScope);
       const response = await base44.functions.invoke('setAccountStatus', {
         account_id: selectedAccount,
