@@ -1,10 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
-import {
-  Bell, CheckCheck, Shield, ArrowDownLeft, ArrowUpRight, Info, Send,
-  MessageCircle, ChevronRight, X, Trash2, Edit3, Check, MoreVertical,
-  ArrowLeft, Plus, Search, User
-} from 'lucide-react';
+import { Bell, CheckCheck, Shield, ArrowUpRight, Info, Send, MessageCircle, Trash2, Edit3, Check, MoreVertical, ArrowLeft, Search } from 'lucide-react';
 import { OPERATIONS_EMAIL } from '@/lib/businessConfig';
 import ReadReceipt from '@/components/vantoris/chat/ReadReceipt';
 import { useToast } from '@/components/ui/use-toast';

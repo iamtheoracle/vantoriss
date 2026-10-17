@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useWhatsAppConfig, whatsappLinkFromConfig } from '@/hooks/useWhatsAppConfig';
-import { User, Bell, Settings, CreditCard, FileText, MessageCircle, Sparkles, Phone, Info, LogOut, ChevronRight, Shield } from 'lucide-react';
+import { User, Settings, CreditCard, FileText, MessageCircle, Sparkles, Phone, Info, LogOut, ChevronRight, Shield } from 'lucide-react';
 import ShieldLogo from '@/components/vantoris/ShieldLogo';
 import { getRoleLabel, isSuperAdmin } from '@/lib/operationsAccess';
 

@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import AuthLayout from "@/components/AuthLayout";
 import StepProgress from "@/components/auth/StepProgress";
-import ProductSelection, { PRODUCTS } from "@/components/auth/ProductSelection";
+import ProductSelection from "@/components/auth/ProductSelection";
 import ApplicationStatus from "@/components/auth/ApplicationStatus";
 import StepPersonalInfo from "@/components/auth/StepPersonalInfo";
 import StepContactInfo from "@/components/auth/StepContactInfo";
