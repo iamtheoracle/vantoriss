@@ -4,6 +4,7 @@ import { Package, Gift, Wifi, Phone, Heart, Check, ArrowRight } from 'lucide-rea
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { useToast } from '@/components/ui/use-toast';
+import { clearMutationIdempotencyKey, fingerprintMutationScope, getMutationIdempotencyKey } from '@/lib/mutationIdempotency';
 
 const PACKAGE_TYPES = [
   { id: 'essential', name: 'Essential Hero Package', description: 'Core care supplies for deployed service members', amount: 50, icon: Package, requestType: 'care_package' },
@@ -32,58 +33,58 @@ export default function SponsorFlow({ open, onClose, accounts, profile, onSucces
   }
 
   async function handleSponsor() {
+    if (!selectedPackage || !selectedAccountId) return;
+    const account = accounts.find(item => item.id === selectedAccountId);
+    if (!account?.updated_date) {
+      toast({ title: 'Sponsorship unavailable', description: 'The account revision is missing. Refresh your accounts before retrying.', variant: 'destructive' });
+      return;
+    }
+    if (profile && !profile.updated_date) {
+      toast({ title: 'Sponsorship unavailable', description: 'The sponsorship profile revision is missing. Refresh your profile before retrying.', variant: 'destructive' });
+      return;
+    }
+
     setProcessing(true);
+    const operationScope = `herobox-sponsor:${await fingerprintMutationScope(JSON.stringify({
+      packageId: selectedPackage.id,
+      accountId: selectedAccountId,
+      accountRevision: account.updated_date,
+      profileRevision: profile?.updated_date || null,
+      recipientName: recipientName.trim() || 'General Fund',
+    }))}`;
     try {
-      const me = await base44.auth.me();
-
-      await base44.entities.HeroBoxRequest.create({
-        user_id: me.id,
-        request_type: selectedPackage.requestType,
-        title: selectedPackage.name,
-        description: selectedPackage.description,
-        recipient_name: recipientName || 'General Fund',
-        status: 'pending',
-        amount: selectedPackage.amount,
-        payment_account_id: selectedAccountId,
-      });
-
-      await base44.entities.Transaction.create({
+      const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+      const response = await base44.functions.invoke('createHeroBoxSponsorship', {
+        package_id: selectedPackage.id,
         account_id: selectedAccountId,
-        type: 'withdrawal',
-        amount: selectedPackage.amount,
-        description: `HeroBox: ${selectedPackage.name}`,
-        reference: `HB-${Date.now()}`,
+        recipient_name: recipientName.trim() || 'General Fund',
+        expected_updated_date: account.updated_date,
+        expected_profile_updated_date: profile?.updated_date || null,
+        idempotency_key: idempotencyKey,
       });
-
-      const account = accounts.find(a => a.id === selectedAccountId);
-      if (account) {
-        await base44.entities.Account.update(selectedAccountId, {
-          balance: (account.balance || 0) - selectedPackage.amount,
-        });
+      const result = response?.data || response;
+      if (
+        result?.success !== true ||
+        result?.operation_id !== idempotencyKey ||
+        result?.audit_recorded !== true ||
+        typeof result?.sponsorship_id !== 'string' ||
+        result?.account?.id !== selectedAccountId ||
+        typeof result?.account?.updated_date !== 'string' ||
+        result?.amount !== selectedPackage.amount
+      ) {
+        throw new Error(result?.error || 'The server did not confirm the sponsorship and ledger update. No success is assumed.');
       }
 
-      await base44.entities.HeroBoxActivity.create({
-        user_id: me.id,
-        activity_type: 'sponsored',
-        title: `Sponsored ${selectedPackage.name}`,
-        description: selectedPackage.description,
-        amount: selectedPackage.amount,
-        status: 'completed',
-        recipient_name: recipientName || 'General Fund',
-      });
-
-      if (profile) {
-        await base44.entities.HeroBoxProfile.update(profile.id, {
-          heroes_supported: (profile.heroes_supported || 0) + 1,
-          total_contribution: (profile.total_contribution || 0) + selectedPackage.amount,
-        });
-      }
-
+      await clearMutationIdempotencyKey(operationScope);
       setSuccess(true);
       toast({ title: 'Mission Sponsored', description: `Your ${selectedPackage.name} has been sponsored.` });
-      setTimeout(() => { onSuccess(); handleClose(); }, 2000);
+      setTimeout(() => { onSuccess?.(); handleClose(); }, 2000);
     } catch (e) {
-      toast({ title: 'Sponsorship Failed', description: e.message, variant: 'destructive' });
+      toast({
+        title: 'Sponsorship unavailable',
+        description: e?.response?.data?.error || e.message || 'The server did not confirm the sponsorship. Retry only with the same operation.',
+        variant: 'destructive',
+      });
     } finally {
       setProcessing(false);
     }
