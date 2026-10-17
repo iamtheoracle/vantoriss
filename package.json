@@ -10,7 +10,7 @@
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
     "preview": "vite preview",
-    "test:financial-mutations": "node --test tests/financial-mutation-rules.test.mjs"
+    "test:financial-mutations": "node --test tests/financial-mutation-rules.test.mjs tests/financial-mutation-boundary.test.mjs"
   },
   "dependencies": {
     "@base44/sdk": "^0.8.54",
