@@ -28,6 +28,8 @@ type AtomicMutationResult = {
   transaction?: Record<string, unknown>;
   code?: string;
   summary?: Record<string, unknown>;
+  statement?: Record<string, unknown>;
+  account_balance_modified?: boolean;
   created?: unknown[];
   skipped?: unknown[];
   errors?: unknown[];
