@@ -232,33 +232,67 @@ export default function AccountDetail() {
   async function handlePinVerified() {
     setShowPin(false);
     const formData = { ...wForm };
-    const amount = parseFloat(formData.amount);
-    setShowWithdraw(false);
-    setWStep(1);
-    setWForm({ amount: '', method: 'ACH Transfer', notes: '' });
-
+    const amount = Number(formData.amount);
     const pendingToast = toast({ title: 'Submitting withdrawal...', description: `${formatCurrency(amount)} via ${formData.method}` });
 
     try {
-      const user = currentUser || await base44.auth.me();
-      await base44.entities.WithdrawalRequest.create({
+      if (!currentUser || currentUser.role !== 'user') {
+        throw new Error('Only a signed-in member can submit a withdrawal request.');
+      }
+      if (!account?.updated_date) {
+        throw new Error('The account revision is missing. Refresh the account and try again.');
+      }
+      const operationScope = `withdrawal-create:${await fingerprintMutationScope(JSON.stringify({
         account_id: id,
-        user_id: user.id,
-        amount: amount,
+        amount,
         method: formData.method,
-        notes: formData.notes,
-        status: 'pending',
+        notes: formData.notes.trim(),
+        expected_updated_date: account.updated_date,
+      }))}`;
+      const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+      const response = await base44.functions.invoke('createWithdrawalRequest', {
+        account_id: id,
+        amount,
+        method: formData.method,
+        notes: formData.notes.trim(),
+        expected_updated_date: account.updated_date,
+        idempotency_key: idempotencyKey,
       });
-      await base44.entities.Notification.create({
-        user_id: user.id,
-        title: 'Withdrawal Requested',
-        message: `Your withdrawal request of ${formatCurrency(amount)} is pending review.`,
-        type: 'info',
-      });
+      const payload = response?.data ?? response;
+      if (
+        payload?.success !== true ||
+        payload?.operation_id !== idempotencyKey ||
+        payload?.audit_recorded !== true ||
+        payload?.request?.account_id !== id ||
+        payload?.request?.user_id !== currentUser.id ||
+        payload?.request?.amount !== amount ||
+        payload?.request?.method !== formData.method ||
+        payload?.request?.status !== 'pending' ||
+        typeof payload?.request?.updated_date !== 'string' ||
+        payload.request.updated_date === account.updated_date
+      ) {
+        throw new Error('The server did not confirm the withdrawal request and audit record. Retry the same operation without changing its details.');
+      }
+
+      await clearMutationIdempotencyKey(operationScope);
+      setShowWithdraw(false);
+      setWStep(1);
+      setWForm({ amount: '', method: 'ACH Transfer', notes: '' });
       pendingToast.update({ title: 'Withdrawal submitted', description: `${formatCurrency(amount)} is pending review.` });
+      try {
+        await loadData();
+      } catch (refreshError) {
+        console.error('Withdrawal request was accepted, but the account view could not be refreshed.', refreshError);
+      }
     } catch (e) {
       console.error(e);
-      pendingToast.update({ title: 'Withdrawal failed', description: 'Please try again.', variant: 'destructive' });
+      setShowWithdraw(true);
+      setWStep(2);
+      pendingToast.update({
+        title: 'Withdrawal not confirmed',
+        description: e.message || 'The outcome may be uncertain. Retry the same operation with unchanged details.',
+        variant: 'destructive',
+      });
     }
   }
 
