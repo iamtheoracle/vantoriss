@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { useToast } from '@/components/ui/use-toast';
@@ -10,7 +11,18 @@ const maskAccount = (value = '') => { const d = String(value).replace(/\D/g, '')
 
 export default function MoveMoney() {
   const [user, setUser] = useState(null), [accounts, setAccounts] = useState([]), [cards, setCards] = useState([]), [portfolios, setPortfolios] = useState([]), [loading, setLoading] = useState(true), [panel, setPanel] = useState(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedAction = searchParams.get('action');
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (!['send', 'request', 'add', 'qr'].includes(requestedAction)) return;
+
+    setPanel(requestedAction);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('action');
+    setSearchParams(nextParams, { replace: true });
+  }, [requestedAction, searchParams, setSearchParams]);
   useEffect(() => { let cancelled = false; (async () => { try { const me = await base44.auth.me(); const [a,c,p] = await Promise.all([base44.entities.Account.filter({ user_id: me.id }, '-created_date').catch(() => []), base44.entities.PaymentCard.filter({ user_id: me.id, status: 'active' }, '-created_date').catch(() => []), base44.entities.InvestmentPortfolio.filter({ user_id: me.id }, '-created_date').catch(() => [])]); if (!cancelled) { setUser(me); setAccounts(a); setCards(c); setPortfolios(p); } } catch (e) { if (!cancelled) toast({ title: 'Money unavailable', description: e.message || 'Please try again.', variant: 'destructive' }); } finally { if (!cancelled) setLoading(false); } })(); return () => { cancelled = true; }; }, [toast]);
   const totalBalance = useMemo(() => accounts.reduce((s,a) => s + (a.balance || 0), 0), [accounts]);
   const portfolioValue = useMemo(() => portfolios.reduce((s,p) => s + (p.total_value || 0), 0), [portfolios]);
