@@ -85,14 +85,19 @@ export default function AdminApplications() {
       'application.review', app.id, decision, app.updated_date, openingBalance, notes,
     ]);
     const idempotencyKey = await getMutationIdempotencyKey(operationScope);
-    const response = await base44.functions.invoke('reviewApplication', {
-      application_id: app.id,
-      decision,
-      opening_balance: openingBalance,
-      admin_notes: notes,
-      expected_updated_date: app.updated_date,
-      idempotency_key: idempotencyKey,
-    });
+    let response;
+    try {
+      response = await base44.functions.invoke('reviewApplication', {
+        application_id: app.id,
+        decision,
+        opening_balance: openingBalance,
+        admin_notes: notes,
+        expected_updated_date: app.updated_date,
+        idempotency_key: idempotencyKey,
+      });
+    } catch (error) {
+      throw new Error(error?.response?.data?.error || error?.message || 'The server did not confirm the application review.');
+    }
     const result = response?.data || response;
     if (result?.success !== true) {
       throw new Error(result?.error || 'The application review was not confirmed.');
