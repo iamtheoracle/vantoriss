@@ -97,7 +97,7 @@ export default async function reviewApplication(req: Request): Promise<Response>
 
   const savedApplication = outcome.result.application;
   const savedAccount = outcome.result.account;
-  if (savedApplication?.id !== applicationId || savedApplication.application_status !== decision || !savedApplication.updated_date) {
+  if (savedApplication?.id !== applicationId || savedApplication.application_status !== decision || !savedApplication.updated_date || savedApplication.updated_date === body.expected_updated_date) {
     return jsonResponse({
       error: 'The transactional service did not confirm the requested application state.',
       code: 'ATOMIC_MUTATION_CONTRACT_VIOLATION',
