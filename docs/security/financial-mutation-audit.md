@@ -66,7 +66,7 @@ These UI actions will show an explicit unavailable/error state until the atomic 
 | `src/pages/admin/AdminMembers.jsx` | Account provisioning and member deletion | Account creation now routes through `createMemberAccount` with zero opening balance, server-generated account number, idempotency, audit, and notification outbox requirements; direct member deletion is disabled pending a retention-safe atomic workflow |
 | `src/pages/admin/AdminKYC.jsx`, `src/pages/ApplyKYC.jsx` | KYC status/document updates are client initiated | Outstanding; distinguish member submission from operator decisions and enforce policy server-side |
 | `src/pages/operations/InvestmentDeposits.jsx`, `src/pages/operations/InvestmentWithdrawals.jsx` | Investment request approval writes transactions and portfolio state from client | Outstanding; require provider-backed atomic ledger and role checks |
-| `src/pages/AccountDetail.jsx` | Account freeze/unfreeze initiated from member page | Outstanding; inspect and route to the same ownership-aware account-status endpoint after confirming current status/revision handling |
+| `src/pages/AccountDetail.jsx` | Member withdrawal creation and account freeze/unfreeze were client initiated | Freeze/unfreeze uses `setAccountStatus`; withdrawal initiation now uses `createWithdrawalRequest` with member authentication, revision/idempotency checks, provider-enforced ownership/KYC/active status/available funds/limits, and an atomic audit + notification outbox. Historical statement import remains to be verified separately. |
 | `src/pages/admin/AdminAccounts.jsx` add transaction/import flows | Transaction create and account balance update are separate client writes; imported rows may partially apply | Outstanding; move to atomic server mutation and idempotent batch handling |
 
 This inventory is based on repository code search and targeted source inspection, not a claim that every path is reachable in production or that every listed flow has been fully reviewed. Continue the audit until all privileged mutation call sites are either server-backed or explicitly disabled.
@@ -79,8 +79,8 @@ Run in a clean checkout with Node 20+ and Deno 2:
 npm ci
 npm run test:financial-mutations
 npx eslint src/pages/admin/AdminApplications.jsx src/pages/admin/AdminAccounts.jsx src/pages/operations/BulkTransactionImport.jsx src/pages/operations/VerificationRequests.jsx src/pages/admin/AdminWithdrawals.jsx --quiet
-deno lint base44/shared/financialMutationRules.mjs base44/shared/financialMutationGateway.ts base44/functions/reviewApplication/entry.ts base44/functions/correctTransactionDate/entry.ts base44/functions/bulkImportTransactions/entry.ts base44/functions/reviewFundingRequest/entry.ts base44/functions/processWithdrawalRequest/entry.ts base44/functions/setAccountStatus/entry.ts
-deno check base44/functions/reviewApplication/entry.ts base44/functions/correctTransactionDate/entry.ts base44/functions/bulkImportTransactions/entry.ts base44/functions/reviewFundingRequest/entry.ts base44/functions/processWithdrawalRequest/entry.ts base44/functions/setAccountStatus/entry.ts
+deno lint base44/shared/financialMutationRules.mjs base44/shared/financialMutationGateway.ts base44/functions/reviewApplication/entry.ts base44/functions/correctTransactionDate/entry.ts base44/functions/bulkImportTransactions/entry.ts base44/functions/reviewFundingRequest/entry.ts base44/functions/processWithdrawalRequest/entry.ts base44/functions/setAccountStatus/entry.ts base44/functions/createWithdrawalRequest/entry.ts
+deno check base44/functions/reviewApplication/entry.ts base44/functions/correctTransactionDate/entry.ts base44/functions/bulkImportTransactions/entry.ts base44/functions/reviewFundingRequest/entry.ts base44/functions/processWithdrawalRequest/entry.ts base44/functions/setAccountStatus/entry.ts base44/functions/createWithdrawalRequest/entry.ts
 npm run build
 npm run lint
 npm audit --audit-level=high
@@ -106,6 +106,14 @@ The completed workflow run `39009653505` verified `npm ci`, all 11 financial-mut
 - Operators with an allowed financial-review role may freeze or unfreeze accounts. A member may only request a freeze; the provider must verify account ownership and reject member unfreeze attempts. Browser-supplied account ownership is not trusted.
 - `QuickActionsMenu.jsx` now routes freeze/unfreeze through the endpoint. Its direct balance-adjustment action was removed rather than leave separate transaction/account writes in the browser. `FloatingCommandDock.jsx` now routes member self-freeze through the same endpoint and no longer writes account status, zero-value transactions, notifications, or audit events separately.
 - The provider remains unconfigured, so successful status changes are blocked until its atomic account-status contract is provisioned and verified.
+
+
+### Member withdrawal initiation boundary follow-up (2026-10-17)
+
+- Added `base44/functions/createWithdrawalRequest/entry.ts`, a POST-only authenticated endpoint restricted to member-role actors. It validates a positive cent-precise amount, a supported withdrawal method, bounded notes, a revision token, and UUID idempotency key.
+- The endpoint delegates to the atomic service, which must authoritatively verify account ownership, active status, approved KYC, current revision, available funds including pending withdrawal reservations, applicable withdrawal limits, and supported method. The provider must create the pending request and persist audit plus notification outbox in one transaction.
+- `src/pages/AccountDetail.jsx` no longer creates withdrawal requests or notifications directly from the browser. It accepts success only when the operation ID, audit confirmation, member/account identity, amount, method, pending state, and updated revision match. The idempotency key is retained on errors/uncertain outcomes; after confirmed success, the UI refreshes best-effort without misreporting a committed request as failed.
+- The endpoint fails closed while the atomic provider is unavailable. This change does not claim a successful production withdrawal request or verify provider behavior.
 
 
 ### Member account provisioning boundary follow-up (2026-10-17)
