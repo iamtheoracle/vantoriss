@@ -32,15 +32,15 @@ jobs:
       - name: Financial mutation rule tests
         run: npm run test:financial-mutations
       - name: Lint changed UI files
-        run: npx eslint src/pages/admin/AdminApplications.jsx src/pages/admin/AdminAccounts.jsx --quiet
+        run: npx eslint src/pages/admin/AdminApplications.jsx src/pages/admin/AdminAccounts.jsx src/pages/operations/BulkTransactionImport.jsx --quiet
       - name: Set up Deno for server-function validation
         uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
       - name: Lint financial mutation server functions
-        run: deno lint base44/shared/financialMutationRules.mjs base44/shared/financialMutationGateway.ts base44/functions/reviewApplication/entry.ts base44/functions/correctTransactionDate/entry.ts base44/functions/bulkImportTransactions/entry.ts
+        run: deno lint base44/shared/financialMutationRules.mjs base44/shared/financialMutationGateway.ts base44/functions/reviewApplication/entry.ts base44/functions/correctTransactionDate/entry.ts base44/functions/bulkImportTransactions/entry.ts base44/functions/bulkImportTransactions/entry.ts
       - name: Type-check financial mutation server functions
-        run: deno check base44/functions/reviewApplication/entry.ts base44/functions/correctTransactionDate/entry.ts base44/functions/bulkImportTransactions/entry.ts
+        run: deno check base44/functions/reviewApplication/entry.ts base44/functions/correctTransactionDate/entry.ts base44/functions/bulkImportTransactions/entry.ts base44/functions/bulkImportTransactions/entry.ts
       - name: Full repository lint
         id: full_lint
         continue-on-error: true
