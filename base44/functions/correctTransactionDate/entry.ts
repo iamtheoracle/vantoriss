@@ -6,6 +6,7 @@ import {
   validateDateCorrection,
   validateMutationEnvelope,
   writeBlockedMutationAudit,
+  writeUncertainMutationAudit,
 } from '../../shared/financialMutationGateway.ts';
 import { isDateOnly } from '../../shared/financialMutationRules.mjs';
 
@@ -60,9 +61,11 @@ export default async function correctTransactionDate(req: Request): Promise<Resp
 
   const outcome = await invokeAtomicMutationService('transaction.date.correct', actor, command, body.idempotency_key);
   if (!outcome.ok) {
-    const auditRecorded = await writeBlockedMutationAudit(
-      base44, actor, 'transaction.date.correct', transactionId, outcome.code, body.idempotency_key,
-    );
+    const isUncertain = outcome.code === 'ATOMIC_MUTATION_OUTCOME_UNKNOWN' ||
+      outcome.code === 'ATOMIC_MUTATION_CONTRACT_VIOLATION';
+    const auditRecorded = isUncertain
+      ? await writeUncertainMutationAudit(base44, actor, 'transaction.date.correct', transactionId, outcome.code, body.idempotency_key)
+      : await writeBlockedMutationAudit(base44, actor, 'transaction.date.correct', transactionId, outcome.code, body.idempotency_key);
     return jsonResponse({ error: outcome.message, code: outcome.code, audit_recorded: auditRecorded }, outcome.status);
   }
 
