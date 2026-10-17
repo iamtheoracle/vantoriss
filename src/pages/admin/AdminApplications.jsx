@@ -6,6 +6,7 @@ import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Check, X, CheckSquare, Square, Mail, FileText, ExternalLink } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { clearMutationIdempotencyKey, getMutationIdempotencyKey } from '@/lib/mutationIdempotency';
 
 export default function AdminApplications() {
   const [applications, setApplications] = useState([]);
@@ -80,18 +81,23 @@ export default function AdminApplications() {
     if (!app?.id || !app.updated_date) {
       throw new Error('The application revision is missing. Reload applications before retrying.');
     }
+    const operationScope = JSON.stringify([
+      'application.review', app.id, decision, app.updated_date, openingBalance, notes,
+    ]);
+    const idempotencyKey = await getMutationIdempotencyKey(operationScope);
     const response = await base44.functions.invoke('reviewApplication', {
       application_id: app.id,
       decision,
       opening_balance: openingBalance,
       admin_notes: notes,
       expected_updated_date: app.updated_date,
-      idempotency_key: crypto.randomUUID(),
+      idempotency_key: idempotencyKey,
     });
     const result = response?.data || response;
     if (result?.success !== true) {
       throw new Error(result?.error || 'The application review was not confirmed.');
     }
+    await clearMutationIdempotencyKey(operationScope);
     return result;
   }
 
