@@ -29,7 +29,8 @@
         "kyc_approved",
         "kyc_rejected",
         "super_admin_exception_auth",
-        "financial_mutation_blocked"
+        "financial_mutation_blocked",
+        "financial_mutation_uncertain"
       ],
       "description": "The type of administrative action performed, including denied financial mutations"
     },
