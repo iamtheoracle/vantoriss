@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
-import { Users, Search, Plus, Wallet, Download, StickyNote, UserPlus, Trash2, History } from 'lucide-react';
+import { Search, Plus, Wallet, Download, StickyNote, UserPlus, Trash2, History } from 'lucide-react';
 import MemberActivityFeed from '@/components/vantoris/MemberActivityFeed';
 import { logAuditEntry } from '@/lib/auditLogger';
 import { exportToCsv } from '@/lib/exportCsv';
