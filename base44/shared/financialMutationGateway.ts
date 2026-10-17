@@ -36,6 +36,9 @@ export function validateDateCorrection(body: any) {
   if (typeof body?.transaction_id !== 'string' || !body.transaction_id.trim()) {
     return 'transaction_id is required.';
   }
+  if (typeof body?.account_id !== 'string' || !body.account_id.trim()) {
+    return 'account_id is required.';
+  }
   if (!isDateOnly(body?.transaction_date)) {
     return 'transaction_date must be a valid YYYY-MM-DD calendar date.';
   }
