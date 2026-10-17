@@ -31,7 +31,7 @@
 
 ### Atomic service contract
 
-Both endpoints use `base44/shared/financialMutationGateway.ts`. Configuration requires server-only environment variables:
+The application-review and date-correction endpoints use `base44/shared/financialMutationGateway.ts`. The bulk-import endpoint is separately fail-closed and does not invoke service-role entity CRUD. Configuration requires server-only environment variables:
 
 - `VANTORIS_ATOMIC_MUTATION_URL` — HTTPS endpoint for the service that owns the authoritative records and can commit state plus audit atomically.
 - `VANTORIS_ATOMIC_MUTATION_SECRET` — server-only bearer credential for that service.
@@ -58,7 +58,7 @@ These UI actions will show an explicit unavailable/error state until the atomic 
 | `src/pages/admin/AdminAccounts.jsx` | Transaction edit and balance recalculation were separate client writes | Date correction routed; other financial writes below remain to be migrated |
 | `src/pages/operations/VerificationRequests.jsx` | Transaction create, account balance update, request status, notification/email, and audit are separate writes | Outstanding; must use atomic funding approval/rejection service |
 | `src/pages/admin/AdminWithdrawals.jsx` | Withdrawal transaction, balance update, and request status are separate writes | Outstanding; must use atomic withdrawal processor with sufficient-funds and idempotency checks |
-| `base44/functions/bulkImportTransactions/entry.ts` | Service-role transaction create and balance update can partially succeed; per-row errors do not roll back prior writes | Outstanding; needs staged validation, idempotency, transaction-safe posting, and audit reconciliation |
+| `base44/functions/bulkImportTransactions/entry.ts` | Previously performed service-role transaction create and balance update as separate writes | **Contained:** endpoint now authenticates, checks role, audits the blocked attempt, and returns 503 without financial writes until atomic batch posting exists. Import is intentionally unavailable. |
 | `src/components/vantoris/QuickActionsMenu.jsx` | Client-side balance adjustment/freeze operations | Outstanding; privileged actions must route through server policy |
 | `src/components/vantoris/FloatingCommandDock.jsx` | Client-side account freeze plus transaction write | Outstanding; privileged action boundary required |
 | `src/components/vantoris/herobox/SponsorFlow.jsx` | Sponsor flow writes transaction and balance from client | Outstanding; verify whether this is a real financial workflow and move server-side |
@@ -82,4 +82,4 @@ npm run build
 npm run lint
 ```
 
-The completed workflow run `39009653505` verified `npm ci`, all 11 financial-mutation tests, changed-file ESLint, Deno lint, Deno type-check, and the Vite production build. It also confirmed that full-repository lint still reports **102 errors** and `npm audit --audit-level=high` reports **34 advisories (1 low, 13 moderate, 20 high)**. Those two steps were initially warning-only so the other checks could finish; the current workflow now makes both blocking quality gates. Do not treat the earlier green workflow conclusion as a clean-repository result. The latest blocking run `39009757164` reran the tests, targeted lint, Deno lint/type-check, and production build successfully, then failed at the final gate exactly because the full lint and dependency audit findings remain unresolved.
+The completed workflow run `39009653505` verified `npm ci`, all 11 financial-mutation tests, changed-file ESLint, Deno lint, Deno type-check, and the Vite production build. It also confirmed that full-repository lint still reports **102 errors** and `npm audit --audit-level=high` reports **34 advisories (1 low, 13 moderate, 20 high)**. Those two steps were initially warning-only so the other checks could finish; the current workflow now makes both blocking quality gates. Do not treat the earlier green workflow conclusion as a clean-repository result. The latest blocking run `39009819380` reran the tests, targeted lint, Deno lint/type-check, and production build successfully, then failed at the final gate exactly because the full lint and dependency audit findings remain unresolved. A follow-up commit now adds the bulk-import endpoint to Deno lint/type-check; that updated head requires a fresh CI run before its validation can be claimed.
