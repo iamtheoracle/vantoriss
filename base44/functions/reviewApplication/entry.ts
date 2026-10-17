@@ -66,9 +66,13 @@ export default async function reviewApplication(req: Request): Promise<Response>
   // Do not mint funds from an operator-entered application form. Positive
   // credits must pass through a separately verified funding workflow.
   if (openingBalance !== 0) {
+    const auditRecorded = await writeBlockedMutationAudit(
+      base44, actor, 'application.review', applicationId, 'VERIFIED_FUNDING_REQUIRED', body.idempotency_key,
+    );
     return jsonResponse({
       error: 'Opening balances cannot be credited during application approval. Use the verified funding workflow.',
       code: 'VERIFIED_FUNDING_REQUIRED',
+      audit_recorded: auditRecorded,
     }, 422);
   }
 
@@ -98,15 +102,23 @@ export default async function reviewApplication(req: Request): Promise<Response>
   const savedApplication = outcome.result.application;
   const savedAccount = outcome.result.account;
   if (savedApplication?.id !== applicationId || savedApplication.application_status !== decision || !savedApplication.updated_date || savedApplication.updated_date === body.expected_updated_date) {
+    const auditRecorded = await writeUncertainMutationAudit(
+      base44, actor, 'application.review', applicationId, 'ATOMIC_MUTATION_CONTRACT_VIOLATION', body.idempotency_key,
+    );
     return jsonResponse({
-      error: 'The transactional service did not confirm the requested application state.',
+      error: 'The transactional service did not confirm the requested application state. Resolve the outcome with the same idempotency key before retrying.',
       code: 'ATOMIC_MUTATION_CONTRACT_VIOLATION',
+      audit_recorded: auditRecorded,
     }, 502);
   }
-  if (decision === 'approved' && !savedAccount?.id) {
+  if ((decision === 'approved' && !savedAccount?.id) || (decision === 'rejected' && savedAccount?.id)) {
+    const auditRecorded = await writeUncertainMutationAudit(
+      base44, actor, 'application.review', applicationId, 'ATOMIC_MUTATION_CONTRACT_VIOLATION', body.idempotency_key,
+    );
     return jsonResponse({
-      error: 'The transactional service did not confirm account creation.',
+      error: 'The transactional service did not confirm the expected account side effects. Resolve the outcome with the same idempotency key before retrying.',
       code: 'ATOMIC_MUTATION_CONTRACT_VIOLATION',
+      audit_recorded: auditRecorded,
     }, 502);
   }
 
