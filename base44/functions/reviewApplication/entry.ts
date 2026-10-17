@@ -5,6 +5,7 @@ import {
   jsonResponse,
   validateMutationEnvelope,
   writeBlockedMutationAudit,
+  writeUncertainMutationAudit,
 } from '../../shared/financialMutationGateway.ts';
 import { isValidOpeningBalance } from '../../shared/financialMutationRules.mjs';
 
@@ -86,9 +87,11 @@ export default async function reviewApplication(req: Request): Promise<Response>
 
   const outcome = await invokeAtomicMutationService('application.review', actor, command, body.idempotency_key);
   if (!outcome.ok) {
-    const auditRecorded = await writeBlockedMutationAudit(
-      base44, actor, 'application.review', applicationId, outcome.code, body.idempotency_key,
-    );
+    const isUncertain = outcome.code === 'ATOMIC_MUTATION_OUTCOME_UNKNOWN' ||
+      outcome.code === 'ATOMIC_MUTATION_CONTRACT_VIOLATION';
+    const auditRecorded = isUncertain
+      ? await writeUncertainMutationAudit(base44, actor, 'application.review', applicationId, outcome.code, body.idempotency_key)
+      : await writeBlockedMutationAudit(base44, actor, 'application.review', applicationId, outcome.code, body.idempotency_key);
     return jsonResponse({ error: outcome.message, code: outcome.code, audit_recorded: auditRecorded }, outcome.status);
   }
 
