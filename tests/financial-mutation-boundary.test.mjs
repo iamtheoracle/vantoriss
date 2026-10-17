@@ -291,3 +291,36 @@ test('account detail freeze/unfreeze uses the shared revision-checked server bou
   assert.ok(ui.includes('payload?.audit_recorded !== true'));
   assert.ok(!ui.includes("base44.entities.Account.update(id, { status: account.status"));
 });
+
+
+test('historical statement import uses an atomic owner-scoped boundary and never mutates live balance from the browser', async () => {
+  const endpoint = await read('base44/functions/importHistoricalStatement/entry.ts');
+  const ui = await read('src/components/vantoris/HistoricalStatementImport.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    "actor.role !== 'user'",
+    'isUuid(body.idempotency_key)',
+    'isValidRevision(body.expected_updated_date)',
+    "invokeAtomicMutationService('historical_statement.import'",
+    'require_authoritative_account_lookup: true',
+    'require_actor_owns_account: true',
+    'require_account_revision_match: true',
+    'deduplicate_against_authoritative_history: true',
+    'deduplicate_within_import: true',
+    'historical_only: true',
+    'never_modify_current_account_balance: true',
+    'create_statement_transactions_document_atomically: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `historical import boundary must include ${required}`);
+  assert.ok(!endpoint.includes('entities.HistoricalStatement.create('));
+  assert.ok(!endpoint.includes('entities.Transaction.bulkCreate('));
+  assert.ok(!endpoint.includes('entities.Document.create('));
+  assert.ok(ui.includes("base44.functions.invoke('importHistoricalStatement'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes('clearMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes('result?.account_balance_modified !== false'));
+  assert.ok(!ui.includes('base44.entities.HistoricalStatement.create('));
+  assert.ok(!ui.includes('base44.entities.Transaction.bulkCreate('));
+  assert.ok(!ui.includes('base44.entities.Document.create('));
+});
