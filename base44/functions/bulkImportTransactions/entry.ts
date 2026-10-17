@@ -79,10 +79,10 @@ function validateAndNormalizeRows(value: unknown): { rows?: ImportRow[]; error?:
 
     let transactionDate: string | undefined;
     if (row.transaction_date !== undefined && row.transaction_date !== null && row.transaction_date !== '') {
-      if (!isDateOnly(row.transaction_date)) {
+      if (typeof row.transaction_date !== 'string' || !isDateOnly(row.transaction_date)) {
         return { error: `Row ${index + 2} has an invalid transaction_date; use YYYY-MM-DD.` };
       }
-      transactionDate = row.transaction_date as string;
+      transactionDate = row.transaction_date;
     }
 
     rows.push({
