@@ -5,14 +5,13 @@ import {
   invokeAtomicMutationService,
   isAllowedFinancialRole,
   isRecord,
-  isUuid,
   jsonResponse,
   writeBlockedMutationAudit,
   writeUncertainMutationAudit,
   type AuthenticatedActor,
   type Base44AuditClient,
 } from '../../shared/financialMutationGateway.ts';
-import { isDateOnly } from '../../shared/financialMutationRules.mjs';
+import { isDateOnly, isUuid } from '../../shared/financialMutationRules.mjs';
 
 type Base44Client = ReturnType<typeof createClientFromRequest> & Base44AuditClient;
 const MAX_IMPORT_ROWS = 500;
@@ -83,7 +82,7 @@ function validateAndNormalizeRows(value: unknown): { rows?: ImportRow[]; error?:
       if (!isDateOnly(row.transaction_date)) {
         return { error: `Row ${index + 2} has an invalid transaction_date; use YYYY-MM-DD.` };
       }
-      transactionDate = row.transaction_date;
+      transactionDate = row.transaction_date as string;
     }
 
     rows.push({
@@ -131,7 +130,7 @@ export default async function bulkImportTransactions(req: Request): Promise<Resp
 
   const normalized = validateAndNormalizeRows(parsedBody.transactions);
   if (!normalized.rows) return jsonResponse({ error: normalized.error }, 400);
-  const idempotencyKey = parsedBody.idempotency_key;
+  const idempotencyKey = typeof parsedBody.idempotency_key === 'string' ? parsedBody.idempotency_key : '';
   const rowCount = normalized.rows.length;
 
   // The atomic service must resolve account numbers against authoritative
