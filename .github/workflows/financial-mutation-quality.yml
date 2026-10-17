@@ -1,0 +1,41 @@
+name: Financial Mutation Quality
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - main
+permissions:
+  contents: read
+concurrency:
+  group: financial-mutation-quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Restore exact locked dependency tree
+        run: npm ci
+      - name: Financial mutation rule tests
+        run: npm run test:financial-mutations
+      - name: Lint changed financial mutation files
+        run: npx eslint src/pages/admin/AdminApplications.jsx src/pages/admin/AdminAccounts.jsx tests/financial-mutation-rules.test.mjs base44/shared/financialMutationRules.mjs base44/shared/financialMutationGateway.ts base44/functions/reviewApplication/entry.ts base44/functions/correctTransactionDate/entry.ts --quiet
+      - name: Full repository lint
+        id: full_lint
+        continue-on-error: true
+        run: npm run lint
+      - name: Production build
+        run: npm run build
+      - name: Report existing repository lint debt
+        if: always() && steps.full_lint.outcome == 'failure'
+        run: |
+          echo "::warning::Full repository lint failed. See the Full repository lint step; do not treat targeted lint as a clean repository."
