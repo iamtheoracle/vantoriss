@@ -134,6 +134,8 @@ export default function AdminAccounts() {
       const response = await base44.functions.invoke('correctTransactionDate', {
         transaction_id: editingTxn.id,
         transaction_date: txnForm.transaction_date,
+        expected_current_transaction_date: editingTxn.transaction_date ? editingTxn.transaction_date.split('T')[0] : null,
+        expected_status: editingTxn.status,
         expected_updated_date: editingTxn.updated_date,
         idempotency_key: crypto.randomUUID(),
       });
