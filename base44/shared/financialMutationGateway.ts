@@ -153,6 +153,7 @@ export async function invokeAtomicMutationService(
     response = await fetch(url, {
       method: 'POST',
       cache: 'no-store',
+      redirect: 'error',
       headers: {
         'Authorization': `Bearer ${secret}`,
         'Content-Type': 'application/json',
