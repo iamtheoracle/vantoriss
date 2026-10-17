@@ -3,10 +3,9 @@ import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { Users, Search, Plus, Wallet, Download, StickyNote, UserPlus, Trash2, History } from 'lucide-react';
 import MemberActivityFeed from '@/components/vantoris/MemberActivityFeed';
-import { generateAccountNumber } from '@/lib/formatCurrency';
 import { logAuditEntry } from '@/lib/auditLogger';
 import { exportToCsv } from '@/lib/exportCsv';
-import { sendTransactionEmail } from '@/lib/transactionEmails';
+import { clearMutationIdempotencyKey, fingerprintMutationScope, getMutationIdempotencyKey } from '@/lib/mutationIdempotency';
 import { useToast } from '@/components/ui/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
@@ -20,14 +19,13 @@ export default function AdminMembers() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [showCreate, setShowCreate] = useState(null);
-  const [acctForm, setAcctForm] = useState({ account_type: 'Personal', account_name: '', opening_balance: '' });
+  const [acctForm, setAcctForm] = useState({ account_type: 'Personal', account_name: '' });
   const [creating, setCreating] = useState(false);
   const [notesMember, setNotesMember] = useState(null);
   const [notesText, setNotesText] = useState('');
   const [savingNotes, setSavingNotes] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
-  const [deleting, setDeleting] = useState(false);
   const [activityMember, setActivityMember] = useState(null);
   const [referrals, setReferrals] = useState([]);
   const { toast } = useToast();
@@ -46,32 +44,6 @@ export default function AdminMembers() {
     setLoading(false);
   }
 
-  async function handleDeleteMember() {
-    if (!deleteTarget) return;
-    setDeleting(true);
-    try {
-      // Delete member's accounts and transactions first
-      const memberAccts = accounts.filter(a => a.user_id === deleteTarget.id);
-      for (const acct of memberAccts) {
-        await base44.entities.Transaction.deleteMany({ account_id: acct.id });
-        await base44.entities.Account.delete(acct.id);
-      }
-      await base44.entities.User.delete(deleteTarget.id);
-      await logAuditEntry({
-        action_type: 'account_deleted',
-        description: `Deleted member ${deleteTarget.full_name} (${deleteTarget.email})`,
-        details: `Email: ${deleteTarget.email} | All accounts, transactions, and associated data permanently removed`,
-        target_user_id: deleteTarget.id,
-      });
-      setDeleteTarget(null);
-      loadData();
-      toast({ title: 'Member deleted', description: `${deleteTarget.full_name} and all associated data have been removed.` });
-    } catch (e) {
-      console.error(e);
-      toast({ title: 'Delete failed', description: e.message || 'Unable to delete member.', variant: 'destructive' });
-    }
-    setDeleting(false);
-  }
 
   if (loading) {
     return <div className="flex items-center justify-center h-96">
@@ -81,61 +53,83 @@ export default function AdminMembers() {
 
   async function handleCreateAccount() {
     if (!showCreate) return;
+    if (typeof showCreate.updated_date !== 'string' || !showCreate.updated_date) {
+      toast({
+        title: 'Account creation unavailable',
+        description: 'The member revision is missing. Refresh the member list before retrying.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const targetMember = showCreate;
+    const accountType = acctForm.account_type;
+    const accountName = (acctForm.account_name.trim() ||
+      `${targetMember.full_name} - ${accountType}`).trim();
+    if (!ACCOUNT_TYPES.includes(accountType) || accountName.length > 120) {
+      toast({
+        title: 'Check account details',
+        description: 'Choose a valid account type and keep the account name to 120 characters or fewer.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setCreating(true);
     try {
-      const acctNum = generateAccountNumber();
-      const balance = parseFloat(acctForm.opening_balance) || 0;
-      const account = await base44.entities.Account.create({
-        user_id: showCreate.id,
-        account_number: acctNum,
-        account_type: acctForm.account_type,
-        account_name: acctForm.account_name || `${showCreate.full_name} - ${acctForm.account_type}`,
-        balance: balance,
-        status: 'active',
+      const operationScope = `member-account-create:${await fingerprintMutationScope(JSON.stringify({
+        target_user_id: targetMember.id,
+        expected_updated_date: targetMember.updated_date,
+        account_type: accountType,
+        account_name: accountName,
+      }))}`;
+      const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+      const response = await base44.functions.invoke('createMemberAccount', {
+        target_user_id: targetMember.id,
+        expected_updated_date: targetMember.updated_date,
+        account_type: accountType,
+        account_name: accountName,
+        opening_balance: 0,
+        idempotency_key: idempotencyKey,
       });
-      if (balance > 0) {
-        await base44.entities.Transaction.create({
-          account_id: account.id,
-          type: 'opening_balance',
-          amount: balance,
-          description: 'Opening Balance',
-          balance_after: balance,
-          created_by_admin: true,
-        });
-        await sendTransactionEmail({
-          user_id: showCreate.id,
-          account,
-          type: 'opening_balance',
-          amount: balance,
-          description: 'Opening Balance',
-          newBalance: balance,
-        });
+      const payload = response?.data ?? response;
+      const account = payload?.account;
+      if (
+        payload?.success !== true ||
+        payload?.operation_id !== idempotencyKey ||
+        payload?.audit_recorded !== true ||
+        account?.user_id !== targetMember.id ||
+        account?.account_type !== accountType ||
+        account?.status !== 'active' ||
+        account?.balance !== 0 ||
+        typeof account?.id !== 'string' ||
+        !account.id ||
+        typeof account?.account_number !== 'string' ||
+        !account.account_number.trim() ||
+        typeof account?.updated_date !== 'string' ||
+        !account.updated_date
+      ) {
+        throw new Error('The server did not confirm a zero-balance account and its audit record. Retry the same operation after refreshing the member list.');
       }
-      await base44.entities.Notification.create({
-        user_id: showCreate.id,
-        title: 'New Account Created',
-        message: `A ${acctForm.account_type} account has been created for you. Account: ${acctNum}`,
-        type: 'success',
-      });
-      await logAuditEntry({
-        action_type: 'account_created',
-        description: `Created ${acctForm.account_type} account ${acctNum} for ${showCreate.full_name}`,
-        details: `Opening balance: ${formatCurrency(balance)}`,
-        account_id: account.id,
-        amount: balance,
-        balance_before: 0,
-        balance_after: balance,
-        target_user_id: showCreate.id,
-      });
+
+      await clearMutationIdempotencyKey(operationScope);
       setShowCreate(null);
-      setAcctForm({ account_type: 'Personal', account_name: '', opening_balance: '' });
-      loadData();
-      toast({ title: 'Account created', description: `${acctForm.account_type} account created for ${showCreate.full_name}.` });
+      setAcctForm({ account_type: 'Personal', account_name: '' });
+      await loadData();
+      toast({
+        title: 'Account created',
+        description: `${accountType} account ${account.account_number} created for ${targetMember.full_name}. It starts with a zero balance.`,
+      });
     } catch (e) {
       console.error(e);
-      toast({ title: 'Create failed', description: e.message || 'Unable to create account.', variant: 'destructive' });
+      toast({
+        title: 'Create failed',
+        description: e.message || 'Unable to create account. If the result is uncertain, retry the same operation.',
+        variant: 'destructive',
+      });
+    } finally {
+      setCreating(false);
     }
-    setCreating(false);
   }
 
   function handleExportMembers() {
@@ -262,7 +256,7 @@ export default function AdminMembers() {
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => { setShowCreate(member); setAcctForm({ account_type: 'Personal', account_name: '', opening_balance: '' }); }}
+                        onClick={() => { setShowCreate(member); setAcctForm({ account_type: 'Personal', account_name: '' }); }}
                         className="flex items-center gap-1 px-3 py-1.5 bg-brass/15 text-brass rounded-lg text-xs font-medium hover:bg-brass/25 transition-all"
                       >
                         <Plus size={12} /> Add Account
@@ -381,18 +375,12 @@ export default function AdminMembers() {
                   onChange={e => setAcctForm({ ...acctForm, account_name: e.target.value })}
                   className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none"
                   placeholder={`${showCreate.full_name} - ${acctForm.account_type}`}
+                  maxLength={120}
                 />
               </div>
-              <div>
-                <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Opening Balance (USD)</label>
-                <input
-                  type="number"
-                  value={acctForm.opening_balance}
-                  onChange={e => setAcctForm({ ...acctForm, opening_balance: e.target.value })}
-                  className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none"
-                  placeholder="0.00"
-                />
-              </div>
+              <p className="text-[#AAB4C3] text-xs">
+                New accounts start at a zero balance. Deposits must be recorded through the verified funding workflow.
+              </p>
               <button
                 disabled={creating}
                 onClick={handleCreateAccount}
@@ -490,15 +478,15 @@ export default function AdminMembers() {
             <div className="space-y-4 mt-2">
               <p className="text-[#AAB4C3] text-sm">
                 Are you sure you want to permanently delete <span className="text-white font-medium">{deleteTarget.full_name}</span> ({deleteTarget.email})?
-                This will also remove all their accounts, transactions, and associated data. This action cannot be undone.
+                Member deletion is temporarily disabled. Permanent deletion must go through a retention-safe, audited server workflow so financial history and compliance records are not silently destroyed.
               </p>
               <div className="flex gap-3">
                 <button
-                  onClick={handleDeleteMember}
-                  disabled={deleting}
-                  className="flex-1 py-3 bg-crimson text-white font-semibold rounded-xl disabled:opacity-40 flex items-center justify-center gap-2"
+                  type="button"
+                  disabled
+                  className="flex-1 py-3 bg-[#242D38] text-[#AAB4C3] font-semibold rounded-xl disabled:opacity-60 flex items-center justify-center gap-2"
                 >
-                  <Trash2 size={16} /> {deleting ? 'Deleting...' : 'Delete Permanently'}
+                  <Trash2 size={16} /> Deletion Unavailable
                 </button>
                 <button
                   onClick={() => setDeleteTarget(null)}
