@@ -268,8 +268,7 @@ export default function AccountDetail() {
         payload?.request?.amount !== amount ||
         payload?.request?.method !== formData.method ||
         payload?.request?.status !== 'pending' ||
-        typeof payload?.request?.updated_date !== 'string' ||
-        payload.request.updated_date === account.updated_date
+        typeof payload?.request?.updated_date !== 'string'
       ) {
         throw new Error('The server did not confirm the withdrawal request and audit record. Retry the same operation without changing its details.');
       }
