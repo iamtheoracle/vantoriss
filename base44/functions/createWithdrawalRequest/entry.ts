@@ -60,7 +60,7 @@ export default async function createWithdrawalRequest(req: Request): Promise<Res
     await writeBlockedMutationAudit(base44, actor, 'withdrawal.create', accountId, 'member_role_required', idempotencyKey);
     return jsonResponse({ error: 'Only an authenticated member can submit a withdrawal request.' }, 403);
   }
-  if (typeof amount !== 'number' || !Number.isFinite(amount) || amount <= 0 || amount > 100_000_000 || Math.round(amount * 100) !== amount * 100) {
+  if (typeof amount !== 'number' || !Number.isFinite(amount) || amount <= 0 || amount > 100_000_000 || !Number.isSafeInteger(Math.round(amount * 100)) || Math.abs(amount * 100 - Math.round(amount * 100)) > Number.EPSILON * Math.max(1, Math.abs(amount * 100)) * 4) {
     return jsonResponse({ error: 'amount must be a positive finite amount with at most two decimal places.' }, 400);
   }
   if (typeof method !== 'string' || !ALLOWED_METHODS.has(method)) {
