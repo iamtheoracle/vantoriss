@@ -48,8 +48,6 @@ export default function SponsorFlow({ open, onClose, accounts, profile, onSucces
     const operationScope = `herobox-sponsor:${await fingerprintMutationScope(JSON.stringify({
       packageId: selectedPackage.id,
       accountId: selectedAccountId,
-      accountRevision: account.updated_date,
-      profileRevision: profile?.updated_date || null,
       recipientName: recipientName.trim() || 'General Fund',
     }))}`;
     try {
