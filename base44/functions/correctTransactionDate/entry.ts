@@ -48,7 +48,7 @@ export default async function correctTransactionDate(req: Request): Promise<Resp
   // transaction state, and current date inside its own transaction.
   const command = {
     transaction_id: transactionId,
-    account_id: transaction.account_id,
+    account_id: body.account_id,
     transaction_date: body.transaction_date,
     expected_current_transaction_date: body.expected_current_transaction_date ?? null,
     expected_updated_date: body.expected_updated_date,
