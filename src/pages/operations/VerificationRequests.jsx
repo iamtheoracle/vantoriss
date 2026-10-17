@@ -5,9 +5,8 @@ import StatusBadge from '@/components/vantoris/StatusBadge';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
 import InternalComments from '@/components/vantoris/InternalComments';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { CheckSquare, Square, Check, X, ShieldCheck, Mail } from 'lucide-react';
-import { logAuditEntry } from '@/lib/auditLogger';
-import { sendTransactionEmail } from '@/lib/transactionEmails';
+import { CheckSquare, Square, Check, X, ShieldCheck } from 'lucide-react';
+import { clearMutationIdempotencyKey, fingerprintMutationScope, getMutationIdempotencyKey } from '@/lib/mutationIdempotency';
 import { useToast } from '@/components/ui/use-toast';
 
 export default function VerificationRequests() {
@@ -51,139 +50,123 @@ export default function VerificationRequests() {
     else setSelectedIds(pendingReqs.map(r => r.id));
   }
 
-  async function approveOne(req, notes, balanceOverride) {
-    const account = getAccount(req.account_id);
-    const currentBalance = balanceOverride !== undefined ? balanceOverride : (account?.balance || 0);
-    const newBalance = currentBalance + Math.abs(req.amount);
-    await base44.entities.Transaction.create({
-      account_id: req.account_id,
-      type: req.method === 'Opening Contribution' ? 'opening_balance' : 'deposit',
-      amount: Math.abs(req.amount),
-      description: `${req.method} — ${req.reference || 'No reference'}`,
-      balance_after: newBalance,
-      created_by_admin: true,
+  async function mutateFundingRequest(req, decision, notes) {
+    if (!req?.id || !req.updated_date) {
+      throw new Error('This funding request is missing its revision token. Reload the request before retrying.');
+    }
+    const normalizedNotes = typeof notes === 'string' ? notes.trim() : '';
+    const fingerprint = await fingerprintMutationScope(JSON.stringify({
+      request_id: req.id,
+      decision,
+      expected_updated_date: req.updated_date,
+      admin_notes: normalizedNotes,
+    }));
+    const operationScope = `funding.review:${fingerprint}`;
+    const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+    const response = await base44.functions.invoke('reviewFundingRequest', {
+      request_id: req.id,
+      decision,
+      admin_notes: normalizedNotes,
+      expected_updated_date: req.updated_date,
+      idempotency_key: idempotencyKey,
     });
-    await base44.entities.Account.update(req.account_id, { balance: newBalance });
-    await base44.entities.VerificationRequest.update(req.id, { status: 'approved', admin_notes: notes });
-    await base44.entities.Notification.create({
-      user_id: req.user_id,
-      title: 'Funding Verified',
-      message: `Your ${req.method} of ${formatCurrency(Math.abs(req.amount))} has been verified and credited to your account.`,
-      type: 'success',
-    });
-    await sendTransactionEmail({
-      user_id: req.user_id,
-      account,
-      type: req.method === 'Opening Contribution' ? 'opening_balance' : 'deposit',
-      amount: Math.abs(req.amount),
-      description: `${req.method} — ${req.reference || 'No reference'}`,
-      newBalance,
-    });
-    await logAuditEntry({
-      action_type: 'transaction_created',
-      description: `Verification approved: ${formatCurrency(Math.abs(req.amount))} via ${req.method}`,
-      details: `Request ID: ${req.id}, Notes: ${notes || 'None'}`,
-      account_id: req.account_id,
-      amount: Math.abs(req.amount),
-      balance_before: currentBalance,
-      balance_after: newBalance,
-      target_user_id: req.user_id,
-    });
-  }
-
-  async function rejectOne(req, notes) {
-    await base44.entities.VerificationRequest.update(req.id, { status: 'rejected', admin_notes: notes });
-    await base44.entities.Notification.create({
-      user_id: req.user_id,
-      title: 'Funding Rejected',
-      message: `Your ${req.method} of ${formatCurrency(Math.abs(req.amount))} was not approved. ${notes || ''}`,
-      type: 'warning',
-    });
-    await logAuditEntry({
-      action_type: 'withdrawal_rejected',
-      description: `Verification rejected: ${formatCurrency(Math.abs(req.amount))} via ${req.method}`,
-      details: `Request ID: ${req.id}, Reason: ${notes || 'No reason provided'}`,
-      account_id: req.account_id,
-      amount: Math.abs(req.amount),
-      target_user_id: req.user_id,
-    });
+    const payload = response?.data || response;
+    if (
+      payload?.success !== true ||
+      payload?.operation_id !== idempotencyKey ||
+      payload?.audit_recorded !== true ||
+      payload?.request?.id !== req.id ||
+      payload?.request?.status !== decision
+    ) {
+      throw new Error(payload?.error || 'The funding decision was not confirmed. Retry the same action without changing its details.');
+    }
+    await clearMutationIdempotencyKey(operationScope);
+    return payload;
   }
 
   async function handleApprove() {
     if (!selected) return;
     setSubmitting(true);
     try {
-      await approveOne(selected, adminNotes);
-      toast({ title: 'Funding approved', description: `${formatCurrency(Math.abs(selected.amount))} credited successfully.` });
+      await mutateFundingRequest(selected, 'approved', adminNotes);
+      toast({ title: 'Funding approved', description: 'The transactional service confirmed the funding decision and audit record.' });
       setSelected(null);
       setAdminNotes('');
-      loadData();
+      await loadData();
     } catch (e) {
       console.error(e);
-      toast({ title: 'Approval failed', description: e.message || 'An error occurred while approving. Please try again.', variant: 'destructive' });
+      toast({ title: 'Approval not confirmed', description: e.response?.data?.error || e.message || 'No success was confirmed. Retry the same request.', variant: 'destructive' });
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   }
 
   async function handleReject() {
     if (!selected) return;
     setSubmitting(true);
     try {
-      await rejectOne(selected, adminNotes);
-      toast({ title: 'Funding rejected', description: 'The funding submission has been rejected.' });
+      await mutateFundingRequest(selected, 'rejected', adminNotes);
+      toast({ title: 'Funding rejected', description: 'The transactional service confirmed the decision and audit record.' });
       setSelected(null);
       setAdminNotes('');
-      loadData();
+      await loadData();
     } catch (e) {
       console.error(e);
-      toast({ title: 'Rejection failed', description: e.message || 'An error occurred while rejecting. Please try again.', variant: 'destructive' });
+      toast({ title: 'Rejection not confirmed', description: e.response?.data?.error || e.message || 'No success was confirmed. Retry the same request.', variant: 'destructive' });
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   }
 
   async function handleBulkApprove() {
-    if (selectedIds.length === 0) return;
+    const targets = selectedIds.map(id => requests.find(request => request.id === id)).filter(Boolean);
+    if (targets.length === 0) return;
     setSubmitting(true);
-    const balanceMap = {};
-    let ok = 0, fail = 0;
-    for (const id of selectedIds) {
-      const req = requests.find(r => r.id === id);
-      if (!req) continue;
+    let succeeded = 0;
+    let failed = 0;
+    for (const request of targets) {
       try {
-        const acct = getAccount(req.account_id);
-        const baseBalance = balanceMap[req.account_id] !== undefined ? balanceMap[req.account_id] : (acct?.balance || 0);
-        await approveOne(req, 'Bulk approved', baseBalance);
-        balanceMap[req.account_id] = baseBalance + Math.abs(req.amount);
-        ok++;
-      } catch (e) {
-        console.error('Bulk approve failed for', id, e);
-        fail++;
+        await mutateFundingRequest(request, 'approved', 'Bulk approved');
+        succeeded += 1;
+      } catch (error) {
+        console.error('Bulk funding approval not confirmed for', request.id, error);
+        failed += 1;
       }
     }
     setSelectedIds([]);
     setBulkMode(false);
-    loadData();
+    await loadData();
+    toast({
+      title: 'Bulk funding review finished',
+      description: `${succeeded} confirmed, ${failed} not confirmed. Failed operations retain their idempotency keys for safe retries.`,
+      ...(failed > 0 ? { variant: 'destructive' } : {}),
+    });
     setSubmitting(false);
   }
 
   async function handleBulkReject() {
-    if (selectedIds.length === 0) return;
+    const targets = selectedIds.map(id => requests.find(request => request.id === id)).filter(Boolean);
+    if (targets.length === 0) return;
     setSubmitting(true);
-    let ok = 0, fail = 0;
-    for (const id of selectedIds) {
-      const req = requests.find(r => r.id === id);
-      if (!req) continue;
+    let succeeded = 0;
+    let failed = 0;
+    for (const request of targets) {
       try {
-        await rejectOne(req, 'Bulk rejected');
-        ok++;
-      } catch (e) {
-        console.error('Bulk reject failed for', id, e);
-        fail++;
+        await mutateFundingRequest(request, 'rejected', 'Bulk rejected');
+        succeeded += 1;
+      } catch (error) {
+        console.error('Bulk funding rejection not confirmed for', request.id, error);
+        failed += 1;
       }
     }
     setSelectedIds([]);
     setBulkMode(false);
-    loadData();
+    await loadData();
+    toast({
+      title: 'Bulk funding review finished',
+      description: `${succeeded} confirmed, ${failed} not confirmed. Failed operations retain their idempotency keys for safe retries.`,
+      ...(failed > 0 ? { variant: 'destructive' } : {}),
+    });
     setSubmitting(false);
   }
 
