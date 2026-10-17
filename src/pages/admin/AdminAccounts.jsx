@@ -121,57 +121,44 @@ export default function AdminAccounts() {
 
   async function handleEditTransaction() {
     if (!editingTxn) return;
+    if (!editingTxn.updated_date) {
+      toast({ title: 'Correction unavailable', description: 'The transaction revision is missing. Reload history before retrying.', variant: 'destructive' });
+      return;
+    }
+    if (!txnForm.transaction_date) {
+      toast({ title: 'Transaction date required', description: 'Choose the corrected transaction date.', variant: 'destructive' });
+      return;
+    }
     setSubmitting(true);
     try {
-      const amount = parseFloat(txnForm.amount);
-      const oldAmount = editingTxn.amount;
-      const diff = (txnForm.type === 'withdrawal' ? -Math.abs(amount) : amount) - oldAmount;
-
-      await base44.entities.Transaction.update(editingTxn.id, {
-        type: txnForm.type,
-        amount: txnForm.type === 'withdrawal' ? -Math.abs(amount) : amount,
-        description: txnForm.description,
-        reference: txnForm.reference,
-        ...(txnForm.transaction_date ? { transaction_date: txnForm.transaction_date } : {}),
+      const response = await base44.functions.invoke('correctTransactionDate', {
+        transaction_id: editingTxn.id,
+        transaction_date: txnForm.transaction_date,
+        expected_updated_date: editingTxn.updated_date,
+        idempotency_key: crypto.randomUUID(),
       });
-
-      // Update account balance
-      const newBalance = viewingHistory.balance + diff;
-      await base44.entities.Account.update(viewingHistory.id, { balance: newBalance });
-
-      // Recalculate balance_after for all subsequent transactions
-      const allTxns = await base44.entities.Transaction.filter({ account_id: viewingHistory.id }, 'created_date', 200);
-      let runningBalance = 0;
-      for (const t of allTxns) {
-        runningBalance += (t.amount || 0);
-        if (t.id !== editingTxn.id) {
-          await base44.entities.Transaction.update(t.id, { balance_after: runningBalance });
-        } else {
-          await base44.entities.Transaction.update(t.id, { balance_after: runningBalance });
-        }
+      const result = response?.data || response;
+      if (result?.success !== true) {
+        throw new Error(result?.error || 'The server did not confirm the date correction.');
       }
-
-      await logAuditEntry({
-        action_type: 'transaction_edited',
-        description: `Edited transaction: ${txnForm.type} of ${formatCurrency(Math.abs(parseFloat(txnForm.amount)))}`,
-        details: `Old amount: ${formatCurrency(oldAmount)}, New amount: ${formatCurrency(txnForm.type === 'withdrawal' ? -Math.abs(amount) : amount)}, Description: ${txnForm.description || 'N/A'}`,
-        account_id: viewingHistory.id,
-        amount: txnForm.type === 'withdrawal' ? -Math.abs(amount) : amount,
-        balance_before: viewingHistory.balance,
-        balance_after: newBalance,
-      });
-
+      const corrected = result.transaction || { ...editingTxn, transaction_date: txnForm.transaction_date };
       setEditingTxn(null);
       setTxnForm({ type: 'deposit', amount: '', description: '', reference: '', transaction_date: '' });
-      setViewingHistory({ ...viewingHistory, balance: newBalance });
-      viewHistory({ ...viewingHistory, balance: newBalance });
-      loadAccounts();
-      toast({ title: 'Transaction updated', description: 'The transaction has been edited and balances recalculated.' });
-    } catch (e) {
-      console.error(e);
-      toast({ title: 'Edit failed', description: e.message || 'Unable to edit transaction.', variant: 'destructive' });
+      await viewHistory(viewingHistory);
+      toast({
+        title: result.unchanged ? 'No change needed' : 'Transaction date corrected',
+        description: result.unchanged ? 'The transaction already has that date.' : 'The server confirmed the date correction and audit record.',
+      });
+      return corrected;
+    } catch (error) {
+      toast({
+        title: 'Date correction unavailable',
+        description: error?.message || 'The server did not confirm the correction. No success is assumed.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   }
 
   function openEditTxn(txn) {
@@ -700,64 +687,74 @@ function TransactionForm({ txnForm, setTxnForm, submitting, onSubmit, account, i
         <p className="text-white text-sm font-medium">{account.account_name}</p>
         <p className="text-[#AAB4C3] text-xs">Balance: {formatCurrency(account.balance)}</p>
       </div>
-      <div>
-        <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Type</label>
-        <select
-          value={txnForm.type}
-          onChange={e => setTxnForm({ ...txnForm, type: e.target.value })}
-          className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none"
-        >
-          <option value="deposit">Deposit</option>
-          <option value="withdrawal">Withdrawal</option>
-          <option value="adjustment">Adjustment</option>
-          {!isEdit && <option value="opening_balance">Opening Balance</option>}
-        </select>
-      </div>
-      <div>
-        <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Amount (USD)</label>
-        <input
-          type="number"
-          value={txnForm.amount}
-          onChange={e => setTxnForm({ ...txnForm, amount: e.target.value })}
-          className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none"
-          placeholder="0.00"
-        />
-      </div>
-      <div>
-        <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Description</label>
-        <input
-          value={txnForm.description}
-          onChange={e => setTxnForm({ ...txnForm, description: e.target.value })}
-          className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none"
-          placeholder="e.g. Wire deposit from client"
-        />
-      </div>
-      <div>
-        <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Reference</label>
-        <input
-          value={txnForm.reference}
-          onChange={e => setTxnForm({ ...txnForm, reference: e.target.value })}
-          className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none"
-          placeholder="e.g. WT-2025-001"
-        />
-      </div>
+      {isEdit && (
+        <p className="rounded-xl border border-amber-400/20 bg-amber-400/10 p-3 text-sm text-amber-100" role="note">
+          This workflow corrects the transaction date only. Amounts, balances, posting dates, references, and descriptions remain unchanged.
+        </p>
+      )}
+      {!isEdit && (
+        <>
+          <div>
+            <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Type</label>
+            <select
+              value={txnForm.type}
+              onChange={e => setTxnForm({ ...txnForm, type: e.target.value })}
+              className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none"
+            >
+              <option value="deposit">Deposit</option>
+              <option value="withdrawal">Withdrawal</option>
+              <option value="adjustment">Adjustment</option>
+              <option value="opening_balance">Opening Balance</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Amount (USD)</label>
+            <input
+              type="number"
+              value={txnForm.amount}
+              onChange={e => setTxnForm({ ...txnForm, amount: e.target.value })}
+              className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none"
+              placeholder="0.00"
+            />
+          </div>
+          <div>
+            <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Description</label>
+            <input
+              value={txnForm.description}
+              onChange={e => setTxnForm({ ...txnForm, description: e.target.value })}
+              className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none"
+              placeholder="e.g. Wire deposit from client"
+            />
+          </div>
+          <div>
+            <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">Reference</label>
+            <input
+              value={txnForm.reference}
+              onChange={e => setTxnForm({ ...txnForm, reference: e.target.value })}
+              className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none"
+              placeholder="e.g. WT-2025-001"
+            />
+          </div>
+        </>
+      )}
       <div>
         <label className="text-[#AAB4C3] text-xs uppercase tracking-wider mb-1.5 block">
-          Transaction Date {isEdit ? '' : '(optional — for backdating)'}
+          Transaction Date {isEdit ? '(required correction)' : '(optional — for backdating)'}
         </label>
         <input
           type="date"
+          required={isEdit}
           value={txnForm.transaction_date}
           onChange={e => setTxnForm({ ...txnForm, transaction_date: e.target.value })}
           className="w-full bg-[#242D38] border border-[#242D38] rounded-xl px-4 py-3 text-white text-sm focus:border-brass/50 focus:outline-none"
         />
       </div>
       <button
-        disabled={!txnForm.amount || submitting}
+        disabled={submitting || (isEdit ? !txnForm.transaction_date : !txnForm.amount)}
         onClick={onSubmit}
         className="w-full py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl disabled:opacity-40"
       >
-        {submitting ? 'Processing...' : isEdit ? 'Save Changes' : 'Add Transaction'}
+        {submitting ? 'Processing...' : isEdit ? 'Correct Date' : 'Add Transaction'}
       </button>
     </div>
   );
