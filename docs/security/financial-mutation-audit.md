@@ -79,8 +79,8 @@ Run in a clean checkout with Node 20+ and Deno 2:
 npm ci
 npm run test:financial-mutations
 npx eslint src/pages/admin/AdminApplications.jsx src/pages/admin/AdminAccounts.jsx src/pages/operations/BulkTransactionImport.jsx src/pages/operations/VerificationRequests.jsx src/pages/admin/AdminWithdrawals.jsx --quiet
-deno lint base44/shared/financialMutationRules.mjs base44/shared/financialMutationGateway.ts base44/functions/reviewApplication/entry.ts base44/functions/correctTransactionDate/entry.ts base44/functions/bulkImportTransactions/entry.ts base44/functions/reviewFundingRequest/entry.ts base44/functions/processWithdrawalRequest/entry.ts base44/functions/setAccountStatus/entry.ts base44/functions/createWithdrawalRequest/entry.ts
-deno check base44/functions/reviewApplication/entry.ts base44/functions/correctTransactionDate/entry.ts base44/functions/bulkImportTransactions/entry.ts base44/functions/reviewFundingRequest/entry.ts base44/functions/processWithdrawalRequest/entry.ts base44/functions/setAccountStatus/entry.ts base44/functions/createWithdrawalRequest/entry.ts
+deno lint base44/shared/financialMutationRules.mjs base44/shared/financialMutationGateway.ts base44/functions/reviewApplication/entry.ts base44/functions/correctTransactionDate/entry.ts base44/functions/bulkImportTransactions/entry.ts base44/functions/reviewFundingRequest/entry.ts base44/functions/processWithdrawalRequest/entry.ts base44/functions/setAccountStatus/entry.ts base44/functions/createMemberAccount/entry.ts base44/functions/createWithdrawalRequest/entry.ts base44/functions/createWithdrawalRequest/entry.ts
+deno check base44/functions/reviewApplication/entry.ts base44/functions/correctTransactionDate/entry.ts base44/functions/bulkImportTransactions/entry.ts base44/functions/reviewFundingRequest/entry.ts base44/functions/processWithdrawalRequest/entry.ts base44/functions/setAccountStatus/entry.ts base44/functions/createMemberAccount/entry.ts base44/functions/createWithdrawalRequest/entry.ts base44/functions/createWithdrawalRequest/entry.ts
 npm run build
 npm run lint
 npm audit --audit-level=high
@@ -126,7 +126,7 @@ The completed workflow run `39009653505` verified `npm ci`, all 11 financial-mut
 
 ### Latest validation status
 
-- The last completed run before the member-account and AccountDetail follow-ups was `39020056771` at commit `0523b425fde82df4610c603a7667717d91fcea6a`. It passed `npm ci`, 16/16 then-current financial-mutation tests, targeted ESLint, Deno lint/type-check, and the production build.
-- That run failed the final quality gate because full-repository lint reported 97 errors and the dependency audit reported 34 advisories (1 low, 13 moderate, 20 high).
-- Member account provisioning, disabled destructive deletion, the AccountDetail migration, and the new regression tests require a fresh CI run; do not describe these changes as validated until it completes.
-- The atomic provider remains unconfigured. No production function was invoked, no production data was changed, and no merge or production deployment was performed.
+- Workflow run [39031105208](https://github.com/iamtheoracle/vantoriss/actions/runs/39031105208), at commit `105eea4e7ee572c1883158b6e837fbacf3d958a1`, ran the withdrawal-initiation migration and reported **19/19 financial-mutation tests passed**, changed-UI ESLint passed, Deno lint passed, the then-configured Deno type-check passed, and the Vite production build passed.
+- That run's Deno type-check command did **not yet include** `createWithdrawalRequest/entry.ts`; CI coverage was corrected afterward. Subsequent changes to the amount precision check and request-revision validation were also committed after that run. The current head therefore remains **not yet CI-verified**; do not treat the prior run as verification of the current code.
+- Full repository lint reported **95 errors** (primarily unused imports) and the dependency audit still reports **34 advisories (1 low, 13 moderate, 20 high)**. The final quality gate failed, as intended, because these repository-wide blockers remain.
+- The atomic mutation provider remains unconfigured. No production financial mutation was executed and PR #8 remains draft/unmerged.
