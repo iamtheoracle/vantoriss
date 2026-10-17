@@ -55,6 +55,36 @@ export function validateDateCorrection(body: any) {
   return null;
 }
 
+export async function writeUncertainMutationAudit(
+  base44: any,
+  actor: any,
+  action: string,
+  targetId: string,
+  reason: string,
+  idempotencyKey: string,
+): Promise<boolean> {
+  if (!actor?.id) return false;
+  try {
+    await base44.asServiceRole.entities.AuditLog.create({
+      action_type: 'financial_mutation_uncertain',
+      description: `Financial mutation outcome uncertain: ${action}`,
+      details: JSON.stringify({
+        outcome: 'unknown',
+        action,
+        target_id: targetId,
+        reason,
+        idempotency_key: idempotencyKey,
+        next_step: 'Resolve by retrying the exact same operation with the same idempotency key.',
+      }),
+      user_id: actor.id,
+      admin_name: actor.full_name || actor.email || actor.role || 'Authenticated operator',
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function writeBlockedMutationAudit(
   base44: any,
   actor: any,
@@ -137,12 +167,20 @@ export async function invokeAtomicMutationService(
       signal: AbortSignal.timeout(12_000),
     });
   } catch {
-    return { ok: false as const, status: 503, code: 'ATOMIC_MUTATION_SERVICE_UNREACHABLE', message: 'The transactional financial mutation service could not be reached; no success was reported.' };
+    return { ok: false as const, status: 503, code: 'ATOMIC_MUTATION_OUTCOME_UNKNOWN', message: 'The mutation outcome is unknown. Retry the exact same operation so the idempotency key can resolve it; do not create a new request.' };
   }
 
   const result = await response.json().catch(() => null);
   if (!response.ok) {
-    const status = [400, 403, 404, 409, 422, 503].includes(response.status) ? response.status : 502;
+    if (response.status >= 500) {
+      return {
+        ok: false as const,
+        status: 503,
+        code: 'ATOMIC_MUTATION_OUTCOME_UNKNOWN',
+        message: 'The transactional service returned a server error. Retry the exact same operation with the same idempotency key; do not create a new request.',
+      };
+    }
+    const status = [400, 403, 404, 409, 422].includes(response.status) ? response.status : 502;
     const code = typeof result?.code === 'string' && /^[A-Z0-9_]{1,64}$/.test(result.code)
       ? result.code
       : 'ATOMIC_MUTATION_REJECTED';
