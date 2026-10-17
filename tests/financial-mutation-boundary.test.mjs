@@ -58,6 +58,6 @@ test('server endpoints require authenticated roles, revision tokens, and atomic 
   assert.ok(review.includes("required_kyc_status: decision === 'approved' ? 'approved' : undefined"));
   assert.ok(review.includes('disallowed_applicant_roles: ACCOUNT_HOLDER_BLOCKED_ROLES'));
   assert.ok(correction.includes("allowed_statuses: ['completed', 'reversed']"));
-  assert.ok(correction.includes('expected_updated_date: body.expected_updated_date'));
+  assert.ok(correction.includes('expected_updated_date: expectedUpdatedDate'));
   assert.ok(correction.includes("allowed_fields: ['transaction_date']"));
 });
