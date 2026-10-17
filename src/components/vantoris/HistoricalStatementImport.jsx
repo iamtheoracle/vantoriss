@@ -223,7 +223,8 @@ export default function HistoricalStatementImport({ open, onClose, accountId, ac
       return;
     }
 
-    const validTxns = transactions.filter(t => !t._dup);
+    // Send the full reviewed set; authoritative deduplication belongs to the transactional service.
+    const validTxns = transactions;
     const invalidIndex = validTxns.findIndex(t =>
       !parseDateSafe(t.transaction_date) ||
       typeof t.amount !== 'number' ||
