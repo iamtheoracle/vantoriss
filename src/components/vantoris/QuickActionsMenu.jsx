@@ -20,17 +20,20 @@ export default function QuickActionsMenu({ onActionComplete }) {
   const { toast } = useToast();
 
   async function handleActionSelect(actionId) {
-    setSelectedAction(actionId);
-    if (!accounts.length) {
-      setLoading(true);
-      try {
+    setLoading(true);
+    try {
+      if (!accounts.length) {
         const accts = await base44.entities.Account.list('-created_date', 100);
         setAccounts(accts);
-        } catch (e) {
-        console.error(e);
-        toast({ title: 'Load failed', description: e.message || 'Unable to load accounts.', variant: 'destructive' });
-        }
-        setLoading(false);
+      }
+      setSelectedAction(actionId);
+      setOpen(false);
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Load failed', description: e.message || 'Unable to load accounts.', variant: 'destructive' });
+      setSelectedAction(null);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -110,6 +113,34 @@ export default function QuickActionsMenu({ onActionComplete }) {
       >
         <Zap size={16} /> Quick Actions
       </button>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-white">Quick Actions</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            {QUICK_ACTIONS.map(action => {
+              const Icon = action.icon;
+              return (
+                <button
+                  key={action.id}
+                  type="button"
+                  onClick={() => handleActionSelect(action.id)}
+                  disabled={loading}
+                  className={`w-full flex items-center gap-3 rounded-xl px-4 py-3 text-left hover:bg-[#242D38] disabled:opacity-50 ${action.color}`}
+                >
+                  <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${action.bg}`}>
+                    <Icon size={18} />
+                  </span>
+                  <span className="text-sm font-medium">{action.label}</span>
+                </button>
+              );
+            })}
+            {loading && <p className="text-[#AAB4C3] text-xs">Loading accounts…</p>}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!selectedAction} onOpenChange={() => setSelectedAction(null)}>
         <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-md">
