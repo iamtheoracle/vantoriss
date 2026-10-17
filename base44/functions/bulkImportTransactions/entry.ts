@@ -177,6 +177,7 @@ export default async function bulkImportTransactions(req: Request): Promise<Resp
     !isCount(summary.skipped) ||
     !isCount(summary.errors) ||
     Number(summary.created) + Number(summary.skipped) + Number(summary.errors) !== rowCount ||
+    (Number(summary.created) > 0 && (Number(summary.skipped) > 0 || Number(summary.errors) > 0)) ||
     !created || created.length !== summary.created ||
     !skipped || skipped.length !== summary.skipped ||
     !errors || errors.length !== summary.errors
