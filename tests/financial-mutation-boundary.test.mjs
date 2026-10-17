@@ -144,6 +144,36 @@ test('withdrawal settlement requires atomic payout confirmation and never writes
   assert.ok(!mutationUi.includes('base44.entities.Account.update('));
 });
 
+
+test('admin account transactions, freezes, and CSV imports cannot write ledger state directly from the browser', async () => {
+  const ui = await read('src/pages/admin/AdminAccounts.jsx');
+  const endpoint = await read('base44/functions/createAdminTransaction/entry.ts');
+  for (const required of [
+    "invokeAtomicMutationService('transaction.create_manual'",
+    'require_authoritative_account_lookup: true',
+    'require_account_revision_match: true',
+    'require_account_active: true',
+    'require_verified_funding_evidence: type === \'deposit\'',
+    'require_sufficient_available_funds: type === \'withdrawal\'',
+    'compute_balance_server_side: true',
+    'never_trust_client_balance: true',
+    'notification_outbox_required: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `admin transaction endpoint must include ${required}`);
+  assert.ok(!endpoint.includes('entities.Transaction.create('));
+  assert.ok(!endpoint.includes('entities.Account.update('));
+  assert.ok(!endpoint.includes('entities.Notification.create('));
+  assert.ok(ui.includes("base44.functions.invoke('createAdminTransaction'"));
+  assert.ok(ui.includes("base44.functions.invoke('setAccountStatus'"));
+  assert.ok(ui.includes("base44.functions.invoke('bulkImportTransactions'"));
+  assert.ok(!ui.includes('base44.entities.Transaction.create('));
+  assert.ok(!ui.includes('base44.entities.Account.update('));
+  assert.ok(!ui.includes('base44.entities.Notification.create('));
+  assert.ok(!ui.includes('base44.entities.Transaction.bulkCreate('));
+  assert.ok(!ui.includes('base44.entities.Transaction.deleteMany('));
+});
+
 test('member withdrawal initiation uses an atomic ownership, balance, and audit boundary', async () => {
   const endpoint = await read('base44/functions/createWithdrawalRequest/entry.ts');
   const ui = await read('src/pages/AccountDetail.jsx');
