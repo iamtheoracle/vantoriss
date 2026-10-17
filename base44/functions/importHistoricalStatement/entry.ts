@@ -153,6 +153,8 @@ export default async function importHistoricalStatement(req: Request): Promise<R
     require_actor_owns_account: true,
     resolve_idempotency_before_revision_check: true,
     require_account_revision_match: true,
+    require_source_document_owned_by_actor: true,
+    require_source_document_url_from_upload_provider: true,
     deduplicate_against_authoritative_history: true,
     deduplicate_within_import: true,
     calculate_statement_totals_server_side: true,
