@@ -115,11 +115,11 @@ export default function AdminApplications() {
     }
     setSelectedIds(failures.map(item => item.id));
     setBulkMode(failures.length > 0);
-    await loadApps();
+    const refreshed = await loadApps().then(() => true).catch(() => false);
     setSubmitting(false);
     toast({
       title: failures.length ? 'Bulk approval incomplete' : 'Bulk approval complete',
-      description: `${approved} approved; ${failures.length} failed. ${failures[0]?.message || ''}`,
+      description: `${approved} approved; ${failures.length} failed. ${failures[0]?.message || ''}${refreshed ? '' : ' The decision result is confirmed, but the list could not refresh.'}`,
       variant: failures.length ? 'destructive' : 'default',
     });
   }
@@ -144,11 +144,11 @@ export default function AdminApplications() {
     }
     setSelectedIds(failures.map(item => item.id));
     setBulkMode(failures.length > 0);
-    await loadApps();
+    const refreshed = await loadApps().then(() => true).catch(() => false);
     setSubmitting(false);
     toast({
       title: failures.length ? 'Bulk rejection incomplete' : 'Bulk rejection complete',
-      description: `${rejected} rejected; ${failures.length} failed. ${failures[0]?.message || ''}`,
+      description: `${rejected} rejected; ${failures.length} failed. ${failures[0]?.message || ''}${refreshed ? '' : ' The decision result is confirmed, but the list could not refresh.'}`,
       variant: failures.length ? 'destructive' : 'default',
     });
   }
@@ -160,8 +160,8 @@ export default function AdminApplications() {
       await reviewOneApplication(selected, 'approved', 0, adminNotes);
       setSelected(null);
       setAdminNotes('');
-      await loadApps();
-      toast({ title: 'Application approved', description: `${selected.full_name}'s application was approved.` });
+      const refreshed = await loadApps().then(() => true).catch(() => false);
+      toast({ title: 'Application approved', description: `${selected.full_name}'s application was approved.${refreshed ? '' : ' Reload the list to see the latest state.'}` });
     } catch (error) {
       toast({
         title: 'Approval unavailable',
@@ -180,8 +180,8 @@ export default function AdminApplications() {
       await reviewOneApplication(selected, 'rejected', 0, adminNotes);
       setSelected(null);
       setAdminNotes('');
-      await loadApps();
-      toast({ title: 'Application rejected', description: `${selected.full_name}'s application was rejected.` });
+      const refreshed = await loadApps().then(() => true).catch(() => false);
+      toast({ title: 'Application rejected', description: `${selected.full_name}'s application was rejected.${refreshed ? '' : ' Reload the list to see the latest state.'}` });
     } catch (error) {
       toast({
         title: 'Rejection unavailable',
