@@ -20,7 +20,7 @@ function validOptionalDate(value: unknown): value is string | undefined {
   return value === undefined || value === null || value === '' || (typeof value === 'string' && isDateOnly(value));
 }
 
-function boundedText(value: unknown, max: number, field: string): string | null {
+function boundedText(value: unknown, max: number): string | null {
   if (value === undefined || value === null) return '';
   if (typeof value !== 'string') return null;
   const normalized = value.trim();
@@ -68,10 +68,6 @@ export default async function importHistoricalStatement(req: Request): Promise<R
   if (periodStart && periodEnd && periodStart > periodEnd) {
     return jsonResponse({ error: 'period_start must not be after period_end.' }, 400);
   }
-  if (typeof periodStart === 'string' && typeof periodEnd === 'string' &&
-      (statementDate < periodStart || statementDate > periodEnd)) {
-    return jsonResponse({ error: 'statement_date must fall within the supplied statement period.' }, 400);
-  }
 
   const textFields: Record<string, number> = {
     source_institution: 200, account_name: 200, account_identifier: 128, import_notes: 2000,
@@ -79,14 +75,14 @@ export default async function importHistoricalStatement(req: Request): Promise<R
   };
   const metadata: Record<string, unknown> = {};
   for (const [field, max] of Object.entries(textFields)) {
-    const normalized = boundedText(metadataInput[field], max, field);
+    const normalized = boundedText(metadataInput[field], max);
     if (normalized === null) return jsonResponse({ error: `${field} must be text of at most ${max} characters.` }, 400);
     metadata[field] = normalized;
   }
   for (const field of ['opening_balance', 'closing_balance'] as const) {
     const value = metadataInput[field] === '' || metadataInput[field] === undefined || metadataInput[field] === null
       ? 0 : metadataInput[field];
-    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 ||
+    if (typeof value !== 'number' || !Number.isFinite(value) ||
         Math.abs(value * 100 - Math.round(value * 100)) > 1e-7 ||
         !Number.isSafeInteger(Math.round(value * 100))) {
       return jsonResponse({ error: `${field} must be a non-negative amount with at most two decimal places.` }, 400);
@@ -117,8 +113,8 @@ export default async function importHistoricalStatement(req: Request): Promise<R
     const type = typeof row.type === 'string' ? row.type.trim().toLowerCase() : '';
     const amount = row.amount;
     const date = row.transaction_date;
-    const description = boundedText(row.description, 1000, 'description');
-    const reference = boundedText(row.reference, 256, 'reference');
+    const description = boundedText(row.description, 1000);
+    const reference = boundedText(row.reference, 256);
     if (!HISTORICAL_TYPES.has(type)) return jsonResponse({ error: `Transaction row ${index + 1} has an unsupported type.` }, 400);
     if (typeof amount !== 'number' || !Number.isFinite(amount) || amount === 0 ||
         !Number.isSafeInteger(Math.round(amount * 100)) ||
@@ -156,7 +152,6 @@ export default async function importHistoricalStatement(req: Request): Promise<R
     require_authoritative_account_lookup: true,
     require_actor_owns_account: true,
     require_account_revision_match: true,
-    require_statement_date_within_period: true,
     deduplicate_against_authoritative_history: true,
     deduplicate_within_import: true,
     max_transactions: MAX_IMPORT_ROWS,
@@ -179,8 +174,8 @@ export default async function importHistoricalStatement(req: Request): Promise<R
   const saved = outcome.result.statement as Record<string, unknown> | undefined;
   const summary = outcome.result.summary;
   if (!saved || typeof saved.id !== 'string' || saved.account_id !== accountId ||
-      !isRecord(summary) || !Number.isSafeInteger(summary.imported) ||
-      !Number.isSafeInteger(summary.skipped) || Number(summary.imported) + Number(summary.skipped) > rows.length ||
+      !isRecord(summary) || typeof summary.imported !== 'number' || !Number.isSafeInteger(summary.imported) ||
+      typeof summary.skipped !== 'number' || !Number.isSafeInteger(summary.skipped) || summary.imported < 0 || summary.skipped < 0 || Number(summary.imported) + Number(summary.skipped) > rows.length ||
       outcome.result.account_balance_modified !== false) {
     const auditRecorded = await writeUncertainMutationAudit(
       base44, actor, 'historical_statement.import', accountId, 'ATOMIC_MUTATION_CONTRACT_VIOLATION', idempotencyKey,
