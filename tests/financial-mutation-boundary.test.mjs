@@ -143,3 +143,42 @@ test('withdrawal settlement requires atomic payout confirmation and never writes
   assert.ok(!mutationUi.includes('base44.entities.Transaction.create('));
   assert.ok(!mutationUi.includes('base44.entities.Account.update('));
 });
+
+
+test('account status changes use an authenticated atomic boundary for operators and member self-freeze', async () => {
+  const endpoint = await read('base44/functions/setAccountStatus/entry.ts');
+  const quickActions = await read('src/components/vantoris/QuickActionsMenu.jsx');
+  const commandDock = await read('src/components/vantoris/FloatingCommandDock.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    'validateMutationEnvelope(body)',
+    "invokeAtomicMutationService('account.status_change'",
+    'require_authoritative_account_lookup: true',
+    'require_account_revision_match: true',
+    'require_actor_owns_account: isSelfServiceFreeze',
+    'allow_member_freeze_only: isSelfServiceFreeze',
+    'notification_outbox_required: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `account status boundary must include ${required}`);
+  assert.ok(endpoint.includes("actor.role === 'user' && targetStatus === 'frozen'"));
+  assert.ok(quickActions.includes("base44.functions.invoke('setAccountStatus'"));
+  assert.ok(commandDock.includes("base44.functions.invoke('setAccountStatus'"));
+  const operatorHandler = quickActions.slice(
+    quickActions.indexOf('async function mutateAccountStatus'),
+    quickActions.indexOf('async function handleFreeze'),
+  );
+  const memberHandler = commandDock.slice(
+    commandDock.indexOf('async function handleFreeze'),
+    commandDock.indexOf('if (!user) return null;'),
+  );
+  for (const handler of [operatorHandler, memberHandler]) {
+    assert.ok(handler.includes('getMutationIdempotencyKey('));
+    assert.ok(handler.includes('clearMutationIdempotencyKey('));
+    assert.ok(!handler.includes('base44.entities.Account.update('));
+    assert.ok(!handler.includes('base44.entities.Transaction.create('));
+    assert.ok(!handler.includes('base44.entities.Notification.create('));
+    assert.ok(!handler.includes('logAuditEntry('));
+  }
+  assert.ok(!quickActions.includes('async function handleAdjustment'));
+});
