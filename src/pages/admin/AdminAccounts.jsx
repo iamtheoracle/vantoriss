@@ -130,6 +130,12 @@ export default function AdminAccounts() {
       toast({ title: 'Transaction date required', description: 'Choose the corrected transaction date.', variant: 'destructive' });
       return;
     }
+    const currentDate = editingTxn.transaction_date ? editingTxn.transaction_date.split('T')[0] : null;
+    if (currentDate === txnForm.transaction_date) {
+      setEditingTxn(null);
+      toast({ title: 'No change needed', description: 'The transaction already has that date.' });
+      return;
+    }
     setSubmitting(true);
     try {
       const operationScope = JSON.stringify([
@@ -167,7 +173,7 @@ export default function AdminAccounts() {
     } catch (error) {
       toast({
         title: 'Date correction unavailable',
-        description: error?.message || 'The server did not confirm the correction. No success is assumed.',
+        description: error?.response?.data?.error || error?.message || 'The server did not confirm the correction. No success is assumed.',
         variant: 'destructive',
       });
     } finally {
