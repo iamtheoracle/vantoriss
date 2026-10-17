@@ -77,8 +77,6 @@ export default async function reviewApplication(req: Request): Promise<Response>
     decision,
     admin_notes: adminNotes,
     opening_balance: 0,
-    target_user_id: application.user_id,
-    account_type: application.account_type,
     expected_application_status: 'pending',
     expected_updated_date: body.expected_updated_date,
     required_kyc_status: decision === 'approved' ? 'approved' : undefined,
