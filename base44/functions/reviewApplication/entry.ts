@@ -140,11 +140,36 @@ export default async function reviewApplication(req: Request): Promise<Response>
     return jsonResponse({ error: outcome.message, code: outcome.code }, outcome.status);
   }
 
+  const savedApplication = outcome.result.application;
+  const savedAccount = outcome.result.account;
+  if (!savedApplication?.id || savedApplication.application_status !== decision) {
+    return jsonResponse({
+      error: 'The transactional service did not confirm the requested application state.',
+      code: 'ATOMIC_MUTATION_CONTRACT_VIOLATION',
+    }, 502);
+  }
+  if (decision === 'approved' && !savedAccount?.id) {
+    return jsonResponse({
+      error: 'The transactional service did not confirm account creation.',
+      code: 'ATOMIC_MUTATION_CONTRACT_VIOLATION',
+    }, 502);
+  }
+
   return jsonResponse({
     success: true,
     operation_id: body.idempotency_key,
-    application: outcome.result.application,
-    account: outcome.result.account,
+    application: {
+      id: savedApplication.id,
+      application_status: savedApplication.application_status,
+      updated_date: savedApplication.updated_date,
+    },
+    account: savedAccount ? {
+      id: savedAccount.id,
+      account_number: savedAccount.account_number,
+      account_type: savedAccount.account_type,
+      balance: savedAccount.balance,
+      status: savedAccount.status,
+    } : null,
     audit_recorded: true,
   });
 }
