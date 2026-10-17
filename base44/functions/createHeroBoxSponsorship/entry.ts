@@ -70,6 +70,7 @@ export default async function createHeroBoxSponsorship(req: Request): Promise<Re
     expected_profile_updated_date: expectedProfileUpdatedDate || null,
     require_authoritative_account_lookup: true,
     require_actor_owns_account: true,
+    resolve_idempotency_before_revision_check: true,
     require_account_revision_match: true,
     require_account_active: true,
     require_member_kyc_approved: true,
