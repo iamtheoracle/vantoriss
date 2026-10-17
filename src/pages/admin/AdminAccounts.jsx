@@ -5,8 +5,6 @@ import { exportToCsv } from '@/lib/exportCsv';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Plus, Search, Download, History, Pencil, ArrowLeft, ScrollText, Lock, Unlock, Upload } from 'lucide-react';
-import { logAuditEntry } from '@/lib/auditLogger';
-import { sendTransactionEmail } from '@/lib/transactionEmails';
 import { clearMutationIdempotencyKey, fingerprintMutationScope, getMutationIdempotencyKey } from '@/lib/mutationIdempotency';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -66,7 +64,7 @@ export default function AdminAccounts() {
       if (type !== 'deposit' && type !== 'withdrawal') {
         throw new Error('Adjustments and opening balances require separate verified workflows.');
       }
-      if (!Number.isFinite(amount) || amount <= 0 || Math.round(amount * 100) !== amount * 100) {
+      if (!Number.isFinite(amount) || amount <= 0 || !Number.isSafeInteger(Math.round(amount * 100)) || Math.abs(amount * 100 - Math.round(amount * 100)) > Number.EPSILON * Math.max(1, Math.abs(amount * 100)) * 4) {
         throw new Error('Enter a positive amount with no more than two decimal places.');
       }
       const operationScope = `admin-transaction-create:${await fingerprintMutationScope(JSON.stringify({
@@ -756,6 +754,7 @@ export default function AdminAccounts() {
 function TransactionForm({ txnForm, setTxnForm, submitting, onSubmit, account, isEdit }) {
   return (
     <div className="space-y-4 mt-2">
+      {!isEdit && <p className="rounded-xl border border-amber-400/20 bg-amber-400/10 p-3 text-sm text-amber-100" role="note">Deposits require verified funding evidence. Adjustments and opening balances are disabled here and must use their dedicated verified workflows.</p>}
       <div className="vantoris-card p-3">
         <p className="text-white text-sm font-medium">{account.account_name}</p>
         <p className="text-[#AAB4C3] text-xs">Balance: {formatCurrency(account.balance)}</p>
@@ -776,8 +775,6 @@ function TransactionForm({ txnForm, setTxnForm, submitting, onSubmit, account, i
             >
               <option value="deposit">Deposit</option>
               <option value="withdrawal">Withdrawal</option>
-              <option value="adjustment">Adjustment</option>
-              <option value="opening_balance">Opening Balance</option>
             </select>
           </div>
           <div>
