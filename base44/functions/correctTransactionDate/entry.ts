@@ -70,6 +70,7 @@ export default async function correctTransactionDate(req: Request): Promise<Resp
   const savedDate = savedTransaction?.transaction_date;
   if (
     savedTransaction?.id !== transactionId ||
+    savedTransaction?.account_id !== body.account_id ||
     !isDateOnly(savedDate) ||
     savedDate !== body.transaction_date ||
     !['completed', 'reversed'].includes(savedTransaction?.status) ||
