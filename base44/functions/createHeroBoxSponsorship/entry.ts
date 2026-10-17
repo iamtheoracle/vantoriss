@@ -103,11 +103,11 @@ export default async function createHeroBoxSponsorship(req: Request): Promise<Re
   if (!savedRequest || typeof savedRequest.id !== 'string' ||
       savedRequest.user_id !== actor.id || savedRequest.account_id !== accountId ||
       savedRequest.status !== 'pending' || savedRequest.amount !== packageDetails.amount ||
-      !transaction || transaction.account_id !== accountId ||
+      !transaction || typeof transaction.id !== 'string' || transaction.account_id !== accountId ||
       transaction.type !== 'withdrawal' || transaction.amount !== packageDetails.amount ||
       !account || account.id !== accountId ||
-      typeof account.balance !== 'number' || !Number.isFinite(account.balance) ||
-      !activity || activity.user_id !== actor.id || activity.status !== 'completed') {
+      typeof account.balance !== 'number' || !Number.isFinite(account.balance) || typeof account.updated_date !== 'string' ||
+      !activity || typeof activity.id !== 'string' || activity.user_id !== actor.id || activity.status !== 'completed') {
     const auditRecorded = await writeUncertainMutationAudit(
       base44, actor, 'herobox.sponsor', accountId, 'ATOMIC_MUTATION_CONTRACT_VIOLATION', idempotencyKey,
     );
