@@ -177,7 +177,7 @@ export default function Home() {
 
       {/* Primary Actions — Send, Receive, Add funds, Activity */}
       <div className="mb-6">
-        <PrimaryActions />
+        <PrimaryActions accounts={accounts} />
       </div>
 
       {/* Private Wealth — only if portfolios exist */}
