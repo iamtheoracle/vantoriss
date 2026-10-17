@@ -109,6 +109,6 @@ The completed workflow run `39009653505` verified `npm ci`, all 11 financial-mut
 
 ### Latest validation status
 
-- Commit `9fad05bbaf01edb961506209e535dc40d01bea1d` completed `npm ci`, all 15 then-current financial-mutation tests, targeted ESLint, Deno lint, Deno type-check, and the Vite production build. The workflow still failed its final quality gate because repository-wide lint debt and the high-severity dependency audit remain unresolved.
-- That run predates the account-status endpoint, UI migrations, and new regression test. A fresh CI run is required for the current branch before treating those changes as verified.
-- Do not merge or enable successful financial mutations until the atomic provider is configured and verified, the latest test suite passes, and the repository-wide lint/dependency gates are resolved.
+- Latest run `39020056771` at commit `0523b425fde82df4610c603a7667717d91fcea6a` completed `npm ci`, all **16/16 financial-mutation tests**, targeted ESLint for all changed UI files, Deno lint for eight files, Deno type-check for all six server endpoints, and the Vite production build.
+- The same run failed the final repository quality gate because full-repository lint still reports **97 errors** and `npm audit --audit-level=high` reports **34 advisories (1 low, 13 moderate, 20 high)**. Targeted lint passing does not imply repository-wide lint is clean.
+- The latest run verifies the account-status endpoint and its UI migration at the checked commit, but the atomic provider remains unconfigured. No successful financial or account-status mutation can be enabled until the provider is configured and end-to-end verified, and the full lint/dependency gates are resolved.
