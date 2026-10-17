@@ -1,0 +1,46 @@
+name: Dependency Audit Candidate
+on:
+  push:
+    branches:
+      - security/financial-mutation-boundary-2026-10-17
+permissions:
+  contents: read
+concurrency:
+  group: dependency-audit-candidate-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Restore locked dependencies
+        run: npm ci
+      - name: Apply non-forced compatible audit fixes to lockfile
+        run: npm audit fix --package-lock-only
+      - name: Install candidate locked dependencies
+        run: npm ci
+      - name: Capture candidate audit report
+        if: always()
+        run: npm audit --json > audit-report.json || true
+      - name: Verify candidate tests, lint, and production build
+        run: |
+          npm run test:financial-mutations
+          npm run lint
+          npm run build
+      - name: Upload candidate lockfile and audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-audit-candidate
+          path: |
+            package-lock.json
+            audit-report.json
+          if-no-files-found: error
+          retention-days: 3
