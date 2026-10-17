@@ -61,3 +61,27 @@ test('server endpoints require authenticated roles, revision tokens, and atomic 
   assert.ok(correction.includes('expected_updated_date: expectedUpdatedDate'));
   assert.ok(correction.includes("allowed_fields: ['transaction_date']"));
 });
+
+test('bulk transaction imports cannot write ledger records outside the atomic service', async () => {
+  const endpoint = await read('base44/functions/bulkImportTransactions/entry.ts');
+  const ui = await read('src/pages/operations/BulkTransactionImport.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    'isAllowedFinancialRole(actor)',
+    'isUuid(parsedBody.idempotency_key)',
+    'validateAndNormalizeRows(parsedBody.transactions)',
+    "invokeAtomicMutationService(",
+    "'transactions.bulk_import'",
+    'all_or_nothing: true',
+    'prevent_negative_balances: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `bulk import boundary must include ${required}`);
+  assert.ok(!endpoint.includes('entities.Transaction.create('));
+  assert.ok(!endpoint.includes('entities.Account.update('));
+  assert.ok(!endpoint.includes('entities.AuditLog.create('));
+  assert.ok(ui.includes('fingerprintMutationScope(JSON.stringify(transactions))'));
+  assert.ok(ui.includes('idempotency_key: idempotencyKey'));
+  assert.ok(ui.includes('payload.operation_id !== idempotencyKey'));
+  assert.ok(ui.includes("const VALID_TYPES = ['deposit', 'withdrawal']"));
+});
