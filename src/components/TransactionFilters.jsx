@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Filter, X, Calendar } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, startOfYear, endOfYear, subMonths } from 'date-fns';
+import { Filter, X } from 'lucide-react';
+import { startOfMonth, endOfMonth, startOfYear, endOfYear, subMonths } from 'date-fns';
 
 const CATEGORY_OPTIONS = [
   { value: 'opening_balance', label: 'Opening Balance' },
