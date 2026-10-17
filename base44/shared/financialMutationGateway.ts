@@ -3,7 +3,7 @@ import { isDateOnly, isUuid, isValidRevision } from './financialMutationRules.mj
 export type AuthenticatedActor = {
   id: string;
   role?: string;
-  full_name?: string;
+  full_name?: string | null;
   email?: string;
 };
 
