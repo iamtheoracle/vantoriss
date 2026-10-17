@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Plus, Search, Download, History, Pencil, ArrowLeft, ScrollText, Lock, Unlock, Upload } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
 import { sendTransactionEmail } from '@/lib/transactionEmails';
-import { clearMutationIdempotencyKey, getMutationIdempotencyKey } from '@/lib/mutationIdempotency';
+import { clearMutationIdempotencyKey, fingerprintMutationScope, getMutationIdempotencyKey } from '@/lib/mutationIdempotency';
 import { useToast } from '@/components/ui/use-toast';
 
 export default function AdminAccounts() {
@@ -57,67 +57,69 @@ export default function AdminAccounts() {
   async function handleAddTransaction() {
     if (!showTxn) return;
     setSubmitting(true);
+    const amount = Number(txnForm.amount);
+    const type = txnForm.type;
     try {
-      const amount = parseFloat(txnForm.amount);
-      let newBalance = showTxn.balance;
-      if (txnForm.type === 'deposit') newBalance += amount;
-      else if (txnForm.type === 'withdrawal') newBalance -= amount;
-      else newBalance += amount; // adjustment can be negative
-
-      const txnData = {
-        account_id: showTxn.id,
-        type: txnForm.type,
-        amount: txnForm.type === 'withdrawal' ? -Math.abs(amount) : amount,
-        description: txnForm.description,
-        reference: txnForm.reference,
-        balance_after: newBalance,
-        created_by_admin: true,
-      };
-      if (txnForm.transaction_date) {
-        txnData.transaction_date = txnForm.transaction_date;
+      if (!showTxn.updated_date) {
+        throw new Error('The account revision is missing. Refresh account history before retrying.');
       }
-
-      await base44.entities.Transaction.create(txnData);
-      await base44.entities.Account.update(showTxn.id, { balance: newBalance });
-
-      const typeLabel = txnForm.type === 'deposit' ? 'Deposit Received'
-        : txnForm.type === 'withdrawal' ? 'Withdrawal Processed'
-        : 'Account Adjustment';
-      await base44.entities.Notification.create({
-        user_id: showTxn.user_id,
-        title: typeLabel,
-        message: `${txnForm.description || typeLabel}: ${formatCurrency(Math.abs(amount))}`,
-        type: txnForm.type === 'withdrawal' ? 'action' : 'success',
-      });
-
-      await sendTransactionEmail({
-        user_id: showTxn.user_id,
-        account: showTxn,
-        type: txnForm.type,
-        amount,
-        description: txnForm.description,
-        newBalance,
-      });
-
-      await logAuditEntry({
-        action_type: txnForm.type === 'adjustment' ? 'balance_adjusted' : 'transaction_created',
-        description: `${typeLabel}: ${formatCurrency(Math.abs(amount))} — ${txnForm.description || 'No description'}`,
-        details: `Type: ${txnForm.type}, Reference: ${txnForm.reference || 'N/A'}${txnForm.transaction_date ? `, Backdated: ${txnForm.transaction_date}` : ''}`,
+      if (type !== 'deposit' && type !== 'withdrawal') {
+        throw new Error('Adjustments and opening balances require separate verified workflows.');
+      }
+      if (!Number.isFinite(amount) || amount <= 0 || Math.round(amount * 100) !== amount * 100) {
+        throw new Error('Enter a positive amount with no more than two decimal places.');
+      }
+      const operationScope = `admin-transaction-create:${await fingerprintMutationScope(JSON.stringify({
         account_id: showTxn.id,
-        amount: txnForm.type === 'withdrawal' ? -Math.abs(amount) : amount,
-        balance_before: showTxn.balance,
-        balance_after: newBalance,
+        type,
+        amount,
+        description: txnForm.description.trim(),
+        reference: txnForm.reference.trim(),
+        transaction_date: txnForm.transaction_date || null,
+        expected_updated_date: showTxn.updated_date,
+      }))}`;
+      const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+      const response = await base44.functions.invoke('createAdminTransaction', {
+        account_id: showTxn.id,
+        type,
+        amount,
+        description: txnForm.description.trim(),
+        reference: txnForm.reference.trim(),
+        transaction_date: txnForm.transaction_date || undefined,
+        expected_updated_date: showTxn.updated_date,
+        idempotency_key: idempotencyKey,
       });
-
+      const result = response?.data || response;
+      if (
+        result?.success !== true ||
+        result?.operation_id !== idempotencyKey ||
+        result?.audit_recorded !== true ||
+        result?.transaction?.account_id !== showTxn.id ||
+        result?.transaction?.type !== type ||
+        result?.transaction?.amount !== (type === 'withdrawal' ? -amount : amount) ||
+        result?.account?.id !== showTxn.id ||
+        result?.account?.balance !== result?.transaction?.balance_after ||
+        typeof result?.account?.updated_date !== 'string' ||
+        result.account.updated_date === showTxn.updated_date
+      ) {
+        throw new Error(result?.error || 'The server did not confirm the ledger entry and resulting balance. Retry the same operation without changing its details.');
+      }
+      await clearMutationIdempotencyKey(operationScope);
       setShowTxn(null);
       setTxnForm({ type: 'deposit', amount: '', description: '', reference: '', transaction_date: '' });
-      loadAccounts();
-      toast({ title: 'Transaction added', description: `${formatCurrency(Math.abs(parseFloat(txnForm.amount)))} ${txnForm.type} processed successfully.` });
+      toast({ title: 'Transaction confirmed', description: `${formatCurrency(Math.abs(amount))} ${type} recorded with an audited balance update.` });
+      try {
+        await loadAccounts();
+        if (viewingHistory) await viewHistory({ ...viewingHistory, balance: result.account.balance, updated_date: result.account.updated_date });
+      } catch (refreshError) {
+        console.error('Transaction was confirmed, but the account view could not be refreshed.', refreshError);
+      }
     } catch (e) {
       console.error(e);
-      toast({ title: 'Transaction failed', description: e.message || 'Unable to add transaction.', variant: 'destructive' });
+      toast({ title: 'Transaction not confirmed', description: e.message || 'The result is uncertain. Retry with unchanged details.', variant: 'destructive' });
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   }
 
   async function handleEditTransaction() {
@@ -219,37 +221,49 @@ export default function AdminAccounts() {
     setToggleFreezeAccount(account);
     setFreezing(true);
     try {
+      if (!account.updated_date) throw new Error('The account revision is missing. Refresh before changing status.');
       const newStatus = account.status === 'frozen' ? 'active' : 'frozen';
-      await base44.entities.Account.update(account.id, { status: newStatus });
-      
-      // Log in audit trail
-      await logAuditEntry({
-        action_type: 'account_status_changed',
-        description: `Account ${newStatus === 'frozen' ? 'FROZEN' : 'UNFROZEN'}: ${account.account_name}`,
-        details: `Account disabled for ${newStatus === 'frozen' ? 'trading and withdrawals' : 'all operations'}`,
+      const operationScope = `admin-account-status:${await fingerprintMutationScope(JSON.stringify({
         account_id: account.id,
-        target_user_id: account.user_id,
+        expected_status: account.status,
+        status: newStatus,
+        expected_updated_date: account.updated_date,
+      }))}`;
+      const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+      const response = await base44.functions.invoke('setAccountStatus', {
+        account_id: account.id,
+        status: newStatus,
+        expected_status: account.status,
+        expected_updated_date: account.updated_date,
+        idempotency_key: idempotencyKey,
       });
-
-      // Notify member
-      await base44.entities.Notification.create({
-        user_id: account.user_id,
-        title: newStatus === 'frozen' ? 'Account Frozen' : 'Account Unfrozen',
-        message: newStatus === 'frozen'
-          ? `Your ${account.account_name} account has been frozen and is now unavailable for trading and withdrawals.`
-          : `Your ${account.account_name} account has been unfrozen and is now available for use.`,
-        type: newStatus === 'frozen' ? 'warning' : 'success',
-      });
-
+      const result = response?.data || response;
+      if (
+        result?.success !== true ||
+        result?.operation_id !== idempotencyKey ||
+        result?.audit_recorded !== true ||
+        result?.account?.id !== account.id ||
+        result?.account?.status !== newStatus ||
+        typeof result?.account?.updated_date !== 'string' ||
+        result.account.updated_date === account.updated_date
+      ) {
+        throw new Error(result?.error || 'The server did not confirm the account status change. Retry the same operation.');
+      }
+      await clearMutationIdempotencyKey(operationScope);
       setToggleFreezeAccount(null);
-      loadAccounts();
-      if (viewingHistory) viewHistory({ ...viewingHistory, status: newStatus });
       toast({ title: newStatus === 'frozen' ? 'Account frozen' : 'Account unfrozen', description: `${account.account_name} is now ${newStatus}.` });
+      try {
+        await loadAccounts();
+        if (viewingHistory) await viewHistory({ ...viewingHistory, status: newStatus, updated_date: result.account.updated_date });
+      } catch (refreshError) {
+        console.error('Account status change was confirmed, but the account view could not be refreshed.', refreshError);
+      }
     } catch (e) {
       console.error(e);
-      toast({ title: 'Action failed', description: e.message || 'Unable to change account status.', variant: 'destructive' });
+      toast({ title: 'Account status not confirmed', description: e.message || 'The result is uncertain. Retry the same operation.', variant: 'destructive' });
+    } finally {
+      setFreezing(false);
     }
-    setFreezing(false);
   }
 
   async function handleImportTransactions(file) {
@@ -257,61 +271,100 @@ export default function AdminAccounts() {
     setImporting(true);
     try {
       const text = await file.text();
-      const lines = text.split('\n').map(l => l.trim()).filter(l => l);
-      
-      if (lines.length < 2) {
-        alert('CSV must have header row and at least one transaction');
-        setImporting(false);
-        return;
-      }
+      const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+      if (lines.length < 2) throw new Error('CSV must contain a header row and at least one transaction.');
 
-      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+      const parseCsvLine = (line) => {
+        const values = [];
+        let value = '';
+        let quoted = false;
+        for (let i = 0; i < line.length; i += 1) {
+          const char = line[i];
+          if (char === '"' && quoted && line[i + 1] === '"') {
+            value += '"';
+            i += 1;
+          } else if (char === '"') {
+            quoted = !quoted;
+          } else if (char === ',' && !quoted) {
+            values.push(value.trim());
+            value = '';
+          } else {
+            value += char;
+          }
+        }
+        if (quoted) throw new Error('CSV contains an unterminated quoted field.');
+        values.push(value.trim());
+        return values;
+      };
+      const headers = parseCsvLine(lines[0]).map(header => header.toLowerCase());
       const dateIdx = headers.indexOf('date');
       const typeIdx = headers.indexOf('type');
       const descIdx = headers.indexOf('description');
       const refIdx = headers.indexOf('reference');
       const amountIdx = headers.indexOf('amount');
       const accountIdx = headers.indexOf('account_number');
-
-      if (dateIdx === -1 || typeIdx === -1 || amountIdx === -1 || accountIdx === -1) {
-        alert('CSV must have columns: date, type, amount, account_number (description and reference optional)');
-        setImporting(false);
-        return;
+      if ([dateIdx, typeIdx, amountIdx, accountIdx].some(index => index < 0)) {
+        throw new Error('CSV must contain: date, type, amount, account_number. Description and reference are optional.');
       }
-
-      let imported = 0;
-      for (let i = 1; i < lines.length; i++) {
-        const parts = lines[i].split(',').map(p => p.trim());
-        const accountNum = parts[accountIdx];
-        const account = accounts.find(a => a.account_number === accountNum);
-        if (!account) {
-          console.warn(`Account ${accountNum} not found, skipping row ${i}`);
-          continue;
+      const transactions = lines.slice(1).map((line, index) => {
+        const parts = parseCsvLine(line);
+        if (parts.length !== headers.length) throw new Error(`CSV row ${index + 2} has a different number of columns than the header.`);
+        const type = (parts[typeIdx] || '').toLowerCase();
+        if (type !== 'deposit' && type !== 'withdrawal') {
+          throw new Error(`CSV row ${index + 2}: only deposit and withdrawal imports are enabled. Adjustments/opening balances require a separate verified workflow.`);
         }
-
-        const txnData = {
-          account_id: account.id,
-          type: parts[typeIdx],
-          amount: parseFloat(parts[amountIdx]),
+        const amount = Number(parts[amountIdx]);
+        if (!parts[accountIdx] || !Number.isFinite(amount) || amount <= 0 || Math.round(amount * 100) !== amount * 100) {
+          throw new Error(`CSV row ${index + 2} has an invalid account number or amount.`);
+        }
+        const transactionDate = parts[dateIdx];
+        if (transactionDate && !/^\d{4}-\d{2}-\d{2}$/.test(transactionDate)) {
+          throw new Error(`CSV row ${index + 2} has an invalid date; use YYYY-MM-DD.`);
+        }
+        return {
+          account_number: parts[accountIdx],
+          type,
+          amount,
           description: descIdx >= 0 ? parts[descIdx] || '' : '',
           reference: refIdx >= 0 ? parts[refIdx] || '' : '',
-          balance_after: account.balance,
-          created_by_admin: true,
-          transaction_date: dateIdx >= 0 ? parts[dateIdx] : undefined,
+          ...(transactionDate ? { transaction_date: transactionDate } : {}),
         };
-
-        await base44.entities.Transaction.create(txnData);
-        imported++;
+      });
+      const operationScope = `admin-bulk-import:${await fingerprintMutationScope(JSON.stringify(transactions))}`;
+      const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+      const response = await base44.functions.invoke('bulkImportTransactions', {
+        transactions,
+        idempotency_key: idempotencyKey,
+      });
+      const result = response?.data || response;
+      if (
+        result?.success !== true ||
+        result?.operation_id !== idempotencyKey ||
+        result?.audit_recorded !== true ||
+        result?.summary?.total !== transactions.length ||
+        !Number.isSafeInteger(result?.summary?.created) ||
+        !Number.isSafeInteger(result?.summary?.skipped) ||
+        !Number.isSafeInteger(result?.summary?.errors)
+      ) {
+        throw new Error(result?.error || 'The server did not confirm the complete import. Retry the same file without changing its contents.');
       }
-
-      alert(`Successfully imported ${imported} transactions`);
+      await clearMutationIdempotencyKey(operationScope);
       setShowImport(false);
-      loadAccounts();
+      toast({
+        title: 'Import result confirmed',
+        description: `${result.summary.created} of ${result.summary.total} rows imported; ${result.summary.skipped} skipped and ${result.summary.errors} errors.`,
+      });
+      try {
+        await loadAccounts();
+      } catch (refreshError) {
+        console.error('Import result was confirmed, but accounts could not be refreshed.', refreshError);
+      }
     } catch (e) {
       console.error(e);
-      toast({ title: 'Import failed', description: e.message || 'Unable to import transactions.', variant: 'destructive' });
+      toast({ title: 'Import not confirmed', description: e.message || 'Unable to verify the import result. Retry unchanged input.', variant: 'destructive' });
+    } finally {
+      setImporting(false);
     }
-    setImporting(false);
   }
 
   if (loading) {
