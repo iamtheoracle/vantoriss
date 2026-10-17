@@ -1,17 +1,15 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Upload, FileText, AlertTriangle, CheckCircle2, Calendar, Building2, X } from 'lucide-react';
+import { Upload, FileText, AlertTriangle, CheckCircle2, Building2, X } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import {
   parseDateSafe,
   formatStatementDate,
   formatPeriod,
-  formatTxnDate,
   dedupKey,
   periodsOverlap,
 } from '@/lib/statementDates';
-import { formatCurrency } from '@/lib/formatCurrency';
 import { clearMutationIdempotencyKey, fingerprintMutationScope, getMutationIdempotencyKey } from '@/lib/mutationIdempotency';
 
 /**
