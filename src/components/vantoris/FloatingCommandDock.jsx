@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { hasOperationsAccess } from '@/lib/operationsAccess';
-import { logAuditEntry } from '@/lib/auditLogger';
+import { clearMutationIdempotencyKey, fingerprintMutationScope, getMutationIdempotencyKey } from '@/lib/mutationIdempotency';
 import { useToast } from '@/components/ui/use-toast';
 import VantorisMonogram from '@/components/vantoris/brand/VantorisMonogram';
 import {
@@ -189,36 +189,55 @@ export default function FloatingCommandDock() {
 
   async function handleFreeze() {
     if (!selectedAccount) return;
+    const account = accounts.find(a => a.id === selectedAccount);
+    if (!account || typeof account.updated_date !== 'string' || !account.updated_date) {
+      toast({ title: 'Unable to Freeze Card', description: 'The account revision is missing. Reload your accounts and try again.', variant: 'destructive' });
+      return;
+    }
+
+    const operationScope = `member-freeze:${await fingerprintMutationScope(JSON.stringify({
+      account_id: selectedAccount,
+      status: 'frozen',
+      expected_status: 'active',
+      expected_updated_date: account.updated_date,
+      actor_id: user.id,
+    }))}`;
     setSubmitting(true);
     try {
-      const account = accounts.find(a => a.id === selectedAccount);
-      await base44.entities.Account.update(selectedAccount, { status: 'frozen' });
-      await base44.entities.Transaction.create({
+      const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+      const response = await base44.functions.invoke('setAccountStatus', {
         account_id: selectedAccount,
-        type: 'adjustment',
-        amount: 0,
-        description: 'Card frozen by member',
-        balance_after: account.balance,
+        status: 'frozen',
+        expected_status: 'active',
+        expected_updated_date: account.updated_date,
+        idempotency_key: idempotencyKey,
       });
-      await base44.entities.Notification.create({
-        user_id: user.id,
-        title: 'Card Frozen',
-        message: `Your card for ${account.account_name} has been frozen. No new transactions will be processed.`,
-        type: 'warning',
-      });
-      await logAuditEntry({
-        action_type: 'card_frozen',
-        description: `Member froze card for account: ${account.account_name}`,
-        account_id: selectedAccount,
-        target_user_id: user.id,
-      });
+      const payload = response?.data ?? response;
+      if (
+        payload?.success !== true ||
+        payload?.operation_id !== idempotencyKey ||
+        payload?.audit_recorded !== true ||
+        payload?.account?.id !== selectedAccount ||
+        payload?.account?.status !== 'frozen' ||
+        typeof payload?.account?.updated_date !== 'string' ||
+        payload.account.updated_date === account.updated_date
+      ) {
+        throw new Error('The server did not confirm the freeze and audit record. Reload and retry the same operation.');
+      }
+
+      await clearMutationIdempotencyKey(operationScope);
       toast({ title: 'Card Frozen', description: `${account.account_name} has been frozen. No new transactions will be processed.` });
       setFreezeOpen(false);
       setSelectedAccount(null);
     } catch (e) {
-      toast({ title: 'Unable to Freeze Card', description: e.message || 'Please try again. If the problem continues, contact support.', variant: 'destructive' });
+      toast({
+        title: 'Unable to Freeze Card',
+        description: e.message || 'Please try again. If the problem continues, contact support.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   }
 
   if (!user) return null;
