@@ -25,6 +25,10 @@ type AtomicMutationResult = {
   account?: Record<string, unknown> | null;
   transaction?: Record<string, unknown>;
   code?: string;
+  summary?: Record<string, unknown>;
+  created?: unknown[];
+  skipped?: unknown[];
+  errors?: unknown[];
 };
 
 type MutationOutcome =
