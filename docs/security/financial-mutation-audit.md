@@ -16,7 +16,7 @@
 
 - New `base44/functions/reviewApplication/entry.ts` is POST-only and authenticates through Base44 server-side identity.
 - Only explicit operations roles are accepted; browser route guards are not trusted as authorization.
-- It accepts only `pending -> approved` or `pending -> rejected`, requires the caller's expected `updated_date`, and requires approved KYC before approval.
+- It accepts only `approved` or `rejected` decisions and passes the expected `pending` state, caller's `updated_date`, and required approved-KYC state to the atomic service. The service must enforce all three against authoritative records inside its transaction; the Base44 wrapper does not treat a preflight read as concurrency protection.
 - Applicant roles with operational/admin privileges are rejected.
 - Operator-entered positive opening balances are blocked. Account approval must not create money without verified funding evidence.
 - It delegates the actual state transition, account creation, audit event, and notification outbox to the atomic mutation service. If that service is missing or does not confirm a matching idempotency key and audit record, the endpoint fails closed and does not report success.
@@ -25,7 +25,7 @@
 
 - New `base44/functions/correctTransactionDate/entry.ts` is POST-only and server-authenticated.
 - Only explicit operations roles are accepted.
-- It requires a valid calendar date, idempotency UUID, and expected `updated_date`; only `completed` or `reversed` transactions are eligible.
+- It requires a valid calendar date, idempotency UUID, expected `updated_date`, expected account identity, and expected transaction state (`completed` or `reversed`). The atomic service must compare all expected values to authoritative records inside the transaction.
 - It sends a narrowly scoped command that can change only `transaction_date`; amounts, account balances, posting dates, status, reference, and description are not in the mutation contract.
 - The atomic service must re-check the expected revision and state inside the transaction and persist the change and audit event together.
 
