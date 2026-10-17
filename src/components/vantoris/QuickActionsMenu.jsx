@@ -139,12 +139,6 @@ export default function QuickActionsMenu({ onActionComplete }) {
                 </select>
               </div>
 
-              {selectedAction === 'adjustment' && (
-                <p className="text-[#AAB4C3] text-sm">
-                  Balance adjustments are disabled until the audited transactional workflow is available.
-                </p>
-              )}
-
               <div className="flex gap-3">
                 <button
                   onClick={
@@ -152,7 +146,7 @@ export default function QuickActionsMenu({ onActionComplete }) {
                     selectedAction === 'unfreeze' ? handleUnfreeze :
                     handleFreeze
                   }
-                  disabled={!selectedAccount || selectedAction === 'adjustment' || submitting}
+                  disabled={!selectedAccount || submitting}
                   className="flex-1 py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl disabled:opacity-40 flex items-center justify-center gap-2"
                 >
                   <Check size={14} /> {submitting ? 'Processing...' : 'Confirm'}
