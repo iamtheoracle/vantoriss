@@ -25,6 +25,10 @@ jobs:
           cache: npm
       - name: Restore exact locked dependency tree
         run: npm ci
+      - name: Dependency vulnerability audit
+        id: audit
+        continue-on-error: true
+        run: npm audit --audit-level=high
       - name: Financial mutation rule tests
         run: npm run test:financial-mutations
       - name: Lint changed UI files
@@ -43,7 +47,15 @@ jobs:
         run: npm run lint
       - name: Production build
         run: npm run build
-      - name: Report existing repository lint debt
-        if: always() && steps.full_lint.outcome == 'failure'
+      - name: Report baseline lint and dependency audit debt
+        if: always()
+        env:
+          FULL_LINT_OUTCOME: ${{ steps.full_lint.outcome }}
+          AUDIT_OUTCOME: ${{ steps.audit.outcome }}
         run: |
-          echo "::warning::Full repository lint failed. See the Full repository lint step; do not treat targeted lint as a clean repository."
+          if [ "$FULL_LINT_OUTCOME" = "failure" ]; then
+            echo "::warning::Full repository lint failed. See the Full repository lint step; do not treat targeted lint as a clean repository."
+          fi
+          if [ "$AUDIT_OUTCOME" = "failure" ]; then
+            echo "::warning::Dependency audit reported high-severity advisories. Review the full audit output before changing locked versions."
+          fi
