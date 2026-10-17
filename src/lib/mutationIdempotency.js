@@ -59,3 +59,19 @@ export async function clearMutationIdempotencyKey(scope) {
     }
   }
 }
+
+/**
+ * Produces a non-reversible scope fingerprint for financial command payloads.
+ * The raw command must not be used as an idempotency scope because the helper
+ * keeps the in-memory scope map for retries.
+ */
+export async function fingerprintMutationScope(value) {
+  if (!globalThis.crypto?.subtle) {
+    throw new Error('Secure mutation fingerprinting is unavailable in this browser.');
+  }
+  const digest = await globalThis.crypto.subtle.digest(
+    'SHA-256',
+    new TextEncoder().encode(String(value)),
+  );
+  return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+}
