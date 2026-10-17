@@ -17,6 +17,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [partialWarning, setPartialWarning] = useState(false);
+  const [cardsUnavailable, setCardsUnavailable] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [hidden, setHidden] = useState(false);
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ export default function Home() {
       setLoading(true);
       setLoadError(false);
       setPartialWarning(false);
+      setCardsUnavailable(false);
 
       try {
         const me = await base44.auth.me();
@@ -48,6 +50,7 @@ export default function Home() {
         setUser(me);
         setAccounts(accountsResult.value);
         setCards(cardsResult.status === 'fulfilled' && Array.isArray(cardsResult.value) ? cardsResult.value : []);
+        setCardsUnavailable(cardsResult.status !== 'fulfilled' || !Array.isArray(cardsResult.value));
         setPortfolios(portfoliosResult.status === 'fulfilled' && Array.isArray(portfoliosResult.value) ? portfoliosResult.value : []);
         setPartialWarning(
           cardsResult.status !== 'fulfilled' ||
@@ -61,6 +64,7 @@ export default function Home() {
           setUser(null);
           setAccounts([]);
           setCards([]);
+          setCardsUnavailable(true);
           setPortfolios([]);
         }
       } finally {
@@ -199,7 +203,7 @@ export default function Home() {
       )}
 
       {/* Personalized Modules — real state or truthful unavailable */}
-      <DashboardModules accounts={accounts} cards={cards} portfolios={portfolios} />
+      <DashboardModules accounts={accounts} cards={cards} cardsUnavailable={cardsUnavailable} portfolios={portfolios} />
     </main>
   );
 }
