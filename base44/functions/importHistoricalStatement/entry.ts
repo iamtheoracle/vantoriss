@@ -47,7 +47,7 @@ export default async function importHistoricalStatement(req: Request): Promise<R
   if (!isUuid(body.idempotency_key)) return jsonResponse({ error: 'A valid UUID idempotency_key is required.' }, 400);
   if (!isValidRevision(body.expected_updated_date)) return jsonResponse({ error: 'expected_updated_date is required.' }, 400);
 
-  const idempotencyKey = body.idempotency_key;
+  const idempotencyKey = typeof body.idempotency_key === 'string' ? body.idempotency_key : '';
   const accountId = typeof body.account_id === 'string' ? body.account_id.trim() : '';
   if (!accountId || accountId.length > 128) return jsonResponse({ error: 'A valid account_id is required.' }, 400);
   if (actor.role !== 'user') {
@@ -154,6 +154,9 @@ export default async function importHistoricalStatement(req: Request): Promise<R
     require_account_revision_match: true,
     deduplicate_against_authoritative_history: true,
     deduplicate_within_import: true,
+    calculate_statement_totals_server_side: true,
+    transaction_count_from_committed_rows: true,
+    never_trust_client_totals: true,
     max_transactions: MAX_IMPORT_ROWS,
     historical_only: true,
     never_modify_current_account_balance: true,
