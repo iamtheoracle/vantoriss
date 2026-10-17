@@ -115,7 +115,11 @@ export default function AdminMembers() {
       await clearMutationIdempotencyKey(operationScope);
       setShowCreate(null);
       setAcctForm({ account_type: 'Personal', account_name: '' });
-      await loadData();
+      try {
+        await loadData();
+      } catch (refreshError) {
+        console.error('Account was created, but the member list could not be refreshed.', refreshError);
+      }
       toast({
         title: 'Account created',
         description: `${accountType} account ${account.account_number} created for ${targetMember.full_name}. It starts with a zero balance.`,
