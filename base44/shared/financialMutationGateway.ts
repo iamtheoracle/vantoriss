@@ -39,6 +39,16 @@ export function validateDateCorrection(body: any) {
   if (!isDateOnly(body?.transaction_date)) {
     return 'transaction_date must be a valid YYYY-MM-DD calendar date.';
   }
+  if (!['completed', 'reversed'].includes(body?.expected_status)) {
+    return 'expected_status must be completed or reversed.';
+  }
+  if (
+    body?.expected_current_transaction_date !== null &&
+    body?.expected_current_transaction_date !== undefined &&
+    !isDateOnly(body.expected_current_transaction_date)
+  ) {
+    return 'expected_current_transaction_date must be a valid YYYY-MM-DD date or null.';
+  }
   return null;
 }
 
