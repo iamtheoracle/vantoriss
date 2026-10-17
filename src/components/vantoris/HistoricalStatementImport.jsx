@@ -254,7 +254,6 @@ export default function HistoricalStatementImport({ open, onClose, accountId, ac
     setStep(4);
     const operationScope = `historical-statement-import:${await fingerprintMutationScope(JSON.stringify({
       accountId,
-      expectedUpdatedDate: account.updated_date,
       metadata,
       sourceDocUrl,
       transactions: validTxns.map(({ _dup, ...txn }) => txn),
