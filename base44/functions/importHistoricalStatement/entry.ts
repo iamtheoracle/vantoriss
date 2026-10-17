@@ -151,6 +151,7 @@ export default async function importHistoricalStatement(req: Request): Promise<R
     transactions: rows,
     require_authoritative_account_lookup: true,
     require_actor_owns_account: true,
+    resolve_idempotency_before_revision_check: true,
     require_account_revision_match: true,
     deduplicate_against_authoritative_history: true,
     deduplicate_within_import: true,
