@@ -324,3 +324,47 @@ test('historical statement import uses an atomic owner-scoped boundary and never
   assert.ok(!ui.includes('base44.entities.Transaction.bulkCreate('));
   assert.ok(!ui.includes('base44.entities.Document.create('));
 });
+
+
+test('HeroBox sponsorship cannot create requests or debit accounts directly from the browser', async () => {
+  const endpoint = await read('base44/functions/createHeroBoxSponsorship/entry.ts');
+  const ui = await read('src/components/vantoris/herobox/SponsorFlow.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    "actor.role !== 'user'",
+    'isUuid(body.idempotency_key)',
+    'isValidRevision(body.expected_updated_date)',
+    "invokeAtomicMutationService('herobox.sponsor'",
+    'require_authoritative_account_lookup: true',
+    'require_actor_owns_account: true',
+    'require_account_revision_match: true',
+    'require_account_active: true',
+    'require_member_kyc_approved: true',
+    'require_sufficient_available_funds: true',
+    'compute_balance_server_side: true',
+    'never_trust_client_balance_or_amount: true',
+    'create_hero_box_request_atomically: true',
+    'create_withdrawal_transaction_atomically: true',
+    'create_hero_box_activity_atomically: true',
+    'update_hero_box_profile_totals_atomically_if_present: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `HeroBox boundary must include ${required}`);
+  for (const unsafe of [
+    'entities.HeroBoxRequest.create(',
+    'entities.Transaction.create(',
+    'entities.Account.update(',
+    'entities.HeroBoxActivity.create(',
+    'entities.HeroBoxProfile.update(',
+  ]) assert.ok(!endpoint.includes(unsafe), `endpoint must not use direct entity writes: ${unsafe}`);
+  assert.ok(ui.includes("base44.functions.invoke('createHeroBoxSponsorship'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes('clearMutationIdempotencyKey(operationScope)'));
+  for (const unsafe of [
+    'base44.entities.HeroBoxRequest.create(',
+    'base44.entities.Transaction.create(',
+    'base44.entities.Account.update(',
+    'base44.entities.HeroBoxActivity.create(',
+    'base44.entities.HeroBoxProfile.update(',
+  ]) assert.ok(!ui.includes(unsafe), `browser must not use direct entity writes: ${unsafe}`);
+});
