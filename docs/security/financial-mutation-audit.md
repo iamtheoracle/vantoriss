@@ -63,10 +63,10 @@ These UI actions will show an explicit unavailable/error state until the atomic 
 | `src/components/vantoris/QuickActionsMenu.jsx` | Client-side balance adjustment/freeze operations | Freeze/unfreeze routed through `setAccountStatus`; direct balance adjustment removed from the menu until a separately verified atomic adjustment workflow exists |
 | `src/components/vantoris/FloatingCommandDock.jsx` | Client-side account freeze plus transaction write | Member self-freeze routed through `setAccountStatus`; client no longer changes account state, creates zero-value transactions, sends notifications separately, or writes audit separately |
 | `src/components/vantoris/herobox/SponsorFlow.jsx` | Sponsor flow writes transaction and balance from client | Outstanding; verify whether this is a real financial workflow and move server-side |
-| `src/pages/admin/AdminMembers.jsx` | Account creation and opening transaction are performed from client | Outstanding; server-side role checks and atomic account provisioning required |
+| `src/pages/admin/AdminMembers.jsx` | Account provisioning and member deletion | Account creation now routes through `createMemberAccount` with zero opening balance, server-generated account number, idempotency, audit, and notification outbox requirements; direct member deletion is disabled pending a retention-safe atomic workflow |
 | `src/pages/admin/AdminKYC.jsx`, `src/pages/ApplyKYC.jsx` | KYC status/document updates are client initiated | Outstanding; distinguish member submission from operator decisions and enforce policy server-side |
 | `src/pages/operations/InvestmentDeposits.jsx`, `src/pages/operations/InvestmentWithdrawals.jsx` | Investment request approval writes transactions and portfolio state from client | Outstanding; require provider-backed atomic ledger and role checks |
-| `src/pages/AccountDetail.jsx` | Account freeze/unfreeze initiated from member page | Outstanding; verify intended policy and route to authorized endpoint |
+| `src/pages/AccountDetail.jsx` | Account freeze/unfreeze initiated from member page | Outstanding; inspect and route to the same ownership-aware account-status endpoint after confirming current status/revision handling |
 | `src/pages/admin/AdminAccounts.jsx` add transaction/import flows | Transaction create and account balance update are separate client writes; imported rows may partially apply | Outstanding; move to atomic server mutation and idempotent batch handling |
 
 This inventory is based on repository code search and targeted source inspection, not a claim that every path is reachable in production or that every listed flow has been fully reviewed. Continue the audit until all privileged mutation call sites are either server-backed or explicitly disabled.
@@ -107,8 +107,17 @@ The completed workflow run `39009653505` verified `npm ci`, all 11 financial-mut
 - `QuickActionsMenu.jsx` now routes freeze/unfreeze through the endpoint. Its direct balance-adjustment action was removed rather than leave separate transaction/account writes in the browser. `FloatingCommandDock.jsx` now routes member self-freeze through the same endpoint and no longer writes account status, zero-value transactions, notifications, or audit events separately.
 - The provider remains unconfigured, so successful status changes are blocked until its atomic account-status contract is provisioned and verified.
 
+
+### Member account provisioning boundary follow-up (2026-10-17)
+
+- Added `base44/functions/createMemberAccount/entry.ts`. The endpoint requires authentication, a permitted financial-review role, an idempotency envelope, a target-member revision, a supported account type, and a bounded account name. It delegates account creation to the atomic service; the provider must verify the target is a current member, generate a unique account number server-side, create the account with exactly zero balance, and commit audit plus notification outbox atomically.
+- `src/pages/admin/AdminMembers.jsx` now invokes the endpoint instead of creating accounts, opening-balance transactions, notifications, emails, and audit records as separate browser operations. Positive opening balances are removed from the UI; all new accounts start at zero and funding must use the verified funding workflow. The client accepts success only after operation ID, audit confirmation, target user, account type, zero balance, account number, and revision are validated.
+- Direct browser-side member deletion was disabled. The previous loop deleted transaction history and accounts before deleting the user, creating irreversible partial-deletion risk and potentially destroying records needed for financial reconciliation and compliance. Re-enable deletion only through an explicitly approved retention-safe archival/deletion workflow with authoritative checks and atomic audit.
+- The atomic provider remains unconfigured; account provisioning therefore fails closed with no account created until the provider contract is implemented and verified.
+
 ### Latest validation status
 
-- Latest run `39020056771` at commit `0523b425fde82df4610c603a7667717d91fcea6a` completed `npm ci`, all **16/16 financial-mutation tests**, targeted ESLint for all changed UI files, Deno lint for eight files, Deno type-check for all six server endpoints, and the Vite production build.
-- The same run failed the final repository quality gate because full-repository lint still reports **97 errors** and `npm audit --audit-level=high` reports **34 advisories (1 low, 13 moderate, 20 high)**. Targeted lint passing does not imply repository-wide lint is clean.
-- The latest run verifies the account-status endpoint and its UI migration at the checked commit, but the atomic provider remains unconfigured. No successful financial or account-status mutation can be enabled until the provider is configured and end-to-end verified, and the full lint/dependency gates are resolved.
+- The last completed run before the account-provisioning follow-up was `39020056771` at commit `0523b425fde82df4610c603a7667717d91fcea6a`. It passed `npm ci`, 16/16 then-current financial-mutation tests, targeted ESLint, Deno lint/type-check, and the production build.
+- That run failed the final quality gate because full-repository lint reported 97 errors and the dependency audit reported 34 advisories (1 low, 13 moderate, 20 high).
+- The account-provisioning endpoint, UI migration, new regression test, workflow expansion, and this documentation update require a fresh CI run. Do not describe those new changes as validated until it completes.
+- No production function was invoked, no production data was changed, and no merge or production deployment was performed.
