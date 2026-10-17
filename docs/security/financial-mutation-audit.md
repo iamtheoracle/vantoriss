@@ -134,7 +134,9 @@ The completed workflow run `39009653505` verified `npm ci`, all 11 financial-mut
 
 ### Latest validation status
 
-- Workflow run [39059354189](https://github.com/iamtheoracle/vantoriss/actions/runs/39059354189), at commit `92d315385ffdb46e6c56809211f919d3966f5e99`, passed **22/22 financial-mutation tests**, changed-UI ESLint, Deno lint, Deno type-check, the full-repository lint, and the Vite production build.
-- The run failed only the final repository quality gate because `npm audit --audit-level=high` still reports **34 advisories (1 low, 13 moderate, 20 high)**. The 91 unused-import lint errors reported in the prior run have been removed; full-repository lint now passes.
-- A subsequent dependency-remediation change must update the locked dependency tree without using force upgrades, then rerun the complete audit, tests, lint, type-check, and production build. The current lockfile has not been changed as part of this lint cleanup.
+- Workflow run [39059354189](https://github.com/iamtheoracle/vantoriss/actions/runs/39059354189), at commit `92d315385ffdb46e6c56809211f919d3966f5e99`, passed **22/22 financial-mutation tests**, changed-UI ESLint, Deno lint, Deno type-check, full-repository lint, and the Vite production build.
+- The 91 unused-import lint errors reported by the earlier run were removed; full-repository lint passed on the subsequent run.
+- A non-forced `npm audit fix --package-lock-only` candidate updated the lockfile without changing `package.json`. The candidate installed successfully with `npm ci`, and the financial mutation tests, full lint, and production build all passed in [dependency candidate run 39059626371](https://github.com/iamtheoracle/vantoriss/actions/runs/39059626371).
+- The audit count dropped from **34 advisories (1 low, 13 moderate, 20 high)** to **12 (7 moderate, 5 high)**. Remaining vulnerable dependency paths include the legacy Tailwind 3/chokidar/braces chain, `postcss-selector-parser`, `react-quill`/Quill, and React Router. Resolving the remaining items may require major upgrades or replacing dependencies; do not use `npm audit fix --force` without compatibility work and dedicated tests.
+- The compatible lockfile candidate was committed to this PR branch. Fresh CI must validate the resulting head, including Deno checks, before merge.
 - The atomic mutation provider remains unconfigured. All successful financial mutations are therefore blocked until the provider is implemented, configured, and verified. No production financial mutation was executed and PR #8 remains draft/unmerged.
