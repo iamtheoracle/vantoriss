@@ -144,6 +144,37 @@ test('withdrawal settlement requires atomic payout confirmation and never writes
   assert.ok(!mutationUi.includes('base44.entities.Account.update('));
 });
 
+test('member withdrawal initiation uses an atomic ownership, balance, and audit boundary', async () => {
+  const endpoint = await read('base44/functions/createWithdrawalRequest/entry.ts');
+  const ui = await read('src/pages/AccountDetail.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    "actor.role !== 'user'",
+    'validateMutationEnvelope(body)',
+    "invokeAtomicMutationService('withdrawal.create'",
+    'require_authoritative_account_lookup: true',
+    'require_actor_owns_account: true',
+    'require_account_revision_match: true',
+    'require_account_active: true',
+    'require_member_kyc_approved: true',
+    'require_sufficient_available_funds: true',
+    'include_pending_withdrawal_reservations: true',
+    'enforce_authoritative_withdrawal_limits: true',
+    'notification_outbox_required: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `withdrawal creation boundary must include ${required}`);
+  assert.ok(!endpoint.includes('entities.WithdrawalRequest.create('));
+  assert.ok(!endpoint.includes('entities.Notification.create('));
+  const handler = ui.slice(ui.indexOf('async function handlePinVerified'), ui.indexOf('async function generateStatement'));
+  assert.ok(handler.includes("base44.functions.invoke('createWithdrawalRequest'"));
+  assert.ok(handler.includes('getMutationIdempotencyKey('));
+  assert.ok(handler.includes('clearMutationIdempotencyKey('));
+  assert.ok(!handler.includes('base44.entities.WithdrawalRequest.create('));
+  assert.ok(!handler.includes('base44.entities.Notification.create('));
+});
+
+
 
 test('account status changes use an authenticated atomic boundary for operators and member self-freeze', async () => {
   const endpoint = await read('base44/functions/setAccountStatus/entry.ts');
