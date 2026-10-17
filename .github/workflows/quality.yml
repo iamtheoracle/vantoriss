@@ -19,7 +19,7 @@ jobs:
   validate:
     name: Lint, typecheck, and build
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Check out source
         uses: actions/checkout@v4
@@ -31,13 +31,46 @@ jobs:
           cache: npm
 
       - name: Install locked dependencies
+        id: install
         run: npm ci
 
-      - name: Lint
+      - name: Lint changed UI files
+        id: changed_lint
+        if: always() && steps.install.outcome == 'success'
+        run: npx eslint src/pages/Home.jsx src/pages/MoveMoney.jsx src/components/vantoris/home/PrimaryActions.jsx src/components/vantoris/home/DashboardModules.jsx --quiet
+
+      - name: Full repository lint
+        id: full_lint
+        if: always() && steps.install.outcome == 'success'
+        continue-on-error: true
         run: npm run lint
 
       - name: Typecheck
+        id: typecheck
+        if: always() && steps.install.outcome == 'success'
         run: npm run typecheck
 
       - name: Build
+        id: build
+        if: always() && steps.install.outcome == 'success'
         run: npm run build
+
+      - name: Enforce quality gate
+        if: always()
+        env:
+          INSTALL_OUTCOME: ${{ steps.install.outcome }}
+          CHANGED_LINT_OUTCOME: ${{ steps.changed_lint.outcome }}
+          FULL_LINT_OUTCOME: ${{ steps.full_lint.outcome }}
+          TYPECHECK_OUTCOME: ${{ steps.typecheck.outcome }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+        run: |
+          failed=0
+          for result in "$INSTALL_OUTCOME" "$CHANGED_LINT_OUTCOME" "$FULL_LINT_OUTCOME" "$TYPECHECK_OUTCOME" "$BUILD_OUTCOME"; do
+            if [ "$result" != "success" ]; then
+              failed=1
+            fi
+          done
+          if [ "$failed" -ne 0 ]; then
+            echo "Quality gate failed. Review the individual step results above."
+            exit 1
+          fi
