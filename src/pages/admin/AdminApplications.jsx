@@ -11,7 +11,6 @@ export default function AdminApplications() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
-  const [openingBalance, setOpeningBalance] = useState('');
   const [adminNotes, setAdminNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
@@ -156,16 +155,10 @@ export default function AdminApplications() {
 
   async function handleApprove() {
     if (!selected) return;
-    const balance = Number(openingBalance || 0);
-    if (!Number.isFinite(balance) || balance < 0) {
-      toast({ title: 'Invalid opening balance', description: 'Enter a valid non-negative amount.', variant: 'destructive' });
-      return;
-    }
     setSubmitting(true);
     try {
-      await reviewOneApplication(selected, 'approved', balance, adminNotes);
+      await reviewOneApplication(selected, 'approved', 0, adminNotes);
       setSelected(null);
-      setOpeningBalance('');
       setAdminNotes('');
       await loadApps();
       toast({ title: 'Application approved', description: `${selected.full_name}'s application was approved.` });
@@ -442,17 +435,9 @@ export default function AdminApplications() {
                   </a>
                 </div>
               )}
-              <div>
-                <label className="text-muted-foreground text-xs uppercase tracking-wider mb-1.5 block">Opening Balance (USD)</label>
-                <input
-                  type="number"
-                  value={openingBalance}
-                  onChange={e => setOpeningBalance(e.target.value)}
-                  className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground text-sm focus:border-brass/50 focus:outline-none"
-                  placeholder="0.00"
-                />
-                <p className="text-muted-foreground text-[11px] mt-1">Enter the amount received via wire/deposit outside the app</p>
-              </div>
+              <p className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-100" role="note">
+                Approval creates the account with a zero balance. Funds can be credited only through the separately verified funding workflow; an operator-entered amount is not proof of receipt.
+              </p>
               <div>
                 <label className="text-muted-foreground text-xs uppercase tracking-wider mb-1.5 block">Admin Notes</label>
                 <textarea
