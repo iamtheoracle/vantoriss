@@ -22,6 +22,8 @@ test('application decisions no longer mutate financial entities from the browser
   const source = await read('src/pages/admin/AdminApplications.jsx');
   const handler = source.slice(source.indexOf('async function reviewOneApplication'), source.indexOf('\n  if (loading) {'));
   assert.ok(handler.includes("base44.functions.invoke('reviewApplication'"));
+  assert.ok(handler.includes('getMutationIdempotencyKey(operationScope)'));
+  assert.ok(handler.includes('clearMutationIdempotencyKey(operationScope)'));
   assert.ok(!handler.includes('base44.entities.Application.update('));
   assert.ok(!handler.includes('base44.entities.Account.create('));
   assert.ok(!handler.includes('base44.entities.Transaction.create('));
@@ -35,6 +37,8 @@ test('transaction date correction cannot edit balances or transaction amounts fr
   assert.ok(start >= 0 && end > start, 'date correction handler must exist');
   const handler = source.slice(start, end);
   assert.ok(handler.includes("base44.functions.invoke('correctTransactionDate'"));
+  assert.ok(handler.includes('getMutationIdempotencyKey(operationScope)'));
+  assert.ok(handler.includes('clearMutationIdempotencyKey(operationScope)'));
   assert.ok(!handler.includes('base44.entities.Transaction.update('));
   assert.ok(!handler.includes('base44.entities.Account.update('));
   assert.ok(source.includes('This workflow corrects the transaction date only.'));
