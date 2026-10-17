@@ -8,7 +8,6 @@ import {
   ArrowLeft,
   ArrowUpRight,
   Check,
-  ChevronRight,
   Copy,
   Download,
   FileText,
