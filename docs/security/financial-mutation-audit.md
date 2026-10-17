@@ -114,10 +114,11 @@ The completed workflow run `39009653505` verified `npm ci`, all 11 financial-mut
 - `src/pages/admin/AdminMembers.jsx` now invokes the endpoint instead of creating accounts, opening-balance transactions, notifications, emails, and audit records as separate browser operations. Positive opening balances are removed from the UI; all new accounts start at zero and funding must use the verified funding workflow. The client accepts success only after operation ID, audit confirmation, target user, account type, zero balance, account number, and revision are validated.
 - Direct browser-side member deletion was disabled. The previous loop deleted transaction history and accounts before deleting the user, creating irreversible partial-deletion risk and potentially destroying records needed for financial reconciliation and compliance. Re-enable deletion only through an explicitly approved retention-safe archival/deletion workflow with authoritative checks and atomic audit.
 - The atomic provider remains unconfigured; account provisioning therefore fails closed with no account created until the provider contract is implemented and verified.
+- `src/pages/AccountDetail.jsx` now uses `setAccountStatus` for admin freeze/unfreeze instead of direct `Account.update`. It checks current status/revision, reuses a fingerprinted idempotency key, requires server confirmation of the resulting status and audit record, and does not report a failed mutation solely because refreshing the page fails.
 
 ### Latest validation status
 
-- The last completed run before the account-provisioning follow-up was `39020056771` at commit `0523b425fde82df4610c603a7667717d91fcea6a`. It passed `npm ci`, 16/16 then-current financial-mutation tests, targeted ESLint, Deno lint/type-check, and the production build.
+- The last completed run before the member-account and AccountDetail follow-ups was `39020056771` at commit `0523b425fde82df4610c603a7667717d91fcea6a`. It passed `npm ci`, 16/16 then-current financial-mutation tests, targeted ESLint, Deno lint/type-check, and the production build.
 - That run failed the final quality gate because full-repository lint reported 97 errors and the dependency audit reported 34 advisories (1 low, 13 moderate, 20 high).
-- The account-provisioning endpoint, UI migration, new regression test, workflow expansion, and this documentation update require a fresh CI run. Do not describe those new changes as validated until it completes.
-- No production function was invoked, no production data was changed, and no merge or production deployment was performed.
+- Member account provisioning, disabled destructive deletion, the AccountDetail migration, and the new regression tests require a fresh CI run; do not describe these changes as validated until it completes.
+- The atomic provider remains unconfigured. No production function was invoked, no production data was changed, and no merge or production deployment was performed.
