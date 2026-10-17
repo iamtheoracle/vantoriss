@@ -45,36 +45,6 @@ export default async function correctTransactionDate(req: Request): Promise<Resp
   const transactionId = body.transaction_id.trim();
   if (transactionId.length > 128) return jsonResponse({ error: 'transaction_id is invalid.' }, 400);
 
-  let transaction: any;
-  try {
-    transaction = await base44.asServiceRole.entities.Transaction.get(transactionId);
-  } catch {
-    return jsonResponse({ error: 'Transaction could not be loaded.' }, 404);
-  }
-  if (!transaction?.id) return jsonResponse({ error: 'Transaction not found.' }, 404);
-
-  if (!isCorrectableTransactionStatus(transaction.status)) {
-    await writeBlockedMutationAudit(base44, actor, 'transaction.date.correct', transactionId, 'transaction_state_not_correctable', body.idempotency_key);
-    return jsonResponse({
-      error: 'Only completed or reversed transactions can have their transaction date corrected.',
-      code: 'INVALID_TRANSACTION_STATE',
-    }, 409);
-  }
-  if (!transaction.updated_date || transaction.updated_date !== body.expected_updated_date) {
-    await writeBlockedMutationAudit(base44, actor, 'transaction.date.correct', transactionId, 'revision_mismatch', body.idempotency_key);
-    return jsonResponse({
-      error: 'The transaction changed since it was loaded. Reload and review it before retrying.',
-      code: 'REVISION_CONFLICT',
-    }, 409);
-  }
-  if (transaction.transaction_date === body.transaction_date) {
-    return jsonResponse({
-      success: true,
-      unchanged: true,
-      transaction_id: transactionId,
-      transaction_date: body.transaction_date,
-    });
-  }
 
   // Never let this endpoint change amounts, balances, posting dates, status,
   // references, or descriptions. The atomic service must re-check revision,
@@ -83,31 +53,29 @@ export default async function correctTransactionDate(req: Request): Promise<Resp
     transaction_id: transactionId,
     account_id: transaction.account_id,
     transaction_date: body.transaction_date,
-    expected_current_transaction_date: transaction.transaction_date || null,
-    expected_updated_date: transaction.updated_date,
-    expected_status: transaction.status,
+    expected_current_transaction_date: body.expected_current_transaction_date ?? null,
+    expected_updated_date: body.expected_updated_date,
+    expected_status: body.expected_status,
+    allowed_statuses: ['completed', 'reversed'],
     allowed_fields: ['transaction_date'],
     audit_action: 'transaction_edited',
   };
 
   const outcome = await invokeAtomicMutationService('transaction.date.correct', actor, command, body.idempotency_key);
   if (!outcome.ok) {
-    if (outcome.status === 503) {
-      const auditRecorded = await writeBlockedMutationAudit(
-        base44, actor, 'transaction.date.correct', transactionId, outcome.code, body.idempotency_key,
-      );
-      return jsonResponse({ error: outcome.message, code: outcome.code, audit_recorded: auditRecorded }, outcome.status);
-    }
-    return jsonResponse({ error: outcome.message, code: outcome.code }, outcome.status);
+    const auditRecorded = await writeBlockedMutationAudit(
+      base44, actor, 'transaction.date.correct', transactionId, outcome.code, body.idempotency_key,
+    );
+    return jsonResponse({ error: outcome.message, code: outcome.code, audit_recorded: auditRecorded }, outcome.status);
   }
 
   const savedTransaction = outcome.result.transaction;
   const savedDate = savedTransaction?.transaction_date;
   if (
     savedTransaction?.id !== transactionId ||
-    savedTransaction?.account_id !== transaction.account_id ||
     !isDateOnly(savedDate) ||
     savedDate !== body.transaction_date ||
+    !['completed', 'reversed'].includes(savedTransaction?.status) ||
     !savedTransaction?.updated_date
   ) {
     return jsonResponse({
