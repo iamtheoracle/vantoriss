@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Plus, Minus, ShoppingCart, Loader2, AlertCircle, Package, Search } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, Loader2, AlertCircle, Search } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { HEROBOX_PACKAGES, buildPackage, isProductAvailableForDestination } from '@/lib/heroboxPackages';
 import PackageShowcase from '@/components/vantoris/herobox/PackageShowcase';

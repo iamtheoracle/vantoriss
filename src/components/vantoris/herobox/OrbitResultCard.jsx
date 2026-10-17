@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ChevronRight, Eye, FileText, Heart } from 'lucide-react';
+import { ChevronRight, Eye, FileText } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatCurrency';
 
 const STATUS_STYLES = {

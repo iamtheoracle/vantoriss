@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
-import { Search, X, Sparkles, Loader2, Filter } from 'lucide-react';
-import { formatCurrency } from '@/lib/formatCurrency';
+import { Search, X, Sparkles, Loader2 } from 'lucide-react';
+
 import OrbitResultCard from './OrbitResultCard';
 import OrbitSuggestions from './OrbitSuggestions';
 import OrbitNoResults from './OrbitNoResults';

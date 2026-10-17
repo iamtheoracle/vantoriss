@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
-import { Link } from 'react-router-dom';
+
 import { ArrowDownLeft, ArrowUpRight, TrendingUp, Radio } from 'lucide-react';
 
 export default function LiveBankingActivity() {
