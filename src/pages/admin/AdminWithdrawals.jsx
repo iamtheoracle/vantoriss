@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import {
   CheckSquare, Square, Check, X, ArrowUpRight, CheckCircle2, AlertTriangle, Loader2,
   ShieldCheck, Search, Filter, Download, Flag, ChevronRight, XCircle, Clock, DollarSign,
-  TrendingUp, ListChecks, UserCheck, FileText, Ban, ArrowRight,
+  TrendingUp, ListChecks,
 } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
 import { clearMutationIdempotencyKey, fingerprintMutationScope, getMutationIdempotencyKey } from '@/lib/mutationIdempotency';
