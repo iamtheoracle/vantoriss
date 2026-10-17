@@ -80,9 +80,13 @@ export default async function correctTransactionDate(req: Request): Promise<Resp
     !savedTransaction?.updated_date ||
     savedTransaction.updated_date === body.expected_updated_date
   ) {
+    const auditRecorded = await writeUncertainMutationAudit(
+      base44, actor, 'transaction.date.correct', transactionId, 'ATOMIC_MUTATION_CONTRACT_VIOLATION', body.idempotency_key,
+    );
     return jsonResponse({
-      error: 'The transactional service did not confirm the requested transaction date.',
+      error: 'The transactional service did not confirm the requested transaction date. Resolve the outcome with the same idempotency key before retrying.',
       code: 'ATOMIC_MUTATION_CONTRACT_VIOLATION',
+      audit_recorded: auditRecorded,
     }, 502);
   }
 
