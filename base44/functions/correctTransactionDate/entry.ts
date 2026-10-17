@@ -77,7 +77,8 @@ export default async function correctTransactionDate(req: Request): Promise<Resp
     !isDateOnly(savedDate) ||
     savedDate !== body.transaction_date ||
     !['completed', 'reversed'].includes(savedTransaction?.status) ||
-    !savedTransaction?.updated_date
+    !savedTransaction?.updated_date ||
+    savedTransaction.updated_date === body.expected_updated_date
   ) {
     return jsonResponse({
       error: 'The transactional service did not confirm the requested transaction date.',
