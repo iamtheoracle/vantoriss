@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
-import { DollarSign, Package, Users, Heart, Mail, Wifi, Clock, Building2, Award, TrendingUp, Filter, Download, BarChart3 } from 'lucide-react';
+import { DollarSign, Package, Users, Heart, Mail, Wifi, Clock, Building2, Award, Filter, Download, BarChart3 } from 'lucide-react';
 import ImpactKpiCard from '@/components/vantoris/herobox/ImpactKpiCard';
 import CommunityGrowthChart from '@/components/vantoris/herobox/CommunityGrowthChart';
 import FundsDistributedChart from '@/components/vantoris/herobox/FundsDistributedChart';
