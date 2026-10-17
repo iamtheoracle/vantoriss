@@ -101,8 +101,15 @@ export default async function correctTransactionDate(req: Request): Promise<Resp
     return jsonResponse({ error: outcome.message, code: outcome.code }, outcome.status);
   }
 
-  const savedDate = outcome.result.transaction?.transaction_date;
-  if (!isDateOnly(savedDate) || savedDate !== body.transaction_date) {
+  const savedTransaction = outcome.result.transaction;
+  const savedDate = savedTransaction?.transaction_date;
+  if (
+    savedTransaction?.id !== transactionId ||
+    savedTransaction?.account_id !== transaction.account_id ||
+    !isDateOnly(savedDate) ||
+    savedDate !== body.transaction_date ||
+    !savedTransaction?.updated_date
+  ) {
     return jsonResponse({
       error: 'The transactional service did not confirm the requested transaction date.',
       code: 'ATOMIC_MUTATION_CONTRACT_VIOLATION',
@@ -112,7 +119,13 @@ export default async function correctTransactionDate(req: Request): Promise<Resp
   return jsonResponse({
     success: true,
     operation_id: body.idempotency_key,
-    transaction: outcome.result.transaction,
+    transaction: {
+      id: savedTransaction.id,
+      account_id: savedTransaction.account_id,
+      transaction_date: savedTransaction.transaction_date,
+      updated_date: savedTransaction.updated_date,
+      status: savedTransaction.status,
+    },
     audit_recorded: true,
   });
 }
