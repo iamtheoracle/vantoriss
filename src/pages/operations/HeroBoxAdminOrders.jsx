@@ -87,7 +87,7 @@ export default function HeroBoxAdminOrders() {
         <div className="space-y-3">
           {orders.map(order => {
             const currentIdx = STATUS_FLOW.indexOf(order.status);
-            const canAdvance = currentIdx >= 1 && currentIdx < STATUS_FLOW.length - 1;
+            const canAdvance = currentIdx >= 1 && currentIdx < STATUS_FLOW.length - 1 && order.payment_status === 'completed';
             return (
               <div key={order.id} className="vantoris-glass p-4">
                 <div className="flex items-center justify-between mb-2">
