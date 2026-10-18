@@ -114,12 +114,13 @@ export default function Investment() {
     }
 
     setSubmitting(true);
-    const operationScope = `investment-request:${await fingerprintMutationScope(JSON.stringify({
-      portfolioId: portfolio.id,
-      requestType,
-      amount,
-    }))}`;
+    let operationScope = '';
     try {
+      operationScope = `investment-request:${await fingerprintMutationScope(JSON.stringify({
+        portfolioId: portfolio.id,
+        requestType,
+        amount,
+      }))}`;
       const idempotencyKey = await getMutationIdempotencyKey(operationScope);
       const response = await base44.functions.invoke('createInvestmentRequest', {
         portfolio_id: portfolio.id,
