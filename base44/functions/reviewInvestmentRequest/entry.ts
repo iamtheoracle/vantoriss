@@ -56,6 +56,7 @@ export default async function reviewInvestmentRequest(req: Request): Promise<Res
     return jsonResponse({ error: 'decision must be approved or rejected.' }, 400);
   }
   if (adminNotes.length > 2000) return jsonResponse({ error: 'admin_notes must be 2,000 characters or fewer.' }, 400);
+  if (decision === 'rejected' && !adminNotes) return jsonResponse({ error: 'A rejection reason is required for the audit trail.' }, 400);
 
   const isDeposit = requestType === 'deposit';
   const isApproval = decision === 'approved';
