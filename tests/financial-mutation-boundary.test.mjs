@@ -555,3 +555,61 @@ test('investment request review requires verified funding or confirmed payout an
   assert.ok(!ui.includes('base44.entities.InvestmentWithdrawalRequest.update('));
   assert.ok(!ui.includes('base44.entities.InvestmentPortfolio.update('));
 });
+
+
+test('member KYC document submission uses an owner-scoped atomic boundary', async () => {
+  const endpoint = await read('base44/functions/submitKYCApplication/entry.ts');
+  const ui = await read('src/pages/ApplyKYC.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    "actor.role !== 'user'",
+    'validateMutationEnvelope(body)',
+    'require_authoritative_application_lookup: true',
+    'require_actor_owns_application: true',
+    'require_application_revision_match: true',
+    "expected_kyc_status: expectedKycStatus",
+    'require_document_urls_owned_by_actor: true',
+    'require_document_urls_from_upload_provider: true',
+    'verify_document_mime_and_size_from_upload_metadata: true',
+    "set_kyc_status: 'pending'",
+    'replace_kyc_documents_atomically: true',
+    'notification_outbox_required: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `KYC submission boundary must include ${required}`);
+  assert.ok(!endpoint.includes('entities.Application.update('));
+  assert.ok(ui.includes("base44.functions.invoke('submitKYCApplication'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes('clearMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes("allowedTypes = new Set(['application/pdf', 'image/jpeg', 'image/png'])"));
+  assert.ok(!ui.includes('base44.entities.Application.update('));
+});
+
+test('operator KYC decisions and document resets use the atomic review boundary', async () => {
+  const endpoint = await read('base44/functions/reviewKYCApplication/entry.ts');
+  const ui = await read('src/pages/admin/AdminKYC.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    'isAllowedFinancialRole(actor)',
+    'validateMutationEnvelope(body)',
+    'require_authoritative_application_lookup: true',
+    'require_application_revision_match: true',
+    'require_kyc_status_match: true',
+    'require_document_provenance_verification_on_approval: decision === \'approved\'',
+    'require_all_required_kyc_documents_present_on_approval: decision === \'approved\'',
+    'clear_document_links_only_on_reset: decision === \'reset\'',
+    'preserve_uploaded_document_objects_for_retention: decision === \'reset\'',
+    'require_documents_retained_on_reset: decision === \'reset\'',
+    'require_no_document_or_status_side_effects_before_audit: true',
+    'notification_outbox_required: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `KYC review boundary must include ${required}`);
+  assert.ok(!endpoint.includes('entities.Application.update('));
+  assert.ok(ui.includes("base44.functions.invoke('reviewKYCApplication'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey('));
+  assert.ok(ui.includes('clearMutationIdempotencyKey('));
+  assert.ok(ui.includes('Shared rejection reason (required for bulk rejection)'));
+  assert.ok(!ui.includes('base44.entities.Application.update('));
+  assert.ok(!ui.includes('logAuditEntry('));
+});
