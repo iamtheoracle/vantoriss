@@ -3,6 +3,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
 import {
   invokeAtomicMutationService,
+  isTrustedPrivateStorageUrl,
   isRecord,
   jsonResponse,
   validateMutationEnvelope,
@@ -112,6 +113,7 @@ export default async function createKYCUpload(req: Request): Promise<Response> {
   const expiryMs = typeof expiresAt === 'string' ? Date.parse(expiresAt) : NaN;
   if (
     !parsedUrl ||
+    !isTrustedPrivateStorageUrl(uploadUrl) ||
     parsedUrl.protocol !== 'https:' ||
     parsedUrl.username ||
     parsedUrl.password ||
