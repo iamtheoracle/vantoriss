@@ -434,3 +434,38 @@ test('investment deposit and withdrawal requests are owner-scoped, revision-chec
   assert.ok(!ui.includes('base44.entities.InvestmentWithdrawalRequest.create('));
   assert.ok(!ui.includes('base44.entities.InvestmentPortfolio.create('));
 });
+
+
+test('HeroBox donations cannot mutate cases or create orders through separate browser writes', async () => {
+  const endpoint = await read('base44/functions/createHeroBoxDonation/entry.ts');
+  const ui = await read('src/components/vantoris/herobox/DonationFlow.jsx');
+  const schema = await read('base44/entities/HeroBoxOrder.jsonc');
+  for (const required of [
+    'base44.auth.me()',
+    "actor.role !== 'user'",
+    'isUuid(body.idempotency_key)',
+    "invokeAtomicMutationService('herobox.donation.create'",
+    'require_authoritative_case_lookup_when_selected: true',
+    'require_case_revision_match_when_selected: true',
+    "require_case_review_status_approved_when_selected: true",
+    'require_case_category_match_when_selected: category !== \'general\'',
+    'never_trust_client_case_details: true',
+    'create_hero_box_order_atomically: true',
+    "order_status: 'payment_pending'",
+    "payment_status: 'pending'",
+    'never_mark_donation_paid: true',
+    'no_funds_moved_during_order_creation: true',
+    'update_case_match_atomically_if_selected: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `donation boundary must include ${required}`);
+  assert.ok(schema.includes('"humanitarian_case_id"'));
+  assert.ok(!endpoint.includes('entities.HeroBoxOrder.create('));
+  assert.ok(!endpoint.includes('entities.HumanitarianCase.update('));
+  assert.ok(ui.includes("base44.functions.invoke('createHeroBoxDonation'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes('clearMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes('result?.funds_moved !== false'));
+  assert.ok(!ui.includes('base44.entities.HeroBoxOrder.create('));
+  assert.ok(!ui.includes('base44.entities.HumanitarianCase.update('));
+});
