@@ -64,7 +64,7 @@ export default async function createHeroBoxDonation(req: Request): Promise<Respo
   const command: Record<string, unknown> = {
     donation_category: category,
     amount,
-    case_id: caseId || null,
+    humanitarian_case_id: caseId || null,
     expected_case_updated_date: caseId ? expectedCaseUpdatedDate : null,
     require_authoritative_case_lookup_when_selected: true,
     require_case_revision_match_when_selected: true,
@@ -100,7 +100,7 @@ export default async function createHeroBoxDonation(req: Request): Promise<Respo
     order.status !== 'payment_pending' ||
     order.payment_status !== 'pending' ||
     typeof order.updated_date !== 'string' || !order.updated_date ||
-    order.case_id !== (caseId || null)
+    (typeof order.humanitarian_case_id === 'string' ? order.humanitarian_case_id : null) !== (caseId || null)
   ) {
     const auditRecorded = await writeUncertainMutationAudit(
       base44, actor, 'herobox.donation.create', caseId || 'general', 'ATOMIC_MUTATION_CONTRACT_VIOLATION', idempotencyKey,
