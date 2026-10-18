@@ -692,3 +692,36 @@ test('KYC document viewing requires reviewer authorization and a short-lived pri
   assert.ok(ui.includes('window.open(\'about:blank\', \'_blank\')'));
   assert.ok(!ui.includes('href={doc}'));
 });
+
+
+test('HeroBox checkout uses authoritative server pricing and cannot create paid orders from the browser', async () => {
+  const endpoint = await read('base44/functions/createHeroBoxOrder/entry.ts');
+  const checkout = await read('src/components/vantoris/herobox/CheckoutFlow.jsx');
+  const heroBox = await read('src/pages/HeroBox.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    "actor.role !== 'user'",
+    'isUuid(body.idempotency_key)',
+    'require_authoritative_product_lookup: true',
+    'require_products_active_and_available: true',
+    'require_product_freshness_not_stale_or_expired: true',
+    'require_destination_eligibility: true',
+    'derive_order_items_and_price_snapshot_from_authoritative_products: true',
+    'compute_subtotal_discount_shipping_and_total_server_side: true',
+    'reject_if_authoritative_total_differs_from_expected_total: true',
+    'never_trust_client_product_names_prices_discounts_or_totals: true',
+    "order_status: 'payment_pending'",
+    "payment_status: 'pending'",
+    'no_funds_moved_during_order_creation: true',
+    'never_mark_order_paid: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `HeroBox order boundary must include ${required}`);
+  assert.ok(!endpoint.includes('entities.HeroBoxOrder.create('));
+  assert.ok(checkout.includes("base44.functions.invoke('createHeroBoxOrder'"));
+  assert.ok(checkout.includes('getMutationIdempotencyKey(operationScope)'));
+  assert.ok(checkout.includes('clearMutationIdempotencyKey(operationScope)'));
+  assert.ok(checkout.includes('const total = subtotal - discount + shippingCost;'));
+  assert.ok(!checkout.includes('base44.entities.HeroBoxOrder.create('));
+  assert.ok(heroBox.includes('original_price: originalPrice'));
+});
