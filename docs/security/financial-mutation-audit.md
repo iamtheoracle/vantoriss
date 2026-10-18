@@ -82,6 +82,14 @@ This inventory is based on repository code search and targeted source inspection
 - `AdminKYC.jsx` routes single and bulk decisions through the server boundary, requires rejection reasons, and no longer directly updates Application KYC state or writes review audit/notification side effects. KYC reminders now use `sendKYCReminders`, which selects stale pending applications server-side, deduplicates the reminder window, and queues notification outbox entries atomically.
 - The atomic provider remains unconfigured; KYC submission, review, upload authorization, document viewing, and reminders therefore fail closed until its authoritative application and private-storage contracts are implemented and verified. Existing legacy document URLs must be migrated to private storage or remain inaccessible through the review UI; do not restore direct public links. Removing application links does not revoke previously public object URLs, so the storage owner must audit and migrate/revoke legacy objects before KYC can be considered privacy-safe.
 
+### HeroBox commerce and fulfillment follow-up (2026-10-18)
+
+- Added `base44/functions/createHeroBoxProfile/entry.ts`; sponsor profiles can only be created for the authenticated member with the server-controlled sponsor role and zero contribution totals.
+- Added `base44/functions/createHeroBoxOrder/entry.ts`; checkout sends product IDs and quantities only. The provider must load current catalog prices, availability, freshness, destination eligibility, discounts, shipping, and inventory authoritatively, then reject if the server total differs from the displayed expected total. Orders are created as `payment_pending` and explicitly confirm that no funds moved.
+- `CheckoutFlow.jsx` no longer creates order records directly. The checkout summary now computes subtotal minus discount plus shipping, preserves original catalog price for package items, and uses idempotency for retries.
+- Added `base44/functions/updateHeroBoxOrderStatus/entry.ts` for fulfillment-only transitions. Operators cannot mark an order paid, refunded, or cancelled from this screen. Payment-pending orders cannot advance; fulfillment requires authoritative payment status `completed`, and the service must leave payment fields unchanged and confirm no funds moved during the fulfillment action.
+- The payment provider/webhook remains unconfigured. Orders therefore remain pending until a separately verified payment event is integrated; no manual payment confirmation or fulfillment should be enabled to bypass that dependency.
+
 ### Investment request review follow-up (2026-10-18)
 
 - Added `base44/functions/reviewInvestmentRequest/entry.ts` for operator decisions on investment deposit and withdrawal requests. It requires an allowed financial-review role, a request revision, an idempotency envelope, and authoritative request/portfolio checks in the transactional service.
@@ -153,7 +161,7 @@ The completed workflow run `39009653505` verified `npm ci`, all 11 financial-mut
 
 ### Latest validation status
 
-- Workflow run [39130108581](https://github.com/iamtheoracle/vantoriss/actions/runs/39130108581), at code commit `6b2b8d59f68c4e96b998c97c3a920c87990cf347`, passed **32/32 financial-mutation tests**, changed-UI ESLint, Deno lint, Deno type-check, full-repository lint, and the Vite production build.
+- Workflow run [39130895526](https://github.com/iamtheoracle/vantoriss/actions/runs/39130895526), at code commit `a5c59e9c745b9541bf872f191a87205ecc6aed6c`, passed **35/35 financial-mutation tests**, changed-UI ESLint, Deno lint, Deno type-check, full-repository lint, and the Vite production build.
 - Full-repository lint is clean; the earlier 91 unused-import errors are resolved.
 - Dependency audit remains the only failing CI gate. It reports **10 advisories (5 high, 5 moderate)**. The high findings trace through the Tailwind 3/chokidar/micromatch/braces development-tool chain. The braces advisory has no patched release at present; do not add a nonexistent-version override or run `npm audit fix --force`. Moderate advisories include `postcss-selector-parser` and React Router.
 - Current tested investment work includes member portfolio creation, deposit/withdrawal requests, and operator request review. Review actions require rejection reasons, verified funding for deposit approval, payout confirmation for withdrawal settlement, atomic ledger/portfolio/audit updates, and explicit confirmation that rejection does not alter portfolio balances.
