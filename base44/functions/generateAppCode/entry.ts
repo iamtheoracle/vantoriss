@@ -20,6 +20,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+function hasControlCharacters(value: string): boolean {
+  return [...value].some(character => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127);
+}
+
 export default async function generateAppCode(req: Request): Promise<Response> {
   if (req.method !== 'POST') return jsonResponse({ error: 'Method not allowed.' }, 405);
 
