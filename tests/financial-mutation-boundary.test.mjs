@@ -488,7 +488,7 @@ test('investment approvals cannot update portfolios or create transactions direc
     'require_portfolio_revision_check_inside_transaction: true',
     'require_idempotency_resolution_before_revision_check: true',
     'update_request_portfolio_ledger_and_audit_atomically: true',
-    'portfolio_balance_modified !== false'
+    'portfolio_balance_modified !== false',
     'no_portfolio_balance_or_ledger_mutation_on_rejection: true',
     'apply_portfolio_and_ledger_changes_only_on_approval: true',
     'command.require_verified_funding_evidence = isApproval;',
