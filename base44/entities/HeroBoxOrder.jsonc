@@ -25,6 +25,10 @@
       "type": "string",
       "description": "JSON-serialized array of order items: [{product_id, name, category, price, quantity}]"
     },
+    "humanitarian_case_id": {
+      "type": "string",
+      "description": "Authoritative humanitarian case linked to this donation order, when applicable"
+    },
     "package_id": {
       "type": "string",
       "description": "Predefined package reference if this order includes a staged package"
