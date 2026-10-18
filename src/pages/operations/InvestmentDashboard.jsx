@@ -162,7 +162,7 @@ export default function InvestmentDashboard() {
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="text-sm font-medium text-foreground">{formatCurrency(d.amount)}</p>
-                        <p className="text-xs text-gray">{d.created_date?.substring(0, 10)} · {d.user_id}</p>
+                        <p className="text-xs text-gray">{d.created_date?.substring(0, 10)} · Request …{d.id.slice(-8).toUpperCase()}</p>
                       </div>
                       <span className="text-xs text-brass font-medium">Awaiting review</span>
                     </div>
@@ -204,7 +204,7 @@ export default function InvestmentDashboard() {
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="text-sm font-medium text-foreground">{formatCurrency(w.amount)}</p>
-                        <p className="text-xs text-gray">{w.created_date?.substring(0, 10)} · {w.user_id}</p>
+                        <p className="text-xs text-gray">{w.created_date?.substring(0, 10)} · Request …{w.id.slice(-8).toUpperCase()}</p>
                       </div>
                       <span className="text-xs text-brass font-medium">Awaiting review</span>
                     </div>
