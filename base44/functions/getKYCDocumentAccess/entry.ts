@@ -3,6 +3,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
 import {
   invokeAtomicMutationService,
+  isTrustedPrivateStorageUrl,
   isAllowedFinancialRole,
   isRecord,
   jsonResponse,
@@ -97,6 +98,7 @@ export default async function getKYCDocumentAccess(req: Request): Promise<Respon
   const expiryMs = typeof expiresAt === 'string' ? Date.parse(expiresAt) : NaN;
   if (
     !parsedUrl ||
+    !isTrustedPrivateStorageUrl(viewUrl) ||
     parsedUrl.protocol !== 'https:' ||
     parsedUrl.username ||
     parsedUrl.password ||
