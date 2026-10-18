@@ -56,6 +56,28 @@ test('npm audit policy rejects a changed braces version or advisory identity', (
   assert.equal(evaluateAuditPolicy(wrongAdvisory, lockfile, new Date('2026-10-18T00:00:00.000Z')).ok, false);
 });
 
+test('npm audit policy permits high-severity dependents only when their high advisory chain leads to braces', () => {
+  const audit = bracesAudit();
+  audit.vulnerabilities.micromatch = {
+    name: 'micromatch',
+    severity: 'high',
+    via: ['braces'],
+    effects: [],
+    nodes: ['node_modules/micromatch'],
+    fixAvailable: false,
+  };
+  audit.vulnerabilities.chokidar = {
+    name: 'chokidar',
+    severity: 'high',
+    via: ['braces'],
+    effects: [],
+    nodes: ['node_modules/chokidar'],
+    fixAvailable: false,
+  };
+  const result = evaluateAuditPolicy(audit, lockfile, new Date('2026-10-18T00:00:00.000Z'));
+  assert.equal(result.ok, true);
+});
+
 test('npm audit policy rejects every other high or critical advisory', () => {
   const audit = bracesAudit();
   audit.vulnerabilities.other = {
