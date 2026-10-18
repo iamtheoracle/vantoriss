@@ -49,26 +49,68 @@ export default function ApplyKYC() {
       setError('You can submit no more than 10 documents.');
       return;
     }
-    if (!application || !['not_started', 'rejected'].includes(application.kyc_status)) {
-      setError('Documents cannot be changed while verification is pending or already approved.');
+    if (!application || !['not_started', 'rejected'].includes(application.kyc_status) || !application.updated_date) {
+      setError('Documents cannot be changed while verification is pending, approved, or the application revision is unavailable.');
       return;
     }
 
     setUploading(true);
     setError('');
+    let operationScope = '';
+    let uploadWindow = null;
     try {
-      const { file_url: fileUrl } = await base44.integrations.Core.UploadFile({ file });
-      if (typeof fileUrl !== 'string' || fileUrl.length > 2048) {
-        throw new Error('The upload provider did not return a valid document URL.');
+      operationScope = `kyc-upload:${await fingerprintMutationScope(JSON.stringify({
+        applicationId: application.id,
+        expectedUpdatedDate: application.updated_date,
+        expectedKycStatus: application.kyc_status,
+        fileName: file.name,
+        contentType: file.type,
+        sizeBytes: file.size,
+      }))}`;
+      const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+      const response = await base44.functions.invoke('createKYCUpload', {
+        application_id: application.id,
+        expected_updated_date: application.updated_date,
+        expected_kyc_status: application.kyc_status,
+        file_name: file.name,
+        content_type: file.type,
+        size_bytes: file.size,
+        idempotency_key: idempotencyKey,
+      });
+      const result = response?.data || response;
+      let uploadUrl;
+      try { uploadUrl = new URL(result?.upload_url); } catch { uploadUrl = null; }
+      if (
+        result?.success !== true ||
+        result?.operation_id !== idempotencyKey ||
+        result?.audit_recorded !== true ||
+        typeof result?.document_ref !== 'string' ||
+        typeof result?.expires_at !== 'string' ||
+        Date.parse(result.expires_at) <= Date.now() ||
+        result?.content_type !== file.type ||
+        result?.method !== 'PUT' ||
+        !uploadUrl ||
+        uploadUrl.protocol !== 'https:' ||
+        uploadUrl.username ||
+        uploadUrl.password ||
+        uploadUrl.hash
+      ) {
+        throw new Error(result?.error || 'The private upload provider did not authorize a valid, short-lived upload.');
       }
-      const url = new URL(fileUrl);
-      if (url.protocol !== 'https:' || url.username || url.password || url.hash) {
-        throw new Error('The upload provider returned an unsafe document URL.');
+
+      const uploadResponse = await fetch(uploadUrl.href, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file,
+      });
+      if (!uploadResponse.ok) {
+        throw new Error('The private document upload failed. Retry the same upload operation; do not use a public upload link.');
       }
-      setDocuments(prev => prev.includes(url.href) ? prev : [...prev, url.href]);
+      await clearMutationIdempotencyKey(operationScope);
+      setDocuments(prev => prev.includes(result.document_ref) ? prev : [...prev, result.document_ref]);
     } catch (err) {
       console.error(err);
-      setError(err.message || 'File upload failed. Please try again.');
+      setError(err?.response?.data?.error || err.message || 'Private document upload failed. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -100,7 +142,7 @@ export default function ApplyKYC() {
         application_id: application.id,
         expected_updated_date: application.updated_date,
         expected_kyc_status: application.kyc_status,
-        documents,
+        document_refs: documents,
         idempotency_key: idempotencyKey,
       });
       const result = response?.data || response;
