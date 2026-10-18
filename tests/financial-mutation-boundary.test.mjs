@@ -514,3 +514,37 @@ test('investment approvals cannot update portfolios or create transactions direc
     ]) assert.ok(!ui.includes(unsafe), `investment review UI must not use direct entity writes: ${unsafe}`);
   }
 });
+
+
+test('investment request review requires verified funding or confirmed payout and a rejection reason', async () => {
+  const endpoint = await read('base44/functions/reviewInvestmentRequest/entry.ts');
+  const ui = await read('src/pages/operations/InvestmentDashboard.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    'isAllowedFinancialRole(actor)',
+    'validateMutationEnvelope(body)',
+    "decision !== 'approved' && decision !== 'rejected'",
+    "decision === 'rejected' && !adminNotes",
+    "invokeAtomicMutationService(action",
+    'require_authoritative_request_lookup: true',
+    'require_request_revision_match: true',
+    'require_portfolio_revision_check_inside_transaction: true',
+    'require_idempotency_resolution_before_revision_check: true',
+    'require_verified_funding_evidence = isApproval',
+    'require_payout_confirmation = isApproval',
+    'consume_existing_withdrawal_reservation_atomically = isApproval',
+    'release_withdrawal_reservation_atomically = !isApproval',
+    'never_mark_withdrawal_paid_without_provider_confirmation: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `investment review boundary must include ${required}`);
+  assert.ok(ui.includes("base44.functions.invoke('reviewInvestmentRequest'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes('clearMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes("handleReview(d, 'deposit', 'approved')"));
+  assert.ok(ui.includes("handleReview(w, 'withdrawal', 'approved')"));
+  assert.ok(ui.includes("handleReview(w, 'withdrawal', 'rejected')"));
+  assert.ok(!ui.includes('base44.entities.InvestmentDepositRequest.update('));
+  assert.ok(!ui.includes('base44.entities.InvestmentWithdrawalRequest.update('));
+  assert.ok(!ui.includes('base44.entities.InvestmentPortfolio.update('));
+});
