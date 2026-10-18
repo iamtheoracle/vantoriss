@@ -372,3 +372,65 @@ test('HeroBox sponsorship cannot create requests or debit accounts directly from
     'base44.entities.HeroBoxProfile.update(',
   ]) assert.ok(!ui.includes(unsafe), `browser must not use direct entity writes: ${unsafe}`);
 });
+
+
+test('investment portfolio creation cannot set ownership or balances from the browser', async () => {
+  const endpoint = await read('base44/functions/createInvestmentPortfolio/entry.ts');
+  const ui = await read('src/pages/Investment.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    "actor.role !== 'user'",
+    'isUuid(parsed.idempotency_key)',
+    "invokeAtomicMutationService('investment.portfolio.create'",
+    'require_authoritative_actor_lookup: true',
+    'require_member_role: true',
+    'require_actor_owns_created_portfolio: true',
+    'enforce_one_portfolio_per_member: true',
+    'initial_cash_balance: 0',
+    'initial_invested_amount: 0',
+    'create_portfolio_and_audit_atomically: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `investment portfolio boundary must include ${required}`);
+  assert.ok(!endpoint.includes('entities.InvestmentPortfolio.create('));
+  assert.ok(ui.includes("base44.functions.invoke('createInvestmentPortfolio'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey('));
+  assert.ok(ui.includes('result?.audit_recorded !== true'));
+  assert.ok(!ui.includes('base44.entities.InvestmentPortfolio.create('));
+});
+
+test('investment deposit and withdrawal requests are owner-scoped, revision-checked, and cannot change balances directly', async () => {
+  const endpoint = await read('base44/functions/createInvestmentRequest/entry.ts');
+  const ui = await read('src/pages/Investment.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    "actor.role !== 'user'",
+    'isUuid(body.idempotency_key)',
+    'isValidRevision(body.expected_updated_date)',
+    "invokeAtomicMutationService(action",
+    'require_authoritative_portfolio_lookup: true',
+    'require_actor_owns_portfolio: true',
+    'require_portfolio_revision_match: true',
+    'require_idempotency_resolution_before_revision_check: true',
+    'never_update_portfolio_balances_for_request_creation: true',
+    'never_trust_client_user_id_or_portfolio_balance: true',
+    'require_connected_authoritative_investment_provider',
+    'require_sufficient_available_cash_after_pending_withdrawal_reservations',
+    'reserve_withdrawal_amount_atomically: true',
+    'never_transfer_funds_during_request_creation: true',
+    'never_credit_portfolio_during_request_creation: true',
+    'notification_outbox_required: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `investment request boundary must include ${required}`);
+  assert.ok(!endpoint.includes('entities.InvestmentDepositRequest.create('));
+  assert.ok(!endpoint.includes('entities.InvestmentWithdrawalRequest.create('));
+  assert.ok(!endpoint.includes('entities.InvestmentPortfolio.update('));
+  assert.ok(ui.includes("base44.functions.invoke('createInvestmentRequest'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey('));
+  assert.ok(ui.includes('clearMutationIdempotencyKey('));
+  assert.ok(ui.includes('disabled={submitting || !portfolio.provider_connected}'));
+  assert.ok(!ui.includes('base44.entities.InvestmentDepositRequest.create('));
+  assert.ok(!ui.includes('base44.entities.InvestmentWithdrawalRequest.create('));
+  assert.ok(!ui.includes('base44.entities.InvestmentPortfolio.create('));
+});
