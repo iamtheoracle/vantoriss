@@ -15,7 +15,6 @@ import { isUuid } from '../../shared/financialMutationRules.mjs';
 
 type Base44Client = ReturnType<typeof createClientFromRequest> & Base44AuditClient;
 const MAX_KYC_DOCUMENTS = 10;
-const MAX_DOCUMENT_URL_LENGTH = 2048;
 
 export default async function submitKYCApplication(req: Request): Promise<Response> {
   if (req.method !== 'POST') return jsonResponse({ error: 'Method not allowed.' }, 405);
