@@ -37,6 +37,9 @@ type AtomicMutationResult = {
   statement?: Record<string, unknown>;
   account_balance_modified?: boolean;
   portfolio_balance_modified?: boolean;
+  kyc_verified?: boolean;
+  documents_retained?: boolean;
+  documents_unchanged?: boolean;
   funding_verified?: boolean;
   payout_confirmed?: boolean;
   created?: unknown[];
