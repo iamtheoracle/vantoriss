@@ -42,6 +42,7 @@ export default async function createKYCUpload(req: Request): Promise<Response> {
   const fileName = typeof body.file_name === 'string' ? body.file_name.trim() : '';
   const contentType = body.content_type;
   const sizeBytes = body.size_bytes;
+  const contentSha256 = typeof body.content_sha256 === 'string' ? body.content_sha256.toLowerCase() : '';
   const idempotencyKey = typeof body.idempotency_key === 'string' ? body.idempotency_key : '';
 
   if (actor.role !== 'user') {
@@ -60,6 +61,7 @@ export default async function createKYCUpload(req: Request): Promise<Response> {
   if (typeof contentType !== 'string' || !ALLOWED_CONTENT_TYPES.has(contentType)) {
     return jsonResponse({ error: 'Only PDF, JPEG, and PNG uploads are allowed.' }, 400);
   }
+  if (!/^[a-f0-9]{64}$/.test(contentSha256)) return jsonResponse({ error: 'content_sha256 must be a SHA-256 hex digest.' }, 400);
   if (typeof sizeBytes !== 'number' || !Number.isSafeInteger(sizeBytes) || sizeBytes < 1 || sizeBytes > MAX_FILE_BYTES) {
     return jsonResponse({ error: 'File size must be between 1 byte and 25MB.' }, 400);
   }
@@ -71,6 +73,8 @@ export default async function createKYCUpload(req: Request): Promise<Response> {
     file_name: fileName,
     content_type: contentType,
     size_bytes: sizeBytes,
+    content_sha256: contentSha256,
+    bind_upload_signature_to_content_hash: true,
     require_authoritative_application_lookup: true,
     require_actor_owns_application: true,
     require_application_revision_match: true,
@@ -80,6 +84,7 @@ export default async function createKYCUpload(req: Request): Promise<Response> {
     require_short_lived_signed_upload_url: true,
     upload_url_ttl_seconds: 300,
     restrict_upload_content_type_and_size: true,
+    require_uploaded_content_hash_match: true,
     create_upload_reservation_atomically: true,
     require_unique_document_ref: true,
     audit_action: 'kyc_document_upload_authorized',
@@ -111,6 +116,7 @@ export default async function createKYCUpload(req: Request): Promise<Response> {
     parsedUrl.password ||
     parsedUrl.hash ||
     !isUuid(documentRef) ||
+    outcome.result.content_sha256 !== contentSha256 ||
     typeof expiresAt !== 'string' ||
     !Number.isFinite(expiryMs) ||
     expiryMs <= Date.now() ||
@@ -136,6 +142,7 @@ export default async function createKYCUpload(req: Request): Promise<Response> {
     document_ref: documentRef,
     expires_at: expiresAt,
     content_type: contentType,
+    content_sha256: contentSha256,
     method: 'PUT',
   });
 }
