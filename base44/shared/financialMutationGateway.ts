@@ -51,6 +51,7 @@ type AtomicMutationResult = {
   view_url?: string;
   funding_verified?: boolean;
   payout_confirmed?: boolean;
+  funds_moved?: boolean;
   created?: unknown[];
   skipped?: unknown[];
   errors?: unknown[];
