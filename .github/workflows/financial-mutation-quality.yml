@@ -28,7 +28,7 @@ jobs:
       - name: Dependency vulnerability audit
         id: audit
         continue-on-error: true
-        run: npm audit --audit-level=high
+        run: node scripts/check-npm-audit.mjs
       - name: Financial mutation rule tests
         run: npm run test:financial-mutations
       - name: Lint changed UI files
