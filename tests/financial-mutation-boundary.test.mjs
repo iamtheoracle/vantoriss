@@ -470,3 +470,47 @@ test('HeroBox donations cannot mutate cases or create orders through separate br
   assert.ok(!ui.includes('base44.entities.HeroBoxOrder.create('));
   assert.ok(!ui.includes('base44.entities.HumanitarianCase.update('));
 });
+
+
+test('investment approvals cannot update portfolios or create transactions directly from the browser', async () => {
+  const endpoint = await read('base44/functions/reviewInvestmentRequest/entry.ts');
+  const deposits = await read('src/pages/operations/InvestmentDeposits.jsx');
+  const withdrawals = await read('src/pages/operations/InvestmentWithdrawals.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    'isAllowedFinancialRole(actor)',
+    'validateMutationEnvelope(body)',
+    'invokeAtomicMutationService(action',
+    'require_authoritative_request_lookup: true',
+    'require_authoritative_portfolio_lookup: true',
+    'require_request_owner_and_portfolio_consistency: true',
+    'require_request_revision_match: true',
+    'require_portfolio_revision_check_inside_transaction: true',
+    'require_idempotency_resolution_before_revision_check: true',
+    'update_request_portfolio_ledger_and_audit_atomically: true',
+    'command.require_verified_funding_evidence = isApproval;',
+    'command.require_payout_confirmation = isApproval;',
+    'command.consume_existing_withdrawal_reservation_atomically = isApproval;',
+    'command.release_withdrawal_reservation_atomically = !isApproval;',
+    'never_mark_withdrawal_paid_without_provider_confirmation = true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `investment review boundary must include ${required}`);
+  for (const unsafe of [
+    'entities.InvestmentDepositRequest.update(',
+    'entities.InvestmentWithdrawalRequest.update(',
+    'entities.InvestmentPortfolio.update(',
+    'entities.InvestmentTransaction.create(',
+  ]) assert.ok(!endpoint.includes(unsafe), `endpoint must not use direct entity writes: ${unsafe}`);
+  for (const ui of [deposits, withdrawals]) {
+    assert.ok(ui.includes("base44.functions.invoke('reviewInvestmentRequest'"));
+    assert.ok(ui.includes('getMutationIdempotencyKey('));
+    assert.ok(ui.includes('clearMutationIdempotencyKey('));
+    for (const unsafe of [
+      'base44.entities.InvestmentDepositRequest.update(',
+      'base44.entities.InvestmentWithdrawalRequest.update(',
+      'base44.entities.InvestmentPortfolio.update(',
+      'base44.entities.InvestmentTransaction.create(',
+    ]) assert.ok(!ui.includes(unsafe), `investment review UI must not use direct entity writes: ${unsafe}`);
+  }
+});
