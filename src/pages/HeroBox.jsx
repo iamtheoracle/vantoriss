@@ -45,7 +45,8 @@ export default function HeroBox() {
     setCart(prev => {
       const existing = prev.find(c => c.product_id === product.id);
       if (existing) return prev.map(c => c.product_id === product.id ? { ...c, quantity: c.quantity + 1 } : c);
-      return [...prev, { product_id: product.id, name: product.name, category: product.category, price: product.price, discount: product.discount || 0, quantity: 1 }];
+      const originalPrice = Number.isFinite(product.original_price) ? product.original_price : product.price;
+      return [...prev, { product_id: product.id, name: product.name, category: product.category, price: originalPrice, original_price: originalPrice, discount: product.discount || 0, quantity: 1 }];
     });
   }
 
