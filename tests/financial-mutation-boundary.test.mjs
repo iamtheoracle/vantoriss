@@ -780,6 +780,7 @@ test('HeroBox fulfillment cannot mark an order paid or change payment state from
   assert.ok(ui.includes('clearMutationIdempotencyKey(operationScope)'));
   assert.ok(ui.includes("const STATUS_FLOW = ['payment_pending', 'paid', 'processing'"));
   assert.ok(ui.includes('Payment status cannot be advanced manually.'));
+  assert.ok(ui.includes("order.payment_status === 'completed'"));
   assert.ok(!ui.includes('updates.payment_status ='));
   assert.ok(!ui.includes('base44.entities.HeroBoxOrder.update('));
 });
