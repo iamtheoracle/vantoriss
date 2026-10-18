@@ -102,6 +102,7 @@ export default function DonationFlow({ onClose, onOrderComplete }) {
         caseId: selectedCase?.id || null,
       }))}`;
       const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+      const me = await base44.auth.me();
       const response = await base44.functions.invoke('createHeroBoxDonation', {
         category: category.id,
         amount: donationAmount,
@@ -118,7 +119,7 @@ export default function DonationFlow({ onClose, onOrderComplete }) {
         result?.funds_moved !== false ||
         !order ||
         typeof order.id !== 'string' ||
-        order.user_id !== (await base44.auth.me()).id ||
+        order.user_id !== me.id ||
         order.total !== donationAmount ||
         order.status !== 'payment_pending' ||
         order.payment_status !== 'pending' ||
