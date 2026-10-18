@@ -3,7 +3,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
 import {
   invokeAtomicMutationService,
-  isTrustedPrivateStorageUrl,
   isAllowedFinancialRole,
   isRecord,
   jsonResponse,
@@ -13,7 +12,7 @@ import {
   type AuthenticatedActor,
   type Base44AuditClient,
 } from '../../shared/financialMutationGateway.ts';
-import { isUuid } from '../../shared/financialMutationRules.mjs';
+import { isTrustedPrivateStorageUrl, isUuid } from '../../shared/financialMutationRules.mjs';
 
 type Base44Client = ReturnType<typeof createClientFromRequest> & Base44AuditClient;
 
@@ -98,7 +97,7 @@ export default async function getKYCDocumentAccess(req: Request): Promise<Respon
   const expiryMs = typeof expiresAt === 'string' ? Date.parse(expiresAt) : NaN;
   if (
     !parsedUrl ||
-    !isTrustedPrivateStorageUrl(viewUrl) ||
+    !isTrustedPrivateStorageUrl(viewUrl, Deno.env.get('VANTORIS_PRIVATE_STORAGE_ORIGINS')) ||
     parsedUrl.protocol !== 'https:' ||
     parsedUrl.username ||
     parsedUrl.password ||
