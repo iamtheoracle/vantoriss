@@ -40,6 +40,14 @@ type AtomicMutationResult = {
   kyc_verified?: boolean;
   documents_retained?: boolean;
   documents_unchanged?: boolean;
+  upload_url?: string;
+  document_ref?: string;
+  expires_at?: string;
+  content_type?: string;
+  method?: string;
+  private_storage_confirmed?: boolean;
+  public_read_access?: boolean;
+  view_url?: string;
   funding_verified?: boolean;
   payout_confirmed?: boolean;
   created?: unknown[];
