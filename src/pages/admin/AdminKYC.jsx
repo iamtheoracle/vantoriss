@@ -224,7 +224,7 @@ export default function AdminKYC() {
   }
 
   function toggleSelectAll() {
-    const pendingApps = applications.filter(a => a.kyc_status !== 'approved');
+    const pendingApps = applications.filter(a => a.kyc_status !== 'approved' && (a.kyc_documents || []).length > 0);
     if (selectedIds.length === pendingApps.length) setSelectedIds([]);
     else setSelectedIds(pendingApps.map(a => a.id));
   }
@@ -301,8 +301,10 @@ export default function AdminKYC() {
           {reminderResult && (
             <span className="text-[#AAB4C3] text-sm">
               {reminderResult.sent > 0
-                ? `✓ Queued ${reminderResult.sent} reminder${reminderResult.sent > 1 ? 's' : ''}`
-                : 'No stale KYC applications found'}
+                ? `✓ Queued ${reminderResult.sent} reminder${reminderResult.sent !== 1 ? 's' : ''}`
+                : reminderResult.total === 0
+                  ? 'No stale KYC applications found'
+                  : `${reminderResult.skipped} reminder${reminderResult.skipped !== 1 ? 's were' : ' was'} already queued or skipped`}
             </span>
           )}
         </div>
@@ -360,7 +362,7 @@ export default function AdminKYC() {
               <tr key={app.id} className={`border-b border-[#242D38]/40 hover:bg-[#242D38]/20 transition-all ${selectedIds.includes(app.id) ? 'bg-brass/5' : ''}`}>
                 {bulkMode && (
                   <td className="px-3 py-4">
-                    <button onClick={() => toggleSelect(app.id)} className="text-[#AAB4C3] hover:text-brass">
+                    <button onClick={() => toggleSelect(app.id)} disabled={(app.kyc_documents || []).length === 0} className="text-[#AAB4C3] hover:text-brass disabled:opacity-30" >
                       {selectedIds.includes(app.id) ? <CheckSquare size={16} className="text-brass" /> : <Square size={16} />}
                     </button>
                   </td>
@@ -390,7 +392,7 @@ export default function AdminKYC() {
                             : 'bg-brass/15 text-brass hover:bg-brass/25'
                       }`}
                     >
-                      {app.kyc_status === 'rejected' ? 'Re-review' : app.kyc_status === 'not_started' ? 'Force Approve' : 'Review'}
+                      {app.kyc_status === 'rejected' ? 'Re-review' : 'Review'}
                     </button>
                   )}
                 </td>
@@ -464,7 +466,7 @@ export default function AdminKYC() {
               <div className="flex gap-3">
                 <button
                   onClick={() => handleAction('approved')}
-                  disabled={submitting}
+                  disabled={submitting || (selected.kyc_documents || []).length === 0}
                   className="flex-1 py-3 bg-olive text-white font-semibold rounded-xl flex items-center justify-center gap-2 hover:bg-olive/80 transition-all disabled:opacity-40"
                 >
                   <Check size={16} /> Approve KYC
