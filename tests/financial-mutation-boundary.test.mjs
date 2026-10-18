@@ -460,6 +460,7 @@ test('HeroBox donations cannot mutate cases or create orders through separate br
     'writeUncertainMutationAudit(',
   ]) assert.ok(endpoint.includes(required), `donation boundary must include ${required}`);
   assert.ok(schema.includes('"humanitarian_case_id"'));
+  assert.ok(schema.includes('"order_type"'));
   assert.ok(!endpoint.includes('entities.HeroBoxOrder.create('));
   assert.ok(!endpoint.includes('entities.HumanitarianCase.update('));
   assert.ok(ui.includes("base44.functions.invoke('createHeroBoxDonation'"));
