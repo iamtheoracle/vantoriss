@@ -94,11 +94,9 @@ export default async function createInvestmentRequest(req: Request): Promise<Res
     return jsonResponse({ error: outcome.message, code: outcome.code, audit_recorded: auditRecorded }, outcome.status);
   }
 
-  const request = outcome.result.investmentRequest;
-  const expectedEntity = isWithdrawal ? 'InvestmentWithdrawalRequest' : 'InvestmentDepositRequest';
+  const request = isWithdrawal ? outcome.result.investmentWithdrawalRequest : outcome.result.investmentDepositRequest;
   if (
     !request || typeof request.id !== 'string' || !request.id ||
-    request.entity_type !== expectedEntity ||
     request.user_id !== actor.id ||
     request.portfolio_id !== portfolioId ||
     request.amount !== amount ||
@@ -121,7 +119,6 @@ export default async function createInvestmentRequest(req: Request): Promise<Res
     audit_recorded: true,
     request: {
       id: request.id,
-      entity_type: request.entity_type,
       user_id: request.user_id,
       portfolio_id: request.portfolio_id,
       amount: request.amount,
