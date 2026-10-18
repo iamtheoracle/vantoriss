@@ -62,6 +62,7 @@ export default async function createHeroBoxDonation(req: Request): Promise<Respo
   }
 
   const command: Record<string, unknown> = {
+    order_type: 'donation',
     donation_category: category,
     amount,
     humanitarian_case_id: caseId || null,
@@ -107,7 +108,7 @@ export default async function createHeroBoxDonation(req: Request): Promise<Respo
   if (
     !order || typeof order.id !== 'string' || !order.id ||
     order.user_id !== actor.id ||
-    order.category !== 'donation' ||
+    order.order_type !== 'donation' ||
     order.total !== amount ||
     order.status !== 'payment_pending' ||
     order.payment_status !== 'pending' ||
