@@ -801,6 +801,7 @@ test('code generation validates bounded inputs and generated metadata', async ()
     'MAX_CODE_CHARS = 100_000',
     "filename.startsWith('src/')",
     "part === '..'",
+    '!hasControlCharacters(filename)',
     'Code generation is temporarily unavailable. Retry later.',
   ]) assert.ok(endpoint.includes(required), `code generation boundary must include ${required}`);
   assert.ok(!endpoint.includes("return Response.json({ error: error.message"));
