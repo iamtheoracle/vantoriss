@@ -24,6 +24,9 @@ type AtomicMutationResult = {
   application?: Record<string, unknown>;
   verificationRequest?: Record<string, unknown>;
   withdrawalRequest?: Record<string, unknown>;
+  investmentDepositRequest?: Record<string, unknown>;
+  investmentWithdrawalRequest?: Record<string, unknown>;
+  portfolio?: Record<string, unknown>;
   heroBoxRequest?: Record<string, unknown>;
   heroBoxActivity?: Record<string, unknown>;
   account?: Record<string, unknown> | null;
