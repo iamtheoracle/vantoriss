@@ -613,3 +613,27 @@ test('operator KYC decisions and document resets use the atomic review boundary'
   assert.ok(!ui.includes('base44.entities.Application.update('));
   assert.ok(!ui.includes('logAuditEntry('));
 });
+
+
+test('KYC reminder dispatch uses an audited idempotent server queue', async () => {
+  const endpoint = await read('base44/functions/sendKYCReminders/entry.ts');
+  const ui = await read('src/pages/admin/AdminKYC.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    'isAllowedFinancialRole(actor)',
+    'isUuid(parsed.idempotency_key)',
+    "invokeAtomicMutationService('kyc.reminders.send'",
+    'select_authoritative_pending_kyc_applications: true',
+    "require_kyc_status: 'pending'",
+    'require_created_at_older_than_days: 3',
+    'deduplicate_by_application_and_reminder_window: true',
+    'never_trust_client_application_ids_or_user_ids: true',
+    'create_notification_outbox_entries_atomically: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `KYC reminder boundary must include ${required}`);
+  assert.ok(ui.includes("base44.functions.invoke('sendKYCReminders'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes('clearMutationIdempotencyKey(operationScope)'));
+  assert.ok(!ui.includes('base44.entities.Notification.create('));
+});
