@@ -37,7 +37,7 @@ export default async function createHeroBoxDonation(req: Request): Promise<Respo
 
   const idempotencyKey = typeof body.idempotency_key === 'string' ? body.idempotency_key : '';
   const category = typeof body.category === 'string' ? body.category : '';
-  const caseId = typeof body.case_id === 'string' ? body.case_id.trim() : '';
+  const caseId = typeof body.humanitarian_case_id === 'string' ? body.humanitarian_case_id.trim() : '';
   const expectedCaseUpdatedDate = body.expected_case_updated_date;
   const amount = body.amount;
 
@@ -70,7 +70,19 @@ export default async function createHeroBoxDonation(req: Request): Promise<Respo
     require_case_revision_match_when_selected: true,
     require_case_review_status_approved_when_selected: true,
     require_case_donor_visible_status_when_selected: ['approved', 'active', 'matched'],
-    require_case_category_match_when_selected: true,
+    require_case_category_match_when_selected: category !== 'general',
+    allowed_case_categories_by_donation_category: {
+      food: ['food', 'essential_supplies'],
+      children: ['children_support'],
+      medical: ['surgery_medical'],
+      military: ['military_support'],
+      shelter: ['shelter'],
+      general: [],
+    },
+    never_trust_client_case_details: true,
+    derive_order_recipient_and_destination_from_authoritative_case: true,
+    general_donation_recipient_name: 'General Fund',
+    general_donation_destination: 'As needed',
     create_hero_box_order_atomically: true,
     order_status: 'payment_pending',
     payment_status: 'pending',
