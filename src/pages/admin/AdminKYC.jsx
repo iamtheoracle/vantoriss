@@ -13,6 +13,7 @@ export default function AdminKYC() {
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [sendingReminders, setSendingReminders] = useState(false);
+  const [openingDocument, setOpeningDocument] = useState('');
   const [reminderResult, setReminderResult] = useState(null);
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
@@ -86,6 +87,60 @@ export default function AdminKYC() {
     }
     await clearMutationIdempotencyKey(operationScope);
     return savedApplication;
+  }
+
+  async function handleOpenKycDocument(documentLocator) {
+    if (!selected?.id || !selected.updated_date || typeof documentLocator !== 'string') {
+      toast({ title: 'Document unavailable', description: 'The application revision is missing. Refresh the KYC queue and try again.', variant: 'destructive' });
+      return;
+    }
+    const documentWindow = window.open('about:blank', '_blank');
+    if (!documentWindow) {
+      toast({ title: 'Popup blocked', description: 'Allow a new tab to open the short-lived, access-controlled document view.', variant: 'destructive' });
+      return;
+    }
+    documentWindow.opener = null;
+    setOpeningDocument(documentLocator);
+    let operationScope = '';
+    try {
+      operationScope = `kyc-document-view:${await fingerprintMutationScope(JSON.stringify({
+        applicationId: selected.id,
+        documentLocator,
+        expectedUpdatedDate: selected.updated_date,
+      }))}`;
+      const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+      const response = await base44.functions.invoke('getKYCDocumentAccess', {
+        application_id: selected.id,
+        document_locator: documentLocator,
+        expected_updated_date: selected.updated_date,
+        idempotency_key: idempotencyKey,
+      });
+      const result = response?.data || response;
+      let viewUrl;
+      try { viewUrl = new URL(result?.view_url); } catch { viewUrl = null; }
+      if (
+        result?.success !== true ||
+        result?.operation_id !== idempotencyKey ||
+        result?.audit_recorded !== true ||
+        !viewUrl ||
+        viewUrl.protocol !== 'https:' ||
+        viewUrl.username ||
+        viewUrl.password ||
+        viewUrl.hash ||
+        typeof result?.expires_at !== 'string' ||
+        Date.parse(result.expires_at) <= Date.now() ||
+        Date.parse(result.expires_at) > Date.now() + 5 * 60 * 1000
+      ) {
+        throw new Error(result?.error || 'The document service did not authorize a short-lived private view.');
+      }
+      documentWindow.location.replace(viewUrl.href);
+      await clearMutationIdempotencyKey(operationScope);
+    } catch (err) {
+      documentWindow.close();
+      toast({ title: 'Document access unavailable', description: err?.response?.data?.error || err.message || 'The private document could not be opened.', variant: 'destructive' });
+    } finally {
+      setOpeningDocument('');
+    }
   }
 
   async function handleAction(status) {
@@ -368,17 +423,17 @@ export default function AdminKYC() {
                 {(selected.kyc_documents || []).length > 0 ? (
                   <div className="space-y-2">
                     {selected.kyc_documents.map((doc, i) => (
-                      <a
+                      <button
                         key={i}
-                        href={doc}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="vantoris-card p-3 flex items-center gap-3 hover:border-brass/30 transition-all"
+                        type="button"
+                        onClick={() => handleOpenKycDocument(doc)}
+                        disabled={openingDocument === doc}
+                        className="vantoris-card p-3 flex items-center gap-3 hover:border-brass/30 transition-all text-left w-full disabled:opacity-50"
                       >
                         <FileText size={16} className="text-brass" />
-                        <span className="text-white text-sm flex-1">Document {i + 1}</span>
+                        <span className="text-white text-sm flex-1">{openingDocument === doc ? 'Opening secure view…' : `Document ${i + 1}`}</span>
                         <ExternalLink size={14} className="text-[#AAB4C3]" />
-                      </a>
+                      </button>
                     ))}
                   </div>
                 ) : (
