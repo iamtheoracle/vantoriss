@@ -24,7 +24,7 @@ ${description}
 ${context ? `ADDITIONAL CONTEXT:\n${context}\n` : ''}
 REQUIREMENTS:
 1. Export the ${artifactType} as default, named the same as its file (PascalCase).
-2. Use ONLY these installed packages: React, tailwind css, shadcn/ui (@/components/ui/*), lucide-react, moment, recharts, react-quill-new, react-hook-form, react-router-dom, date-fns, lodash, react-markdown, framer-motion, three.js, react-leaflet, @hello-pangea/dnd, @tanstack/react-query.
+2. Use ONLY these installed packages: React, tailwind css, shadcn/ui (@/components/ui/*), lucide-react, moment, recharts, react-hook-form, react-router-dom, date-fns, lodash, react-markdown, framer-motion, three.js, react-leaflet, @hello-pangea/dnd, @tanstack/react-query.
 3. Use the @/ alias for all internal imports (e.g., @/components/ui/button, @/lib/utils).
 4. Import { cn } from "@/lib/utils" — never from @/utils.
 5. Use Tailwind CSS for all styling with literal class strings (no dynamic class concatenation).
