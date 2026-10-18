@@ -4,8 +4,9 @@ import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
 import { Package, Loader2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { useToast } from '@/components/ui/use-toast';
+import { clearMutationIdempotencyKey, fingerprintMutationScope, getMutationIdempotencyKey } from '@/lib/mutationIdempotency';
 
-const STATUS_FLOW = ['draft', 'payment_pending', 'paid', 'processing', 'packed', 'shipped', 'in_transit', 'delivered'];
+const STATUS_FLOW = ['payment_pending', 'paid', 'processing', 'packed', 'shipped', 'in_transit', 'delivered'];
 
 export default function HeroBoxAdminOrders() {
   const [orders, setOrders] = useState([]);
@@ -21,23 +22,57 @@ export default function HeroBoxAdminOrders() {
 
   async function handleAdvance(order) {
     const currentIdx = STATUS_FLOW.indexOf(order.status);
-    if (currentIdx < 0 || currentIdx >= STATUS_FLOW.length - 1) return;
+    if (currentIdx < 1 || currentIdx >= STATUS_FLOW.length - 1) return;
+    if (!order.updated_date || !order.payment_status) {
+      toast({ title: 'Order needs refreshing', description: 'The order revision or payment state is missing. Reload before retrying.', variant: 'destructive' });
+      return;
+    }
     const nextStatus = STATUS_FLOW[currentIdx + 1];
     setProcessing(order.id);
+    let operationScope = '';
     try {
-      const updates = { status: nextStatus };
-      if (nextStatus === 'paid') updates.payment_status = 'completed';
-      if (nextStatus === 'shipped') updates.shipped_date = new Date().toISOString().substring(0, 10);
-      if (nextStatus === 'delivered') updates.delivered_date = new Date().toISOString().substring(0, 10);
-      await base44.entities.HeroBoxOrder.update(order.id, updates);
-      toast({ title: 'Order updated', description: `Status changed to: ${nextStatus.replace(/_/g, ' ')}` });
-      loadData();
+      operationScope = `herobox-order-fulfillment:${await fingerprintMutationScope(JSON.stringify({
+        orderId: order.id,
+        expectedStatus: order.status,
+        nextStatus,
+        expectedUpdatedDate: order.updated_date,
+        expectedPaymentStatus: order.payment_status,
+      }))}`;
+      const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+      const response = await base44.functions.invoke('updateHeroBoxOrderStatus', {
+        order_id: order.id,
+        expected_status: order.status,
+        next_status: nextStatus,
+        expected_payment_status: order.payment_status,
+        expected_updated_date: order.updated_date,
+        idempotency_key: idempotencyKey,
+      });
+      const result = response?.data || response;
+      const savedOrder = result?.order;
+      if (
+        result?.success !== true ||
+        result?.operation_id !== idempotencyKey ||
+        result?.audit_recorded !== true ||
+        result?.payment_fields_modified !== false ||
+        result?.funds_moved_by_operation !== false ||
+        savedOrder?.id !== order.id ||
+        savedOrder?.status !== nextStatus ||
+        savedOrder?.payment_status !== order.payment_status ||
+        typeof savedOrder?.updated_date !== 'string' ||
+        savedOrder.updated_date === order.updated_date
+      ) {
+        throw new Error(result?.error || 'The server did not confirm a fulfillment-only order update.');
+      }
+      await clearMutationIdempotencyKey(operationScope);
+      toast({ title: 'Fulfillment updated', description: `Order status changed to ${nextStatus.replace(/_/g, ' ')}. Payment state was not changed.` });
+      await loadData().catch(() => {});
     } catch (err) {
-      toast({ title: 'Update failed', description: err.message, variant: 'destructive' });
+      toast({ title: 'Order update unavailable', description: err?.response?.data?.error || err.message || 'The server did not confirm the order update. Retry only with the same operation.', variant: 'destructive' });
     } finally {
       setProcessing('');
     }
   }
+
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-brass" /></div>;
 
@@ -52,7 +87,7 @@ export default function HeroBoxAdminOrders() {
         <div className="space-y-3">
           {orders.map(order => {
             const currentIdx = STATUS_FLOW.indexOf(order.status);
-            const canAdvance = currentIdx >= 0 && currentIdx < STATUS_FLOW.length - 1;
+            const canAdvance = currentIdx >= 1 && currentIdx < STATUS_FLOW.length - 1;
             let items = [];
             try { items = JSON.parse(order.items || '[]'); } catch (e) {}
             return (
@@ -81,6 +116,9 @@ export default function HeroBoxAdminOrders() {
                     </button>
                   )}
                 </div>
+                {order.status === 'payment_pending' && (
+                  <p className="mt-3 text-[11px] text-brass">Awaiting verified payment. Payment status cannot be advanced manually.</p>
+                )}
               </div>
             );
           })}
