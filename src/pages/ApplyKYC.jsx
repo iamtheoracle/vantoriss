@@ -57,8 +57,9 @@ export default function ApplyKYC() {
     setUploading(true);
     setError('');
     let operationScope = '';
-    let uploadWindow = null;
     try {
+      const fileDigest = await globalThis.crypto.subtle.digest('SHA-256', await file.arrayBuffer());
+      const contentSha256 = Array.from(new Uint8Array(fileDigest), byte => byte.toString(16).padStart(2, '0')).join('');
       operationScope = `kyc-upload:${await fingerprintMutationScope(JSON.stringify({
         applicationId: application.id,
         expectedUpdatedDate: application.updated_date,
@@ -66,6 +67,7 @@ export default function ApplyKYC() {
         fileName: file.name,
         contentType: file.type,
         sizeBytes: file.size,
+        contentSha256,
       }))}`;
       const idempotencyKey = await getMutationIdempotencyKey(operationScope);
       const response = await base44.functions.invoke('createKYCUpload', {
@@ -75,6 +77,7 @@ export default function ApplyKYC() {
         file_name: file.name,
         content_type: file.type,
         size_bytes: file.size,
+        content_sha256: contentSha256,
         idempotency_key: idempotencyKey,
       });
       const result = response?.data || response;
@@ -88,6 +91,7 @@ export default function ApplyKYC() {
         typeof result?.expires_at !== 'string' ||
         Date.parse(result.expires_at) <= Date.now() ||
         result?.content_type !== file.type ||
+        result?.content_sha256 !== contentSha256 ||
         result?.method !== 'PUT' ||
         !uploadUrl ||
         uploadUrl.protocol !== 'https:' ||
@@ -100,7 +104,7 @@ export default function ApplyKYC() {
 
       const uploadResponse = await fetch(uploadUrl.href, {
         method: 'PUT',
-        headers: { 'Content-Type': file.type },
+        headers: { 'Content-Type': file.type, 'X-Content-SHA256': contentSha256 },
         body: file,
       });
       if (!uploadResponse.ok) {
