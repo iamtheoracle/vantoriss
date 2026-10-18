@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Heart, ShoppingBag, Package, Loader2, ShoppingCart } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { clearMutationIdempotencyKey, fingerprintMutationScope, getMutationIdempotencyKey } from '@/lib/mutationIdempotency';
 import ProductCatalog from '@/components/vantoris/herobox/ProductCatalog';
 import CheckoutFlow from '@/components/vantoris/herobox/CheckoutFlow';
 import OrderHistory from '@/components/vantoris/herobox/OrderHistory';
@@ -31,7 +32,28 @@ export default function HeroBox() {
       return;
     }
     try {
-      const created = await base44.entities.HeroBoxProfile.create({ user_id: me.id, role: 'sponsor', status: 'active' });
+      const operationScope = `herobox-profile:${await fingerprintMutationScope(JSON.stringify({ userId: me.id, role: 'sponsor' }))}`;
+      const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+      const response = await base44.functions.invoke('createHeroBoxProfile', {
+        idempotency_key: idempotencyKey,
+      });
+      const result = response?.data || response;
+      const created = result?.profile;
+      if (
+        result?.success !== true ||
+        result?.operation_id !== idempotencyKey ||
+        result?.audit_recorded !== true ||
+        created?.user_id !== me.id ||
+        created?.role !== 'sponsor' ||
+        created?.status !== 'active' ||
+        created?.heroes_supported !== 0 ||
+        created?.total_contribution !== 0 ||
+        typeof created?.id !== 'string' ||
+        typeof created?.updated_date !== 'string'
+      ) {
+        throw new Error(result?.error || 'The server did not confirm a safe sponsor profile.');
+      }
+      await clearMutationIdempotencyKey(operationScope);
       setProfile(created);
     } catch (error) {
       const retry = await base44.entities.HeroBoxProfile.filter({ user_id: me.id }).catch(() => []);
