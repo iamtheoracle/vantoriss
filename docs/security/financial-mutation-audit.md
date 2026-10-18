@@ -10,6 +10,13 @@
 - Base44 server functions use `createClientFromRequest`; current application and transaction entities are accessed through entity CRUD methods.
 - The Base44 SDK calls found in this repository do not expose a documented compare-and-swap operation or multi-entity database transaction. Sequential writes therefore cannot honestly guarantee concurrency safety across application/account/transaction/audit records.
 
+### App code generation hardening
+
+- Updated `base44/functions/generateAppCode/entry.ts` to the pinned Base44 SDK version used by the other server functions.
+- Enforced POST-only access, authentication, a 32 KB request limit, bounded description/context fields, and an explicit artifact-type allowlist.
+- Treats user-provided prompt content as untrusted input; validates the generated response schema, limits code/metadata sizes, rejects unsafe output paths outside `src/`, validates dependency names, and returns generic errors rather than provider exception details.
+- Added the endpoint to Deno lint/type-check coverage and a regression test. This hardening does not itself provide per-user rate limiting; usage quotas should be enforced by the provider/platform before exposing code generation at scale.
+
 ## Implemented boundary in this branch
 
 ### Application review
