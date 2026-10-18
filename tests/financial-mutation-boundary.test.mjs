@@ -488,6 +488,9 @@ test('investment approvals cannot update portfolios or create transactions direc
     'require_portfolio_revision_check_inside_transaction: true',
     'require_idempotency_resolution_before_revision_check: true',
     'update_request_portfolio_ledger_and_audit_atomically: true',
+    'portfolio_balance_modified !== false'
+    'no_portfolio_balance_or_ledger_mutation_on_rejection: true',
+    'apply_portfolio_and_ledger_changes_only_on_approval: true',
     'command.require_verified_funding_evidence = isApproval;',
     'command.require_payout_confirmation = isApproval;',
     'command.consume_existing_withdrawal_reservation_atomically = isApproval;',
@@ -506,6 +509,9 @@ test('investment approvals cannot update portfolios or create transactions direc
     assert.ok(ui.includes("base44.functions.invoke('reviewInvestmentRequest'"));
     assert.ok(ui.includes('getMutationIdempotencyKey('));
     assert.ok(ui.includes('clearMutationIdempotencyKey('));
+    assert.ok(ui.includes('reviewNotes[req.id]'));
+    assert.ok(ui.includes('Rejection reason required'));
+    assert.ok(ui.includes('admin_notes: adminNotes'));
     for (const unsafe of [
       'base44.entities.InvestmentDepositRequest.update(',
       'base44.entities.InvestmentWithdrawalRequest.update(',
