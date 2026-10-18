@@ -76,6 +76,8 @@ export default async function reviewInvestmentRequest(req: Request): Promise<Res
     require_idempotency_resolution_before_revision_check: true,
     prevent_duplicate_commit_for_same_idempotency_key: true,
     update_request_portfolio_ledger_and_audit_atomically: true,
+    apply_portfolio_and_ledger_changes_only_on_approval: true,
+    no_portfolio_balance_or_ledger_mutation_on_rejection: true,
     audit_action: `investment_${requestType}_${decision}`,
     notification_outbox_required: true,
   };
@@ -133,6 +135,8 @@ export default async function reviewInvestmentRequest(req: Request): Promise<Res
       portfolio.id !== savedRequest.portfolio_id ||
       typeof portfolio.updated_date !== 'string'
     )) ||
+    (isApproval && outcome.result.portfolio_balance_modified !== true) ||
+    (!isApproval && (outcome.result.portfolio_balance_modified !== false || (transaction !== undefined && transaction !== null))) ||
     (isDeposit && isApproval && outcome.result.funding_verified !== true) ||
     (!isDeposit && isApproval && (
       outcome.result.payout_confirmed !== true ||
