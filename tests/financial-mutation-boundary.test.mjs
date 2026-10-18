@@ -534,7 +534,7 @@ test('investment request review requires verified funding or confirmed payout an
     'require_payout_confirmation = isApproval',
     'consume_existing_withdrawal_reservation_atomically = isApproval',
     'release_withdrawal_reservation_atomically = !isApproval',
-    'never_mark_withdrawal_paid_without_provider_confirmation: true',
+    'command.never_mark_withdrawal_paid_without_provider_confirmation = true;',
     'writeBlockedMutationAudit(',
     'writeUncertainMutationAudit(',
   ]) assert.ok(endpoint.includes(required), `investment review boundary must include ${required}`);
