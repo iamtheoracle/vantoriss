@@ -6,6 +6,29 @@ import { pathToFileURL } from 'node:url';
 export const BRACES_ADVISORY = 'https://github.com/advisories/GHSA-vfj7-8cjw-p6xm';
 export const BRACES_EXCEPTION_EXPIRES = '2026-11-17T23:59:59.999Z';
 
+function resolveHighAdvisories(name, audit, seen = new Set()) {
+  if (seen.has(name)) return { ok: false, advisories: [] };
+  const vulnerability = audit.vulnerabilities?.[name];
+  if (!vulnerability || !Array.isArray(vulnerability.via) || vulnerability.via.length === 0) {
+    return { ok: false, advisories: [] };
+  }
+  const nextSeen = new Set(seen);
+  nextSeen.add(name);
+  const advisories = [];
+  for (const via of vulnerability.via) {
+    if (typeof via === 'string') {
+      const nested = resolveHighAdvisories(via, audit, nextSeen);
+      if (!nested.ok) return { ok: false, advisories: [] };
+      advisories.push(...nested.advisories);
+    } else if (via && typeof via === 'object') {
+      advisories.push(via);
+    } else {
+      return { ok: false, advisories: [] };
+    }
+  }
+  return { ok: true, advisories };
+}
+
 export function evaluateAuditPolicy(audit, lockfile, now = new Date()) {
   if (!audit || typeof audit !== 'object' || !audit.vulnerabilities || typeof audit.vulnerabilities !== 'object') {
     return { ok: false, message: 'npm audit JSON has no vulnerability map; refusing to infer a clean audit.' };
@@ -33,7 +56,14 @@ export function evaluateAuditPolicy(audit, lockfile, now = new Date()) {
     lockEntry?.version === '3.0.3' &&
     lockEntry?.resolved === 'https://registry.npmjs.org/braces/-/braces-3.0.3.tgz'
   );
-  const unapproved = high.filter(vulnerability => vulnerability?.name !== 'braces' || !bracesAllowed);
+  const unapproved = high.filter(vulnerability => {
+    const resolved = resolveHighAdvisories(vulnerability.name, audit);
+    if (!resolved.ok) return true;
+    const highLeaves = resolved.advisories.filter(advisory => ['high', 'critical'].includes(advisory.severity));
+    return !bracesAllowed ||
+      highLeaves.length === 0 ||
+      highLeaves.some(advisory => advisory.url !== BRACES_ADVISORY || advisory.severity !== 'high');
+  });
   if (exceptionExpired && braces) {
     return { ok: false, message: `The time-boxed braces exception expired at ${BRACES_EXCEPTION_EXPIRES}; re-review upstream status and remove the exception when a safe fix is available.` };
   }
@@ -49,7 +79,7 @@ export function evaluateAuditPolicy(audit, lockfile, now = new Date()) {
   if (bracesAllowed) {
     return {
       ok: true,
-      message: `Temporary exception: ${BRACES_ADVISORY} remains reported for braces@3.0.3 with no published fix; re-review by ${BRACES_EXCEPTION_EXPIRES}. No other high/critical advisory is allowed.`,
+      message: `Temporary exception: ${BRACES_ADVISORY} remains reported for braces@3.0.3 with no published fix. High-severity dependent-package entries are allowed only when their high/critical advisory chain resolves exclusively to this exact advisory. Re-review by ${BRACES_EXCEPTION_EXPIRES}. No other high/critical advisory is allowed.`,
       exception: 'GHSA-vfj7-8cjw-p6xm',
     };
   }
