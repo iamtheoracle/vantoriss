@@ -751,3 +751,35 @@ test('HeroBox sponsor profiles are created with server-controlled role and total
   assert.ok(ui.includes('clearMutationIdempotencyKey(operationScope)'));
   assert.ok(!ui.includes('base44.entities.HeroBoxProfile.create('));
 });
+
+
+test('HeroBox fulfillment cannot mark an order paid or change payment state from the browser', async () => {
+  const endpoint = await read('base44/functions/updateHeroBoxOrderStatus/entry.ts');
+  const ui = await read('src/pages/operations/HeroBoxAdminOrders.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    'isAllowedFinancialRole(actor)',
+    'validateMutationEnvelope(body)',
+    'ALLOWED_TRANSITIONS',
+    'require_authoritative_order_lookup: true',
+    'require_order_revision_match: true',
+    'require_expected_status_match: true',
+    'require_expected_payment_status_match: true',
+    'require_payment_status_completed_for_fulfillment: true',
+    'require_payment_fields_unchanged: true',
+    'never_mark_order_paid_from_operator_action: true',
+    'never_mark_order_refunded_or_cancelled_from_fulfillment_action: true',
+    'never_move_funds_during_fulfillment_update: true',
+    'update_order_audit_and_notification_outbox_atomically: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `HeroBox fulfillment boundary must include ${required}`);
+  assert.ok(!endpoint.includes('entities.HeroBoxOrder.update('));
+  assert.ok(ui.includes("base44.functions.invoke('updateHeroBoxOrderStatus'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes('clearMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes("const STATUS_FLOW = ['payment_pending', 'paid', 'processing'"));
+  assert.ok(ui.includes('Payment status cannot be advanced manually.'));
+  assert.ok(!ui.includes('updates.payment_status ='));
+  assert.ok(!ui.includes('base44.entities.HeroBoxOrder.update('));
+});
