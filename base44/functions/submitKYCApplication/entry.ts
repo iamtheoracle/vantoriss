@@ -11,6 +11,7 @@ import {
   type AuthenticatedActor,
   type Base44AuditClient,
 } from '../../shared/financialMutationGateway.ts';
+import { isUuid } from '../../shared/financialMutationRules.mjs';
 
 type Base44Client = ReturnType<typeof createClientFromRequest> & Base44AuditClient;
 const MAX_KYC_DOCUMENTS = 10;
@@ -38,7 +39,7 @@ export default async function submitKYCApplication(req: Request): Promise<Respon
 
   const applicationId = typeof body.application_id === 'string' ? body.application_id.trim() : '';
   const expectedKycStatus = body.expected_kyc_status;
-  const documentsInput = body.documents;
+  const documentsInput = body.document_refs;
   const idempotencyKey = typeof body.idempotency_key === 'string' ? body.idempotency_key : '';
 
   if (actor.role !== 'user') {
@@ -52,42 +53,36 @@ export default async function submitKYCApplication(req: Request): Promise<Respon
     return jsonResponse({ error: 'KYC documents can only be submitted for a not-started or rejected verification.' }, 409);
   }
   if (!Array.isArray(documentsInput) || documentsInput.length < 1 || documentsInput.length > MAX_KYC_DOCUMENTS) {
-    return jsonResponse({ error: `documents must contain between 1 and ${MAX_KYC_DOCUMENTS} document URLs.` }, 400);
+    return jsonResponse({ error: `document_refs must contain between 1 and ${MAX_KYC_DOCUMENTS} document URLs.` }, 400);
   }
 
   const documents: string[] = [];
   const seen = new Set<string>();
   for (let index = 0; index < documentsInput.length; index += 1) {
     const value = documentsInput[index];
-    if (typeof value !== 'string' || value.length > MAX_DOCUMENT_URL_LENGTH) {
-      return jsonResponse({ error: `Document ${index + 1} has an invalid URL.` }, 400);
+    if (typeof value !== 'string' || !isUuid(value)) {
+      return jsonResponse({ error: `Document reference ${index + 1} is invalid. Uploads must use the private document service.` }, 400);
     }
-    let url: URL;
-    try {
-      url = new URL(value);
-    } catch {
-      return jsonResponse({ error: `Document ${index + 1} has an invalid URL.` }, 400);
-    }
-    if (url.protocol !== 'https:' || url.username || url.password || url.hash || seen.has(url.href)) {
-      return jsonResponse({ error: `Document ${index + 1} must be a unique HTTPS upload URL without credentials or fragments.` }, 400);
-    }
-    seen.add(url.href);
-    documents.push(url.href);
+    if (seen.has(value)) return jsonResponse({ error: `Document reference ${index + 1} is duplicated.` }, 400);
+    seen.add(value);
+    documents.push(value);
   }
 
   const command: Record<string, unknown> = {
     application_id: applicationId,
     expected_updated_date: body.expected_updated_date,
     expected_kyc_status: expectedKycStatus,
-    documents,
+    document_refs: documents,
+    require_private_document_storage: true,
+    never_accept_public_document_urls: true,
+    require_completed_private_upload_reservations: true,
+    require_document_refs_owned_by_actor: true,
     require_authoritative_application_lookup: true,
     require_actor_owns_application: true,
     require_member_role_on_application: true,
     require_application_revision_match: true,
     require_application_status_not_finalized: true,
     require_kyc_status_match: true,
-    require_document_urls_owned_by_actor: true,
-    require_document_urls_from_upload_provider: true,
     verify_document_mime_and_size_from_upload_metadata: true,
     max_documents: MAX_KYC_DOCUMENTS,
     replace_kyc_documents_atomically: true,
