@@ -6,6 +6,7 @@ import {
   isDateOnly,
   isValidOpeningBalance,
   isValidRevision,
+  isTrustedPrivateStorageUrl,
   isUuid,
 } from '../base44/shared/financialMutationRules.mjs';
 
@@ -49,4 +50,19 @@ test('date correction only allows posted or reversed transactions', () => {
   assert.equal(isCorrectableTransactionStatus('reversed'), true);
   assert.equal(isCorrectableTransactionStatus('pending'), false);
   assert.equal(isCorrectableTransactionStatus('failed'), false);
+});
+
+
+test('private storage URLs must match an exact configured HTTPS origin', () => {
+  const allowlist = 'https://private-files.example.com, https://kyc-cdn.example.net/';
+  assert.equal(isTrustedPrivateStorageUrl('https://private-files.example.com/object/123?signature=abc', allowlist), true);
+  assert.equal(isTrustedPrivateStorageUrl('https://kyc-cdn.example.net/object/123?signature=abc', allowlist), true);
+  assert.equal(isTrustedPrivateStorageUrl('https://evil.example.com/object/123?signature=abc', allowlist), false);
+  assert.equal(isTrustedPrivateStorageUrl('https://private-files.example.com.evil.test/object', allowlist), false);
+  assert.equal(isTrustedPrivateStorageUrl('http://private-files.example.com/object', allowlist), false);
+  assert.equal(isTrustedPrivateStorageUrl('https://user:pass@private-files.example.com/object', allowlist), false);
+  assert.equal(isTrustedPrivateStorageUrl('https://private-files.example.com/object#fragment', allowlist), false);
+  assert.equal(isTrustedPrivateStorageUrl('https://private-files.example.com/object', ''), false);
+  assert.equal(isTrustedPrivateStorageUrl('https://private-files.example.com/object', 'not a URL'), false);
+  assert.equal(isTrustedPrivateStorageUrl(null, allowlist), false);
 });
