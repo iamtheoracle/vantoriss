@@ -55,7 +55,8 @@ export default async function createKYCUpload(req: Request): Promise<Response> {
   if (expectedKycStatus !== 'not_started' && expectedKycStatus !== 'rejected') {
     return jsonResponse({ error: 'KYC uploads are only available for not-started or rejected verification.' }, 409);
   }
-  if (!fileName || fileName.length > 255 || /[\\/\u0000-\u001f]/.test(fileName)) {
+  const hasUnsafeFilenameCharacters = fileName.includes('/') || fileName.includes('\\\\') || [...fileName].some(character => character.charCodeAt(0) < 32);
+  if (!fileName || fileName.length > 255 || hasUnsafeFilenameCharacters) {
     return jsonResponse({ error: 'file_name must be a plain filename of at most 255 characters.' }, 400);
   }
   if (typeof contentType !== 'string' || !ALLOWED_CONTENT_TYPES.has(contentType)) {
