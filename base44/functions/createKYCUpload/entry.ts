@@ -3,7 +3,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
 import {
   invokeAtomicMutationService,
-  isTrustedPrivateStorageUrl,
   isRecord,
   jsonResponse,
   validateMutationEnvelope,
@@ -12,7 +11,7 @@ import {
   type AuthenticatedActor,
   type Base44AuditClient,
 } from '../../shared/financialMutationGateway.ts';
-import { isUuid } from '../../shared/financialMutationRules.mjs';
+import { isTrustedPrivateStorageUrl, isUuid } from '../../shared/financialMutationRules.mjs';
 
 type Base44Client = ReturnType<typeof createClientFromRequest> & Base44AuditClient;
 const MAX_FILE_BYTES = 25 * 1024 * 1024;
@@ -113,7 +112,7 @@ export default async function createKYCUpload(req: Request): Promise<Response> {
   const expiryMs = typeof expiresAt === 'string' ? Date.parse(expiresAt) : NaN;
   if (
     !parsedUrl ||
-    !isTrustedPrivateStorageUrl(uploadUrl) ||
+    !isTrustedPrivateStorageUrl(uploadUrl, Deno.env.get('VANTORIS_PRIVATE_STORAGE_ORIGINS')) ||
     parsedUrl.protocol !== 'https:' ||
     parsedUrl.username ||
     parsedUrl.password ||
