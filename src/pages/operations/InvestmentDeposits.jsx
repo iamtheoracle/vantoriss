@@ -10,6 +10,7 @@ export default function InvestmentDeposits() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState('');
+  const [reviewNotes, setReviewNotes] = useState({});
   const { toast } = useToast();
 
   const loadData = useCallback(async () => {
@@ -25,6 +26,11 @@ export default function InvestmentDeposits() {
       return;
     }
     const decision = action === 'approve' ? 'approved' : 'rejected';
+    const adminNotes = (reviewNotes[req.id] || '').trim();
+    if (decision === 'rejected' && !adminNotes) {
+      toast({ title: 'Rejection reason required', description: 'Enter a concise reason before rejecting this request.', variant: 'destructive' });
+      return;
+    }
     setProcessing(req.id);
     let operationScope = '';
     try {
@@ -32,6 +38,7 @@ export default function InvestmentDeposits() {
         requestId: req.id,
         requestType: 'deposit',
         decision,
+        adminNotes,
         expectedUpdatedDate: req.updated_date,
       }))}`;
       const idempotencyKey = await getMutationIdempotencyKey(operationScope);
@@ -40,7 +47,7 @@ export default function InvestmentDeposits() {
         request_type: 'deposit',
         decision,
         expected_updated_date: req.updated_date,
-        admin_notes: req.review_notes || '',
+        admin_notes: adminNotes,
         idempotency_key: idempotencyKey,
       });
       const result = response?.data || response;
@@ -74,6 +81,7 @@ export default function InvestmentDeposits() {
       }
 
       await clearMutationIdempotencyKey(operationScope);
+      setReviewNotes(current => ({ ...current, [req.id]: '' }));
       toast({
         title: approved ? 'Deposit approved' : 'Deposit rejected',
         description: approved
@@ -109,7 +117,15 @@ export default function InvestmentDeposits() {
                 <p className="text-xs text-gray mt-0.5">
                   Submitted: {req.created_date?.substring(0, 10)} · Status: <span className="capitalize">{req.status.replace(/_/g, ' ')}</span>
                 </p>
-                {req.review_notes && <p className="text-xs text-gray mt-1">Notes: {req.review_notes}</p>}
+                {req.review_notes && <p className="text-xs text-gray mt-1">Previous review note: {req.review_notes}</p>}
+                <input
+                  value={reviewNotes[req.id] || ''}
+                  onChange={event => setReviewNotes(current => ({ ...current, [req.id]: event.target.value }))}
+                  maxLength={2000}
+                  placeholder="Operator note (required to reject)"
+                  aria-label="Deposit review note"
+                  className="mt-2 w-full rounded-lg border border-border bg-white px-3 py-2 text-xs"
+                />
               </div>
               {req.status === 'requested' && (
                 <div className="flex gap-2">
@@ -122,7 +138,7 @@ export default function InvestmentDeposits() {
                   </button>
                   <button
                     onClick={() => handleAction(req, 'reject')}
-                    disabled={processing === req.id}
+                    disabled={processing === req.id || !(reviewNotes[req.id] || '').trim()}
                     className="px-3 py-2 rounded-lg bg-crimson/10 text-crimson text-xs font-semibold hover:bg-crimson/20 transition flex items-center gap-1.5"
                   >
                     <X size={14} /> Reject
