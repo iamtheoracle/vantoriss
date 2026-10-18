@@ -6,7 +6,7 @@
 
 - Repository: `iamtheoracle/vantoriss` (full VANTORIS application).
 - Work branch: `security/financial-mutation-boundary-2026-10-17`, based on `main`.
-- `package.json` dependency and devDependency ranges exactly match `package-lock.json`'s root package entries at audit time. No lockfile rewrite is justified; `npm ci` is the reproducible restore command and must be used for validation.
+- `package.json` dependency and devDependency ranges exactly match `package-lock.json`'s root package entries. The unused legacy `react-quill`/Quill dependency was removed after repository search found no application imports; its vulnerable package chain was pruned from the lockfile. `npm ci` is the reproducible restore command and must be used for validation.
 - Base44 server functions use `createClientFromRequest`; current application and transaction entities are accessed through entity CRUD methods.
 - The Base44 SDK calls found in this repository do not expose a documented compare-and-swap operation or multi-entity database transaction. Sequential writes therefore cannot honestly guarantee concurrency safety across application/account/transaction/audit records.
 
@@ -31,7 +31,7 @@
 
 ### Atomic service contract
 
-The application-review, date-correction, funding-review, withdrawal-processing, bulk-import, account-status, account-provisioning, withdrawal-initiation, manual transaction, historical statement import, HeroBox sponsorship and donation, investment portfolio creation, investment request, and investment request-review endpoints use `base44/shared/financialMutationGateway.ts`; all eight fail closed when the provider is unavailable and do not perform financial entity writes themselves. Configuration requires server-only environment variables:
+The application-review, date-correction, funding-review, withdrawal-processing, bulk-import, account-status, account-provisioning, withdrawal-initiation, manual transaction, historical statement import, HeroBox sponsorship and donation, investment portfolio creation, investment request, and investment request-review endpoints use `base44/shared/financialMutationGateway.ts`; these endpoints fail closed when the provider is unavailable and do not perform financial entity writes themselves. Configuration requires server-only environment variables:
 
 - `VANTORIS_ATOMIC_MUTATION_URL` — HTTPS endpoint for the service that owns the authoritative records and can commit state plus audit atomically.
 - `VANTORIS_ATOMIC_MUTATION_SECRET` — server-only bearer credential for that service.
@@ -138,7 +138,7 @@ The completed workflow run `39009653505` verified `npm ci`, all 11 financial-mut
 
 - Workflow run [39127947176](https://github.com/iamtheoracle/vantoriss/actions/runs/39127947176), at code commit `e3551dcfd1e23bf1498b023c405e4a17733238f0`, passed **24/24 financial-mutation tests**, changed-UI ESLint, Deno lint, Deno type-check, full-repository lint, and the Vite production build.
 - Full-repository lint is now clean; the previous 91 unused-import errors are resolved.
-- Dependency audit remains the sole failing CI gate. The current report shows **10 advisories (5 high, 5 moderate)**. High severity traces through the Tailwind 3/chokidar/braces dependency chain; moderate advisories include `postcss-selector-parser` and React Router. Avoid `npm audit fix --force`; the remaining fixes need dependency compatibility work or a documented, evidence-backed risk exception.
-- After that successful run, this branch added atomic server boundaries for investment portfolio creation, investment deposit/withdrawal requests, and HeroBox donation orders, plus explicit HeroBox order schema fields. These newest changes require fresh CI verification; do not treat run 39127947176 as verification of them.
+- Dependency audit remains the sole failing CI gate. The current report shows **10 advisories (5 high, 5 moderate)** after removing the unused vulnerable legacy Quill dependency. High severity traces through the Tailwind 3/chokidar/braces dependency chain; moderate advisories include `postcss-selector-parser` and React Router. The braces advisory has no published patched version as of 2026-10-18; this does not remove the need to assess its build-time reachability and track upstream changes. Avoid `npm audit fix --force`; the remaining fixes need dependency compatibility work or a documented, evidence-backed risk exception.
+- After that successful run, this branch added the investment request-review endpoint and removed the unused Quill dependency. The current head requires fresh CI verification; do not treat run 39127947176 as verification of these changes.
 - The investment and donation endpoints are fail-closed until `VANTORIS_ATOMIC_MUTATION_URL` and `VANTORIS_ATOMIC_MUTATION_SECRET` point to a real, tested authoritative service. The provider must enforce owner/revision checks, idempotency, audited atomic writes, funding/cash reservations, and no funds movement during request/order creation.
 - No production financial mutation was executed. PR #8 remains draft/unmerged.
