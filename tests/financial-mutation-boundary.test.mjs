@@ -725,3 +725,29 @@ test('HeroBox checkout uses authoritative server pricing and cannot create paid 
   assert.ok(!checkout.includes('base44.entities.HeroBoxOrder.create('));
   assert.ok(heroBox.includes('original_price: originalPrice'));
 });
+
+
+test('HeroBox sponsor profiles are created with server-controlled role and totals', async () => {
+  const endpoint = await read('base44/functions/createHeroBoxProfile/entry.ts');
+  const ui = await read('src/pages/HeroBox.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    "actor.role !== 'user'",
+    'isUuid(parsed.idempotency_key)',
+    "invokeAtomicMutationService('herobox.profile.create'",
+    "role: 'sponsor'",
+    "status: 'active'",
+    'require_unique_profile_per_user_role: true',
+    'never_trust_client_user_id_role_status_or_totals: true',
+    'initialize_contribution_totals_to_zero: true',
+    'create_profile_atomically: true',
+    'notification_outbox_required: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `HeroBox profile boundary must include ${required}`);
+  assert.ok(!endpoint.includes('entities.HeroBoxProfile.create('));
+  assert.ok(ui.includes("base44.functions.invoke('createHeroBoxProfile'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes('clearMutationIdempotencyKey(operationScope)'));
+  assert.ok(!ui.includes('base44.entities.HeroBoxProfile.create('));
+});
