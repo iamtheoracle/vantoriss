@@ -568,8 +568,8 @@ test('member KYC document submission uses an owner-scoped atomic boundary', asyn
     'require_actor_owns_application: true',
     'require_application_revision_match: true',
     "expected_kyc_status: expectedKycStatus",
-    'require_document_urls_owned_by_actor: true',
-    'require_document_urls_from_upload_provider: true',
+    'require_document_refs_owned_by_actor: true',
+    'require_completed_private_upload_reservations: true',
     'verify_document_mime_and_size_from_upload_metadata: true',
     "set_kyc_status: 'pending'",
     'replace_kyc_documents_atomically: true',
@@ -579,6 +579,9 @@ test('member KYC document submission uses an owner-scoped atomic boundary', asyn
   ]) assert.ok(endpoint.includes(required), `KYC submission boundary must include ${required}`);
   assert.ok(!endpoint.includes('entities.Application.update('));
   assert.ok(ui.includes("base44.functions.invoke('submitKYCApplication'"));
+  assert.ok(ui.includes("base44.functions.invoke('createKYCUpload'"));
+  assert.ok(ui.includes('document_refs: documents'));
+  assert.ok(!ui.includes('base44.integrations.Core.UploadFile('));
   assert.ok(ui.includes('getMutationIdempotencyKey(operationScope)'));
   assert.ok(ui.includes('clearMutationIdempotencyKey(operationScope)'));
   assert.ok(ui.includes("allowedTypes = new Set(['application/pdf', 'image/jpeg', 'image/png'])"));
@@ -636,4 +639,56 @@ test('KYC reminder dispatch uses an audited idempotent server queue', async () =
   assert.ok(ui.includes('getMutationIdempotencyKey(operationScope)'));
   assert.ok(ui.includes('clearMutationIdempotencyKey(operationScope)'));
   assert.ok(!ui.includes('base44.entities.Notification.create('));
+});
+
+
+test('KYC uploads require private short-lived signed URLs and content integrity', async () => {
+  const endpoint = await read('base44/functions/createKYCUpload/entry.ts');
+  const ui = await read('src/pages/ApplyKYC.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    "actor.role !== 'user'",
+    'validateMutationEnvelope(body)',
+    'isUuid',
+    'require_authoritative_application_lookup: true',
+    'require_actor_owns_application: true',
+    'require_private_document_storage: true',
+    'prohibit_public_read_access: true',
+    'require_short_lived_signed_upload_url: true',
+    'upload_url_ttl_seconds: 300',
+    'restrict_upload_content_type_and_size: true',
+    'bind_upload_signature_to_content_hash: true',
+    'require_uploaded_content_hash_match: true',
+    'create_upload_reservation_atomically: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `KYC upload authorization must include ${required}`);
+  assert.ok(ui.includes("base44.functions.invoke('createKYCUpload'"));
+  assert.ok(ui.includes("method: 'PUT'"));
+  assert.ok(ui.includes("'X-Content-SHA256': contentSha256"));
+  assert.ok(ui.includes('content_sha256: contentSha256'));
+  assert.ok(!ui.includes('base44.integrations.Core.UploadFile('));
+});
+
+test('KYC document viewing requires reviewer authorization and a short-lived private URL', async () => {
+  const endpoint = await read('base44/functions/getKYCDocumentAccess/entry.ts');
+  const ui = await read('src/pages/admin/AdminKYC.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    'isAllowedFinancialRole(actor)',
+    'validateMutationEnvelope(body)',
+    'require_authorized_reviewer: true',
+    'require_application_revision_match: true',
+    'require_document_belongs_to_application: true',
+    'require_private_document_storage: true',
+    'prohibit_public_read_access: true',
+    'issue_short_lived_signed_view_url: true',
+    'view_url_ttl_seconds: 60',
+    'require_legacy_url_mapped_to_private_owned_object_when_legacy: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `KYC document view boundary must include ${required}`);
+  assert.ok(ui.includes("base44.functions.invoke('getKYCDocumentAccess'"));
+  assert.ok(ui.includes('window.open(\'about:blank\', \'_blank\')'));
+  assert.ok(!ui.includes('href={doc}'));
 });
