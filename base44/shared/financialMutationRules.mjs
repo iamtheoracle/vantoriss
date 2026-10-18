@@ -31,3 +31,45 @@ export function canTransitionApplication(currentStatus, decision) {
 export function isCorrectableTransactionStatus(status) {
   return status === 'completed' || status === 'reversed';
 }
+
+/**
+ * Validate a signed private-storage URL against an explicit comma-separated
+ * allowlist of HTTPS origins. The allowlist is configuration, never user input.
+ */
+export function isTrustedPrivateStorageUrl(value, configuredOrigins) {
+  if (typeof value !== 'string' || !value || typeof configuredOrigins !== 'string' || !configuredOrigins.trim()) {
+    return false;
+  }
+
+  let candidate;
+  try {
+    candidate = new URL(value);
+  } catch {
+    return false;
+  }
+  if (candidate.protocol !== 'https:' || candidate.username || candidate.password || candidate.hash) {
+    return false;
+  }
+
+  const allowedOrigins = new Set();
+  for (const rawOrigin of configuredOrigins.split(',')) {
+    const entry = rawOrigin.trim();
+    if (!entry) continue;
+    try {
+      const allowed = new URL(entry);
+      if (
+        allowed.protocol === 'https:' &&
+        !allowed.username &&
+        !allowed.password &&
+        allowed.pathname === '/' &&
+        !allowed.search &&
+        !allowed.hash
+      ) {
+        allowedOrigins.add(allowed.origin);
+      }
+    } catch {
+      // Ignore malformed allowlist entries; they must never broaden trust.
+    }
+  }
+  return allowedOrigins.has(candidate.origin);
+}
