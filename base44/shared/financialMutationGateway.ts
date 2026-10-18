@@ -1,5 +1,48 @@
 import { isDateOnly, isUuid, isValidRevision } from './financialMutationRules.mjs';
 
+
+/**
+ * Trust only exact HTTPS origins configured by the server operator. Signed URLs
+ * may contain query parameters, but arbitrary HTTPS hosts are never accepted.
+ * VANTORIS_PRIVATE_STORAGE_ORIGINS is a comma-separated list of origin URLs,
+ * for example: https://private-uploads.example.com,https://private-views.example.com
+ */
+export function isTrustedPrivateStorageUrl(value: unknown): value is string {
+  if (typeof value !== 'string' || !value) return false;
+  const configured = Deno.env.get('VANTORIS_PRIVATE_STORAGE_ORIGINS');
+  if (!configured) return false;
+
+  let candidate: URL;
+  try {
+    candidate = new URL(value);
+  } catch {
+    return false;
+  }
+  if (candidate.protocol !== 'https:' || candidate.username || candidate.password || candidate.hash) return false;
+
+  const allowedOrigins = new Set<string>();
+  for (const rawOrigin of configured.split(',')) {
+    const entry = rawOrigin.trim();
+    if (!entry) continue;
+    try {
+      const allowed = new URL(entry);
+      if (
+        allowed.protocol === 'https:' &&
+        !allowed.username &&
+        !allowed.password &&
+        allowed.pathname === '/' &&
+        !allowed.search &&
+        !allowed.hash
+      ) {
+        allowedOrigins.add(allowed.origin);
+      }
+    } catch {
+      // Ignore malformed entries; a bad entry must not broaden the allowlist.
+    }
+  }
+  return allowedOrigins.has(candidate.origin);
+}
+
 export type AuthenticatedActor = {
   id: string;
   role?: string;
