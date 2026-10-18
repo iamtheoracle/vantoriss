@@ -129,28 +129,39 @@ export default function AdminKYC() {
   async function handleSendKycReminders() {
     setSendingReminders(true);
     try {
-      const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
-      const staleApps = applications.filter(
-        a => a.kyc_status === 'pending' && new Date(a.created_date) < threeDaysAgo
-      );
-      let sent = 0;
-      for (const app of staleApps) {
-        await base44.entities.Notification.create({
-          user_id: app.user_id,
-          title: 'KYC Documents Required',
-          message: 'Your KYC verification has been pending for over 3 days. Please upload your identity documents to complete your application.',
-          type: 'action',
-          link: '/apply/kyc',
-        });
-        sent++;
+      const operationScope = `kyc-reminders:${await fingerprintMutationScope('pending-kyc-older-than-3-days')}`;
+      const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+      const response = await base44.functions.invoke('sendKYCReminders', {
+        idempotency_key: idempotencyKey,
+      });
+      const result = response?.data || response;
+      const summary = result?.summary;
+      if (
+        result?.success !== true ||
+        result?.operation_id !== idempotencyKey ||
+        result?.audit_recorded !== true ||
+        !Number.isSafeInteger(summary?.eligible) ||
+        !Number.isSafeInteger(summary?.queued) ||
+        !Number.isSafeInteger(summary?.skipped) ||
+        summary.eligible < 0 ||
+        summary.queued < 0 ||
+        summary.skipped < 0 ||
+        summary.queued + summary.skipped > summary.eligible
+      ) {
+        throw new Error(result?.error || 'The server did not confirm the audited KYC reminder queue operation.');
       }
-      setReminderResult({ sent, total: staleApps.length });
-      toast({ title: 'Reminders sent', description: `${sent} KYC reminder${sent !== 1 ? 's' : ''} sent.` });
+      await clearMutationIdempotencyKey(operationScope);
+      setReminderResult({ sent: summary.queued, total: summary.eligible, skipped: summary.skipped });
+      toast({
+        title: 'KYC reminders queued',
+        description: `${summary.queued} queued, ${summary.skipped} already queued or skipped.`,
+      });
     } catch (e) {
       console.error(e);
-      toast({ title: 'Reminders failed', description: e.message || 'Unable to send reminders.', variant: 'destructive' });
+      toast({ title: 'Reminder queue unavailable', description: e?.response?.data?.error || e.message || 'Unable to queue KYC reminders.', variant: 'destructive' });
+    } finally {
+      setSendingReminders(false);
     }
-    setSendingReminders(false);
   }
 
   function toggleSelect(id) {
@@ -235,7 +246,7 @@ export default function AdminKYC() {
           {reminderResult && (
             <span className="text-[#AAB4C3] text-sm">
               {reminderResult.sent > 0
-                ? `✓ Sent ${reminderResult.sent} reminder${reminderResult.sent > 1 ? 's' : ''}`
+                ? `✓ Queued ${reminderResult.sent} reminder${reminderResult.sent > 1 ? 's' : ''}`
                 : 'No stale KYC applications found'}
             </span>
           )}
