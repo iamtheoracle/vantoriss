@@ -44,6 +44,7 @@ type AtomicMutationResult = {
   document_ref?: string;
   expires_at?: string;
   content_type?: string;
+  content_sha256?: string;
   method?: string;
   private_storage_confirmed?: boolean;
   public_read_access?: boolean;
