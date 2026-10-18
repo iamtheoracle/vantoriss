@@ -496,7 +496,7 @@ test('investment approvals cannot update portfolios or create transactions direc
     'command.require_payout_confirmation = isApproval;',
     'command.consume_existing_withdrawal_reservation_atomically = isApproval;',
     'command.release_withdrawal_reservation_atomically = !isApproval;',
-    'never_mark_withdrawal_paid_without_provider_confirmation: true',
+    'command.never_mark_withdrawal_paid_without_provider_confirmation = true;',
     'writeBlockedMutationAudit(',
     'writeUncertainMutationAudit(',
   ]) assert.ok(endpoint.includes(required), `investment review boundary must include ${required}`);
