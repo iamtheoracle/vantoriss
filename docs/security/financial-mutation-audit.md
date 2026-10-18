@@ -74,6 +74,14 @@ These UI actions will show an explicit unavailable/error state until the atomic 
 
 This inventory is based on repository code search and targeted source inspection, not a claim that every path is reachable in production or that every listed flow has been fully reviewed. Continue the audit until all privileged mutation call sites are either server-backed or explicitly disabled.
 
+### Investment request review follow-up (2026-10-18)
+
+- Added `base44/functions/reviewInvestmentRequest/entry.ts` for operator decisions on investment deposit and withdrawal requests. It requires an allowed financial-review role, a request revision, an idempotency envelope, and authoritative request/portfolio checks in the transactional service.
+- Deposit approval requires verified funding evidence before portfolio credit and transaction creation. Withdrawal approval requires a connected provider and confirmed payout; it consumes the existing withdrawal reservation atomically. Rejection requires an operator reason and must release a withdrawal reservation without creating a ledger transaction or changing the portfolio balance.
+- The endpoint validates the returned request, portfolio revision, transaction, and funding/payout evidence. It explicitly requires `portfolio_balance_modified: true` for approval and `portfolio_balance_modified: false` plus no transaction for rejection.
+- `InvestmentDashboard.jsx`, `InvestmentDeposits.jsx`, and `InvestmentWithdrawals.jsx` route review actions through the endpoint with idempotency keys and operator rejection notes. These screens no longer write investment request state, portfolio balances, or investment transactions directly.
+- The provider is still unconfigured; these flows fail closed and have not moved real funds.
+
 ## Validation
 
 Run in a clean checkout with Node 20+ and Deno 2:
@@ -137,10 +145,10 @@ The completed workflow run `39009653505` verified `npm ci`, all 11 financial-mut
 
 ### Latest validation status
 
-- Workflow run [39128369101](https://github.com/iamtheoracle/vantoriss/actions/runs/39128369101), at code commit `29d0b57a2a4a11cecb6dfa127354cd72daf463c8`, passed **26/26 financial-mutation tests**, changed-UI ESLint, Deno lint, Deno type-check, full-repository lint, and the Vite production build.
+- Workflow run [39128483854](https://github.com/iamtheoracle/vantoriss/actions/runs/39128483854), at code commit `87e86efb27708af2888fef31eca55d0ec88bd3e7`, passed **26/26 financial-mutation tests**, changed-UI ESLint, Deno lint, Deno type-check, full-repository lint, and the Vite production build.
 - Full-repository lint is clean; the previous 91 unused-import errors are resolved.
 - Dependency audit remains the only failing CI gate. It reports **10 advisories (5 high, 5 moderate)**. The high findings trace through the Tailwind 3/chokidar/micromatch/braces development-tool chain. The braces advisory currently has no patched release; do not add a nonexistent-version override or run `npm audit fix --force`. The moderate advisories include `postcss-selector-parser` and React Router.
-- The current verified revision includes server boundaries for investment portfolio creation, investment deposit/withdrawal requests, and HeroBox donation orders, including explicit order/case linkage. Regression tests, changed-file lint, Deno lint/type-check, and the production build all pass.
+- That verified revision included investment portfolio/request creation and review boundaries plus HeroBox donation orders. The current head additionally requires explicit no-balance-change confirmation for rejected investment requests and rejection-reason checks in both legacy review screens; this new head requires fresh CI verification.
 - Investment and donation endpoints remain fail-closed until `VANTORIS_ATOMIC_MUTATION_URL` and `VANTORIS_ATOMIC_MUTATION_SECRET` point to a real, tested authoritative service. The provider must enforce owner/revision checks, idempotency, atomic audit/outbox writes, verified funding/cash reservations, and no funds movement during request/order creation.
 - X Money remains a separate incomplete repository and cannot be changed through the current GitHub integration: creating a recovery branch returns 403 `Resource not accessible by integration`. Its missing application entry files and lockfile must be restored from a verified source tree through authorized write access.
 - No production financial mutation, merge, or production deployment was performed. PR #8 remains draft/unmerged.
