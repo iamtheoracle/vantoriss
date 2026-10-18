@@ -28,6 +28,7 @@ type AtomicMutationResult = {
   investmentWithdrawalRequest?: Record<string, unknown>;
   portfolio?: Record<string, unknown>;
   heroBoxRequest?: Record<string, unknown>;
+  heroBoxOrder?: Record<string, unknown>;
   heroBoxActivity?: Record<string, unknown>;
   account?: Record<string, unknown> | null;
   transaction?: Record<string, unknown>;
