@@ -88,8 +88,6 @@ export default function HeroBoxAdminOrders() {
           {orders.map(order => {
             const currentIdx = STATUS_FLOW.indexOf(order.status);
             const canAdvance = currentIdx >= 1 && currentIdx < STATUS_FLOW.length - 1;
-            let items = [];
-            try { items = JSON.parse(order.items || '[]'); } catch (e) {}
             return (
               <div key={order.id} className="vantoris-glass p-4">
                 <div className="flex items-center justify-between mb-2">
