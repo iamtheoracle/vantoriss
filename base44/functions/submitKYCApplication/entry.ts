@@ -107,6 +107,7 @@ export default async function submitKYCApplication(req: Request): Promise<Respon
   }
 
   const savedApplication = outcome.result.application;
+  const savedDocuments = Array.isArray(savedApplication?.kyc_documents) ? savedApplication.kyc_documents : null;
   if (
     !savedApplication ||
     savedApplication.id !== applicationId ||
@@ -115,9 +116,9 @@ export default async function submitKYCApplication(req: Request): Promise<Respon
     typeof savedApplication.updated_date !== 'string' ||
     !savedApplication.updated_date ||
     savedApplication.updated_date === body.expected_updated_date ||
-    !Array.isArray(savedApplication.kyc_documents) ||
-    savedApplication.kyc_documents.length !== documents.length ||
-    documents.some((document, index) => savedApplication.kyc_documents?.[index] !== document)
+    !savedDocuments ||
+    savedDocuments.length !== documents.length ||
+    documents.some((document, index) => savedDocuments[index] !== document)
   ) {
     const auditRecorded = await writeUncertainMutationAudit(
       base44, actor, 'kyc.documents.submit', applicationId, 'ATOMIC_MUTATION_CONTRACT_VIOLATION', idempotencyKey,
@@ -138,7 +139,7 @@ export default async function submitKYCApplication(req: Request): Promise<Respon
       user_id: savedApplication.user_id,
       kyc_status: savedApplication.kyc_status,
       updated_date: savedApplication.updated_date,
-      kyc_documents: savedApplication.kyc_documents,
+      kyc_documents: savedDocuments,
     },
   });
 }
