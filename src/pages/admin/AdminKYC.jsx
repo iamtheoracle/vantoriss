@@ -3,8 +3,8 @@ import { base44 } from '@/api/base44Client';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Check, X, FileText, ExternalLink, BellRing, Trash2, CheckSquare, Square } from 'lucide-react';
-import { logAuditEntry } from '@/lib/auditLogger';
 import { useToast } from '@/components/ui/use-toast';
+import { clearMutationIdempotencyKey, fingerprintMutationScope, getMutationIdempotencyKey } from '@/lib/mutationIdempotency';
 
 export default function AdminKYC() {
   const [applications, setApplications] = useState([]);
@@ -16,6 +16,7 @@ export default function AdminKYC() {
   const [reminderResult, setReminderResult] = useState(null);
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
+  const [bulkNotes, setBulkNotes] = useState('');
   const { toast } = useToast();
 
   useEffect(() => { loadApps(); }, []);
@@ -26,70 +27,103 @@ export default function AdminKYC() {
     setLoading(false);
   }
 
+  async function performKycMutation(app, decision, rawNotes = '') {
+    const adminNotes = rawNotes.trim();
+    if (!app?.id || typeof app.updated_date !== 'string' || !app.updated_date) {
+      throw new Error('The application revision is missing. Refresh the KYC queue before retrying.');
+    }
+    if (!['approved', 'rejected', 'reset'].includes(decision)) {
+      throw new Error('Unsupported KYC decision.');
+    }
+    if (decision !== 'approved' && !adminNotes) {
+      throw new Error('A review reason is required for rejection or document reset.');
+    }
+    if (decision === 'reset' && app.kyc_status !== 'rejected') {
+      throw new Error('Documents can only be reset after a rejected KYC review.');
+    }
+
+    const operationScope = `kyc-review:${await fingerprintMutationScope(JSON.stringify({
+      applicationId: app.id,
+      decision,
+      expectedUpdatedDate: app.updated_date,
+      expectedKycStatus: app.kyc_status,
+      adminNotes,
+    }))}`;
+    const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+    const response = await base44.functions.invoke('reviewKYCApplication', {
+      application_id: app.id,
+      decision,
+      expected_updated_date: app.updated_date,
+      expected_kyc_status: app.kyc_status,
+      admin_notes: adminNotes,
+      idempotency_key: idempotencyKey,
+    });
+    const result = response?.data || response;
+    const savedApplication = result?.application;
+    const expectedStatus = decision === 'reset' ? 'not_started' : decision;
+    if (
+      result?.success !== true ||
+      result?.operation_id !== idempotencyKey ||
+      result?.audit_recorded !== true ||
+      savedApplication?.id !== app.id ||
+      savedApplication?.user_id !== app.user_id ||
+      savedApplication?.kyc_status !== expectedStatus ||
+      typeof savedApplication?.updated_date !== 'string' ||
+      savedApplication.updated_date === app.updated_date ||
+      (decision === 'approved' && (
+        result?.kyc_verified !== true ||
+        !Array.isArray(savedApplication.kyc_documents) ||
+        savedApplication.kyc_documents.length === 0
+      )) ||
+      (decision === 'rejected' && result?.documents_unchanged !== true) ||
+      (decision === 'reset' && (
+        !Array.isArray(savedApplication.kyc_documents) ||
+        savedApplication.kyc_documents.length !== 0 ||
+        result?.documents_retained !== true
+      ))
+    ) {
+      throw new Error(result?.error || 'The server did not confirm the audited KYC decision and document-retention contract. Retry only with the same operation.');
+    }
+    await clearMutationIdempotencyKey(operationScope);
+    return savedApplication;
+  }
+
   async function handleAction(status) {
     if (!selected) return;
     setSubmitting(true);
     try {
-      await base44.entities.Application.update(selected.id, {
-        kyc_status: status,
-        kyc_notes: notes,
-      });
-      await base44.entities.Notification.create({
-        user_id: selected.user_id,
-        title: status === 'approved' ? 'KYC Approved' : 'KYC Review Required',
-        message: status === 'approved'
-          ? 'Your identity verification has been approved. Your application is now under final review.'
-          : `Your identity verification requires additional attention. ${notes || ''}`,
-        type: status === 'approved' ? 'success' : 'warning',
-      });
-      await logAuditEntry({
-        action_type: status === 'approved' ? 'kyc_approved' : 'kyc_rejected',
-        description: `KYC ${status} for ${selected.full_name}`,
-        details: `Notes: ${notes || 'None'}`,
-        target_user_id: selected.user_id,
-      });
+      await performKycMutation(selected, status, notes);
       setSelected(null);
       setNotes('');
-      loadApps();
+      await loadApps().catch(() => {});
       toast({ title: `KYC ${status}`, description: `${selected.full_name}'s KYC has been ${status}.` });
     } catch (e) {
       console.error(e);
-      toast({ title: 'KYC action failed', description: e.message || 'Unable to update KYC status.', variant: 'destructive' });
+      toast({ title: 'KYC action unavailable', description: e?.response?.data?.error || e.message || 'Unable to update KYC status.', variant: 'destructive' });
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   }
 
   async function handleDeleteKyc() {
     if (!selected) return;
+    if (!notes.trim()) {
+      toast({ title: 'Reset reason required', description: 'Enter a reason before clearing linked document references.', variant: 'destructive' });
+      return;
+    }
     setSubmitting(true);
     try {
-      await base44.entities.Application.update(selected.id, {
-        kyc_status: 'not_started',
-        kyc_documents: [],
-        kyc_notes: notes || 'Documents cleared by admin. Please re-upload valid identity documents.',
-      });
-      await base44.entities.Notification.create({
-        user_id: selected.user_id,
-        title: 'KYC Documents Reset',
-        message: 'Your submitted identity documents were not accepted and have been cleared. Please re-upload valid documents to continue your verification.',
-        type: 'action',
-        link: '/apply/kyc',
-      });
-      await logAuditEntry({
-        action_type: 'kyc_rejected',
-        description: `KYC documents deleted/reset for ${selected.full_name}`,
-        details: `Documents cleared by admin. Notes: ${notes || 'None'}`,
-        target_user_id: selected.user_id,
-      });
+      await performKycMutation(selected, 'reset', notes);
       setSelected(null);
       setNotes('');
-      loadApps();
-      toast({ title: 'KYC documents reset', description: `${selected.full_name}'s documents have been cleared for re-upload.` });
+      await loadApps().catch(() => {});
+      toast({ title: 'KYC document links reset', description: `${selected.full_name}'s linked documents were cleared; stored objects remain subject to retention policy.` });
     } catch (e) {
       console.error(e);
-      toast({ title: 'Reset failed', description: e.message || 'Unable to reset KYC documents.', variant: 'destructive' });
+      toast({ title: 'Reset unavailable', description: e?.response?.data?.error || e.message || 'Unable to reset KYC documents.', variant: 'destructive' });
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   }
 
   async function handleSendKycReminders() {
@@ -130,33 +164,11 @@ export default function AdminKYC() {
   }
 
   async function approveOne(app) {
-    await base44.entities.Application.update(app.id, { kyc_status: 'approved' });
-    await base44.entities.Notification.create({
-      user_id: app.user_id,
-      title: 'KYC Approved',
-      message: 'Your identity verification has been approved. Your application is now under final review.',
-      type: 'success',
-    });
-    await logAuditEntry({
-      action_type: 'kyc_approved',
-      description: `KYC approved for ${app.full_name}`,
-      target_user_id: app.user_id,
-    });
+    return performKycMutation(app, 'approved');
   }
 
-  async function rejectOne(app) {
-    await base44.entities.Application.update(app.id, { kyc_status: 'rejected' });
-    await base44.entities.Notification.create({
-      user_id: app.user_id,
-      title: 'KYC Review Required',
-      message: 'Your identity verification requires additional attention. Please review the feedback and resubmit.',
-      type: 'warning',
-    });
-    await logAuditEntry({
-      action_type: 'kyc_rejected',
-      description: `KYC rejected for ${app.full_name}`,
-      target_user_id: app.user_id,
-    });
+  async function rejectOne(app, reason) {
+    return performKycMutation(app, 'rejected', reason);
   }
 
   async function handleBulkApprove() {
@@ -178,16 +190,21 @@ export default function AdminKYC() {
 
   async function handleBulkReject() {
     if (selectedIds.length === 0) return;
+    if (!bulkNotes.trim()) {
+      toast({ title: 'Bulk rejection reason required', description: 'Enter a shared reason before rejecting selected KYC applications.', variant: 'destructive' });
+      return;
+    }
     setSubmitting(true);
     let ok = 0, fail = 0;
     for (const id of selectedIds) {
       const app = applications.find(a => a.id === id);
       if (app) {
-        try { await rejectOne(app); ok++; } catch (e) { console.error('Bulk reject failed for', id, e); fail++; }
+        try { await rejectOne(app, bulkNotes); ok++; } catch (e) { console.error('Bulk reject failed for', id, e); fail++; }
       }
     }
     setSelectedIds([]);
     setBulkMode(false);
+    setBulkNotes('');
     loadApps();
     toast({ title: 'Bulk reject complete', description: `${ok} rejected${fail > 0 ? `, ${fail} failed` : ''}.` });
     setSubmitting(false);
@@ -236,6 +253,15 @@ export default function AdminKYC() {
       {bulkMode && selectedIds.length > 0 && (
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-4 p-4 bg-brass/10 rounded-lg border border-brass/20">
           <span className="text-[#AAB4C3] text-xs">{selectedIds.length} selected</span>
+          <textarea
+            value={bulkNotes}
+            onChange={event => setBulkNotes(event.target.value)}
+            maxLength={2000}
+            rows={2}
+            placeholder="Shared rejection reason (required for bulk rejection)"
+            aria-label="Bulk KYC rejection reason"
+            className="w-full sm:flex-1 bg-[#242D38] border border-[#242D38] rounded-xl px-3 py-2 text-white text-xs focus:border-brass/50 focus:outline-none resize-none"
+          />
           <button onClick={handleBulkApprove} disabled={submitting} className="flex items-center justify-center gap-1.5 px-4 py-2 bg-olive text-white rounded-xl text-xs font-semibold hover:bg-olive/80 transition-all disabled:opacity-40 whitespace-nowrap">
             <Check size={14} /> Approve
           </button>
@@ -365,7 +391,7 @@ export default function AdminKYC() {
                   disabled={submitting}
                   className="w-full py-2.5 border border-crimson/40 text-red-400 rounded-xl flex items-center justify-center gap-2 hover:bg-crimson/10 transition-all disabled:opacity-40 text-xs font-medium"
                 >
-                  <Trash2 size={14} /> Delete Documents &amp; Reset
+                  <Trash2 size={14} /> Clear Linked Documents &amp; Reset
                 </button>
               )}
 
