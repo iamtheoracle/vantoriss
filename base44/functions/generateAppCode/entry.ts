@@ -137,7 +137,7 @@ export default async function generateAppCode(req: Request): Promise<Response> {
     const safeFilename = filename.startsWith('src/') &&
       !filename.startsWith('/') &&
       !filename.split('/').some(part => part === '.' || part === '..' || part.length === 0) &&
-      !/[\u0000-\u001f]/.test(filename);
+      !hasControlCharacters(filename);
     const dependencies = data.dependencies.filter(
       (dependency): dependency is string => typeof dependency === 'string' && DEPENDENCY_NAME.test(dependency),
     );
