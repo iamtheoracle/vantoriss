@@ -4,11 +4,13 @@ import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
 import { ArrowDownToLine, Loader2, Check, X } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { useToast } from '@/components/ui/use-toast';
+import { clearMutationIdempotencyKey, fingerprintMutationScope, getMutationIdempotencyKey } from '@/lib/mutationIdempotency';
 
 export default function InvestmentDeposits() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState('');
+  const [reviewNotes, setReviewNotes] = useState({});
   const { toast } = useToast();
 
   const loadData = useCallback(async () => {
@@ -19,46 +21,80 @@ export default function InvestmentDeposits() {
   useEffect(() => { loadData().finally(() => setLoading(false)); }, [loadData]);
 
   async function handleAction(req, action) {
+    if (!req?.id || !req?.updated_date) {
+      toast({ title: 'Review unavailable', description: 'The request revision is missing. Reload the request list before retrying.', variant: 'destructive' });
+      return;
+    }
+    const decision = action === 'approve' ? 'approved' : 'rejected';
+    const adminNotes = (reviewNotes[req.id] || '').trim();
+    if (decision === 'rejected' && !adminNotes) {
+      toast({ title: 'Rejection reason required', description: 'Enter a concise reason before rejecting this request.', variant: 'destructive' });
+      return;
+    }
     setProcessing(req.id);
+    let operationScope = '';
     try {
-      const me = await base44.auth.me();
-      if (action === 'approve') {
-        await base44.entities.InvestmentDepositRequest.update(req.id, {
-          status: 'approved',
-          reviewed_by: me.id,
-          reviewed_by_name: me.full_name,
-          review_date: new Date().toISOString(),
-        });
-        // Credit the portfolio cash balance
-        const portfolio = await base44.entities.InvestmentPortfolio.get(req.portfolio_id);
-        await base44.entities.InvestmentPortfolio.update(req.portfolio_id, {
-          cash_balance: (portfolio.cash_balance || 0) + req.amount,
-          total_value: (portfolio.total_value || 0) + req.amount,
-        });
-        // Record the investment transaction
-        await base44.entities.InvestmentTransaction.create({
-          portfolio_id: req.portfolio_id,
-          user_id: req.user_id,
-          type: 'deposit',
-          amount: req.amount,
-          description: 'Investment deposit — approved',
-          status: 'completed',
-          transaction_date: new Date().toISOString().substring(0, 10),
-          source: 'operator_entry',
-        });
-        toast({ title: 'Deposit approved', description: `${formatCurrency(req.amount)} credited to portfolio.` });
-      } else {
-        await base44.entities.InvestmentDepositRequest.update(req.id, {
-          status: 'rejected',
-          reviewed_by: me.id,
-          reviewed_by_name: me.full_name,
-          review_date: new Date().toISOString(),
-        });
-        toast({ title: 'Deposit rejected' });
+      operationScope = `investment-review:${await fingerprintMutationScope(JSON.stringify({
+        requestId: req.id,
+        requestType: 'deposit',
+        decision,
+        adminNotes,
+        expectedUpdatedDate: req.updated_date,
+      }))}`;
+      const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+      const response = await base44.functions.invoke('reviewInvestmentRequest', {
+        request_id: req.id,
+        request_type: 'deposit',
+        decision,
+        expected_updated_date: req.updated_date,
+        admin_notes: adminNotes,
+        idempotency_key: idempotencyKey,
+      });
+      const result = response?.data || response;
+      const savedRequest = result?.request;
+      const approved = decision === 'approved';
+      if (
+        result?.success !== true ||
+        result?.operation_id !== idempotencyKey ||
+        result?.audit_recorded !== true ||
+        savedRequest?.id !== req.id ||
+        savedRequest?.status !== decision ||
+        savedRequest?.user_id !== req.user_id ||
+        savedRequest?.portfolio_id !== req.portfolio_id ||
+        savedRequest?.amount !== req.amount ||
+        typeof savedRequest?.updated_date !== 'string' ||
+        savedRequest.updated_date === req.updated_date ||
+        (approved && (
+          !result?.transaction ||
+          typeof result.transaction.id !== 'string' ||
+          result.transaction.portfolio_id !== req.portfolio_id ||
+          result.transaction.user_id !== req.user_id ||
+          result.transaction.type !== 'deposit' ||
+          result.transaction.amount !== req.amount ||
+          result.transaction.status !== 'completed' ||
+          result.portfolio?.id !== req.portfolio_id ||
+          typeof result.portfolio.updated_date !== 'string'
+        )) ||
+        (approved && result?.funding_verified !== true)
+      ) {
+        throw new Error(result?.error || 'The server did not confirm the audited investment review and required financial evidence. Retry only with the same operation.');
       }
-      loadData();
+
+      await clearMutationIdempotencyKey(operationScope);
+      setReviewNotes(current => ({ ...current, [req.id]: '' }));
+      toast({
+        title: approved ? 'Deposit approved' : 'Deposit rejected',
+        description: approved
+          ? 'Verified funding was credited to the portfolio.'
+          : 'The request was rejected; no portfolio credit was applied.',
+      });
+      await loadData().catch(() => {});
     } catch (err) {
-      toast({ title: 'Action failed', description: err.message, variant: 'destructive' });
+      toast({
+        title: 'Review unavailable',
+        description: err?.response?.data?.error || err.message || 'The server did not confirm the investment review. Retry only with the same operation.',
+        variant: 'destructive',
+      });
     } finally {
       setProcessing('');
     }
@@ -81,7 +117,15 @@ export default function InvestmentDeposits() {
                 <p className="text-xs text-gray mt-0.5">
                   Submitted: {req.created_date?.substring(0, 10)} · Status: <span className="capitalize">{req.status.replace(/_/g, ' ')}</span>
                 </p>
-                {req.review_notes && <p className="text-xs text-gray mt-1">Notes: {req.review_notes}</p>}
+                {req.review_notes && <p className="text-xs text-gray mt-1">Previous review note: {req.review_notes}</p>}
+                <input
+                  value={reviewNotes[req.id] || ''}
+                  onChange={event => setReviewNotes(current => ({ ...current, [req.id]: event.target.value }))}
+                  maxLength={2000}
+                  placeholder="Operator note (required to reject)"
+                  aria-label="Deposit review note"
+                  className="mt-2 w-full rounded-lg border border-border bg-white px-3 py-2 text-xs"
+                />
               </div>
               {req.status === 'requested' && (
                 <div className="flex gap-2">
@@ -94,7 +138,7 @@ export default function InvestmentDeposits() {
                   </button>
                   <button
                     onClick={() => handleAction(req, 'reject')}
-                    disabled={processing === req.id}
+                    disabled={processing === req.id || !(reviewNotes[req.id] || '').trim()}
                     className="px-3 py-2 rounded-lg bg-crimson/10 text-crimson text-xs font-semibold hover:bg-crimson/20 transition flex items-center gap-1.5"
                   >
                     <X size={14} /> Reject

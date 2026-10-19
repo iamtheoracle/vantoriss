@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { Wallet, Eye, EyeOff, Shield } from 'lucide-react';
-import ShieldLogo from '@/components/vantoris/ShieldLogo';
+
 
 export default function ImmersiveBalanceCard({
   totalBalance,

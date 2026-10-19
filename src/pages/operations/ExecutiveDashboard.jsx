@@ -2,11 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { Link, useNavigate } from 'react-router-dom';
-import {
-  Crown, TrendingUp, Wallet, Users, FileText,
-  ArrowUpRight, Activity, ScrollText,
-  AlertTriangle,
-} from 'lucide-react';
+import { Crown, Wallet, Users, FileText, ArrowUpRight, Activity, AlertTriangle } from 'lucide-react';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
 import PremiumStatCard from '@/components/vantoris/PremiumStatCard';
 import TreasuryPosition from '@/components/vantoris/widgets/TreasuryPosition';

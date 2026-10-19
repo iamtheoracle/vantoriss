@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
-import {
-  Send, Bot, User, Loader2, ChevronDown, ChevronRight, Search, Plus,
-  Menu, X, Trash2, Edit3, Check, CheckCheck, MoreVertical, ArrowLeft, Star
-} from 'lucide-react';
+import { Send, Bot, Loader2, ChevronDown, ChevronRight, Search, Plus, Menu, X, Trash2, Edit3, Check, CheckCheck, MoreVertical, ArrowLeft, Star } from 'lucide-react';
 import { getMessageKey, isStarred, toggleStar } from '@/lib/starredMessages';
 import { useToast } from '@/components/ui/use-toast';
 

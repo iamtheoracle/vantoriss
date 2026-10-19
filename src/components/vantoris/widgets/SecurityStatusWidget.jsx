@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
-import { ShieldCheck, AlertTriangle, Lock, Eye } from 'lucide-react';
+import { ShieldCheck, AlertTriangle, Lock } from 'lucide-react';
 
 export default function SecurityStatusWidget() {
   const [data, setData] = useState({ frozenAccounts: 0, auditEvents: 0, pendingKyc: 0, pendingWithdrawals: 0 });

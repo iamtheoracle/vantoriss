@@ -1,22 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import {
-  LayoutDashboard, FileText, Users, Building2, ShieldCheck,
-  DollarSign, ArrowDownToLine, ArrowUpRight, ArrowLeftRight,
-  Wallet, CreditCard, UserCheck, FolderOpen,
-  BarChart3, TrendingUp, ScrollText, Activity,
-  Bot, Settings, Code, Plug, Bell, Lock, Flag, Cog, HeartPulse,
-  ChevronRight, Wrench, Users2, MessageSquare, Crown, Briefcase,
-  AlertTriangle, Scale, GitBranch, Database, ServerCog,
-  Search, Eye, ShieldAlert, Network, Globe, Zap,
-  PanelLeftClose, FileUp, CalendarDays, Gavel, FileSpreadsheet, Trophy, Radar,
-  Shield, Package, Heart, Headphones, PieChart, Coins, Signal,
-} from 'lucide-react';
+import { LayoutDashboard, FileText, Users, Building2, ShieldCheck, DollarSign, ArrowDownToLine, ArrowUpRight, ArrowLeftRight, Wallet, CreditCard, UserCheck, FolderOpen, BarChart3, TrendingUp, ScrollText, Activity, Settings, Code, Plug, Bell, Lock, Flag, HeartPulse, ChevronRight, Wrench, Users2, MessageSquare, Crown, Briefcase, Scale, GitBranch, Database, ServerCog, Search, Eye, ShieldAlert, PanelLeftClose, FileUp, CalendarDays, FileSpreadsheet, Trophy, Radar, Shield, Package, Heart, Headphones, PieChart, Signal } from 'lucide-react';
 import ShieldLogo from './ShieldLogo';
-import {
-  getDomainsForRole, hasDomainAccess, getDefaultWorkspace,
-  WORKSPACE_LABELS, getRoleLabel, isSuperAdmin,
-} from '@/lib/operationsAccess';
+import { getDomainsForRole, getDefaultWorkspace, WORKSPACE_LABELS, getRoleLabel, isSuperAdmin } from '@/lib/operationsAccess';
 
 const DOMAIN_CONFIG = {
   management: {

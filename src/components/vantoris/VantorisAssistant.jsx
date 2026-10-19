@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Send, Loader2, Sparkles, ChevronLeft, Clock, Crown } from 'lucide-react';
+import { Send, Loader2, Sparkles, ChevronLeft, Crown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ShieldLogo from '@/components/vantoris/ShieldLogo';
 import { isSuperAdmin } from '@/lib/operationsAccess';

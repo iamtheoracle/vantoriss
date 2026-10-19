@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, TrendingUp, Wallet, ArrowDownToLine, ArrowUpRight, PieChart, Signal, AlertCircle, Loader2 } from 'lucide-react';
+import { ArrowLeft, TrendingUp, ArrowDownToLine, ArrowUpRight, PieChart, Signal, AlertCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { formatCurrency } from '@/lib/formatCurrency';
+import { clearMutationIdempotencyKey, fingerprintMutationScope, getMutationIdempotencyKey } from '@/lib/mutationIdempotency';
 
 export default function Investment() {
   const [user, setUser] = useState(null);
@@ -49,65 +50,135 @@ export default function Investment() {
 
   async function handleCreatePortfolio() {
     setSubmitting(true);
+    let operationScope = '';
     try {
       const me = await base44.auth.me();
-      const created = await base44.entities.InvestmentPortfolio.create({
-        user_id: me.id,
-        portfolio_name: 'My Portfolio',
-        status: 'pending_setup',
-        provider_connected: false,
+      operationScope = `investment-portfolio-create:${await fingerprintMutationScope(me.id)}`;
+      const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+      const response = await base44.functions.invoke('createInvestmentPortfolio', {
+        idempotency_key: idempotencyKey,
       });
+      const result = response?.data || response;
+      const created = result?.portfolio;
+      if (
+        result?.success !== true ||
+        result?.operation_id !== idempotencyKey ||
+        result?.audit_recorded !== true ||
+        !created ||
+        typeof created.id !== 'string' ||
+        created.user_id !== me.id ||
+        created.status !== 'pending_setup' ||
+        created.provider_connected !== false ||
+        created.total_value !== 0 ||
+        created.cash_balance !== 0 ||
+        created.invested_amount !== 0 ||
+        typeof created.updated_date !== 'string'
+      ) {
+        throw new Error(result?.error || 'The server did not confirm an audited, zero-balance portfolio. Retry only with the same operation.');
+      }
+      await clearMutationIdempotencyKey(operationScope);
       setPortfolio(created);
       toast({ title: 'Portfolio created', description: 'Your investment portfolio is pending setup.' });
     } catch (err) {
-      toast({ title: 'Failed to create portfolio', description: err.message, variant: 'destructive' });
+      toast({
+        title: 'Portfolio unavailable',
+        description: err?.response?.data?.error || err.message || 'The server did not confirm portfolio creation.',
+        variant: 'destructive',
+      });
     } finally {
       setSubmitting(false);
     }
   }
 
-  async function handleDeposit() {
-    if (!depositAmount || parseFloat(depositAmount) <= 0) return;
+  async function submitInvestmentRequest(requestType, rawAmount) {
+    const amount = Number(rawAmount);
+    if (
+      typeof rawAmount !== 'string' ||
+      !rawAmount.trim() ||
+      !Number.isFinite(amount) ||
+      amount <= 0 ||
+      amount > 100_000_000 ||
+      !Number.isSafeInteger(Math.round(amount * 100)) ||
+      Math.abs(amount * 100 - Math.round(amount * 100)) > Number.EPSILON * Math.max(1, Math.abs(amount * 100)) * 4
+    ) {
+      toast({ title: 'Invalid amount', description: 'Enter a positive amount with no more than two decimal places.', variant: 'destructive' });
+      return;
+    }
+    if (!portfolio?.id || !portfolio?.updated_date) {
+      toast({ title: 'Request unavailable', description: 'The portfolio revision is missing. Refresh your portfolio before retrying.', variant: 'destructive' });
+      return;
+    }
+    if (requestType === 'withdrawal' && !portfolio.provider_connected) {
+      toast({ title: 'Withdrawal unavailable', description: 'Connect an investment provider before requesting a withdrawal. Available cash and pending reservations must be verified.', variant: 'destructive' });
+      return;
+    }
+
     setSubmitting(true);
+    let operationScope = '';
     try {
-      const me = await base44.auth.me();
-      await base44.entities.InvestmentDepositRequest.create({
-        user_id: me.id,
+      operationScope = `investment-request:${await fingerprintMutationScope(JSON.stringify({
+        portfolioId: portfolio.id,
+        requestType,
+        amount,
+      }))}`;
+      const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+      const response = await base44.functions.invoke('createInvestmentRequest', {
         portfolio_id: portfolio.id,
-        amount: parseFloat(depositAmount),
-        status: 'requested',
+        request_type: requestType,
+        amount,
+        expected_updated_date: portfolio.updated_date,
+        idempotency_key: idempotencyKey,
       });
-      toast({ title: 'Deposit requested', description: 'Your deposit request is pending operator review.' });
-      setShowDeposit(false);
-      setDepositAmount('');
-      loadData();
+      const result = response?.data || response;
+      const request = result?.request;
+      if (
+        result?.success !== true ||
+        result?.operation_id !== idempotencyKey ||
+        result?.audit_recorded !== true ||
+        !request ||
+        typeof request.id !== 'string' ||
+        request.user_id !== user?.id ||
+        request.portfolio_id !== portfolio.id ||
+        request.amount !== amount ||
+        request.status !== 'requested' ||
+        typeof request.updated_date !== 'string'
+      ) {
+        throw new Error(result?.error || 'The server did not confirm the audited investment request. Retry only with the same operation.');
+      }
+
+      await clearMutationIdempotencyKey(operationScope);
+      toast({
+        title: requestType === 'deposit' ? 'Deposit requested' : 'Withdrawal requested',
+        description: requestType === 'deposit'
+          ? 'Your deposit request is pending operator review. No funds have been credited.'
+          : 'Your withdrawal request is pending operator review. No funds have been transferred.',
+      });
+      if (requestType === 'deposit') {
+        setShowDeposit(false);
+        setDepositAmount('');
+      } else {
+        setShowWithdraw(false);
+        setWithdrawAmount('');
+      }
+      // A refresh failure must not misreport an already-confirmed request as failed.
+      await loadData().catch(() => {});
     } catch (err) {
-      toast({ title: 'Failed to submit deposit', description: err.message, variant: 'destructive' });
+      toast({
+        title: 'Request unavailable',
+        description: err?.response?.data?.error || err.message || 'The server did not confirm the investment request.',
+        variant: 'destructive',
+      });
     } finally {
       setSubmitting(false);
     }
   }
 
-  async function handleWithdraw() {
-    if (!withdrawAmount || parseFloat(withdrawAmount) <= 0) return;
-    setSubmitting(true);
-    try {
-      const me = await base44.auth.me();
-      await base44.entities.InvestmentWithdrawalRequest.create({
-        user_id: me.id,
-        portfolio_id: portfolio.id,
-        amount: parseFloat(withdrawAmount),
-        status: 'requested',
-      });
-      toast({ title: 'Withdrawal requested', description: 'Your withdrawal request is pending operator review.' });
-      setShowWithdraw(false);
-      setWithdrawAmount('');
-      loadData();
-    } catch (err) {
-      toast({ title: 'Failed to submit withdrawal', description: err.message, variant: 'destructive' });
-    } finally {
-      setSubmitting(false);
-    }
+  function handleDeposit() {
+    return submitInvestmentRequest('deposit', depositAmount);
+  }
+
+  function handleWithdraw() {
+    return submitInvestmentRequest('withdrawal', withdrawAmount);
   }
 
   if (loading) {
@@ -182,7 +253,7 @@ export default function Investment() {
               <div>
                 <p className="text-foreground text-sm font-semibold">No Brokerage Provider Connected</p>
                 <p className="text-gray text-xs mt-0.5">
-                  Investment trading, live market data, and custody are not connected. Deposit and withdrawal requests can be submitted but require operator approval. No live prices or positions are available.
+                  Investment trading, live market data, and custody are not connected. Deposit requests may be submitted for operator review. Withdrawals remain unavailable until a provider supplies authoritative available-cash and pending-reservation data. No live prices or positions are available.
                 </p>
               </div>
             </div>
@@ -199,7 +270,9 @@ export default function Investment() {
             </button>
             <button
               onClick={() => setShowWithdraw(true)}
-              className="vantoris-glass p-4 flex flex-col items-center gap-2 hover:shadow-md transition"
+              disabled={submitting || !portfolio.provider_connected}
+              title={!portfolio.provider_connected ? 'Connect an investment provider before requesting a withdrawal' : undefined}
+              className="vantoris-glass p-4 flex flex-col items-center gap-2 hover:shadow-md transition disabled:opacity-45 disabled:cursor-not-allowed"
             >
               <ArrowUpRight size={22} className="text-crimson" />
               <span className="text-sm font-semibold text-foreground">Withdraw</span>
@@ -292,6 +365,9 @@ export default function Investment() {
             <p className="text-xs text-gray mb-4">Your deposit request will be reviewed by an investment operator. Funds become available only after approval.</p>
             <input
               type="number"
+              min="0.01"
+              max="100000000"
+              step="0.01"
               value={depositAmount}
               onChange={e => setDepositAmount(e.target.value)}
               placeholder="Amount (USD)"
@@ -313,6 +389,9 @@ export default function Investment() {
             <p className="text-xs text-gray mb-4">Your withdrawal request will be reviewed by an investment operator. Funds are transferred only after approval.</p>
             <input
               type="number"
+              min="0.01"
+              max="100000000"
+              step="0.01"
               value={withdrawAmount}
               onChange={e => setWithdrawAmount(e.target.value)}
               placeholder="Amount (USD)"

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { X, Loader2, MapPin, User, Package, Check, ShoppingCart } from 'lucide-react';
+import { X, Loader2, MapPin, User, Package, Check } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { useToast } from '@/components/ui/use-toast';
-import { createOrderSnapshot } from '@/lib/heroboxPackages';
+import { clearMutationIdempotencyKey, fingerprintMutationScope, getMutationIdempotencyKey } from '@/lib/mutationIdempotency';
 
 export default function CheckoutFlow({ cart, onClose, onOrderComplete, packageData = null }) {
   const [step, setStep] = useState(1);
@@ -14,52 +14,87 @@ export default function CheckoutFlow({ cart, onClose, onOrderComplete, packageDa
   const [completedOrder, setCompletedOrder] = useState(null);
   const { toast } = useToast();
 
-  const subtotal = cart.reduce((s, item) => {
-    const price = item.discount > 0 ? item.price * (1 - item.discount / 100) : item.price;
-    return s + price * item.quantity;
-  }, 0);
+  const subtotal = cart.reduce((s, item) => s + item.price * item.quantity, 0);
   const discount = cart.reduce((s, item) => {
     if (item.discount > 0) return s + (item.price * item.discount / 100) * item.quantity;
     return s;
   }, 0);
   const shippingCost = subtotal > 0 ? 15 : 0;
-  const total = subtotal + shippingCost;
+  const total = subtotal - discount + shippingCost;
 
   async function handleSubmit() {
-    if (!recipientName || !destination) {
+    const normalizedRecipient = recipientName.trim();
+    const normalizedDestination = destination.trim();
+    const normalizedAddress = address.trim();
+    if (!normalizedRecipient || !normalizedDestination) {
       toast({ title: 'Missing information', description: 'Please enter recipient name and destination.', variant: 'destructive' });
       return;
     }
+    if (!Number.isFinite(total) || total <= 0 || !Number.isSafeInteger(Math.round(total * 100))) {
+      toast({ title: 'Invalid order total', description: 'Review the cart and try again.', variant: 'destructive' });
+      return;
+    }
     setSubmitting(true);
+    let operationScope = '';
     try {
       const me = await base44.auth.me();
-
-      // Create order snapshot — preserves exact purchased product state
-      const snapshot = createOrderSnapshot(cart, packageData);
-
-      const order = await base44.entities.HeroBoxOrder.create({
-        user_id: me.id,
-        recipient_name: recipientName,
-        destination,
-        destination_address: address,
-        items: JSON.stringify(snapshot.items),
-        subtotal,
-        discount,
-        shipping_cost: shippingCost,
-        total,
-        status: 'payment_pending',
-        payment_status: 'pending',
+      operationScope = `herobox-order:${await fingerprintMutationScope(JSON.stringify({
+        cart: cart.map(item => ({ product_id: item.product_id, quantity: item.quantity })),
+        packageId: packageData?.packageId || null,
+        expectedTotal: total,
+        recipientName: normalizedRecipient,
+        destination: normalizedDestination,
+        destinationAddress: normalizedAddress,
+      }))}`;
+      const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+      const response = await base44.functions.invoke('createHeroBoxOrder', {
+        cart: cart.map(item => ({ product_id: item.product_id, quantity: item.quantity })),
         package_id: packageData?.packageId || '',
+        recipient_name: normalizedRecipient,
+        destination: normalizedDestination,
+        destination_address: normalizedAddress,
+        expected_total: total,
+        idempotency_key: idempotencyKey,
       });
+      const result = response?.data || response;
+      const order = result?.order;
+      if (
+        result?.success !== true ||
+        result?.operation_id !== idempotencyKey ||
+        result?.audit_recorded !== true ||
+        result?.funds_moved !== false ||
+        !order ||
+        typeof order.id !== 'string' ||
+        order.user_id !== me.id ||
+        order.total !== total ||
+        order.status !== 'payment_pending' ||
+        order.payment_status !== 'pending' ||
+        typeof order.updated_date !== 'string' ||
+        !Array.isArray(order.items) ||
+        order.items.length !== cart.length ||
+        cart.some(item => !order.items.some(saved => saved.product_id === item.product_id && saved.quantity === item.quantity))
+      ) {
+        throw new Error(result?.error || 'The server did not confirm a correctly priced, unpaid order. Retry only with the same operation.');
+      }
+
+      await clearMutationIdempotencyKey(operationScope);
       setCompletedOrder(order);
       setStep(4);
-      toast({ title: 'Order created', description: `Order reference: VAN-${order.id.slice(-8).toUpperCase()}` });
+      toast({
+        title: 'Order created',
+        description: `Order reference: VAN-${order.id.slice(-8).toUpperCase()}. Payment is still pending; no funds were moved.`,
+      });
     } catch (err) {
-      toast({ title: 'Order failed', description: err.message, variant: 'destructive' });
+      toast({
+        title: 'Order unavailable',
+        description: err?.response?.data?.error || err.message || 'The server did not confirm the order. Retry only with the same operation.',
+        variant: 'destructive',
+      });
     } finally {
       setSubmitting(false);
     }
   }
+
 
   if (cart.length === 0 && !completedOrder) {
     return (
@@ -81,7 +116,8 @@ export default function CheckoutFlow({ cart, onClose, onOrderComplete, packageDa
           </div>
           <h3 className="text-lg font-bold text-foreground text-center mb-2">Order Created</h3>
           <p className="text-xs text-gray text-center mb-1">Your order has been created and is awaiting payment.</p>
-          <p className="text-xs text-gray text-center mb-4">Reference: VAN-{completedOrder.id.slice(-8).toUpperCase()}</p>
+          <p className="text-xs text-gray text-center mb-1">Reference: VAN-{completedOrder.id.slice(-8).toUpperCase()}</p>
+          <p className="text-sm font-semibold text-foreground text-center mb-4">Total: {formatCurrency(completedOrder.total || 0)}</p>
           <p className="text-xs text-gray text-center mb-6">Status: Payment Pending — your order will be processed once payment is confirmed.</p>
           <button onClick={() => { onOrderComplete(); onClose(); }} className="w-full py-3 rounded-xl bg-navy text-white text-sm font-semibold">Done</button>
         </div>

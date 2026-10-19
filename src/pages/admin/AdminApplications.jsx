@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { formatCurrency, generateAccountNumber } from '@/lib/formatCurrency';
+import { formatCurrency } from '@/lib/formatCurrency';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Check, X, CheckSquare, Square, Mail, FileText, ExternalLink } from 'lucide-react';
-import { logAuditEntry } from '@/lib/auditLogger';
-import { hasOperationsAccess } from '@/lib/operationsAccess';
 import { useToast } from '@/components/ui/use-toast';
+import { clearMutationIdempotencyKey, getMutationIdempotencyKey } from '@/lib/mutationIdempotency';
 
 export default function AdminApplications() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
-  const [openingBalance, setOpeningBalance] = useState('');
   const [adminNotes, setAdminNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
@@ -79,192 +77,131 @@ export default function AdminApplications() {
     }
   }
 
+  async function reviewOneApplication(app, decision, openingBalance = 0, notes = '') {
+    if (!app?.id || !app.updated_date) {
+      throw new Error('The application revision is missing. Reload applications before retrying.');
+    }
+    const operationScope = JSON.stringify([
+      'application.review', app.id, decision, app.updated_date, openingBalance, notes,
+    ]);
+    const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+    let response;
+    try {
+      response = await base44.functions.invoke('reviewApplication', {
+        application_id: app.id,
+        decision,
+        opening_balance: openingBalance,
+        admin_notes: notes,
+        expected_updated_date: app.updated_date,
+        idempotency_key: idempotencyKey,
+      });
+    } catch (error) {
+      throw new Error(error?.response?.data?.error || error?.message || 'The server did not confirm the application review.');
+    }
+    const result = response?.data || response;
+    if (result?.success !== true) {
+      throw new Error(result?.error || 'The application review was not confirmed.');
+    }
+    await clearMutationIdempotencyKey(operationScope);
+    return result;
+  }
+
   async function handleBulkApprove() {
     if (selectedIds.length === 0) return;
     setSubmitting(true);
-    try {
-      for (const id of selectedIds) {
-        const app = applications.find(a => a.id === id);
-        if (!app) continue;
-        const applicant = await base44.entities.User.get(app.user_id);
-        if (hasOperationsAccess(applicant?.role)) continue;
-        const acctNum = generateAccountNumber();
-        const account = await base44.entities.Account.create({
-          user_id: app.user_id,
-          account_number: acctNum,
-          account_type: app.account_type,
-          account_name: app.business_name
-            ? `${app.business_name} (${app.account_type})`
-            : `${app.full_name} - ${app.account_type}`,
-          balance: 0,
-          status: 'active',
-          application_id: app.id,
-        });
-        await base44.entities.Transaction.create({
-          account_id: account.id,
-          type: 'opening_balance',
-          amount: 0,
-          description: 'Opening Balance',
-          balance_after: 0,
-          created_by_admin: true,
-        });
-        await base44.entities.Application.update(id, {
-          application_status: 'approved',
-          admin_notes: 'Bulk approved',
-        });
-        await base44.entities.Notification.create({
-          user_id: app.user_id,
-          title: 'Account Approved',
-          message: `Your ${app.account_type} account has been approved. Account: ${acctNum}`,
-          type: 'success',
-        });
+    let approved = 0;
+    const failures = [];
+    for (const id of selectedIds) {
+      const app = applications.find(item => item.id === id);
+      if (!app) {
+        failures.push({ id, message: 'Application is no longer in the current list.' });
+        continue;
       }
-      setSelectedIds([]);
-      setBulkMode(false);
-      loadApps();
-      toast({ title: 'Bulk approve complete', description: `${selectedIds.length} application${selectedIds.length !== 1 ? 's' : ''} approved.` });
-    } catch (e) {
-      console.error(e);
-      toast({ title: 'Bulk approve failed', description: e.message || 'Unable to approve applications.', variant: 'destructive' });
+      try {
+        await reviewOneApplication(app, 'approved', 0, 'Bulk approved');
+        approved++;
+      } catch (error) {
+        failures.push({ id, message: error?.message || 'Approval failed.' });
+      }
     }
+    setSelectedIds(failures.map(item => item.id));
+    setBulkMode(failures.length > 0);
+    const refreshed = await loadApps().then(() => true).catch(() => false);
     setSubmitting(false);
+    toast({
+      title: failures.length ? 'Bulk approval incomplete' : 'Bulk approval complete',
+      description: `${approved} approved; ${failures.length} failed. ${failures[0]?.message || ''}${refreshed ? '' : ' The decision result is confirmed, but the list could not refresh.'}`,
+      variant: failures.length ? 'destructive' : 'default',
+    });
   }
 
   async function handleBulkReject() {
     if (selectedIds.length === 0) return;
     setSubmitting(true);
-    try {
-      for (const id of selectedIds) {
-        const app = applications.find(a => a.id === id);
-        if (!app) continue;
-        await base44.entities.Application.update(id, {
-          application_status: 'rejected',
-          admin_notes: 'Bulk rejected',
-        });
-        await base44.entities.Notification.create({
-          user_id: app.user_id,
-          title: 'Application Not Approved',
-          message: 'Your application was not approved at this time.',
-          type: 'warning',
-        });
+    let rejected = 0;
+    const failures = [];
+    for (const id of selectedIds) {
+      const app = applications.find(item => item.id === id);
+      if (!app) {
+        failures.push({ id, message: 'Application is no longer in the current list.' });
+        continue;
       }
-      setSelectedIds([]);
-      setBulkMode(false);
-      loadApps();
-      toast({ title: 'Bulk reject complete', description: `${selectedIds.length} application${selectedIds.length !== 1 ? 's' : ''} rejected.` });
-    } catch (e) {
-      console.error(e);
-      toast({ title: 'Bulk reject failed', description: e.message || 'Unable to reject applications.', variant: 'destructive' });
+      try {
+        await reviewOneApplication(app, 'rejected', 0, 'Bulk rejected');
+        rejected++;
+      } catch (error) {
+        failures.push({ id, message: error?.message || 'Rejection failed.' });
+      }
     }
+    setSelectedIds(failures.map(item => item.id));
+    setBulkMode(failures.length > 0);
+    const refreshed = await loadApps().then(() => true).catch(() => false);
     setSubmitting(false);
+    toast({
+      title: failures.length ? 'Bulk rejection incomplete' : 'Bulk rejection complete',
+      description: `${rejected} rejected; ${failures.length} failed. ${failures[0]?.message || ''}${refreshed ? '' : ' The decision result is confirmed, but the list could not refresh.'}`,
+      variant: failures.length ? 'destructive' : 'default',
+    });
   }
 
   async function handleApprove() {
     if (!selected) return;
     setSubmitting(true);
     try {
-      const applicant = await base44.entities.User.get(selected.user_id);
-      if (hasOperationsAccess(applicant?.role)) {
-        setAdminNotes('Cannot approve — this user has an administrative role and cannot hold investment accounts.');
-        setSubmitting(false);
-        return;
-      }
-      const acctNum = generateAccountNumber();
-      const balance = parseFloat(openingBalance) || 0;
-
-      // Create the account
-      const account = await base44.entities.Account.create({
-        user_id: selected.user_id,
-        account_number: acctNum,
-        account_type: selected.account_type,
-        account_name: selected.business_name
-          ? `${selected.business_name} (${selected.account_type})`
-          : `${selected.full_name} - ${selected.account_type}`,
-        balance: balance,
-        status: 'active',
-        application_id: selected.id,
-      });
-
-      // Create opening balance transaction
-      if (balance > 0) {
-        await base44.entities.Transaction.create({
-          account_id: account.id,
-          type: 'opening_balance',
-          amount: balance,
-          description: 'Opening Balance',
-          balance_after: balance,
-          created_by_admin: true,
-        });
-      }
-
-      // Update application
-      await base44.entities.Application.update(selected.id, {
-        application_status: 'approved',
-        admin_notes: adminNotes,
-        opening_balance: balance,
-        opening_contribution_status: 'approved',
-      });
-
-      // Notify member
-      await base44.entities.Notification.create({
-        user_id: selected.user_id,
-        title: 'Account Approved',
-        message: `Your ${selected.account_type} account has been approved. Account: ${acctNum}`,
-        type: 'success',
-      });
-
-      await logAuditEntry({
-        action_type: 'application_approved',
-        description: `Application approved for ${selected.full_name} — ${selected.account_type} account ${acctNum}`,
-        details: `Opening balance: ${formatCurrency(balance)}, Notes: ${adminNotes || 'None'}`,
-        account_id: account.id,
-        amount: balance,
-        balance_before: 0,
-        balance_after: balance,
-        target_user_id: selected.user_id,
-      });
-
+      await reviewOneApplication(selected, 'approved', 0, adminNotes);
       setSelected(null);
-      setOpeningBalance('');
       setAdminNotes('');
-      loadApps();
-      toast({ title: 'Application approved', description: `${selected.full_name}'s ${selected.account_type} account has been created.` });
-    } catch (e) {
-      console.error(e);
-      toast({ title: 'Approval failed', description: e.message || 'Unable to approve application.', variant: 'destructive' });
+      const refreshed = await loadApps().then(() => true).catch(() => false);
+      toast({ title: 'Application approved', description: `${selected.full_name}'s application was approved.${refreshed ? '' : ' Reload the list to see the latest state.'}` });
+    } catch (error) {
+      toast({
+        title: 'Approval unavailable',
+        description: error?.message || 'The server did not confirm application approval. No success is assumed.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   }
 
   async function handleReject() {
     if (!selected) return;
     setSubmitting(true);
     try {
-      await base44.entities.Application.update(selected.id, {
-        application_status: 'rejected',
-        admin_notes: adminNotes,
-      });
-      await base44.entities.Notification.create({
-        user_id: selected.user_id,
-        title: 'Application Not Approved',
-        message: adminNotes || 'Your application was not approved at this time.',
-        type: 'warning',
-      });
-      await logAuditEntry({
-        action_type: 'application_rejected',
-        description: `Application rejected for ${selected.full_name}`,
-        details: `Reason: ${adminNotes || 'No reason provided'}`,
-        target_user_id: selected.user_id,
-      });
+      await reviewOneApplication(selected, 'rejected', 0, adminNotes);
       setSelected(null);
       setAdminNotes('');
-      loadApps();
-      toast({ title: 'Application rejected', description: `${selected.full_name}'s application has been rejected.` });
-    } catch (e) {
-      console.error(e);
-      toast({ title: 'Rejection failed', description: e.message || 'Unable to reject application.', variant: 'destructive' });
+      const refreshed = await loadApps().then(() => true).catch(() => false);
+      toast({ title: 'Application rejected', description: `${selected.full_name}'s application was rejected.${refreshed ? '' : ' Reload the list to see the latest state.'}` });
+    } catch (error) {
+      toast({
+        title: 'Rejection unavailable',
+        description: error?.message || 'The server did not confirm application rejection.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   }
 
   if (loading) {
@@ -509,17 +446,9 @@ export default function AdminApplications() {
                   </a>
                 </div>
               )}
-              <div>
-                <label className="text-muted-foreground text-xs uppercase tracking-wider mb-1.5 block">Opening Balance (USD)</label>
-                <input
-                  type="number"
-                  value={openingBalance}
-                  onChange={e => setOpeningBalance(e.target.value)}
-                  className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground text-sm focus:border-brass/50 focus:outline-none"
-                  placeholder="0.00"
-                />
-                <p className="text-muted-foreground text-[11px] mt-1">Enter the amount received via wire/deposit outside the app</p>
-              </div>
+              <p className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-100" role="note">
+                Approval creates the account with a zero balance. Funds can be credited only through the separately verified funding workflow; an operator-entered amount is not proof of receipt.
+              </p>
               <div>
                 <label className="text-muted-foreground text-xs uppercase tracking-wider mb-1.5 block">Admin Notes</label>
                 <textarea

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Minus, ShoppingCart, Package as PackageIcon, AlertCircle, Check } from 'lucide-react';
+import { ShoppingCart, Package as PackageIcon, AlertCircle, Check } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatCurrency';
 
 /**

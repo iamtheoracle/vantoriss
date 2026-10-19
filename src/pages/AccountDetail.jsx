@@ -2,12 +2,12 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate, useParams } from 'react-router-dom';
 import { formatCurrency } from '@/lib/formatCurrency';
+import { clearMutationIdempotencyKey, fingerprintMutationScope, getMutationIdempotencyKey } from '@/lib/mutationIdempotency';
 import {
   ArrowDownLeft,
   ArrowLeft,
   ArrowUpRight,
   Check,
-  ChevronRight,
   Copy,
   Download,
   FileText,
@@ -110,6 +110,7 @@ export default function AccountDetail() {
   const { toast } = useToast();
   const [filteredTransactions, setFilteredTransactions] = useState([]);
   const [showHistoricalImport, setShowHistoricalImport] = useState(false);
+  const [updatingAccountStatus, setUpdatingAccountStatus] = useState(false);
 
   const loadData = useCallback(async () => {
     const [user, acct, txns, pendingWds] = await Promise.all([
@@ -160,36 +161,137 @@ export default function AccountDetail() {
     setTimeout(() => setCopiedField(''), 2000);
   }
 
+  async function handleAccountStatusToggle() {
+    if (!account || !currentUser || currentUser.role !== 'admin') return;
+    if (
+      (account.status !== 'active' && account.status !== 'frozen') ||
+      typeof account.updated_date !== 'string' ||
+      !account.updated_date
+    ) {
+      toast({
+        title: 'Status change unavailable',
+        description: 'The account status or revision is missing. Refresh the account before trying again.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const expectedStatus = account.status;
+    const targetStatus = expectedStatus === 'frozen' ? 'active' : 'frozen';
+    setUpdatingAccountStatus(true);
+    try {
+      const operationScope = `account-status:${await fingerprintMutationScope(JSON.stringify({
+        account_id: id,
+        status: targetStatus,
+        expected_status: expectedStatus,
+        expected_updated_date: account.updated_date,
+      }))}`;
+      const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+      const response = await base44.functions.invoke('setAccountStatus', {
+        account_id: id,
+        status: targetStatus,
+        expected_status: expectedStatus,
+        expected_updated_date: account.updated_date,
+        idempotency_key: idempotencyKey,
+      });
+      const payload = response?.data ?? response;
+      if (
+        payload?.success !== true ||
+        payload?.operation_id !== idempotencyKey ||
+        payload?.audit_recorded !== true ||
+        payload?.account?.id !== id ||
+        payload?.account?.status !== targetStatus ||
+        typeof payload?.account?.updated_date !== 'string' ||
+        payload.account.updated_date === account.updated_date
+      ) {
+        throw new Error('The server did not confirm the account status and audit record. Refresh and retry the same operation.');
+      }
+
+      await clearMutationIdempotencyKey(operationScope);
+      try {
+        await loadData();
+      } catch (refreshError) {
+        console.error('Account status changed, but the account view could not be refreshed.', refreshError);
+      }
+      toast({
+        title: targetStatus === 'frozen' ? 'Account frozen' : 'Account unfrozen',
+        description: `${account.account_name || 'Account'} is now ${targetStatus}.`,
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: 'Account status change failed',
+        description: error.message || 'Unable to change account status. If the outcome is uncertain, retry the same operation.',
+        variant: 'destructive',
+      });
+    } finally {
+      setUpdatingAccountStatus(false);
+    }
+  }
+
   async function handlePinVerified() {
     setShowPin(false);
     const formData = { ...wForm };
-    const amount = parseFloat(formData.amount);
-    setShowWithdraw(false);
-    setWStep(1);
-    setWForm({ amount: '', method: 'ACH Transfer', notes: '' });
-
+    const amount = Number(formData.amount);
     const pendingToast = toast({ title: 'Submitting withdrawal...', description: `${formatCurrency(amount)} via ${formData.method}` });
 
     try {
-      const user = currentUser || await base44.auth.me();
-      await base44.entities.WithdrawalRequest.create({
+      if (!currentUser || currentUser.role !== 'user') {
+        throw new Error('Only a signed-in member can submit a withdrawal request.');
+      }
+      if (!account?.updated_date) {
+        throw new Error('The account revision is missing. Refresh the account and try again.');
+      }
+      const operationScope = `withdrawal-create:${await fingerprintMutationScope(JSON.stringify({
         account_id: id,
-        user_id: user.id,
-        amount: amount,
+        amount,
         method: formData.method,
-        notes: formData.notes,
-        status: 'pending',
+        notes: formData.notes.trim(),
+        expected_updated_date: account.updated_date,
+      }))}`;
+      const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+      const response = await base44.functions.invoke('createWithdrawalRequest', {
+        account_id: id,
+        amount,
+        method: formData.method,
+        notes: formData.notes.trim(),
+        expected_updated_date: account.updated_date,
+        idempotency_key: idempotencyKey,
       });
-      await base44.entities.Notification.create({
-        user_id: user.id,
-        title: 'Withdrawal Requested',
-        message: `Your withdrawal request of ${formatCurrency(amount)} is pending review.`,
-        type: 'info',
-      });
+      const payload = response?.data ?? response;
+      if (
+        payload?.success !== true ||
+        payload?.operation_id !== idempotencyKey ||
+        payload?.audit_recorded !== true ||
+        payload?.request?.account_id !== id ||
+        payload?.request?.user_id !== currentUser.id ||
+        payload?.request?.amount !== amount ||
+        payload?.request?.method !== formData.method ||
+        payload?.request?.status !== 'pending' ||
+        typeof payload?.request?.updated_date !== 'string'
+      ) {
+        throw new Error('The server did not confirm the withdrawal request and audit record. Retry the same operation without changing its details.');
+      }
+
+      await clearMutationIdempotencyKey(operationScope);
+      setShowWithdraw(false);
+      setWStep(1);
+      setWForm({ amount: '', method: 'ACH Transfer', notes: '' });
       pendingToast.update({ title: 'Withdrawal submitted', description: `${formatCurrency(amount)} is pending review.` });
+      try {
+        await loadData();
+      } catch (refreshError) {
+        console.error('Withdrawal request was accepted, but the account view could not be refreshed.', refreshError);
+      }
     } catch (e) {
       console.error(e);
-      pendingToast.update({ title: 'Withdrawal failed', description: 'Please try again.', variant: 'destructive' });
+      setShowWithdraw(true);
+      setWStep(2);
+      pendingToast.update({
+        title: 'Withdrawal not confirmed',
+        description: e.message || 'The outcome may be uncertain. Retry the same operation with unchanged details.',
+        variant: 'destructive',
+      });
     }
   }
 
@@ -507,18 +609,17 @@ export default function AccountDetail() {
       {currentUser?.role === 'admin' && (
         <div className="grid grid-cols-2 gap-3 mb-6">
           <button
-            onClick={async () => {
-              await base44.entities.Account.update(id, { status: account.status === 'frozen' ? 'active' : 'frozen' });
-              loadData();
-            }}
-            className={`py-3 font-semibold rounded-xl text-sm transition-all flex items-center justify-center gap-2 ${
+            type="button"
+            onClick={handleAccountStatusToggle}
+            disabled={updatingAccountStatus}
+            className={`py-3 font-semibold rounded-xl text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 ${
               account.status === 'frozen'
                 ? 'bg-mint/10 text-mint hover:bg-mint/20'
                 : 'bg-crimson/10 text-crimson hover:bg-crimson/20'
             }`}
           >
             <Snowflake size={16} />
-            {account.status === 'frozen' ? 'Unfreeze' : 'Freeze'}
+            {updatingAccountStatus ? 'Updating...' : account.status === 'frozen' ? 'Unfreeze' : 'Freeze'}
           </button>
           <button
             onClick={() => setShowHistoricalImport(true)}

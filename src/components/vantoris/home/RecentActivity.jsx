@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { formatCurrency } from '@/lib/formatCurrency';
-import { ArrowDownLeft, ArrowUpRight, TrendingUp, ChevronDown } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function RecentActivity({ transactions }) {

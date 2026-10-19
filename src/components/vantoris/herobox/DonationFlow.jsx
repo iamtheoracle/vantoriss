@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Heart, Loader2, Check, AlertCircle, ArrowRight, Globe } from 'lucide-react';
+import { Heart, Loader2, AlertCircle, Globe } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { useToast } from '@/components/ui/use-toast';
+import { clearMutationIdempotencyKey, fingerprintMutationScope, getMutationIdempotencyKey } from '@/lib/mutationIdempotency';
 
 const DONATION_CATEGORIES = [
   { id: 'food', label: 'Food & Essential Supplies', desc: 'Provide food, groceries, and essential household supplies' },
@@ -71,52 +72,75 @@ export default function DonationFlow({ onClose, onOrderComplete }) {
   }, [step, loadCases]);
 
   async function handleDonate() {
-    if (!amount || parseFloat(amount) <= 0) {
-      toast({ title: 'Invalid amount', description: 'Please enter a valid donation amount.', variant: 'destructive' });
+    const donationAmount = Number(amount);
+    if (
+      !amount.trim() ||
+      !Number.isFinite(donationAmount) ||
+      donationAmount <= 0 ||
+      donationAmount > 100_000_000 ||
+      !Number.isSafeInteger(Math.round(donationAmount * 100)) ||
+      Math.abs(donationAmount * 100 - Math.round(donationAmount * 100)) > Number.EPSILON * Math.max(1, Math.abs(donationAmount * 100)) * 4
+    ) {
+      toast({ title: 'Invalid amount', description: 'Enter a positive donation amount with no more than two decimal places.', variant: 'destructive' });
       return;
     }
+    if (!category?.id) {
+      toast({ title: 'Choose a donation category', description: 'Select a category before continuing.', variant: 'destructive' });
+      return;
+    }
+    if (selectedCase && !selectedCase.updated_date) {
+      toast({ title: 'Case needs refreshing', description: 'The selected case revision is missing. Return to the case list and select it again.', variant: 'destructive' });
+      return;
+    }
+
     setSubmitting(true);
+    let operationScope = '';
     try {
+      operationScope = `herobox-donation:${await fingerprintMutationScope(JSON.stringify({
+        category: category.id,
+        amount: donationAmount,
+        caseId: selectedCase?.id || null,
+      }))}`;
+      const idempotencyKey = await getMutationIdempotencyKey(operationScope);
       const me = await base44.auth.me();
-      const donationAmount = parseFloat(amount);
-
-      // Create a HeroBox order for the donation
-      const order = await base44.entities.HeroBoxOrder.create({
-        user_id: me.id,
-        recipient_name: selectedCase ? selectedCase.recipient_name : 'Verified Humanitarian Case',
-        recipient_branch: selectedCase?.recipient_type || '',
-        destination: selectedCase?.location || 'As needed',
-        items: JSON.stringify([{
-          product_id: `donation-${selectedCase?.id || 'general'}`,
-          name: `Donation: ${category?.label || 'General Assistance'}`,
-          category: 'donation',
-          price: donationAmount,
-          quantity: 1,
-        }]),
-        subtotal: donationAmount,
-        discount: 0,
-        shipping_cost: 0,
-        total: donationAmount,
-        status: 'payment_pending',
-        payment_status: 'pending',
-        order_notes: selectedCase
-          ? `Donation for: ${selectedCase.case_title} (Case ID: ${selectedCase.id.slice(-8).toUpperCase()})`
-          : `General donation: ${category?.label}`,
+      const response = await base44.functions.invoke('createHeroBoxDonation', {
+        category: category.id,
+        amount: donationAmount,
+        humanitarian_case_id: selectedCase?.id || null,
+        expected_case_updated_date: selectedCase?.updated_date || null,
+        idempotency_key: idempotencyKey,
       });
-
-      // Link order to humanitarian case if selected
-      if (selectedCase) {
-        await base44.entities.HumanitarianCase.update(selectedCase.id, {
-          case_status: 'matched',
-          matched_order_id: order.id,
-        }).catch(() => {});
+      const result = response?.data || response;
+      const order = result?.order;
+      if (
+        result?.success !== true ||
+        result?.operation_id !== idempotencyKey ||
+        result?.audit_recorded !== true ||
+        result?.funds_moved !== false ||
+        !order ||
+        typeof order.id !== 'string' ||
+        order.user_id !== me.id ||
+        order.total !== donationAmount ||
+        order.status !== 'payment_pending' ||
+        order.payment_status !== 'pending' ||
+        typeof order.updated_date !== 'string'
+      ) {
+        throw new Error(result?.error || 'The server did not confirm an audited, unpaid donation order. Retry only with the same operation.');
       }
 
-      toast({ title: 'Donation Created', description: `Your donation of ${formatCurrency(donationAmount)} has been created.` });
+      await clearMutationIdempotencyKey(operationScope);
+      toast({
+        title: 'Donation order created',
+        description: `Your ${formatCurrency(donationAmount)} donation order is awaiting payment. No funds have been charged.`,
+      });
       onOrderComplete?.();
       onClose();
     } catch (err) {
-      toast({ title: 'Donation failed', description: err.message, variant: 'destructive' });
+      toast({
+        title: 'Donation unavailable',
+        description: err?.response?.data?.error || err.message || 'The server did not confirm the donation order.',
+        variant: 'destructive',
+      });
     } finally {
       setSubmitting(false);
     }

@@ -1,21 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Loader2,
-  Sparkles,
-  Shield,
-  Phone,
-  MessageCircle,
-  Calendar,
-  Mail,
-  ChevronRight,
-  Star,
-  Trash2,
-  Clock,
-} from 'lucide-react';
-import { getMessageKey, isStarred, toggleStar, addDeletedId, getDeletedIds } from '@/lib/starredMessages';
+import { motion } from 'framer-motion';
+import { Loader2, Sparkles, Shield, Phone, MessageCircle, Calendar, Mail, ChevronRight, Star, Trash2, Clock } from 'lucide-react';
+import { getMessageKey, isStarred, addDeletedId, getDeletedIds } from '@/lib/starredMessages';
 import VantorisMonogram from '@/components/vantoris/brand/VantorisMonogram';
 import ConversationTabs from '@/components/vantoris/chat/ConversationTabs';
 import ChatMessage from '@/components/vantoris/chat/ChatMessage';

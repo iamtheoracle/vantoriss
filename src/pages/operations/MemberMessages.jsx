@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
-import {
-  MessageSquare, Send, CheckCheck, User, Trash2, Edit3, Check,
-  MoreVertical, ArrowLeft, Search, X
-} from 'lucide-react';
+import { MessageSquare, Send, CheckCheck, User, Trash2, Edit3, Check, MoreVertical, ArrowLeft, Search } from 'lucide-react';
 import ReadReceipt from '@/components/vantoris/chat/ReadReceipt';
 import { useToast } from '@/components/ui/use-toast';
 

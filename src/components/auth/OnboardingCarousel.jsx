@@ -1,15 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ShieldLogo from "@/components/vantoris/ShieldLogo";
-import {
-  Landmark,
-  ArrowLeftRight,
-  ShieldCheck,
-  TrendingUp,
-  Sparkles,
-  ArrowRight,
-  Check,
-} from "lucide-react";
+import { Landmark, ArrowLeftRight, ShieldCheck, TrendingUp, Sparkles, ArrowRight } from "lucide-react";
 
 const SLIDES = [
   {
