@@ -64,6 +64,53 @@ function buildWordHtml() {
   return '<!doctype html><html><head><meta charset="utf-8"><title>RCC Corporate Investment Account History</title><style>body{font-family:Arial,sans-serif;color:#17212f}h1{font-size:22px}table{border-collapse:collapse;width:100%;margin:16px 0}th,td{border:1px solid #cbd5e1;padding:8px;text-align:left;font-size:10pt}th{background:#eef2f7}.notice{padding:12px;border:1px solid #b45309;background:#fff7ed}</style></head><body><h1>' + ACCOUNT.name + '</h1><p>' + ACCOUNT.type + ' · Associated person: ' + ACCOUNT.associatedPerson + '</p><p>' + ACCOUNT.location + ' · Reporting period: ' + ACCOUNT.start + ' to ' + ACCOUNT.end + ' · USD</p><p class="notice"><b>UNRECONCILED HISTORICAL INPUTS — NOT AN OFFICIAL FINANCIAL STATEMENT.</b> No source statements or transaction-level records have been connected. Annual figures below are supplied snapshots only. Do not treat them as verified balances.</p><h2>Annual closing snapshots</h2><table><thead><tr><th>Year</th><th>As of</th><th>Supplied closing snapshot</th><th>Status</th></tr></thead><tbody>' + rows + '</tbody></table><h2>Reconciliation</h2><p>2025 closing snapshot: ' + money(36968735) + '.</p><p>Separately supplied illustrative 2026 opening value: ' + money(42260300) + '.</p><p>Unresolved difference: ' + money(5291565) + '. Supporting source records are required; no balancing entry has been invented.</p><p>Opening balance at 25 March 2018, transaction history, fees, taxes, holdings, and verified performance: Pending source records.</p><h2>Data limitations</h2><p>The monthly 2026 return assumptions and the illustrative 2026 ending value are a separate scenario and are not included as actual ledger transactions.</p></body></html>';
 }
 
+
+function xmlEscape(value) {
+  return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+}
+function excelCell(value, type) {
+  if (value === null || value === undefined || value === '') return '<Cell><Data ss:Type="String"></Data></Cell>';
+  const actualType = type || (typeof value === 'number' ? 'Number' : 'String');
+  return '<Cell><Data ss:Type="' + actualType + '">' + xmlEscape(value) + '</Data></Cell>';
+}
+function excelRow(values) {
+  return '<Row>' + values.map((value) => Array.isArray(value) ? excelCell(value[0], value[1]) : excelCell(value)).join('') + '</Row>';
+}
+function excelSheet(name, rows) {
+  return '<Worksheet ss:Name="' + xmlEscape(name) + '"><Table>' + rows.map(excelRow).join('') + '</Table></Worksheet>';
+}
+function exportExcelWorkbook() {
+  const annualRows = [
+    ['Year','Period end','Opening balance USD','Contributions USD','Withdrawals USD','Investment income USD','Realized gain/loss USD','Unrealized change USD','Fees USD','Taxes USD','Other adjustment USD','Closing snapshot USD','Reconciliation status'],
+    ...ANNUAL_SNAPSHOTS.map((row) => [row.year,row.date,'','','','','','','','','',[row.closing,'Number'],'Unreconciled — source records required'])
+  ];
+  const scenarioRows = [['Period','Assumption','Return %','Opening scenario value USD','Scenario change USD','Closing scenario value USD','Status']];
+  let previous = 42260300;
+  SCENARIO_RETURNS.forEach((row, index) => {
+    const change = Math.round(previous * row.rate * 100) / 100;
+    const closing = Math.round((previous + change) * 100) / 100;
+    scenarioRows.push([
+      row.label, 'User-supplied assumption only', [row.rate * 100,'Number'],
+      [previous,'Number'], [change,'Number'], [closing,'Number'], 'Scenario only — not verified history'
+    ]);
+    previous = closing;
+  });
+  const ledgerRows = [['Transaction date','Posting date','Description','Category','Source reference','Opening balance USD','Credit USD','Debit USD','Investment income USD','Realized gain/loss USD','Unrealized change USD','Fee USD','Tax/withholding USD','Other adjustment USD','Net effect USD','Running balance USD','Closing snapshot USD','Source document','Verification status','Record type'],
+    ...ANNUAL_SNAPSHOTS.map((row) => [row.date,'','Supplied year-end closing snapshot for '+row.year+'; not a transaction entry.','Historical balance snapshot','','','','','','','','','','','','',[row.closing,'Number'],'','Unreconciled — source records required','supplied_snapshot'])
+  ];
+  const overviewRows = [['Field','Value'],['Account entity',ACCOUNT.name],['Account type',ACCOUNT.type],['Associated person',ACCOUNT.associatedPerson],['Location',ACCOUNT.location],['Reporting currency',ACCOUNT.currency],['Reporting start',ACCOUNT.start],['Reporting end',ACCOUNT.end],['Record status','Unreconciled supplied snapshots; source records pending'],['Opening balance at start','Pending source records'],['Fees and taxes','Pending source records']];
+  const feeRows = [['Fee / tax category','Supported amount USD','Status'],...['Account maintenance','Custody and administration','Investment management / advisory','Trading commissions','Settlement / processing','Wire / transfer','FX conversion','Other expenses','Taxes / withholding (separate)'].map((name) => [name,'','Fee reconciliation pending — source records required'])];
+  const performanceRows = [['Measure','Value','Method / limitation'],['Gross return','','Pending dated valuations and cash flows'],['Net return after fees','','Pending supported fee entries and valuation data'],['Time-weighted return','','Cannot calculate without valuation points and external cash flows'],['Money-weighted return','','Cannot calculate without dated cash flows'],['Account-value change','','Annual snapshots alone are insufficient to attribute performance']];
+  const reconciliationRows = [['Check','Value','Status'],['2025 closing snapshot USD',[36968735,'Number'],'Supplied input; unreconciled'],['Illustrative 2026 opening USD',[42260300,'Number'],'Scenario input only'],['Unresolved difference USD',[5291565,'Number'],'Pending source records; no balancing entry invented'],['Opening balance 2018-03-25','','Pending source records'],['Statement completeness','','Source records not provided']];
+  const sourceRows = [['Record group','Provenance','Validation status'],['Annual snapshots 2018–2025','User-supplied historical inputs','Unreconciled; source statements required'],['2026 monthly return assumptions','User-supplied scenario assumptions','Scenario only; not actual returns'],['Transaction-level ledger','No transaction records supplied','Unavailable'],['Fees and taxes','No fee invoices/statements supplied','Unavailable'],['Account identifiers','No verified identifiers supplied','Not created']];
+  const xml = '<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:html="http://www.w3.org/TR/REC-html40">' +
+    excelSheet('Account overview',overviewRows) + excelSheet('Annual history',annualRows) +
+    excelSheet('Monthly scenario',scenarioRows) + excelSheet('Detailed ledger',ledgerRows) +
+    excelSheet('Fees and expenses',feeRows) + excelSheet('Investment performance',performanceRows) +
+    excelSheet('Reconciliation',reconciliationRows) + excelSheet('Source records and checks',sourceRows) + '</Workbook>';
+  downloadFile('rcc_corporate_investment_account_history_review.xml','application/vnd.ms-excel;charset=utf-8',xml);
+}
+
 export default function RCCAccountHistory() {
   const [section, setSection] = useState('overview');
   const [year, setYear] = useState('all');
@@ -78,10 +125,10 @@ export default function RCCAccountHistory() {
   }), [year, search, statusFilter]);
 
   function exportLedgerCsv() {
-    const header = ['transaction_date','posting_date','description','category','source_reference','opening_balance_usd','credit_usd','debit_usd','investment_income_usd','realized_gain_loss_usd','unrealized_valuation_change_usd','fee_usd','tax_withholding_usd','other_adjustment_usd','net_effect_usd','running_balance_usd','source_document','verification_status','record_type'];
+    const header = ['transaction_date','posting_date','description','category','source_reference','opening_balance_usd','credit_usd','debit_usd','investment_income_usd','realized_gain_loss_usd','unrealized_valuation_change_usd','fee_usd','tax_withholding_usd','other_adjustment_usd','net_effect_usd','running_balance_usd','closing_snapshot_usd','source_document','verification_status','record_type'];
     const rows = ANNUAL_SNAPSHOTS.map((row) => [
       row.date, '', 'Supplied year-end corporate investment portfolio closing snapshot for ' + row.year + '; not a transaction entry.',
-      'Historical balance snapshot', '', '', '', '', '', '', '', '', '', '', '', row.closing, '', 'Unreconciled — source records required', 'supplied_snapshot'
+      'Historical balance snapshot', '', '', '', '', '', '', '', '', '', '', '', '', row.closing, '', 'Unreconciled — source records required', 'supplied_snapshot'
     ]);
     downloadFile('rcc_account_history_annual_snapshots.csv', 'text/csv;charset=utf-8', [header, ...rows].map((r) => r.map(csvCell).join(',')).join('\r\n'));
   }
@@ -149,6 +196,7 @@ export default function RCCAccountHistory() {
             <button onClick={exportPdf} className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700"><Printer size={16} /> Export PDF review</button>
             <button onClick={exportWord} className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold hover:bg-slate-50"><FileText size={16} /> Word-compatible report</button>
             <button onClick={exportLedgerCsv} className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold hover:bg-slate-50"><FileSpreadsheet size={16} /> Export ledger CSV</button>
+            <button onClick={exportExcelWorkbook} className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold hover:bg-slate-50"><FileSpreadsheet size={16} /> Excel workbook</button>
           </div>
         </header>
 
@@ -203,7 +251,7 @@ export default function RCCAccountHistory() {
 
         {section === 'reconciliation' && <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"><h2 className="text-lg font-bold">Reconciliation exceptions</h2><div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-4"><p className="font-semibold text-rose-900">Unresolved opening-to-closing discrepancy</p><div className="mt-3 grid gap-3 md:grid-cols-3"><div><p className="text-xs uppercase text-rose-800">2025 closing snapshot</p><p className="mt-1 text-lg font-bold text-rose-950">{money(36968735)}</p></div><div><p className="text-xs uppercase text-rose-800">Illustrative 2026 opening</p><p className="mt-1 text-lg font-bold text-rose-950">{money(42260300)}</p></div><div><p className="text-xs uppercase text-rose-800">Difference</p><p className="mt-1 text-lg font-bold text-rose-950">{money(5291565)}</p></div></div><p className="mt-3 text-sm leading-6 text-rose-900">Pending reconciliation. Do not post a balancing entry without supporting records. Required evidence includes the official year-end statement, the 2026 opening valuation statement, any intervening cash-flow records, holdings/valuation detail, and valuation dates.</p></div><div className="mt-4 grid gap-3 md:grid-cols-2">{[['Opening balance at 25 March 2018','Pending source records'],['Annual snapshot source statements','Not provided'],['Transaction-level ledger','Not provided'],['Duplicate / completeness review','Cannot be performed without source records']].map(([k,v]) => <div key={k} className="rounded-lg border border-slate-200 p-4"><p className="text-sm text-slate-500">{k}</p><p className="mt-1 font-semibold">{v}</p></div>)}</div></section>}
 
-        {section === 'documents' && <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"><h2 className="text-lg font-bold">Documents and exports</h2><p className="mt-2 text-sm leading-6 text-slate-600">Exports are review copies generated from the supplied snapshots and the explicit unresolved-data state. They are not official financial statements. A native multi-sheet XLSX workbook and native DOCX document require export dependencies and source-record models that are not yet integrated.</p><div className="mt-4 flex flex-wrap gap-2"><button onClick={exportPdf} className="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white">Generate PDF review</button><button onClick={exportWord} className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold">Generate editable Word-compatible report</button><button onClick={exportLedgerCsv} className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold">Generate CSV ledger</button></div><div className="mt-5 rounded-lg bg-slate-50 p-4 text-sm text-slate-600"><p className="font-semibold text-slate-800">Still required for full acceptance</p><ul className="mt-2 list-disc space-y-1 pl-5"><li>Connect authorized source statements and corporate account records.</li><li>Add server-side data models and access policies for snapshots, ledger events, fee records, and audit events.</li><li>Add native DOCX and multi-sheet XLSX generation and verify cross-export totals.</li><li>Add automated calculation, import, duplicate-detection, and reconciliation tests.</li></ul></div></section>}
+        {section === 'documents' && <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"><h2 className="text-lg font-bold">Documents and exports</h2><p className="mt-2 text-sm leading-6 text-slate-600">Exports are review copies generated from the supplied snapshots and the explicit unresolved-data state. They are not official financial statements. The Excel-compatible XML workbook includes eight worksheets; a native DOCX and native XLSX binary export remain follow-up work. The exported figures are still review-only until source records are verified.</p><div className="mt-4 flex flex-wrap gap-2"><button onClick={exportPdf} className="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white">Generate PDF review</button><button onClick={exportWord} className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold">Generate editable Word-compatible report</button><button onClick={exportLedgerCsv} className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold">Generate CSV ledger</button><button onClick={exportExcelWorkbook} className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold">Generate Excel workbook</button></div><div className="mt-5 rounded-lg bg-slate-50 p-4 text-sm text-slate-600"><p className="font-semibold text-slate-800">Still required for full acceptance</p><ul className="mt-2 list-disc space-y-1 pl-5"><li>Connect authorized source statements and corporate account records.</li><li>Add server-side data models and access policies for snapshots, ledger events, fee records, and audit events.</li><li>Add native DOCX and multi-sheet XLSX generation and verify cross-export totals.</li><li>Add automated calculation, import, duplicate-detection, and reconciliation tests.</li></ul></div></section>}
         <footer className="pb-4 text-xs leading-5 text-slate-500">Internal review interface · Supplied snapshots remain unreconciled · No bank, brokerage, account identifier, approval, signature, or certification has been invented.</footer>
       </div>
     </main>
