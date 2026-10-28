@@ -1,12 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
-import StatusBadge from '@/components/vantoris/StatusBadge';
+
 import { useToast } from '@/components/ui/use-toast';
-import {
-  Download, FileSpreadsheet, Calendar, Loader2, CheckCircle2,
-  AlertTriangle, Clock, RefreshCw, FileDown, TrendingUp,
-} from 'lucide-react';
+import { Download, FileSpreadsheet, Calendar, Loader2, CheckCircle2, AlertTriangle, Clock, RefreshCw, FileDown, TrendingUp } from 'lucide-react';
 
 const EXPORT_TYPE_LABELS = {
   monthly: 'Monthly Export',

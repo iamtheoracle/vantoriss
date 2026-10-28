@@ -1,17 +1,16 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Upload, FileText, AlertTriangle, CheckCircle2, Calendar, Building2, X } from 'lucide-react';
+import { Upload, FileText, AlertTriangle, CheckCircle2, Building2, X } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import {
   parseDateSafe,
   formatStatementDate,
   formatPeriod,
-  formatTxnDate,
   dedupKey,
   periodsOverlap,
 } from '@/lib/statementDates';
-import { formatCurrency } from '@/lib/formatCurrency';
+import { clearMutationIdempotencyKey, fingerprintMutationScope, getMutationIdempotencyKey } from '@/lib/mutationIdempotency';
 
 /**
  * HistoricalStatementImport — lets existing customers upload legitimate historical
@@ -219,87 +218,103 @@ export default function HistoricalStatementImport({ open, onClose, accountId, ac
   }
 
   async function handleSave() {
+    if (!accountId || !account?.updated_date) {
+      toast({ title: 'Import unavailable', description: 'The account revision is missing. Reload the account before importing.', variant: 'destructive' });
+      return;
+    }
+
+    // Send the full reviewed set; authoritative deduplication belongs to the transactional service.
+    const validTxns = transactions;
+    const invalidIndex = validTxns.findIndex(t =>
+      !parseDateSafe(t.transaction_date) ||
+      typeof t.amount !== 'number' ||
+      !Number.isFinite(t.amount) ||
+      t.amount === 0 ||
+      !Number.isSafeInteger(Math.round(t.amount * 100)) ||
+      Math.abs(t.amount * 100 - Math.round(t.amount * 100)) > 1e-7 ||
+      !['deposit', 'withdrawal', 'transfer', 'interest', 'fee', 'adjustment'].includes(t.type) ||
+      typeof t.description !== 'string' ||
+      t.description.trim().length > 1000 ||
+      typeof t.reference !== 'string' ||
+      t.reference.length > 256
+    );
+    if (invalidIndex >= 0) {
+      toast({ title: 'Review transaction data', description: `Transaction ${invalidIndex + 1} has an invalid date, amount, type, or text field.`, variant: 'destructive' });
+      return;
+    }
+    if (!metadata.statementDate || !parseDateSafe(metadata.statementDate)) {
+      toast({ title: 'Statement date required', description: 'Choose a valid statement date before importing.', variant: 'destructive' });
+      return;
+    }
+    if (metadata.periodStart && metadata.periodEnd && metadata.periodStart > metadata.periodEnd) {
+      toast({ title: 'Invalid statement period', description: 'Period start must be on or before period end.', variant: 'destructive' });
+      return;
+    }
+
     setSaving(true);
     setStep(4);
+    const operationScope = `historical-statement-import:${await fingerprintMutationScope(JSON.stringify({
+      accountId,
+      metadata,
+      sourceDocUrl,
+      transactions: validTxns.map(({ _dup, ...txn }) => txn),
+    }))}`;
     try {
-      const me = await base44.auth.me();
-
-      // Filter out duplicates and invalid rows
-      const validTxns = transactions.filter(t =>
-        t.transaction_date && t.amount !== '' && !t._dup
-      );
-
-      // Create the HistoricalStatement record
-      const statement = await base44.entities.HistoricalStatement.create({
-        user_id: me.id,
+      const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+      const response = await base44.functions.invoke('importHistoricalStatement', {
         account_id: accountId,
-        account_name: metadata.accountName,
-        account_identifier: metadata.accountIdentifier,
-        statement_date: metadata.statementDate,
-        period_start: metadata.periodStart,
-        period_end: metadata.periodEnd,
-        issue_date: metadata.issueDate || metadata.statementDate,
-        opening_balance: parseFloat(metadata.openingBalance) || 0,
-        closing_balance: parseFloat(metadata.closingBalance) || 0,
-        total_credits: validTxns.filter(t => t.amount >= 0).reduce((s, t) => s + Math.abs(t.amount), 0),
-        total_debits: validTxns.filter(t => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0),
-        transaction_count: validTxns.length,
-        source_document_url: sourceDocUrl,
-        source_institution: metadata.sourceInstitution,
-        imported_by_name: me.full_name || me.email,
-        import_notes: metadata.importNotes,
-        verification_status: 'user_reviewed',
-        overlap_detected: !!overlapWarning,
-        overlap_details: overlapWarning || '',
-      });
-
-      // Create transactions — marked as historical_import, linked to the statement
-      // Does NOT modify account.balance
-      const txnRecords = validTxns.map(t => ({
-        account_id: accountId,
-        type: t.type,
-        amount: t.amount,
-        description: t.description,
-        reference: t.reference,
-        transaction_date: t.transaction_date,
-        posting_date: t.posting_date || t.transaction_date,
-        source: 'historical_import',
-        imported_statement_id: statement.id,
-        status: 'completed',
-        created_by_admin: false,
-      }));
-
-      if (txnRecords.length > 0) {
-        await base44.entities.Transaction.bulkCreate(txnRecords);
-      }
-
-      // Create a Document record for the source file
-      if (sourceDocUrl) {
-        await base44.entities.Document.create({
-          user_id: me.id,
-          title: `Historical Statement — ${formatStatementDate(metadata.statementDate)}`,
-          type: 'historical_statement',
-          file_url: sourceDocUrl,
-          account_id: accountId,
+        expected_updated_date: account.updated_date,
+        idempotency_key: idempotencyKey,
+        source_document_url: sourceDocUrl || '',
+        metadata: {
+          source_institution: metadata.sourceInstitution,
+          account_name: metadata.accountName,
+          account_identifier: metadata.accountIdentifier,
           statement_date: metadata.statementDate,
-          period_start: metadata.periodStart,
-          period_end: metadata.periodEnd,
+          period_start: metadata.periodStart || '',
+          period_end: metadata.periodEnd || '',
           issue_date: metadata.issueDate || metadata.statementDate,
-          statement_period: formatPeriod(metadata.periodStart, metadata.periodEnd),
-          status: 'active',
-        });
+          opening_balance: metadata.openingBalance === '' ? 0 : Number(metadata.openingBalance),
+          closing_balance: metadata.closingBalance === '' ? 0 : Number(metadata.closingBalance),
+          import_notes: metadata.importNotes,
+          overlap_details: overlapWarning || '',
+        },
+        transactions: validTxns.map(({ _dup, ...txn }) => ({
+          transaction_date: txn.transaction_date,
+          posting_date: txn.posting_date || txn.transaction_date,
+          description: txn.description,
+          type: txn.type,
+          amount: txn.amount,
+          reference: txn.reference || '',
+        })),
+      });
+      const result = response?.data || response;
+      if (
+        result?.success !== true ||
+        result?.operation_id !== idempotencyKey ||
+        result?.audit_recorded !== true ||
+        result?.account_balance_modified !== false ||
+        typeof result?.statement_id !== 'string'
+      ) {
+        throw new Error(result?.error || 'The server did not confirm an audited historical-only import. Retry only with the same operation; do not assume it committed.');
       }
 
+      await clearMutationIdempotencyKey(operationScope);
+      const imported = Number(result.summary?.imported) || 0;
+      const skipped = Number(result.summary?.skipped) || 0;
       toast({
         title: 'Historical statement imported',
-        description: `${validTxns.length} transactions imported. Your current balance was not modified.`,
+        description: `${imported} transactions imported; ${skipped} duplicates skipped. Your current account balance was not modified.`,
       });
-
       onImported?.();
       onClose();
     } catch (e) {
       console.error(e);
-      toast({ title: 'Import failed', description: e.message || 'Could not save the statement.', variant: 'destructive' });
+      toast({
+        title: 'Import unavailable',
+        description: e?.response?.data?.error || e.message || 'The server did not confirm the historical import. No success is assumed.',
+        variant: 'destructive',
+      });
       setStep(3);
     } finally {
       setSaving(false);

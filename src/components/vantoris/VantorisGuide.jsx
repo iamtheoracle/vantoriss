@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, MessageCircle, Mail, Phone, HelpCircle, ChevronRight } from 'lucide-react';
+import { Sparkles, MessageCircle, Mail, Phone, HelpCircle } from 'lucide-react';
 import { useWhatsAppConfig, whatsappLinkFromConfig } from '@/hooks/useWhatsAppConfig';
 import { BUSINESS_WHATSAPP_DISPLAY, SUPPORT_EMAIL } from '@/lib/businessConfig';
 

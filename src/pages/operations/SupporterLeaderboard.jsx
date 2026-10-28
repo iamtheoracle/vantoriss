@@ -3,14 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
 import VantorisKPICard from '@/components/vantoris/system/VantorisKPICard';
-import {
-  Trophy, DollarSign, Package, Users, Heart, TrendingUp,
-  Crown, Medal, Award, Search, ArrowUpRight, Sparkles,
-} from 'lucide-react';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  Cell,
-} from 'recharts';
+import { Trophy, DollarSign, Package, Users, Heart, TrendingUp, Crown, Medal, Award, Search, Sparkles } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const RANK_STYLES = [
   { bg: 'from-brass/20 to-brass/5', border: 'border-brass/40', text: 'text-brass', icon: Crown, label: '1st' },

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { useNavigate } from 'react-router-dom';
-import { Bell, ChevronRight, CreditCard, Eye, EyeOff, TrendingUp } from 'lucide-react';
+import { Bell, ChevronRight, Eye, EyeOff, TrendingUp } from 'lucide-react';
 import PrimaryActions from '@/components/vantoris/home/PrimaryActions';
 import DashboardModules from '@/components/vantoris/home/DashboardModules';
 

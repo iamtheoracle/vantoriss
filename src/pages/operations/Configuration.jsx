@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
-import { base44 } from '@/api/base44Client';
-import { Settings, FolderOpen, Code, Bell, Shield, Database, HardDrive, CheckCircle2, XCircle, MessageCircle } from 'lucide-react';
+
+import { Settings, FolderOpen, Bell, Shield, Database, HardDrive, CheckCircle2, XCircle } from 'lucide-react';
 
 const tabs = [
   { id: 'storage', label: 'Document Storage', icon: FolderOpen },

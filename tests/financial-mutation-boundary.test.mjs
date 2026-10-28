@@ -1,0 +1,808 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const read = relative => readFile(path.join(root, relative), 'utf8');
+
+test('package manifest dependency ranges match the lockfile root exactly', async () => {
+  const manifest = JSON.parse(await read('package.json'));
+  const lock = JSON.parse(await read('package-lock.json'));
+  const lockedRoot = lock.packages?.[''];
+  assert.equal(lock.lockfileVersion, 3);
+  assert.ok(lockedRoot, 'package-lock.json must include the root package entry');
+  assert.deepEqual(lockedRoot.dependencies || {}, manifest.dependencies || {});
+  assert.deepEqual(lockedRoot.devDependencies || {}, manifest.devDependencies || {});
+  assert.deepEqual(lockedRoot.optionalDependencies || {}, manifest.optionalDependencies || {});
+});
+
+test('application decisions no longer mutate financial entities from the browser', async () => {
+  const source = await read('src/pages/admin/AdminApplications.jsx');
+  const handler = source.slice(source.indexOf('async function reviewOneApplication'), source.indexOf('\n  if (loading) {'));
+  assert.ok(handler.includes("base44.functions.invoke('reviewApplication'"));
+  assert.ok(handler.includes('getMutationIdempotencyKey(operationScope)'));
+  assert.ok(handler.includes('clearMutationIdempotencyKey(operationScope)'));
+  assert.ok(!handler.includes('base44.entities.Application.update('));
+  assert.ok(!handler.includes('base44.entities.Account.create('));
+  assert.ok(!handler.includes('base44.entities.Transaction.create('));
+  assert.ok(source.includes('Funds can be credited only through the separately verified funding workflow'));
+});
+
+test('transaction date correction cannot edit balances or transaction amounts from the browser', async () => {
+  const source = await read('src/pages/admin/AdminAccounts.jsx');
+  const start = source.indexOf('async function handleEditTransaction()');
+  const end = source.indexOf('\n  function openEditTxn(', start);
+  assert.ok(start >= 0 && end > start, 'date correction handler must exist');
+  const handler = source.slice(start, end);
+  assert.ok(handler.includes("base44.functions.invoke('correctTransactionDate'"));
+  assert.ok(handler.includes('getMutationIdempotencyKey(operationScope)'));
+  assert.ok(handler.includes('clearMutationIdempotencyKey(operationScope)'));
+  assert.ok(!handler.includes('base44.entities.Transaction.update('));
+  assert.ok(!handler.includes('base44.entities.Account.update('));
+  assert.ok(source.includes('This workflow corrects the transaction date only.'));
+});
+
+test('server endpoints require authenticated roles, revision tokens, and atomic service confirmation', async () => {
+  const review = await read('base44/functions/reviewApplication/entry.ts');
+  const correction = await read('base44/functions/correctTransactionDate/entry.ts');
+  for (const source of [review, correction]) {
+    assert.ok(source.includes('base44.auth.me()'));
+    assert.ok(source.includes('isAllowedFinancialRole(actor)'));
+    assert.ok(source.includes('validateMutationEnvelope(body)'));
+    assert.ok(source.includes('invokeAtomicMutationService('));
+    assert.ok(source.includes('writeBlockedMutationAudit('));
+  }
+  assert.ok(review.includes("expected_application_status: 'pending'"));
+  assert.ok(review.includes("required_kyc_status: decision === 'approved' ? 'approved' : undefined"));
+  assert.ok(review.includes('disallowed_applicant_roles: ACCOUNT_HOLDER_BLOCKED_ROLES'));
+  assert.ok(correction.includes("allowed_statuses: ['completed', 'reversed']"));
+  assert.ok(correction.includes('expected_updated_date: expectedUpdatedDate'));
+  assert.ok(correction.includes("allowed_fields: ['transaction_date']"));
+});
+
+test('bulk transaction imports cannot write ledger records outside the atomic service', async () => {
+  const endpoint = await read('base44/functions/bulkImportTransactions/entry.ts');
+  const ui = await read('src/pages/operations/BulkTransactionImport.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    'isAllowedFinancialRole(actor)',
+    'isUuid(parsedBody.idempotency_key)',
+    'validateAndNormalizeRows(parsedBody.transactions)',
+    "invokeAtomicMutationService(",
+    "'transactions.bulk_import'",
+    'all_or_nothing: true',
+    'prevent_negative_balances: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `bulk import boundary must include ${required}`);
+  assert.ok(!endpoint.includes('entities.Transaction.create('));
+  assert.ok(!endpoint.includes('entities.Account.update('));
+  assert.ok(!endpoint.includes('entities.AuditLog.create('));
+  assert.ok(ui.includes('fingerprintMutationScope(JSON.stringify(transactions))'));
+  assert.ok(ui.includes('idempotency_key: idempotencyKey'));
+  assert.ok(ui.includes('payload.operation_id !== idempotencyKey'));
+  assert.ok(ui.includes("const VALID_TYPES = ['deposit', 'withdrawal']"));
+});
+
+test('funding review decisions cannot post credits or status changes from the browser', async () => {
+  const endpoint = await read('base44/functions/reviewFundingRequest/entry.ts');
+  const ui = await read('src/pages/operations/VerificationRequests.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    'isAllowedFinancialRole(actor)',
+    'validateMutationEnvelope(body)',
+    "invokeAtomicMutationService('funding.review'",
+    "expected_request_status: 'pending'",
+    'require_authoritative_request_lookup: true',
+    'require_verified_funding_evidence: decision === \'approved\'',
+    'prevent_negative_balances: true',
+    'notification_outbox_required: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `funding review boundary must include ${required}`);
+  assert.ok(!endpoint.includes('entities.VerificationRequest.update('));
+  assert.ok(!endpoint.includes('entities.Transaction.create('));
+  assert.ok(!endpoint.includes('entities.Account.update('));
+  assert.ok(ui.includes("base44.functions.invoke('reviewFundingRequest'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes('clearMutationIdempotencyKey(operationScope)'));
+  const mutationUi = ui.slice(ui.indexOf('async function mutateFundingRequest'), ui.indexOf('if (loading)'));
+  assert.ok(!mutationUi.includes('base44.entities.VerificationRequest.update('));
+  assert.ok(!mutationUi.includes('base44.entities.Transaction.create('));
+  assert.ok(!mutationUi.includes('base44.entities.Account.update('));
+});
+
+test('withdrawal settlement requires atomic payout confirmation and never writes balances from the browser', async () => {
+  const endpoint = await read('base44/functions/processWithdrawalRequest/entry.ts');
+  const ui = await read('src/pages/admin/AdminWithdrawals.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    'isAllowedFinancialRole(actor)',
+    'validateMutationEnvelope(body)',
+    "invokeAtomicMutationService('withdrawal.review'",
+    "expected_request_status: 'pending'",
+    'require_authoritative_request_lookup: true',
+    "require_sufficient_available_funds: decision === 'paid'",
+    "require_payout_confirmation: decision === 'paid'",
+    'prevent_negative_balances: true',
+    'notification_outbox_required: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `withdrawal boundary must include ${required}`);
+  assert.ok(!endpoint.includes('entities.WithdrawalRequest.update('));
+  assert.ok(!endpoint.includes('entities.Transaction.create('));
+  assert.ok(!endpoint.includes('entities.Account.update('));
+  assert.ok(ui.includes("base44.functions.invoke('processWithdrawalRequest'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes('clearMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes("payload?.request?.payout_confirmed !== true"));
+  const mutationUi = ui.slice(ui.indexOf('async function mutateWithdrawalRequest'), ui.indexOf('function clearFilters()'));
+  assert.ok(!mutationUi.includes('base44.entities.WithdrawalRequest.update('));
+  assert.ok(!mutationUi.includes('base44.entities.Transaction.create('));
+  assert.ok(!mutationUi.includes('base44.entities.Account.update('));
+});
+
+
+test('admin account transactions, freezes, and CSV imports cannot write ledger state directly from the browser', async () => {
+  const ui = await read('src/pages/admin/AdminAccounts.jsx');
+  const endpoint = await read('base44/functions/createAdminTransaction/entry.ts');
+  for (const required of [
+    "invokeAtomicMutationService('transaction.create_manual'",
+    'require_authoritative_account_lookup: true',
+    'require_account_revision_match: true',
+    'require_account_active: true',
+    'require_verified_funding_evidence: type === \'deposit\'',
+    'require_sufficient_available_funds: type === \'withdrawal\'',
+    'compute_balance_server_side: true',
+    'never_trust_client_balance: true',
+    'notification_outbox_required: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `admin transaction endpoint must include ${required}`);
+  assert.ok(!endpoint.includes('entities.Transaction.create('));
+  assert.ok(!endpoint.includes('entities.Account.update('));
+  assert.ok(!endpoint.includes('entities.Notification.create('));
+  assert.ok(ui.includes("base44.functions.invoke('createAdminTransaction'"));
+  assert.ok(ui.includes("base44.functions.invoke('setAccountStatus'"));
+  assert.ok(ui.includes("base44.functions.invoke('bulkImportTransactions'"));
+  assert.ok(!ui.includes('base44.entities.Transaction.create('));
+  assert.ok(!ui.includes('base44.entities.Account.update('));
+  assert.ok(!ui.includes('base44.entities.Notification.create('));
+  assert.ok(!ui.includes('base44.entities.Transaction.bulkCreate('));
+  assert.ok(!ui.includes('base44.entities.Transaction.deleteMany('));
+});
+
+test('member withdrawal initiation uses an atomic ownership, balance, and audit boundary', async () => {
+  const endpoint = await read('base44/functions/createWithdrawalRequest/entry.ts');
+  const ui = await read('src/pages/AccountDetail.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    "actor.role !== 'user'",
+    'validateMutationEnvelope(body)',
+    "invokeAtomicMutationService('withdrawal.create'",
+    'require_authoritative_account_lookup: true',
+    'require_actor_owns_account: true',
+    'require_account_revision_match: true',
+    'require_account_active: true',
+    'require_member_kyc_approved: true',
+    'require_sufficient_available_funds: true',
+    'include_pending_withdrawal_reservations: true',
+    'enforce_authoritative_withdrawal_limits: true',
+    'notification_outbox_required: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `withdrawal creation boundary must include ${required}`);
+  assert.ok(!endpoint.includes('entities.WithdrawalRequest.create('));
+  assert.ok(!endpoint.includes('entities.Notification.create('));
+  const workflow = await read('.github/workflows/financial-mutation-quality.yml');
+  const typeCheckCommand = workflow.split('\n').find(line => line.trim().startsWith('run: deno check')) || '';
+  assert.ok(typeCheckCommand.includes('base44/functions/createWithdrawalRequest/entry.ts'), 'withdrawal endpoint must be type-checked in CI');
+  const handler = ui.slice(ui.indexOf('async function handlePinVerified'), ui.indexOf('async function generateStatement'));
+  assert.ok(handler.includes("base44.functions.invoke('createWithdrawalRequest'"));
+  assert.ok(handler.includes('getMutationIdempotencyKey('));
+  assert.ok(handler.includes('clearMutationIdempotencyKey('));
+  assert.ok(!handler.includes('base44.entities.WithdrawalRequest.create('));
+  assert.ok(!handler.includes('base44.entities.Notification.create('));
+});
+
+
+
+test('account status changes use an authenticated atomic boundary for operators and member self-freeze', async () => {
+  const endpoint = await read('base44/functions/setAccountStatus/entry.ts');
+  const quickActions = await read('src/components/vantoris/QuickActionsMenu.jsx');
+  const commandDock = await read('src/components/vantoris/FloatingCommandDock.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    'validateMutationEnvelope(body)',
+    "invokeAtomicMutationService('account.status_change'",
+    'require_authoritative_account_lookup: true',
+    'require_account_revision_match: true',
+    'require_actor_owns_account: isSelfServiceFreeze',
+    'allow_member_freeze_only: isSelfServiceFreeze',
+    'notification_outbox_required: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `account status boundary must include ${required}`);
+  assert.ok(endpoint.includes("actor.role === 'user' && targetStatus === 'frozen'"));
+  assert.ok(quickActions.includes("base44.functions.invoke('setAccountStatus'"));
+  assert.ok(commandDock.includes("base44.functions.invoke('setAccountStatus'"));
+  const operatorHandler = quickActions.slice(
+    quickActions.indexOf('async function mutateAccountStatus'),
+    quickActions.indexOf('async function handleFreeze'),
+  );
+  const memberHandler = commandDock.slice(
+    commandDock.indexOf('async function handleFreeze'),
+    commandDock.indexOf('if (!user) return null;'),
+  );
+  for (const handler of [operatorHandler, memberHandler]) {
+    assert.ok(handler.includes('getMutationIdempotencyKey('));
+    assert.ok(handler.includes('clearMutationIdempotencyKey('));
+    assert.ok(!handler.includes('base44.entities.Account.update('));
+    assert.ok(!handler.includes('base44.entities.Transaction.create('));
+    assert.ok(!handler.includes('base44.entities.Notification.create('));
+    assert.ok(!handler.includes('logAuditEntry('));
+  }
+  assert.ok(!quickActions.includes('async function handleAdjustment'));
+});
+
+
+test('member account provisioning is atomic, zero-balance only, and member deletion cannot erase ledger history from the browser', async () => {
+  const endpoint = await read('base44/functions/createMemberAccount/entry.ts');
+  const ui = await read('src/pages/admin/AdminMembers.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    'isAllowedFinancialRole(actor)',
+    'validateMutationEnvelope(body)',
+    "invokeAtomicMutationService('account.create'",
+    'require_authoritative_member_lookup: true',
+    "require_target_member_role: 'user'",
+    'require_target_member_revision_match: true',
+    'generate_unique_account_number_server_side: true',
+    'create_account_only_with_zero_balance: true',
+    'notification_outbox_required: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `account provisioning boundary must include ${required}`);
+  assert.ok(!endpoint.includes('entities.Account.create('));
+  assert.ok(!endpoint.includes('entities.Transaction.create('));
+  assert.ok(!endpoint.includes('entities.Notification.create('));
+  assert.ok(ui.includes("base44.functions.invoke('createMemberAccount'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey('));
+  assert.ok(ui.includes('clearMutationIdempotencyKey('));
+  assert.ok(ui.includes('account?.balance !== 0'));
+  assert.ok(!ui.includes('base44.entities.Account.create('));
+  assert.ok(!ui.includes('base44.entities.Transaction.create('));
+  assert.ok(!ui.includes('base44.entities.Transaction.deleteMany('));
+  assert.ok(!ui.includes('base44.entities.Account.delete('));
+  assert.ok(!ui.includes('base44.entities.User.delete('));
+  assert.ok(!ui.includes('Opening Balance (USD)'));
+  assert.ok(ui.includes('Deletion Unavailable'));
+});
+
+
+test('account detail freeze/unfreeze uses the shared revision-checked server boundary', async () => {
+  const ui = await read('src/pages/AccountDetail.jsx');
+  assert.ok(ui.includes("base44.functions.invoke('setAccountStatus'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey('));
+  assert.ok(ui.includes('clearMutationIdempotencyKey('));
+  assert.ok(ui.includes('expected_updated_date: account.updated_date'));
+  assert.ok(ui.includes('payload?.audit_recorded !== true'));
+  assert.ok(!ui.includes("base44.entities.Account.update(id, { status: account.status"));
+});
+
+
+test('historical statement import uses an atomic owner-scoped boundary and never mutates live balance from the browser', async () => {
+  const endpoint = await read('base44/functions/importHistoricalStatement/entry.ts');
+  const ui = await read('src/components/vantoris/HistoricalStatementImport.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    "actor.role !== 'user'",
+    'isUuid(body.idempotency_key)',
+    'isValidRevision(body.expected_updated_date)',
+    "invokeAtomicMutationService('historical_statement.import'",
+    'require_authoritative_account_lookup: true',
+    'require_actor_owns_account: true',
+    'resolve_idempotency_before_revision_check: true',
+    'require_account_revision_match: true',
+    'require_source_document_owned_by_actor: true',
+    'require_source_document_url_from_upload_provider: true',
+    'deduplicate_against_authoritative_history: true',
+    'deduplicate_within_import: true',
+    'historical_only: true',
+    'never_modify_current_account_balance: true',
+    'create_statement_transactions_document_atomically: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `historical import boundary must include ${required}`);
+  assert.ok(!endpoint.includes('entities.HistoricalStatement.create('));
+  assert.ok(!endpoint.includes('entities.Transaction.bulkCreate('));
+  assert.ok(!endpoint.includes('entities.Document.create('));
+  assert.ok(ui.includes("base44.functions.invoke('importHistoricalStatement'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes('clearMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes('result?.account_balance_modified !== false'));
+  assert.ok(!ui.includes('base44.entities.HistoricalStatement.create('));
+  assert.ok(!ui.includes('base44.entities.Transaction.bulkCreate('));
+  assert.ok(!ui.includes('base44.entities.Document.create('));
+});
+
+
+test('HeroBox sponsorship cannot create requests or debit accounts directly from the browser', async () => {
+  const endpoint = await read('base44/functions/createHeroBoxSponsorship/entry.ts');
+  const ui = await read('src/components/vantoris/herobox/SponsorFlow.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    "actor.role !== 'user'",
+    'isUuid(body.idempotency_key)',
+    'isValidRevision(body.expected_updated_date)',
+    "invokeAtomicMutationService('herobox.sponsor'",
+    'require_authoritative_account_lookup: true',
+    'require_actor_owns_account: true',
+    'resolve_idempotency_before_revision_check: true',
+    'require_account_revision_match: true',
+    'require_account_active: true',
+    'require_member_kyc_approved: true',
+    'require_sufficient_available_funds: true',
+    'compute_balance_server_side: true',
+    'never_trust_client_balance_or_amount: true',
+    'create_hero_box_request_atomically: true',
+    'create_withdrawal_transaction_atomically: true',
+    'create_hero_box_activity_atomically: true',
+    'update_hero_box_profile_totals_atomically_if_present: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `HeroBox boundary must include ${required}`);
+  for (const unsafe of [
+    'entities.HeroBoxRequest.create(',
+    'entities.Transaction.create(',
+    'entities.Account.update(',
+    'entities.HeroBoxActivity.create(',
+    'entities.HeroBoxProfile.update(',
+  ]) assert.ok(!endpoint.includes(unsafe), `endpoint must not use direct entity writes: ${unsafe}`);
+  assert.ok(ui.includes("base44.functions.invoke('createHeroBoxSponsorship'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes('clearMutationIdempotencyKey(operationScope)'));
+  for (const unsafe of [
+    'base44.entities.HeroBoxRequest.create(',
+    'base44.entities.Transaction.create(',
+    'base44.entities.Account.update(',
+    'base44.entities.HeroBoxActivity.create(',
+    'base44.entities.HeroBoxProfile.update(',
+  ]) assert.ok(!ui.includes(unsafe), `browser must not use direct entity writes: ${unsafe}`);
+});
+
+
+test('investment portfolio creation cannot set ownership or balances from the browser', async () => {
+  const endpoint = await read('base44/functions/createInvestmentPortfolio/entry.ts');
+  const ui = await read('src/pages/Investment.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    "actor.role !== 'user'",
+    'isUuid(parsed.idempotency_key)',
+    "invokeAtomicMutationService('investment.portfolio.create'",
+    'require_authoritative_actor_lookup: true',
+    'require_member_role: true',
+    'require_actor_owns_created_portfolio: true',
+    'enforce_one_portfolio_per_member: true',
+    'initial_cash_balance: 0',
+    'initial_invested_amount: 0',
+    'create_portfolio_and_audit_atomically: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `investment portfolio boundary must include ${required}`);
+  assert.ok(!endpoint.includes('entities.InvestmentPortfolio.create('));
+  assert.ok(ui.includes("base44.functions.invoke('createInvestmentPortfolio'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey('));
+  assert.ok(ui.includes('result?.audit_recorded !== true'));
+  assert.ok(!ui.includes('base44.entities.InvestmentPortfolio.create('));
+});
+
+test('investment deposit and withdrawal requests are owner-scoped, revision-checked, and cannot change balances directly', async () => {
+  const endpoint = await read('base44/functions/createInvestmentRequest/entry.ts');
+  const ui = await read('src/pages/Investment.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    "actor.role !== 'user'",
+    'isUuid(body.idempotency_key)',
+    'isValidRevision(body.expected_updated_date)',
+    "invokeAtomicMutationService(action",
+    'require_authoritative_portfolio_lookup: true',
+    'require_actor_owns_portfolio: true',
+    'require_portfolio_revision_match: true',
+    'require_idempotency_resolution_before_revision_check: true',
+    'never_update_portfolio_balances_for_request_creation: true',
+    'never_trust_client_user_id_or_portfolio_balance: true',
+    'require_connected_authoritative_investment_provider',
+    'require_sufficient_available_cash_after_pending_withdrawal_reservations',
+    'command.reserve_withdrawal_amount_atomically = true;',
+    'command.never_transfer_funds_during_request_creation = true;',
+    'command.never_credit_portfolio_during_request_creation = true;',
+    'notification_outbox_required: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `investment request boundary must include ${required}`);
+  assert.ok(!endpoint.includes('entities.InvestmentDepositRequest.create('));
+  assert.ok(!endpoint.includes('entities.InvestmentWithdrawalRequest.create('));
+  assert.ok(!endpoint.includes('entities.InvestmentPortfolio.update('));
+  assert.ok(ui.includes("base44.functions.invoke('createInvestmentRequest'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey('));
+  assert.ok(ui.includes('clearMutationIdempotencyKey('));
+  assert.ok(ui.includes('disabled={submitting || !portfolio.provider_connected}'));
+  assert.ok(!ui.includes('base44.entities.InvestmentDepositRequest.create('));
+  assert.ok(!ui.includes('base44.entities.InvestmentWithdrawalRequest.create('));
+  assert.ok(!ui.includes('base44.entities.InvestmentPortfolio.create('));
+});
+
+
+test('HeroBox donations cannot mutate cases or create orders through separate browser writes', async () => {
+  const endpoint = await read('base44/functions/createHeroBoxDonation/entry.ts');
+  const ui = await read('src/components/vantoris/herobox/DonationFlow.jsx');
+  const schema = await read('base44/entities/HeroBoxOrder.jsonc');
+  for (const required of [
+    'base44.auth.me()',
+    "actor.role !== 'user'",
+    'isUuid(body.idempotency_key)',
+    "invokeAtomicMutationService('herobox.donation.create'",
+    'require_authoritative_case_lookup_when_selected: true',
+    'require_case_revision_match_when_selected: true',
+    "require_case_review_status_approved_when_selected: true",
+    'require_case_category_match_when_selected: category !== \'general\'',
+    'never_trust_client_case_details: true',
+    'create_hero_box_order_atomically: true',
+    "order_status: 'payment_pending'",
+    "payment_status: 'pending'",
+    'never_mark_donation_paid: true',
+    'no_funds_moved_during_order_creation: true',
+    'update_case_match_atomically_if_selected: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `donation boundary must include ${required}`);
+  assert.ok(schema.includes('"humanitarian_case_id"'));
+  assert.ok(schema.includes('"order_type"'));
+  assert.ok(!endpoint.includes('entities.HeroBoxOrder.create('));
+  assert.ok(!endpoint.includes('entities.HumanitarianCase.update('));
+  assert.ok(ui.includes("base44.functions.invoke('createHeroBoxDonation'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes('clearMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes('result?.funds_moved !== false'));
+  assert.ok(!ui.includes('base44.entities.HeroBoxOrder.create('));
+  assert.ok(!ui.includes('base44.entities.HumanitarianCase.update('));
+});
+
+
+test('investment approvals cannot update portfolios or create transactions directly from the browser', async () => {
+  const endpoint = await read('base44/functions/reviewInvestmentRequest/entry.ts');
+  const deposits = await read('src/pages/operations/InvestmentDeposits.jsx');
+  const withdrawals = await read('src/pages/operations/InvestmentWithdrawals.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    'isAllowedFinancialRole(actor)',
+    'validateMutationEnvelope(body)',
+    'invokeAtomicMutationService(action',
+    'require_authoritative_request_lookup: true',
+    'require_authoritative_portfolio_lookup: true',
+    'require_request_owner_and_portfolio_consistency: true',
+    'require_request_revision_match: true',
+    'require_portfolio_revision_check_inside_transaction: true',
+    'require_idempotency_resolution_before_revision_check: true',
+    'update_request_portfolio_ledger_and_audit_atomically: true',
+    'apply_portfolio_and_ledger_changes_only_on_approval: true',
+    'no_portfolio_balance_or_ledger_mutation_on_rejection: true',
+    'outcome.result.portfolio_balance_modified !== true',
+    'outcome.result.portfolio_balance_modified !== false',
+    'command.require_verified_funding_evidence = isApproval;',
+    'command.require_payout_confirmation = isApproval;',
+    'command.consume_existing_withdrawal_reservation_atomically = isApproval;',
+    'command.release_withdrawal_reservation_atomically = !isApproval;',
+    'command.never_mark_withdrawal_paid_without_provider_confirmation = true;',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `investment review boundary must include ${required}`);
+  for (const unsafe of [
+    'entities.InvestmentDepositRequest.update(',
+    'entities.InvestmentWithdrawalRequest.update(',
+    'entities.InvestmentPortfolio.update(',
+    'entities.InvestmentTransaction.create(',
+  ]) assert.ok(!endpoint.includes(unsafe), `endpoint must not use direct entity writes: ${unsafe}`);
+  for (const ui of [deposits, withdrawals]) {
+    assert.ok(ui.includes("base44.functions.invoke('reviewInvestmentRequest'"));
+    assert.ok(ui.includes('getMutationIdempotencyKey('));
+    assert.ok(ui.includes('clearMutationIdempotencyKey('));
+    assert.ok(ui.includes('reviewNotes[req.id]'));
+    assert.ok(ui.includes('Rejection reason required'));
+    assert.ok(ui.includes('admin_notes: adminNotes'));
+    for (const unsafe of [
+      'base44.entities.InvestmentDepositRequest.update(',
+      'base44.entities.InvestmentWithdrawalRequest.update(',
+      'base44.entities.InvestmentPortfolio.update(',
+      'base44.entities.InvestmentTransaction.create(',
+    ]) assert.ok(!ui.includes(unsafe), `investment review UI must not use direct entity writes: ${unsafe}`);
+  }
+});
+
+
+test('investment request review requires verified funding or confirmed payout and a rejection reason', async () => {
+  const endpoint = await read('base44/functions/reviewInvestmentRequest/entry.ts');
+  const ui = await read('src/pages/operations/InvestmentDashboard.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    'isAllowedFinancialRole(actor)',
+    'validateMutationEnvelope(body)',
+    "decision !== 'approved' && decision !== 'rejected'",
+    "decision === 'rejected' && !adminNotes",
+    "invokeAtomicMutationService(action",
+    'require_authoritative_request_lookup: true',
+    'require_request_revision_match: true',
+    'require_portfolio_revision_check_inside_transaction: true',
+    'require_idempotency_resolution_before_revision_check: true',
+    'require_verified_funding_evidence = isApproval',
+    'require_payout_confirmation = isApproval',
+    'consume_existing_withdrawal_reservation_atomically = isApproval',
+    'release_withdrawal_reservation_atomically = !isApproval',
+    'command.never_mark_withdrawal_paid_without_provider_confirmation = true;',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `investment review boundary must include ${required}`);
+  assert.ok(ui.includes("base44.functions.invoke('reviewInvestmentRequest'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes('clearMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes("handleReview(d, 'deposit', 'approved')"));
+  assert.ok(ui.includes("handleReview(w, 'withdrawal', 'approved')"));
+  assert.ok(ui.includes("handleReview(w, 'withdrawal', 'rejected')"));
+  assert.ok(!ui.includes('base44.entities.InvestmentDepositRequest.update('));
+  assert.ok(!ui.includes('base44.entities.InvestmentWithdrawalRequest.update('));
+  assert.ok(!ui.includes('base44.entities.InvestmentPortfolio.update('));
+});
+
+
+test('member KYC document submission uses an owner-scoped atomic boundary', async () => {
+  const endpoint = await read('base44/functions/submitKYCApplication/entry.ts');
+  const ui = await read('src/pages/ApplyKYC.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    "actor.role !== 'user'",
+    'validateMutationEnvelope(body)',
+    'require_authoritative_application_lookup: true',
+    'require_actor_owns_application: true',
+    'require_application_revision_match: true',
+    "expected_kyc_status: expectedKycStatus",
+    'require_document_refs_owned_by_actor: true',
+    'require_completed_private_upload_reservations: true',
+    'verify_document_mime_and_size_from_upload_metadata: true',
+    "set_kyc_status: 'pending'",
+    'replace_kyc_documents_atomically: true',
+    'notification_outbox_required: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `KYC submission boundary must include ${required}`);
+  assert.ok(!endpoint.includes('entities.Application.update('));
+  assert.ok(ui.includes("base44.functions.invoke('submitKYCApplication'"));
+  assert.ok(ui.includes("base44.functions.invoke('createKYCUpload'"));
+  assert.ok(ui.includes('document_refs: documents'));
+  assert.ok(!ui.includes('base44.integrations.Core.UploadFile('));
+  assert.ok(ui.includes('getMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes('clearMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes("allowedTypes = new Set(['application/pdf', 'image/jpeg', 'image/png'])"));
+  assert.ok(!ui.includes('base44.entities.Application.update('));
+});
+
+test('operator KYC decisions and document resets use the atomic review boundary', async () => {
+  const endpoint = await read('base44/functions/reviewKYCApplication/entry.ts');
+  const ui = await read('src/pages/admin/AdminKYC.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    'isAllowedFinancialRole(actor)',
+    'validateMutationEnvelope(body)',
+    'require_authoritative_application_lookup: true',
+    'require_application_revision_match: true',
+    'require_kyc_status_match: true',
+    'require_document_provenance_verification_on_approval: decision === \'approved\'',
+    'require_all_required_kyc_documents_present_on_approval: decision === \'approved\'',
+    'clear_document_links_only_on_reset: decision === \'reset\'',
+    'preserve_uploaded_document_objects_for_retention: decision === \'reset\'',
+    'require_documents_retained_on_reset: decision === \'reset\'',
+    'require_no_document_or_status_side_effects_before_audit: true',
+    'notification_outbox_required: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `KYC review boundary must include ${required}`);
+  assert.ok(!endpoint.includes('entities.Application.update('));
+  assert.ok(ui.includes("base44.functions.invoke('reviewKYCApplication'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey('));
+  assert.ok(ui.includes('clearMutationIdempotencyKey('));
+  assert.ok(ui.includes('Shared rejection reason (required for bulk rejection)'));
+  assert.ok(!ui.includes('base44.entities.Application.update('));
+  assert.ok(!ui.includes('logAuditEntry('));
+});
+
+
+test('KYC reminder dispatch uses an audited idempotent server queue', async () => {
+  const endpoint = await read('base44/functions/sendKYCReminders/entry.ts');
+  const ui = await read('src/pages/admin/AdminKYC.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    'isAllowedFinancialRole(actor)',
+    'isUuid(parsed.idempotency_key)',
+    "invokeAtomicMutationService('kyc.reminders.send'",
+    'select_authoritative_pending_kyc_applications: true',
+    "require_kyc_status: 'pending'",
+    'require_created_at_older_than_days: 3',
+    'deduplicate_by_application_and_reminder_window: true',
+    'never_trust_client_application_ids_or_user_ids: true',
+    'create_notification_outbox_entries_atomically: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `KYC reminder boundary must include ${required}`);
+  assert.ok(ui.includes("base44.functions.invoke('sendKYCReminders'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes('clearMutationIdempotencyKey(operationScope)'));
+  assert.ok(!ui.includes('base44.entities.Notification.create('));
+});
+
+
+test('KYC uploads require private short-lived signed URLs and content integrity', async () => {
+  const endpoint = await read('base44/functions/createKYCUpload/entry.ts');
+  const ui = await read('src/pages/ApplyKYC.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    "actor.role !== 'user'",
+    'validateMutationEnvelope(body)',
+    'isUuid',
+    'require_authoritative_application_lookup: true',
+    'require_actor_owns_application: true',
+    'require_private_document_storage: true',
+    'prohibit_public_read_access: true',
+    'require_short_lived_signed_upload_url: true',
+    "isTrustedPrivateStorageUrl(uploadUrl, Deno.env.get('VANTORIS_PRIVATE_STORAGE_ORIGINS'))",
+    'upload_url_ttl_seconds: 300',
+    'restrict_upload_content_type_and_size: true',
+    'bind_upload_signature_to_content_hash: true',
+    'require_uploaded_content_hash_match: true',
+    'create_upload_reservation_atomically: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `KYC upload authorization must include ${required}`);
+  assert.ok(ui.includes("base44.functions.invoke('createKYCUpload'"));
+  assert.ok(ui.includes("method: 'PUT'"));
+  assert.ok(ui.includes("'X-Content-SHA256': contentSha256"));
+  assert.ok(ui.includes('content_sha256: contentSha256'));
+  assert.ok(!ui.includes('base44.integrations.Core.UploadFile('));
+});
+
+test('KYC document viewing requires reviewer authorization and a short-lived private URL', async () => {
+  const endpoint = await read('base44/functions/getKYCDocumentAccess/entry.ts');
+  const ui = await read('src/pages/admin/AdminKYC.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    'isAllowedFinancialRole(actor)',
+    'validateMutationEnvelope(body)',
+    'require_authorized_reviewer: true',
+    'require_application_revision_match: true',
+    'require_document_belongs_to_application: true',
+    'require_private_document_storage: true',
+    'prohibit_public_read_access: true',
+    'issue_short_lived_signed_view_url: true',
+    "isTrustedPrivateStorageUrl(viewUrl, Deno.env.get('VANTORIS_PRIVATE_STORAGE_ORIGINS'))",
+    'view_url_ttl_seconds: 60',
+    'require_legacy_url_mapped_to_private_owned_object_when_legacy: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `KYC document view boundary must include ${required}`);
+  assert.ok(ui.includes("base44.functions.invoke('getKYCDocumentAccess'"));
+  assert.ok(ui.includes('window.open(\'about:blank\', \'_blank\')'));
+  assert.ok(!ui.includes('href={doc}'));
+});
+
+
+test('HeroBox checkout uses authoritative server pricing and cannot create paid orders from the browser', async () => {
+  const endpoint = await read('base44/functions/createHeroBoxOrder/entry.ts');
+  const checkout = await read('src/components/vantoris/herobox/CheckoutFlow.jsx');
+  const heroBox = await read('src/pages/HeroBox.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    "actor.role !== 'user'",
+    'isUuid(body.idempotency_key)',
+    'require_authoritative_product_lookup: true',
+    'require_products_active_and_available: true',
+    'require_product_freshness_not_stale_or_expired: true',
+    'require_destination_eligibility: true',
+    'derive_order_items_and_price_snapshot_from_authoritative_products: true',
+    'compute_subtotal_discount_shipping_and_total_server_side: true',
+    'reject_if_authoritative_total_differs_from_expected_total: true',
+    'never_trust_client_product_names_prices_discounts_or_totals: true',
+    "order_status: 'payment_pending'",
+    "payment_status: 'pending'",
+    'no_funds_moved_during_order_creation: true',
+    'never_mark_order_paid: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `HeroBox order boundary must include ${required}`);
+  assert.ok(!endpoint.includes('entities.HeroBoxOrder.create('));
+  assert.ok(checkout.includes("base44.functions.invoke('createHeroBoxOrder'"));
+  assert.ok(checkout.includes('getMutationIdempotencyKey(operationScope)'));
+  assert.ok(checkout.includes('clearMutationIdempotencyKey(operationScope)'));
+  assert.ok(checkout.includes('const total = subtotal - discount + shippingCost;'));
+  assert.ok(!checkout.includes('base44.entities.HeroBoxOrder.create('));
+  assert.ok(heroBox.includes('original_price: originalPrice'));
+});
+
+
+test('HeroBox sponsor profiles are created with server-controlled role and totals', async () => {
+  const endpoint = await read('base44/functions/createHeroBoxProfile/entry.ts');
+  const ui = await read('src/pages/HeroBox.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    "actor.role !== 'user'",
+    'isUuid(parsed.idempotency_key)',
+    "invokeAtomicMutationService('herobox.profile.create'",
+    "role: 'sponsor'",
+    "status: 'active'",
+    'require_unique_profile_per_user_role: true',
+    'never_trust_client_user_id_role_status_or_totals: true',
+    'initialize_contribution_totals_to_zero: true',
+    'create_profile_atomically: true',
+    'notification_outbox_required: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `HeroBox profile boundary must include ${required}`);
+  assert.ok(!endpoint.includes('entities.HeroBoxProfile.create('));
+  assert.ok(ui.includes("base44.functions.invoke('createHeroBoxProfile'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes('clearMutationIdempotencyKey(operationScope)'));
+  assert.ok(!ui.includes('base44.entities.HeroBoxProfile.create('));
+});
+
+
+test('HeroBox fulfillment cannot mark an order paid or change payment state from the browser', async () => {
+  const endpoint = await read('base44/functions/updateHeroBoxOrderStatus/entry.ts');
+  const ui = await read('src/pages/operations/HeroBoxAdminOrders.jsx');
+  for (const required of [
+    'base44.auth.me()',
+    'isAllowedFinancialRole(actor)',
+    'validateMutationEnvelope(body)',
+    'ALLOWED_TRANSITIONS',
+    'require_authoritative_order_lookup: true',
+    'require_order_revision_match: true',
+    'require_expected_status_match: true',
+    'require_expected_payment_status_match: true',
+    'require_payment_status_completed_for_fulfillment: true',
+    'require_payment_fields_unchanged: true',
+    'never_mark_order_paid_from_operator_action: true',
+    'never_mark_order_refunded_or_cancelled_from_fulfillment_action: true',
+    'never_move_funds_during_fulfillment_update: true',
+    'update_order_audit_and_notification_outbox_atomically: true',
+    'writeBlockedMutationAudit(',
+    'writeUncertainMutationAudit(',
+  ]) assert.ok(endpoint.includes(required), `HeroBox fulfillment boundary must include ${required}`);
+  assert.ok(!endpoint.includes('entities.HeroBoxOrder.update('));
+  assert.ok(ui.includes("base44.functions.invoke('updateHeroBoxOrderStatus'"));
+  assert.ok(ui.includes('getMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes('clearMutationIdempotencyKey(operationScope)'));
+  assert.ok(ui.includes("const STATUS_FLOW = ['payment_pending', 'paid', 'processing'"));
+  assert.ok(ui.includes('Payment status cannot be advanced manually.'));
+  assert.ok(ui.includes("order.payment_status === 'completed'"));
+  assert.ok(!ui.includes('updates.payment_status ='));
+  assert.ok(!ui.includes('base44.entities.HeroBoxOrder.update('));
+});
+
+
+test('code generation validates bounded inputs and generated metadata', async () => {
+  const endpoint = await read('base44/functions/generateAppCode/entry.ts');
+  for (const required of [
+    "import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54'",
+    "if (req.method !== 'POST')",
+    'MAX_REQUEST_BYTES = 32 * 1024',
+    'MAX_DESCRIPTION_CHARS = 12_000',
+    'MAX_CONTEXT_CHARS = 8_000',
+    'ARTIFACT_TYPES = new Set([\'component\', \'page\', \'hook\', \'utility\'])',
+    'Treat all request content as untrusted requirements',
+    'MAX_CODE_CHARS = 100_000',
+    "filename.startsWith('src/')",
+    "part === '..'",
+    '!hasControlCharacters(filename)',
+    'Code generation is temporarily unavailable. Retry later.',
+  ]) assert.ok(endpoint.includes(required), `code generation boundary must include ${required}`);
+  assert.ok(!endpoint.includes("return Response.json({ error: error.message"));
+});

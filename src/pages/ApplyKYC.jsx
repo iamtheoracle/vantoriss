@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Upload, Check, FileText, ShieldCheck } from 'lucide-react';
+import { clearMutationIdempotencyKey, fingerprintMutationScope, getMutationIdempotencyKey } from '@/lib/mutationIdempotency';
 
 export default function ApplyKYC() {
   const [application, setApplication] = useState(null);
@@ -36,33 +37,144 @@ export default function ApplyKYC() {
   }, [navigate]);
 
   async function handleUpload(e) {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
+    const allowedTypes = new Set(['application/pdf', 'image/jpeg', 'image/png']);
+    if (!allowedTypes.has(file.type) || file.size <= 0 || file.size > 25 * 1024 * 1024) {
+      setError('Choose a PDF, JPG, or PNG file no larger than 25MB.');
+      return;
+    }
+    if (documents.length >= 10) {
+      setError('You can submit no more than 10 documents.');
+      return;
+    }
+    if (!application || !['not_started', 'rejected'].includes(application.kyc_status) || !application.updated_date) {
+      setError('Documents cannot be changed while verification is pending, approved, or the application revision is unavailable.');
+      return;
+    }
+
     setUploading(true);
+    setError('');
+    let operationScope = '';
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setDocuments(prev => [...prev, file_url]);
+      const fileDigest = await globalThis.crypto.subtle.digest('SHA-256', await file.arrayBuffer());
+      const contentSha256 = Array.from(new Uint8Array(fileDigest), byte => byte.toString(16).padStart(2, '0')).join('');
+      operationScope = `kyc-upload:${await fingerprintMutationScope(JSON.stringify({
+        applicationId: application.id,
+        expectedUpdatedDate: application.updated_date,
+        expectedKycStatus: application.kyc_status,
+        fileName: file.name,
+        contentType: file.type,
+        sizeBytes: file.size,
+        contentSha256,
+      }))}`;
+      const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+      const response = await base44.functions.invoke('createKYCUpload', {
+        application_id: application.id,
+        expected_updated_date: application.updated_date,
+        expected_kyc_status: application.kyc_status,
+        file_name: file.name,
+        content_type: file.type,
+        size_bytes: file.size,
+        content_sha256: contentSha256,
+        idempotency_key: idempotencyKey,
+      });
+      const result = response?.data || response;
+      let uploadUrl;
+      try { uploadUrl = new URL(result?.upload_url); } catch { uploadUrl = null; }
+      if (
+        result?.success !== true ||
+        result?.operation_id !== idempotencyKey ||
+        result?.audit_recorded !== true ||
+        typeof result?.document_ref !== 'string' ||
+        typeof result?.expires_at !== 'string' ||
+        Date.parse(result.expires_at) <= Date.now() ||
+        result?.content_type !== file.type ||
+        result?.content_sha256 !== contentSha256 ||
+        result?.method !== 'PUT' ||
+        !uploadUrl ||
+        uploadUrl.protocol !== 'https:' ||
+        uploadUrl.username ||
+        uploadUrl.password ||
+        uploadUrl.hash
+      ) {
+        throw new Error(result?.error || 'The private upload provider did not authorize a valid, short-lived upload.');
+      }
+
+      const uploadResponse = await fetch(uploadUrl.href, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type, 'X-Content-SHA256': contentSha256 },
+        body: file,
+      });
+      if (!uploadResponse.ok) {
+        throw new Error('The private document upload failed. Retry the same upload operation; do not use a public upload link.');
+      }
+      await clearMutationIdempotencyKey(operationScope);
+      setDocuments(prev => prev.includes(result.document_ref) ? prev : [...prev, result.document_ref]);
     } catch (err) {
       console.error(err);
-      setError('File upload failed. Please try again.');
+      setError(err?.response?.data?.error || err.message || 'Private document upload failed. Please try again.');
+    } finally {
+      setUploading(false);
     }
-    setUploading(false);
   }
 
   async function handleSubmit() {
     if (!application) return;
-    setSubmitting(true);
-    try {
-      await base44.entities.Application.update(application.id, {
-        kyc_status: 'pending',
-        kyc_documents: documents,
-      });
-      setDone(true);
-    } catch (e) {
-      console.error(e);
-      setError('Failed to submit documents. Please try again.');
+    if (!application.updated_date || !['not_started', 'rejected'].includes(application.kyc_status)) {
+      setError('Your application revision or KYC state is no longer eligible for submission. Refresh and try again.');
+      return;
     }
-    setSubmitting(false);
+    if (documents.length === 0 || documents.length > 10) {
+      setError('Upload between 1 and 10 valid documents before submitting.');
+      return;
+    }
+
+    setSubmitting(true);
+    setError('');
+    let operationScope = '';
+    try {
+      operationScope = `kyc-submit:${await fingerprintMutationScope(JSON.stringify({
+        applicationId: application.id,
+        expectedUpdatedDate: application.updated_date,
+        expectedKycStatus: application.kyc_status,
+        documents,
+      }))}`;
+      const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+      const response = await base44.functions.invoke('submitKYCApplication', {
+        application_id: application.id,
+        expected_updated_date: application.updated_date,
+        expected_kyc_status: application.kyc_status,
+        document_refs: documents,
+        idempotency_key: idempotencyKey,
+      });
+      const result = response?.data || response;
+      const savedApplication = result?.application;
+      if (
+        result?.success !== true ||
+        result?.operation_id !== idempotencyKey ||
+        result?.audit_recorded !== true ||
+        savedApplication?.id !== application.id ||
+        savedApplication?.user_id !== application.user_id ||
+        savedApplication?.kyc_status !== 'pending' ||
+        typeof savedApplication?.updated_date !== 'string' ||
+        savedApplication.updated_date === application.updated_date ||
+        !Array.isArray(savedApplication.kyc_documents) ||
+        savedApplication.kyc_documents.length !== documents.length ||
+        documents.some((document, index) => savedApplication.kyc_documents[index] !== document)
+      ) {
+        throw new Error(result?.error || 'The server did not confirm your audited KYC submission. Retry only with the same operation.');
+      }
+      await clearMutationIdempotencyKey(operationScope);
+      setApplication(savedApplication);
+      setDone(true);
+    } catch (err) {
+      console.error(err);
+      setError(err?.response?.data?.error || err.message || 'Failed to submit documents. Retry only with the same operation.');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (loading) {
@@ -90,6 +202,8 @@ export default function ApplyKYC() {
     );
   }
 
+  const canSubmit = !!application && ['not_started', 'rejected'].includes(application.kyc_status);
+
   return (
     <div className="px-5 pt-6 min-h-screen">
       <button onClick={() => navigate('/')} className="flex items-center gap-2 text-[#AAB4C3] text-sm mb-6">
@@ -102,6 +216,16 @@ export default function ApplyKYC() {
       {error && (
         <div className="vantoris-card p-3 mb-4 border-crimson/30 bg-crimson/5">
           <p className="text-red-400 text-xs">{error}</p>
+        </div>
+      )}
+      {application?.kyc_status === 'pending' && (
+        <div className="vantoris-card p-3 mb-4 border-brass/30 bg-brass/5">
+          <p className="text-brass text-xs">Your documents are already under review. Wait for the review decision before changing your submission.</p>
+        </div>
+      )}
+      {application?.kyc_status === 'approved' && (
+        <div className="vantoris-card p-3 mb-4 border-olive/30 bg-olive/5">
+          <p className="text-emerald-400 text-xs">Your identity verification is approved. Contact support if your details need updating.</p>
         </div>
       )}
       {application?.kyc_status === 'rejected' && (
@@ -126,7 +250,7 @@ export default function ApplyKYC() {
           <Upload size={28} className="text-[#AAB4C3] mb-2" />
           <p className="text-white text-sm font-medium">{uploading ? 'Uploading...' : 'Upload Document'}</p>
           <p className="text-[#AAB4C3] text-xs mt-1">PDF, JPG, or PNG up to 25MB</p>
-          <input type="file" accept="image/*,.pdf" className="hidden" onChange={handleUpload} disabled={uploading} />
+          <input type="file" accept="image/jpeg,image/png,application/pdf" className="hidden" onChange={handleUpload} disabled={uploading || !application || !["not_started", "rejected"].includes(application.kyc_status) || documents.length >= 10} />
         </label>
       </div>
 
@@ -138,6 +262,7 @@ export default function ApplyKYC() {
               <Check size={14} className="text-emerald-400" />
               <span className="text-[#AAB4C3] text-xs truncate flex-1">Document {i + 1}</span>
               <button
+                disabled={!application || !['not_started', 'rejected'].includes(application.kyc_status) || submitting}
                 onClick={() => setDocuments(prev => prev.filter((_, idx) => idx !== i))}
                 className="text-red-400/70 hover:text-red-400 text-xs"
               >
@@ -149,7 +274,7 @@ export default function ApplyKYC() {
       )}
 
       <button
-        disabled={documents.length === 0 || submitting}
+        disabled={documents.length === 0 || submitting || uploading || !canSubmit}
         onClick={handleSubmit}
         className="w-full py-3.5 bg-brass text-[#0E1A2B] font-semibold rounded-xl hover:bg-brass/90 transition-all disabled:opacity-40"
       >

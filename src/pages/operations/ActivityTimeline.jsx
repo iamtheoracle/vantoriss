@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
-import { Activity, FileText, ArrowDownToLine, Users, Wallet } from 'lucide-react';
+import { Activity, FileText, ArrowDownToLine, Wallet } from 'lucide-react';
 
 export default function ActivityTimeline() {
   const [items, setItems] = useState([]);

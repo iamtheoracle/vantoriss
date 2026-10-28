@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
-import { Search, Loader2, RefreshCw, Globe, AlertTriangle, CheckCircle, Clock, ExternalLink, Activity, Database, ShieldAlert } from 'lucide-react';
-import { formatCurrency } from '@/lib/formatCurrency';
+import { Search, Loader2, RefreshCw, Globe, AlertTriangle, ExternalLink, Activity, Database, ShieldAlert } from 'lucide-react';
+
 import { executeDiscoveryRun, checkFreshness, refreshProductCatalog, verifyDiscoveryRecord, refreshStaleRecords, detectProductChanges } from '@/lib/discoveryEngine';
 import { useToast } from '@/components/ui/use-toast';
 

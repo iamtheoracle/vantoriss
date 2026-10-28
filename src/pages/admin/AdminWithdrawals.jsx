@@ -7,10 +7,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import {
   CheckSquare, Square, Check, X, ArrowUpRight, CheckCircle2, AlertTriangle, Loader2,
   ShieldCheck, Search, Filter, Download, Flag, ChevronRight, XCircle, Clock, DollarSign,
-  TrendingUp, ListChecks, UserCheck, FileText, Ban, ArrowRight,
+  TrendingUp, ListChecks,
 } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
-import { sendTransactionEmail } from '@/lib/transactionEmails';
+import { clearMutationIdempotencyKey, fingerprintMutationScope, getMutationIdempotencyKey } from '@/lib/mutationIdempotency';
 import { useToast } from '@/components/ui/use-toast';
 import { Link } from 'react-router-dom';
 
@@ -121,108 +121,112 @@ export default function AdminWithdrawals() {
     setSelectedIds(filteredWithdrawals.filter(w => w.status === 'pending').map(w => w.id));
   }
 
-  async function payOne(wd, notes, startingBalance) {
-    const account = getAccount(wd.account_id);
-    const currentBalance = startingBalance !== undefined ? startingBalance : (account?.balance || 0);
-    const newBalance = currentBalance - Math.abs(wd.amount);
-    await base44.entities.Transaction.create({
-      account_id: wd.account_id, type: 'withdrawal', amount: -Math.abs(wd.amount),
-      description: `Withdrawal - ${wd.method}`, reference: `WD-${wd.id.slice(-6)}`,
-      balance_after: newBalance, created_by_admin: true,
+  async function mutateWithdrawalRequest(request, decision, notes) {
+    if (!request?.id || !request.updated_date) {
+      throw new Error('This withdrawal request is missing its revision token. Reload the request before retrying.');
+    }
+    const normalizedNotes = typeof notes === 'string' ? notes.trim() : '';
+    const fingerprint = await fingerprintMutationScope(JSON.stringify({
+      request_id: request.id,
+      decision,
+      expected_updated_date: request.updated_date,
+      admin_notes: normalizedNotes,
+    }));
+    const operationScope = `withdrawal.review:${fingerprint}`;
+    const idempotencyKey = await getMutationIdempotencyKey(operationScope);
+    const response = await base44.functions.invoke('processWithdrawalRequest', {
+      request_id: request.id,
+      decision,
+      admin_notes: normalizedNotes,
+      expected_updated_date: request.updated_date,
+      idempotency_key: idempotencyKey,
     });
-    await base44.entities.Account.update(wd.account_id, { balance: newBalance });
-    await base44.entities.WithdrawalRequest.update(wd.id, { status: 'paid', admin_notes: notes });
-    await base44.entities.Notification.create({
-      user_id: wd.user_id, title: 'Withdrawal Processed',
-      message: `Your withdrawal of ${formatCurrency(Math.abs(wd.amount))} via ${wd.method} has been processed.`,
-      type: 'success',
-    });
-    await sendTransactionEmail({ user_id: wd.user_id, account, type: 'withdrawal', amount: Math.abs(wd.amount), description: `Withdrawal - ${wd.method}`, newBalance });
-    await logAuditEntry({
-      action_type: 'withdrawal_processed',
-      description: `Withdrawal processed: ${formatCurrency(Math.abs(wd.amount))} via ${wd.method}`,
-      details: `Request ID: ${wd.id}, Notes: ${notes || 'None'}`,
-      account_id: wd.account_id, amount: -Math.abs(wd.amount),
-      balance_before: currentBalance, balance_after: newBalance, target_user_id: wd.user_id,
-    });
-  }
-
-  async function rejectOne(wd, notes) {
-    await base44.entities.WithdrawalRequest.update(wd.id, { status: 'rejected', admin_notes: notes });
-    await base44.entities.Notification.create({
-      user_id: wd.user_id, title: 'Withdrawal Rejected',
-      message: `Your withdrawal request of ${formatCurrency(Math.abs(wd.amount))} was not approved. ${notes || ''}`,
-      type: 'warning',
-    });
-    await logAuditEntry({
-      action_type: 'withdrawal_rejected',
-      description: `Withdrawal rejected: ${formatCurrency(Math.abs(wd.amount))} via ${wd.method}`,
-      details: `Request ID: ${wd.id}, Reason: ${notes || 'No reason provided'}`,
-      account_id: wd.account_id, amount: -Math.abs(wd.amount), target_user_id: wd.user_id,
-    });
+    const payload = response?.data || response;
+    if (
+      payload?.success !== true ||
+      payload?.operation_id !== idempotencyKey ||
+      payload?.audit_recorded !== true ||
+      payload?.request?.id !== request.id ||
+      payload?.request?.status !== decision ||
+      (decision === 'paid' && payload?.request?.payout_confirmed !== true)
+    ) {
+      throw new Error(payload?.error || 'The withdrawal outcome was not confirmed. Retry the same action without changing its details.');
+    }
+    await clearMutationIdempotencyKey(operationScope);
+    return payload;
   }
 
   async function handlePay() {
     if (!selected) return;
     setSubmitting(true);
     try {
-      await payOne(selected, adminNotes);
-      setSelected(null); setAdminNotes(''); loadData();
-      toast({ title: 'Withdrawal processed', description: `${formatCurrency(Math.abs(selected.amount))} paid via ${selected.method}.` });
+      await mutateWithdrawalRequest(selected, 'paid', adminNotes);
+      setSelected(null);
+      setAdminNotes('');
+      await loadData();
+      toast({ title: 'Withdrawal processed', description: 'The transactional service confirmed payout, ledger state, and audit record.' });
     } catch (e) {
-      toast({ title: 'Payment failed', description: e.message, variant: 'destructive' });
+      toast({ title: 'Payment not confirmed', description: e.response?.data?.error || e.message || 'No successful payout was confirmed. Retry the same request.', variant: 'destructive' });
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   }
 
   async function handleReject() {
     if (!selected) return;
     setSubmitting(true);
     try {
-      await rejectOne(selected, adminNotes);
-      setSelected(null); setAdminNotes(''); loadData();
-      toast({ title: 'Withdrawal rejected' });
+      await mutateWithdrawalRequest(selected, 'rejected', adminNotes);
+      setSelected(null);
+      setAdminNotes('');
+      await loadData();
+      toast({ title: 'Withdrawal rejected', description: 'The transactional service confirmed the rejection and audit record.' });
     } catch (e) {
-      toast({ title: 'Rejection failed', description: e.message, variant: 'destructive' });
+      toast({ title: 'Rejection not confirmed', description: e.response?.data?.error || e.message || 'No successful rejection was confirmed. Retry the same request.', variant: 'destructive' });
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   }
 
   async function executeBulkAction() {
     if (!bulkAction || selectedIds.length === 0) return;
     setSubmitting(true);
-    const balanceMap = {};
-    let ok = 0, fail = 0;
+    let succeeded = 0;
+    let failed = 0;
     const isPay = bulkAction === 'pay';
     const isReject = bulkAction === 'reject';
     for (const id of selectedIds) {
-      const wd = withdrawals.find(w => w.id === id);
-      if (!wd) continue;
+      const request = withdrawals.find(item => item.id === id);
+      if (!request) continue;
       try {
         if (isPay) {
-          const acct = getAccount(wd.account_id);
-          const baseBalance = balanceMap[wd.account_id] !== undefined ? balanceMap[wd.account_id] : (acct?.balance || 0);
-          await payOne(wd, bulkNotes || 'Bulk approved', baseBalance);
-          balanceMap[wd.account_id] = baseBalance - Math.abs(wd.amount);
+          await mutateWithdrawalRequest(request, 'paid', bulkNotes || 'Bulk approved');
         } else if (isReject) {
-          await rejectOne(wd, bulkNotes || 'Bulk rejected');
+          await mutateWithdrawalRequest(request, 'rejected', bulkNotes || 'Bulk rejected');
         } else {
-          // Flag/escalate/export — log and notify
+          // Non-financial triage actions do not alter the ledger or request state.
           await logAuditEntry({
             action_type: `withdrawal_${bulkAction}`,
-            description: `Withdrawal ${bulkAction}: ${formatCurrency(Math.abs(wd.amount))} via ${wd.method}`,
-            details: `Request ID: ${wd.id}, Action: ${bulkAction}, Notes: ${bulkNotes || 'None'}`,
-            account_id: wd.account_id, amount: -Math.abs(wd.amount), target_user_id: wd.user_id,
+            description: `Withdrawal ${bulkAction}: ${formatCurrency(Math.abs(request.amount))} via ${request.method}`,
+            details: `Request ID: ${request.id}, Action: ${bulkAction}, Notes: ${bulkNotes || 'None'}`,
+            account_id: request.account_id, amount: -Math.abs(request.amount), target_user_id: request.user_id,
           });
         }
-        ok++;
-      } catch (e) { console.error('Bulk action failed for', id, e); fail++; }
+        succeeded += 1;
+      } catch (error) {
+        console.error('Bulk withdrawal action not confirmed for', id, error);
+        failed += 1;
+      }
     }
-    setSelectedIds([]); setBulkMode(false); setBulkAction(null); setBulkNotes('');
-    loadData();
+    setSelectedIds([]);
+    setBulkMode(false);
+    setBulkAction(null);
+    setBulkNotes('');
+    await loadData();
     toast({
-      title: `Bulk ${bulkAction} complete`,
-      description: `${ok} processed${fail > 0 ? `, ${fail} failed` : ''}.`,
+      title: `Bulk ${bulkAction} finished`,
+      description: `${succeeded} confirmed, ${failed} not confirmed. Failed financial operations retain their idempotency keys for safe retries.`,
+      ...(failed > 0 ? { variant: 'destructive' } : {}),
     });
     setSubmitting(false);
   }

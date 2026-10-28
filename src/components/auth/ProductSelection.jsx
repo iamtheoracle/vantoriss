@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { User, Users, Building2, Landmark, KeyRound, Wallet, Check, ArrowLeft } from "lucide-react";
+import { User, Users, Building2, Landmark, KeyRound, Check, ArrowLeft } from "lucide-react";
 
 export const PRODUCTS = [
   { id: "personal", label: "Personal", accountType: "Checking", icon: User, desc: "Individual account for personal banking and transactions" },
