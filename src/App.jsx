@@ -37,6 +37,7 @@ const BrandIdentity = React.lazy(() => import('./pages/BrandIdentity'));
 const VantorisAssistant = React.lazy(() => import('./components/vantoris/VantorisAssistant'));
 const HeroBox = React.lazy(() => import('./pages/HeroBox'));
 const Investment = React.lazy(() => import('./pages/Investment'));
+const RCCAccountHistory = React.lazy(() => import('./pages/operations/RCCAccountHistory'));
 const Travel = React.lazy(() => import('./pages/Travel'));
 const Homes = React.lazy(() => import('./pages/Homes'));
 const News = React.lazy(() => import('./pages/News'));
@@ -216,6 +217,7 @@ const AuthenticatedApp = () => {
                 <Route path="/operations/system-health" element={<SystemHealth />} />
                 <Route path="/operations/data-integrity" element={<DataIntegrityAudit />} />
                 <Route path="/operations/investment" element={<InvestmentDashboard />} />
+                <Route path="/operations/investment/rcc-history" element={<RCCAccountHistory />} />
                 <Route path="/operations/investment/deposits" element={<InvestmentDeposits />} />
                 <Route path="/operations/investment/withdrawals" element={<InvestmentWithdrawals />} />
                 <Route path="/operations/investment/portfolios" element={<InvestmentPortfolios />} />
