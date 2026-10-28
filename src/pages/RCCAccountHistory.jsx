@@ -1,8 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import {
-  ArrowDownRight, ArrowUpRight, BadgeCheck, BarChart3, CalendarDays,
-  ChevronDown, Download, FileClock, FileText, Filter, Info, Landmark,
-  Search, ShieldAlert, Wallet, X
+  BarChart3, CalendarDays, ChevronDown, Download, FileClock, FileText,
+  Info, Landmark, ShieldAlert, Wallet
 } from 'lucide-react';
 
 const annualSnapshots = [
