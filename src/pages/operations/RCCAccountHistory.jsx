@@ -114,14 +114,18 @@ function exportExcelWorkbook() {
 export default function RCCAccountHistory() {
   const [section, setSection] = useState('overview');
   const [year, setYear] = useState('all');
+  const [month, setMonth] = useState('all');
+  const [category, setCategory] = useState('all');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
   const filteredSnapshots = useMemo(() => ANNUAL_SNAPSHOTS.filter((row) => {
     const matchesYear = year === 'all' || String(row.year) === year;
+    const matchesMonth = month === 'all' || row.date.slice(5, 7) === month;
+    const matchesCategory = category === 'all' || category === 'snapshot';
     const matchesSearch = (ACCOUNT.name + ' annual closing snapshot ' + row.year + ' ' + row.date).toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === 'all' || statusFilter === 'unreconciled';
-    return matchesYear && matchesSearch && matchesStatus;
+    return matchesYear && matchesMonth && matchesCategory && matchesSearch && matchesStatus;
   }), [year, search, statusFilter]);
 
   function exportLedgerCsv() {
@@ -169,7 +173,7 @@ export default function RCCAccountHistory() {
   }
 
   const tabs = [
-    ['overview', 'Overview'], ['annual', 'Annual history'], ['ledger', 'Transaction ledger'],
+    ['overview', 'Overview'], ['annual', 'Annual history'], ['monthly', 'Monthly history'], ['ledger', 'Transaction ledger'],
     ['performance', 'Investment performance'], ['fees', 'Fees & taxes'], ['reconciliation', 'Reconciliation'], ['documents', 'Documents & exports'],
   ];
 
@@ -233,6 +237,12 @@ export default function RCCAccountHistory() {
         {section === 'annual' && <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-200 p-5"><h2 className="text-lg font-bold">Annual closing snapshots</h2><p className="mt-1 text-sm text-slate-500">No opening balances, cash flows, fees, taxes, or performance figures are inferred from closing snapshots.</p></div>
           <div className="overflow-x-auto"><table className="min-w-[780px] w-full text-left text-sm"><thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr>{['Year','Period end','Opening balance','Contributions','Withdrawals','Income / gains','Fees / taxes','Closing snapshot','Status'].map(h => <th key={h} className="px-4 py-3 font-semibold">{h}</th>)}</tr></thead><tbody>{ANNUAL_SNAPSHOTS.map(row => <tr key={row.year} className="border-t border-slate-100"><td className="px-4 py-3 font-semibold">{row.year}</td><td className="px-4 py-3">{dateLabel(row.date)}</td><td className="px-4 py-3 text-slate-500">Pending</td><td className="px-4 py-3 text-slate-500">Pending</td><td className="px-4 py-3 text-slate-500">Pending</td><td className="px-4 py-3 text-slate-500">Pending</td><td className="px-4 py-3 text-slate-500">Pending</td><td className="px-4 py-3 font-semibold">{money(row.closing)}</td><td className="px-4 py-3"><span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-900">Unreconciled</span></td></tr>)}</tbody></table></div>
+        </section>}
+
+
+        {section === 'monthly' && <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div className="border-b border-slate-200 p-5"><h2 className="text-lg font-bold">Monthly history · 2026 year to date</h2><p className="mt-1 text-sm leading-6 text-slate-500">Actual monthly statements and valuation records have not been supplied. Each month remains pending; the separate assumption scenario is not presented as verified history.</p></div>
+          <div className="overflow-x-auto"><table className="min-w-[620px] w-full text-left text-sm"><thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="px-4 py-3">Period</th><th className="px-4 py-3">Opening value</th><th className="px-4 py-3">Cash flows</th><th className="px-4 py-3">Income / fees</th><th className="px-4 py-3">Closing value</th><th className="px-4 py-3">Status</th></tr></thead><tbody>{['January','February','March','April','May','June','July','August','September','October 1–28'].map((label) => <tr key={label} className="border-t border-slate-100"><td className="px-4 py-3 font-medium">{label} 2026</td><td className="px-4 py-3 text-slate-500">Pending</td><td className="px-4 py-3 text-slate-500">Pending</td><td className="px-4 py-3 text-slate-500">Pending</td><td className="px-4 py-3 text-slate-500">Pending</td><td className="px-4 py-3"><span className="rounded-full bg-amber-100 px-2 py-1 text-xs text-amber-900">Source records required</span></td></tr>)}</tbody></table></div>
         </section>}
 
         {section === 'ledger' && <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
