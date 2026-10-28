@@ -97,6 +97,7 @@ const InvestmentDeposits = React.lazy(() => import('./pages/operations/Investmen
 const InvestmentWithdrawals = React.lazy(() => import('./pages/operations/InvestmentWithdrawals'));
 const InvestmentPortfolios = React.lazy(() => import('./pages/operations/InvestmentPortfolios'));
 const InvestmentSignals = React.lazy(() => import('./pages/operations/InvestmentSignals'));
+const RCCAccountHistory = React.lazy(() => import('./pages/RCCAccountHistory'));
 const HeroBoxAdminProducts = React.lazy(() => import('./pages/operations/HeroBoxAdminProducts'));
 const HeroBoxAdminOrders = React.lazy(() => import('./pages/operations/HeroBoxAdminOrders'));
 const DiscoveryNetwork = React.lazy(() => import('./pages/operations/DiscoveryNetwork'));
@@ -220,6 +221,7 @@ const AuthenticatedApp = () => {
                 <Route path="/operations/investment/withdrawals" element={<InvestmentWithdrawals />} />
                 <Route path="/operations/investment/portfolios" element={<InvestmentPortfolios />} />
                 <Route path="/operations/investment/signals" element={<InvestmentSignals />} />
+                <Route path="/operations/investment/rcc-history" element={<RCCAccountHistory />} />
               </Route>
             </Route>
           </Route>
