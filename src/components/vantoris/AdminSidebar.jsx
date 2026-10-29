@@ -188,6 +188,7 @@ const DOMAIN_CONFIG = {
         label: 'Investment Operations',
         items: [
           { label: 'Investment Dashboard', path: '/operations/investment', icon: PieChart },
+          { label: 'RCC Corporate History', path: '/operations/investment/rcc-history', icon: FileText },
         ],
       },
       {
