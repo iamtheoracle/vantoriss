@@ -276,7 +276,9 @@ export default function Register() {
             kyc_notes: JSON.stringify({
               product: selectedProduct.label,
               dob: data.dob,
-              ssn: data.ssn,
+              // Do not persist raw SSNs in general-purpose application notes.
+              // Collect/verify them only through an approved secure KYC provider.
+              ssnProvidedForSecureVerification: Boolean(data.ssn),
               employment: data.employment,
               employer: data.employer,
               occupation: data.occupation,
