@@ -55,13 +55,13 @@ export default function Login() {
       if (status === 404) {
         setError("Sign-in is temporarily unavailable. Please refresh the page and try again.");
       } else if (status === 400 || status === 401) {
-        setError("Your User ID or password is incorrect.");
+        setError("Your email address or password is incorrect.");
       } else if (typeof navigator !== 'undefined' && navigator.onLine === false) {
         setError("Unable to connect. Please check your internet connection and try again.");
       } else if (err?.message?.includes('Network') || err?.code === 'ERR_NETWORK') {
         setError("Unable to reach the server right now. Please try again in a moment.");
       } else {
-        setError(err.message || "Invalid User ID or password.");
+        setError(err.message || "Invalid email address or password.");
       }
     } finally {
       setLoading(false);
@@ -101,14 +101,14 @@ export default function Login() {
       )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold uppercase tracking-wider text-gray">User ID</label>
+          <label className="text-xs font-semibold uppercase tracking-wider text-gray">Email Address</label>
           <div className="relative">
             <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray" />
             <input
               type="email"
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
-              placeholder="you@example.com"
+              placeholder="name@example.com"
               autoFocus
               required
               className="w-full h-12 rounded-lg border border-slate-200 bg-white pl-10 pr-3 text-sm text-foreground outline-none focus:border-navy focus:ring-2 focus:ring-navy/10 transition"
