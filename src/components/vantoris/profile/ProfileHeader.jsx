@@ -12,12 +12,17 @@ const TIER_CONFIG = {
   'Member': { icon: User, color: 'bg-slate-100 text-gray' },
 };
 
-export default function ProfileHeader({ user, application, profileCompletion, bankingTier }) {
+export default function ProfileHeader({ user, application, profileCompletion, bankingTier, memberSinceDate }) {
   const whatsappNumber = useWhatsAppConfig();
   const kycStatus = application?.kyc_status || 'not_started';
   const isVerified = kycStatus === 'approved';
-  const memberSince = user.created_date
-    ? new Date(user.created_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })
+  // Membership start comes from the earliest recorded account activity, falling back to the profile date.
+  const sinceRaw = memberSinceDate || user.created_date;
+  const sinceDate = sinceRaw
+    ? new Date(/^\d{4}-\d{2}-\d{2}$/.test(String(sinceRaw)) ? `${sinceRaw}T12:00:00` : sinceRaw)
+    : null;
+  const memberSince = sinceDate && !isNaN(sinceDate)
+    ? sinceDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short' })
     : null;
 
   const tier = TIER_CONFIG[bankingTier] || TIER_CONFIG['Member'];

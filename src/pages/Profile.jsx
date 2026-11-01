@@ -18,6 +18,7 @@ export default function Profile() {
   const [heroRequests, setHeroRequests] = useState([]);
   const [heroActivities, setHeroActivities] = useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [memberSinceDate, setMemberSinceDate] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
   const [documents, setDocuments] = useState([]);
@@ -58,13 +59,19 @@ export default function Profile() {
     const txnPromises = accountIds.slice(0, 5).map(id =>
       base44.entities.Transaction.filter({ account_id: id }, '-created_date', 5)
     );
-    const [txnResults, heroActs, notifs, auditEntries] = await Promise.all([
+    const earliestPromises = accountIds.slice(0, 5).map(id =>
+      base44.entities.Transaction.filter({ account_id: id }, 'transaction_date', 1)
+    );
+    const [txnResults, earliestResults, heroActs, notifs, auditEntries] = await Promise.all([
       Promise.all(txnPromises),
+      Promise.all(earliestPromises),
       base44.entities.HeroBoxActivity.filter({ user_id: me.id }, '-created_date', 10),
       base44.entities.Notification.filter({ user_id: me.id }, '-created_date', 5),
       base44.entities.AuditLog.filter({ target_user_id: me.id }, '-created_date', 5).catch(() => []),
     ]);
     setTransactions(txnResults.flat());
+    const earliest = earliestResults.flat().map(t => t.transaction_date).filter(Boolean).sort()[0];
+    setMemberSinceDate(earliest || accts[0]?.created_date || null);
     setHeroActivities(heroActs);
     setNotifications(notifs);
     setAuditLogs(auditEntries);
@@ -110,6 +117,7 @@ export default function Profile() {
         application={application}
         profileCompletion={profileCompletion}
         bankingTier={bankingTier}
+        memberSinceDate={memberSinceDate}
       />
 
       {/* 2. Relationship Overview — premium product cards */}
