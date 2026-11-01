@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ShieldCheck, Calendar, MessageCircle, Bell, Crown, Award, Star, User } from 'lucide-react';
 import { useWhatsAppConfig, whatsappLinkFromConfig } from '@/hooks/useWhatsAppConfig';
+import { getDisplayName, getDisplayInitial } from '@/lib/displayName';
 
 const TIER_CONFIG = {
   'Private Client': { icon: Crown, color: 'bg-navy text-white' },
@@ -37,7 +38,7 @@ export default function ProfileHeader({ user, application, profileCompletion, ba
           <div className="relative flex-shrink-0">
             <div className="w-[68px] h-[68px] rounded-2xl bg-gradient-to-br from-navy to-navy/80 border border-navy/15 flex items-center justify-center shadow-premium">
               <span className="text-white text-2xl font-bold">
-                {(user.full_name || 'U').charAt(0).toUpperCase()}
+                {getDisplayInitial(user, 'U')}
               </span>
             </div>
             {isVerified && (
@@ -48,7 +49,7 @@ export default function ProfileHeader({ user, application, profileCompletion, ba
           </div>
 
           <div className="flex-1 min-w-0">
-            <h1 className="text-foreground font-bold text-xl truncate tracking-tight">{user.full_name || 'Member'}</h1>
+            <h1 className="text-foreground font-bold text-xl truncate tracking-tight">{getDisplayName(user)}</h1>
             <p className="text-gray text-sm truncate">{user.email}</p>
             <div className="flex items-center gap-1.5 mt-2 flex-wrap">
               <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${tier.color}`}>

@@ -96,7 +96,7 @@ export default function Profile() {
     : 'Member';
 
   const profileCompletion = [
-    user.full_name ? 25 : 0,
+    (user.display_name || user.full_name) ? 25 : 0,
     application?.kyc_status === 'approved' ? 25 : 0,
     hasAccounts ? 25 : 0,
     hasHeroBox ? 25 : 0,

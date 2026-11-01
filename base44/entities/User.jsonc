@@ -29,6 +29,10 @@
       ],
       "default": "user"
     },
+    "display_name": {
+      "type": "string",
+      "description": "Operator-set name shown to the member in the app (auth full_name is platform-protected)"
+    },
     "username": {
       "type": "string",
       "description": "The user's chosen unique username identifier (not an email, not a full name)"

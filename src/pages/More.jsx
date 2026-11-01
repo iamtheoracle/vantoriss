@@ -6,6 +6,7 @@ import { useWhatsAppConfig, whatsappLinkFromConfig } from '@/hooks/useWhatsAppCo
 import { User, Bell, Settings, CreditCard, FileText, MessageCircle, Sparkles, Phone, Info, LogOut, ChevronRight, Shield } from 'lucide-react';
 import ShieldLogo from '@/components/vantoris/ShieldLogo';
 import { getRoleLabel, isSuperAdmin } from '@/lib/operationsAccess';
+import { getDisplayName, getDisplayInitial } from '@/lib/displayName';
 
 const SECTIONS = [
   {
@@ -79,10 +80,10 @@ export default function More() {
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="vantoris-glass-premium p-5 mb-5">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brass/20 to-brass/5 border border-brass/15 flex items-center justify-center">
-            <span className="text-brass text-lg font-bold">{(user?.full_name || 'M').charAt(0).toUpperCase()}</span>
+            <span className="text-brass text-lg font-bold">{getDisplayInitial(user)}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-foreground font-semibold text-base truncate">{user?.full_name || 'Member'}</p>
+            <p className="text-foreground font-semibold text-base truncate">{getDisplayName(user)}</p>
             <p className="text-gray text-xs truncate">{user?.email}</p>
             <span className="text-brass text-[10px] font-medium">{isSuperAdmin(user) ? 'Super Administrator' : getRoleLabel(user?.role)}</span>
           </div>

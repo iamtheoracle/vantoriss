@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ChevronLeft, CreditCard, Plus } from 'lucide-react';
 import ProviderUnavailableCard from '@/components/vantoris/ProviderUnavailableCard';
+import { getDisplayName } from '@/lib/displayName';
 
 // Cards product — Spec §6.
 // Shows real cards if they exist, or a truthful unavailable state.
@@ -61,7 +62,7 @@ export default function Cards() {
                 <div className="relative z-10 mt-7 flex justify-between">
                   <div>
                     <p className="text-[9px] text-white/45 uppercase">Cardholder</p>
-                    <p className="text-xs mt-1 uppercase">{card.cardholder_name || user?.full_name}</p>
+                    <p className="text-xs mt-1 uppercase">{card.cardholder_name || getDisplayName(user, '')}</p>
                   </div>
                   <div>
                     <p className="text-[9px] text-white/45 uppercase">Status</p>

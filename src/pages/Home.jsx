@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
+import { getDisplayFirstName } from '@/lib/displayName';
 import { useNavigate } from 'react-router-dom';
 import { Bell, ChevronRight, CreditCard, Eye, EyeOff, TrendingUp } from 'lucide-react';
 import PrimaryActions from '@/components/vantoris/home/PrimaryActions';
@@ -43,7 +44,7 @@ export default function Home() {
 
   const balance = useMemo(() => accounts.reduce((s, a) => s + (a.balance || 0), 0), [accounts]);
   const wealth = useMemo(() => portfolios.reduce((s, p) => s + (p.total_value || 0), 0), [portfolios]);
-  const firstName = user?.full_name?.trim()?.split(/\s+/)?.[0] || 'Member';
+  const firstName = getDisplayFirstName(user);
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
   const hasAccounts = accounts.length > 0;

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate, useParams } from 'react-router-dom';
 import { formatCurrency } from '@/lib/formatCurrency';
+import { getDisplayName } from '@/lib/displayName';
 import {
   ArrowDownLeft,
   ArrowLeft,
@@ -282,7 +283,7 @@ export default function AccountDetail() {
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(10);
       doc.setFont(undefined, 'bold');
-      doc.text(me.full_name || 'Member', 20, 61);
+      doc.text(getDisplayName(me, 'Member'), 20, 61);
 
       doc.setTextColor(170, 180, 195);
       doc.setFontSize(7);
