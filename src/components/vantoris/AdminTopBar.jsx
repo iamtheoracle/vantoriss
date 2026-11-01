@@ -52,7 +52,7 @@ export default function AdminTopBar({ user, onMenuClick }) {
           {onMenuClick && (
             <button
               onClick={onMenuClick}
-              className="p-2 -ml-2 text-gray hover:text-foreground hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0"
+              className="lg:hidden p-2 -ml-2 text-gray hover:text-foreground hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0"
               aria-label="Open navigation"
               title="Open navigation"
             >
@@ -70,7 +70,7 @@ export default function AdminTopBar({ user, onMenuClick }) {
         </div>
 
         {/* Center — kept available on wider phone widths */}
-        <div className="hidden min-[390px]:flex flex-1 max-w-[150px] mx-2">
+        <div className="hidden min-[390px]:flex flex-1 max-w-[150px] lg:max-w-md mx-2">
           <div className="relative w-full">
             <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray/50" />
             <input

@@ -40,6 +40,7 @@ const DOMAIN_CONFIG = {
           { label: 'Transfers', path: '/operations/transfers', icon: ArrowLeftRight },
           { label: 'Cards', path: '/operations/cards', icon: CreditCard },
           { label: 'Bulk Import', path: '/operations/bulk-import', icon: FileUp },
+          { label: 'History Import', path: '/operations/history-import', icon: FileSpreadsheet },
           { label: 'Documents', path: '/operations/documents', icon: FolderOpen },
         ],
       },

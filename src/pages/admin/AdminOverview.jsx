@@ -16,7 +16,7 @@ import VantorisLoading from '@/components/vantoris/system/VantorisLoading';
 
 export default function AdminOverview() {
   const navigate = useNavigate();
-  const [stats, setStats] = useState({ members: 0, pendingApps: 0, pendingWithdrawals: 0, totalBalance: 0 });
+  const [stats, setStats] = useState({ members: 0, pendingApps: 0, pendingWithdrawals: 0, totalBalance: 0, accountCount: 0 });
   const [recentItems, setRecentItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -26,17 +26,25 @@ export default function AdminOverview() {
 
   async function loadData() {
     try {
-      const [users, apps, withdrawals, accounts] = await Promise.all([
-        base44.entities.User.list('-created_date', 50),
+      // Totals come from the server so they are not limited to the most recent page of records.
+      const [users, apps, withdrawals, balanceAgg, pendingApps, pendingWithdrawals] = await Promise.all([
+        base44.entities.User.list('-created_date', 500),
         base44.entities.Application.list('-created_date', 50),
         base44.entities.WithdrawalRequest.list('-created_date', 50),
-        base44.entities.Account.list('-created_date', 50),
+        base44.entities.Account.aggregate({ sum: ['balance'] }),
+        base44.entities.Application.count({ application_status: 'pending' }),
+        base44.entities.WithdrawalRequest.count({ status: 'pending' }),
       ]);
-      const totalBalance = accounts.reduce((sum, a) => sum + (a.balance || 0), 0);
-      const pendingApps = apps.filter(a => a.application_status === 'pending').length;
-      const pendingWithdrawals = withdrawals.filter(w => w.status === 'pending').length;
+      const balanceRow = balanceAgg?.rows?.[0] || {};
+      const totalBalance = balanceRow.sum_balance || 0;
       const memberCount = users.filter(u => u.role === 'user').length;
-      setStats({ members: memberCount, pendingApps, pendingWithdrawals, totalBalance });
+      setStats({
+        members: memberCount,
+        pendingApps,
+        pendingWithdrawals,
+        totalBalance,
+        accountCount: balanceRow.count || 0,
+      });
       const recent = [
         ...apps.filter(a => a.application_status === 'pending').map(a => ({ id: a.id, type: 'Application', name: a.full_name, detail: a.account_type, date: a.created_date, status: a.application_status })),
         ...withdrawals.filter(w => w.status === 'pending').map(w => ({ id: w.id, type: 'Withdrawal', name: `${formatCurrency(w.amount)}`, detail: w.method, date: w.created_date, status: w.status })),
@@ -69,7 +77,7 @@ export default function AdminOverview() {
 
       {/* Critical Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-        <PremiumStatCard hero label="Assets Under Management" value={formatCurrency(stats.totalBalance)} sublabel="Total across all accounts" icon={Wallet} accent="navy" onClick={() => navigate('/operations/finance')} />
+        <PremiumStatCard hero label="Assets Under Management" value={formatCurrency(stats.totalBalance)} sublabel={`Across ${stats.accountCount} account${stats.accountCount === 1 ? '' : 's'}`} icon={Wallet} accent="navy" onClick={() => navigate('/operations/finance')} />
         <PremiumStatCard label="Total Members" value={stats.members} icon={Users} accent="blue" onClick={() => navigate('/operations/members')} />
         <PremiumStatCard label="Pending Applications" value={stats.pendingApps} icon={FileText} accent="gold" onClick={() => navigate('/operations/applications')} />
         <PremiumStatCard label="Pending Withdrawals" value={stats.pendingWithdrawals} icon={ArrowUpRight} accent="crimson" onClick={() => navigate('/operations/withdrawals')} />

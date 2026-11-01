@@ -75,6 +75,7 @@ const ExecutiveReports = React.lazy(() => import('./pages/operations/ExecutiveRe
 const AuditLogs = React.lazy(() => import('./pages/operations/AuditLogs'));
 const AumGrowth = React.lazy(() => import('./pages/operations/AumGrowth'));
 const BulkTransactionImport = React.lazy(() => import('./pages/operations/BulkTransactionImport'));
+const HistoryImport = React.lazy(() => import('./pages/operations/HistoryImport'));
 const TransactionSummaries = React.lazy(() => import('./pages/operations/TransactionSummaries'));
 const WithdrawalAuditLog = React.lazy(() => import('./pages/operations/WithdrawalAuditLog'));
 const ActivityTimeline = React.lazy(() => import('./pages/operations/ActivityTimeline'));
@@ -203,6 +204,7 @@ const AuthenticatedApp = () => {
                 <Route path="/operations/audit-logs" element={<AuditLogs />} />
                 <Route path="/operations/aum-growth" element={<AumGrowth />} />
                 <Route path="/operations/bulk-import" element={<BulkTransactionImport />} />
+                <Route path="/operations/history-import" element={<HistoryImport />} />
                 <Route path="/operations/transaction-summaries" element={<TransactionSummaries />} />
                 <Route path="/operations/withdrawal-audit-log" element={<WithdrawalAuditLog />} />
                 <Route path="/operations/activity" element={<ActivityTimeline />} />

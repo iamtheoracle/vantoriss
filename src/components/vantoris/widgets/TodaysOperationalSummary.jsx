@@ -11,20 +11,22 @@ export default function TodaysOperationalSummary() {
   useEffect(() => {
     async function load() {
       try {
-        const [txns, apps, withdrawals, verifications] = await Promise.all([
-          base44.entities.Transaction.list('-created_date', 50),
-          base44.entities.Application.list('-created_date', 20),
-          base44.entities.WithdrawalRequest.filter({ status: 'pending' }),
-          base44.entities.VerificationRequest.filter({ status: 'pending' }),
+        const today = new Date().toISOString().slice(0, 10);
+        const [txnPage, apps, pendingApps, pendingWithdrawals, pendingVerifications] = await Promise.all([
+          base44.entities.Transaction.filter({ transaction_date: today }, { limit: 200 }),
+          base44.entities.Application.list('-created_date', 50),
+          base44.entities.Application.count({ application_status: 'pending' }),
+          base44.entities.WithdrawalRequest.count({ status: 'pending' }),
+          base44.entities.VerificationRequest.count({ status: 'pending' }),
         ]);
-        const today = new Date().toDateString();
-        const todayTxns = txns.filter(t => new Date(t.created_date).toDateString() === today);
-        const todayApps = apps.filter(a => new Date(a.created_date).toDateString() === today);
+        // Imported account histories are not today's activity.
+        const todayTxns = (txnPage.items || txnPage).filter(t => t.source !== 'historical_import');
+        const todayApps = apps.filter(a => new Date(a.created_date).toDateString() === new Date().toDateString());
         setData({
           txnsToday: todayTxns.length,
           volumeToday: todayTxns.reduce((s, t) => s + Math.abs(t.amount || 0), 0),
           newAppsToday: todayApps.length,
-          pendingItems: apps.filter(a => a.application_status === 'pending').length + withdrawals.length + verifications.length,
+          pendingItems: pendingApps + pendingWithdrawals + pendingVerifications,
         });
       } catch (e) { console.error(e); }
       setLoading(false);

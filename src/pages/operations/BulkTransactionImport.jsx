@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
+import { readCsvObjects } from '@/lib/ledgerFile';
 import {
   UploadCloud, FileSpreadsheet, Download, CheckCircle2,
   AlertTriangle, Loader2, ArrowRight, RotateCcw, FileUp,
@@ -16,14 +17,14 @@ export default function BulkTransactionImport() {
   const [importing, setImporting] = useState(false);
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
-  const [accountNumbers, setAccountNumbers] = useState(new Set());
+  const [accounts, setAccounts] = useState([]);
+  const accountNumbers = new Set(accounts.map(a => String(a.account_number || '').trim()));
   const fileRef = useRef(null);
 
   useEffect(() => {
     (async () => {
       try {
-        const accounts = await base44.entities.Account.list('-created_date', 500);
-        setAccountNumbers(new Set((accounts || []).map(a => String(a.account_number || '').trim())));
+        setAccounts(await base44.entities.Account.list('-created_date', 500));
       } catch (e) { /* ignore — validation will be best-effort */ }
     })();
   }, []);
@@ -44,35 +45,16 @@ export default function BulkTransactionImport() {
     setParsing(true);
     setError(null);
     try {
-      const uploadRes = await base44.integrations.Core.UploadFile({ file });
-      const fileUrl = uploadRes.file_url;
-
-      const extractRes = await base44.integrations.Core.ExtractDataFromUploadedFile({
-        file_url: fileUrl,
-        json_schema: {
-          type: 'object',
-          properties: {
-            account_number: { type: 'string' },
-            type: { type: 'string' },
-            amount: { type: 'number' },
-            description: { type: 'string' },
-            reference: { type: 'string' },
-            transaction_date: { type: 'string' },
-          },
-          required: ['account_number', 'type', 'amount'],
-        },
-      });
-
-      const output = extractRes.output || extractRes;
-      const data = Array.isArray(output) ? output : (output.transactions || output.data || []);
-      if (!data.length) {
+      // Read the CSV in the browser — no upload or extraction service needed.
+      const { rows } = await readCsvObjects(file);
+      if (!rows.length) {
         setError('No transactions found in file. Ensure your CSV has headers: account_number, type, amount, description, reference, transaction_date');
         setParsing(false);
         return;
       }
-      setParsedData(data);
+      setParsedData(rows);
     } catch (e) {
-      setError(e.message || 'Failed to parse file. Ensure it is a valid CSV or Excel file.');
+      setError(e.message || 'Failed to parse file. Ensure it is a valid CSV file.');
     }
     setParsing(false);
   };
@@ -81,8 +63,30 @@ export default function BulkTransactionImport() {
     setImporting(true);
     setError(null);
     try {
-      const res = await base44.functions.invoke('bulkImportTransactions', { transactions: parsedData });
-      setResults(res.data || res);
+      // Written from the operator's session; no backend function required.
+      const byNumber = new Map(accounts.map(a => [String(a.account_number || '').trim(), a]));
+      const validRows = validatedRows.filter(r => r.valid);
+      const skipped = validatedRows
+        .filter(r => !r.valid)
+        .map(r => ({ row: r.row, reason: r.issues.join('; ') }));
+      const payload = validRows.map(r => ({
+        account_id: byNumber.get(String(r.account_number).trim()).id,
+        type: r.type,
+        amount: Number(r.amount),
+        description: r.description || '',
+        reference: r.reference || '',
+        transaction_date: r.transaction_date || new Date().toISOString().slice(0, 10),
+        source: 'admin_entry',
+        created_by_admin: true,
+        status: 'completed',
+      }));
+      let created = 0;
+      for (let i = 0; i < payload.length; i += 500) {
+        const batch = payload.slice(i, i + 500);
+        await base44.entities.Transaction.bulkCreate(batch);
+        created += batch.length;
+      }
+      setResults({ summary: { created, skipped: skipped.length, errors: 0, total: validatedRows.length }, skipped });
       setParsedData(null);
       setFile(null);
       if (fileRef.current) fileRef.current.value = '';
@@ -212,7 +216,7 @@ export default function BulkTransactionImport() {
             onClick={() => fileRef.current?.click()}
             className="border-2 border-dashed border-slate-300 rounded-2xl p-10 text-center cursor-pointer hover:border-brass/40 hover:bg-brass/5 transition-all"
           >
-            <input ref={fileRef} type="file" accept=".csv,.xlsx,.xls" onChange={handleFileSelect} className="hidden" />
+            <input ref={fileRef} type="file" accept=".csv" onChange={handleFileSelect} className="hidden" />
             <div className="w-16 h-16 rounded-2xl bg-navy/8 flex items-center justify-center mx-auto mb-4">
               {file ? <FileSpreadsheet size={28} className="text-navy" /> : <UploadCloud size={28} className="text-gray" />}
             </div>

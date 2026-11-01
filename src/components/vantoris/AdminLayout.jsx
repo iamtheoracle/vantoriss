@@ -8,8 +8,6 @@ import FloatingAIDock from './FloatingAIDock';
 import { base44 } from '@/api/base44Client';
 import { getDefaultWorkspace } from '@/lib/operationsAccess';
 
-const PHONE_SHELL = 'w-full max-w-[430px] mx-auto min-h-[100dvh] flex flex-col overflow-hidden bg-white lg:rounded-[28px] lg:shadow-2xl lg:ring-1 lg:ring-slate-200/80';
-
 export default function AdminLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [user, setUser] = useState(null);
@@ -48,33 +46,40 @@ export default function AdminLayout() {
   }
 
   return (
-    <div className="min-h-[100dvh] w-full vantoris-mesh-bg flex justify-center overflow-x-hidden">
-      <div className={PHONE_SHELL}>
-        {/* Navigation stays available as a phone-style drawer at every viewport size. */}
-        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-          <SheetContent
-            side="left"
-            className="vantoris-glass-sidebar p-0 w-72 max-w-[85vw]"
-            style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
-          >
-            <AdminSidebar
-              user={user}
-              activeWorkspace={activeWorkspace}
-              onWorkspaceChange={handleWorkspaceChange}
-              onNavigate={() => setMobileOpen(false)}
-            />
-          </SheetContent>
-        </Sheet>
-
-        <div className="flex-1 flex flex-col min-h-[100dvh] min-w-0">
-          <AdminTopBar user={user} onMenuClick={() => setMobileOpen(true)} />
-          <main className="flex-1 min-w-0 p-3 sm:p-4 pb-6 vantoris-scroll overflow-x-hidden">
-            <PageTransition />
-          </main>
-        </div>
-
-        <FloatingAIDock />
+    <div className="min-h-[100dvh] w-full vantoris-mesh-bg flex overflow-x-hidden">
+      {/* Persistent navigation on desktop */}
+      <div className="hidden lg:block lg:w-64 lg:flex-shrink-0 lg:h-[100dvh] lg:sticky lg:top-0">
+        <AdminSidebar
+          user={user}
+          activeWorkspace={activeWorkspace}
+          onWorkspaceChange={handleWorkspaceChange}
+        />
       </div>
+
+      {/* Drawer navigation on smaller screens */}
+      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+        <SheetContent
+          side="left"
+          className="vantoris-glass-sidebar p-0 w-72 max-w-[85vw] lg:hidden"
+          style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+        >
+          <AdminSidebar
+            user={user}
+            activeWorkspace={activeWorkspace}
+            onWorkspaceChange={handleWorkspaceChange}
+            onNavigate={() => setMobileOpen(false)}
+          />
+        </SheetContent>
+      </Sheet>
+
+      <div className="flex-1 flex flex-col min-h-[100dvh] min-w-0">
+        <AdminTopBar user={user} onMenuClick={() => setMobileOpen(true)} />
+        <main className="flex-1 min-w-0 p-3 sm:p-4 lg:p-6 pb-8 vantoris-scroll overflow-x-hidden">
+          <PageTransition />
+        </main>
+      </div>
+
+      <FloatingAIDock />
     </div>
   );
 }
