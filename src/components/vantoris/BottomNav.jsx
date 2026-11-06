@@ -11,7 +11,7 @@ const navItems = [
   { label: 'Home', path: '/', icon: Home },
   { label: 'Money', path: '/accounts', icon: Wallet },
   { label: 'HeroBox', path: '/herobox', icon: Heart },
-  { label: 'Ask', path: '/assistant', icon: Sparkles },
+  { label: 'AVA', path: '/ava', icon: Sparkles },
   { label: 'More', path: '/more', icon: LayoutGrid },
 ];
 
