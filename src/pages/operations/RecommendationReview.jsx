@@ -90,7 +90,7 @@ export default function RecommendationReview() {
 
       toast({
         title: `Recommendation ${action}`,
-        description: data.message || 'Review decision recorded. No financial action was executed.',
+        description: data.warning || data.message || 'Review decision recorded. No financial action was executed.',
       });
 
       setSelectedRec(null);
