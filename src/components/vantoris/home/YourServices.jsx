@@ -9,7 +9,7 @@ import {
 const SERVICE_REGISTRY = [
   {
     id: 'herobox',
-    title: 'HeroBox',
+    title: 'Community Support',
     subtitle: 'Mission support platform',
     icon: Package,
     route: '/herobox',
