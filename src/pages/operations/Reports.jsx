@@ -64,7 +64,7 @@ export default function Reports() {
 
   function handleExport() {
     const rows = stats.map(s => ({ Metric: s.label, Value: s.value }));
-    exportToCsv('vantoris_operations_report', ['Metric', 'Value'], rows);
+    exportToCsv('atchison_village_operations_report', ['Metric', 'Value'], rows);
   }
 
   async function handleGenerateMonthlyReport() {
@@ -134,7 +134,7 @@ export default function Reports() {
         { Metric: 'Pending Applications', Value: pendingApps },
         { Metric: 'Pending Withdrawals', Value: pendingWd },
       ];
-      exportToCsv(`vantoris_monthly_report_${monthName.replace(/\s/g, '_')}`, ['Metric', 'Value'], reportRows);
+      exportToCsv(`atchison_village_monthly_report_${monthName.replace(/\s/g, '_')}`, ['Metric', 'Value'], reportRows);
 
       setReportResult({ monthName, txns: monthTxns.length, aum: totalAUM, growth: assetGrowth, emailed });
       toast({ title: 'Report generated', description: emailed ? `Monthly report for ${monthName} was emailed and exported.` : `Monthly report for ${monthName} was exported. Configure a verified operations email to enable email delivery.` });
