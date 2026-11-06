@@ -15,7 +15,7 @@ export default function PendingApprovalsWidget() {
           base44.entities.Application.list('-created_date', 100),
           base44.entities.WithdrawalRequest.filter({ status: 'pending' }),
           base44.entities.VerificationRequest.filter({ status: 'pending' }),
-          base44.entities.AssistantRecommendation.filter({ status: 'pending' }).catch(() => []),
+          base44.entities.AssistantRecommendation.filter({ status: { $in: ['pending', 'escalated'] } }).catch(() => []),
         ]);
         if (mounted) {
           setData({
