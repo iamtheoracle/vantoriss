@@ -1,0 +1,4 @@
+{
+  "name": "review-recommendation",
+  "entry": "index.ts"
+}
