@@ -82,7 +82,7 @@ export async function boot(base44) {
 
   // Stage 5: AI Runtime Boot
   await runStage(stages, 'AIRuntimeBoot', async () => {
-    runtime.trust = createTrust(registries);
+    runtime.trust = createTrust(registries, services.audit);
     runtime.command = createCommand();
     runtime.intelligence = createIntelligence();
     runtime.scheduler = createScheduler(base44);
