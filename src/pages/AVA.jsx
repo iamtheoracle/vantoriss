@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { ArrowLeft, ArrowUp, CheckCircle2, Clock3, Sparkles, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, ArrowUp, Clock3, Sparkles, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import VantorisMonogram from '@/components/vantoris/brand/VantorisMonogram';
