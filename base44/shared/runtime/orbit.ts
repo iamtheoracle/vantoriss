@@ -97,3 +97,6 @@ export function createScheduler(base44) {
     },
   };
 }
+
+// Deprecated compatibility export; new AVCU code should use createScheduler.
+export const createOrbit = createScheduler;
