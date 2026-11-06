@@ -370,7 +370,7 @@ export default function AgentChat({
               </div>
               <h4 className="font-bold text-base mb-1" style={{ color: COLORS.textPrimary }}>What can I help you with?</h4>
               <p className="text-sm max-w-sm mb-6" style={{ color: COLORS.textSecondary }}>
-                I have full access to your Vantoris platform. Ask me about members, accounts, applications, withdrawals, KYC status, and more.
+                I’m the Classic Assistant. I can provide general guidance and help draft text, but I do not have access to live member records or operations tools. Use AVA for authenticated, role-aware support.
               </p>
               {renderActionSuggestions
                 ? renderActionSuggestions({ setInput, sendMessage })
