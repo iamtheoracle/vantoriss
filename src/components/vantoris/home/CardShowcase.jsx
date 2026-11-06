@@ -26,7 +26,7 @@ export default function CardShowcase({ cards = [] }) {
       </div>
 
       {hasActiveCards ? (
-        <div className="grid gap-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           {cards.slice(0, 2).map(card => {
             const image = card.card_type === 'virtual' ? '/cards/avcu-virtual-debit.svg' : card.card_type === 'credit' ? '/cards/avcu-member-credit.svg' : '/cards/avcu-everyday-debit.svg';
             return (
@@ -51,7 +51,7 @@ export default function CardShowcase({ cards = [] }) {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {CARD_DESIGNS.map(card => (
               <article key={card.title} className="rounded-2xl overflow-hidden border border-border bg-white shadow-sm">
                 <img src={card.image} alt={`${card.title} card design preview for Atchison Village Credit Union`} className="block w-full aspect-[1.62] object-cover" loading="lazy" />
