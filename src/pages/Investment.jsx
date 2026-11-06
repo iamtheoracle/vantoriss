@@ -129,7 +129,7 @@ export default function Investment() {
           <TrendingUp size={22} className="text-mint" />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-foreground">Vantoris Investment</h1>
+          <h1 className="text-xl font-bold text-foreground">Atchison Village Investments</h1>
           <p className="text-xs text-gray">A separate investment experience</p>
         </div>
       </div>
@@ -139,7 +139,7 @@ export default function Investment() {
           <PieChart size={48} className="text-gray mx-auto mb-4" />
           <h2 className="text-lg font-bold text-foreground mb-2">No Investment Portfolio</h2>
           <p className="text-gray text-sm mb-6">
-            Create an investment portfolio to get started. This is a separate experience from your ordinary Vantoris banking.
+            Create an investment portfolio to get started. This is a separate experience from your ordinary Atchison Village banking.
           </p>
           <button
             onClick={handleCreatePortfolio}
