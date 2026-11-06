@@ -1,4 +1,4 @@
-import { createClientFromRequest } from "npm:@base44/sdk";
+import { createClientFromRequest } from "npm:@base44/sdk@0.8.57";
 
 const ROLE_GROUPS = {
   admin: ['admin', 'administrator', 'super_administrator'],
