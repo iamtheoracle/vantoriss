@@ -56,3 +56,6 @@ export function createTrust(registries) {
     },
   };
 }
+
+// Deprecated compatibility export; new AVCU code should use createTrust.
+export const createGuardian = createTrust;
