@@ -130,7 +130,7 @@ This is an automated summary generated from the Atchison Village Credit Union Op
           <button
             onClick={handleSend}
             disabled={!email || sending}
-            className="flex items-center gap-1.5 px-3 py-2 bg-brass text-[#0E1A2B] rounded-xl text-xs font-semibold disabled:opacity-40"
+            className="flex items-center gap-1.5 px-3 py-2 bg-brass text-[#173D32] rounded-xl text-xs font-semibold disabled:opacity-40"
           >
             {sending ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />}
             Send
