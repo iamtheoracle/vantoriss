@@ -28,7 +28,7 @@ export default function DeleteAccountDialog({ open, onOpenChange }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-md">
+      <DialogContent className="bg-[#102C25] border-[#242D38] max-w-md">
         <DialogHeader>
           <DialogTitle className="text-white flex items-center gap-2">
             <AlertTriangle size={18} className="text-crimson" />
