@@ -106,3 +106,55 @@ Deno.test('AVCU Core denies if Trust does not return an explicit allow', async (
   if (!result.content.includes('Access denied')) throw new Error('Core must deny a missing Trust decision');
   if (commandCalled) throw new Error('Core must not orchestrate after missing Trust allow');
 });
+
+
+Deno.test('AVCU Scheduler refuses delayed jobs without a durable worker', async () => {
+  let created = false;
+  const scheduler = createScheduler({
+    asServiceRole: {
+      entities: {
+        ScheduledJob: {
+          async create() { created = true; return { id: 'job-1' }; },
+        },
+      },
+    },
+  });
+
+  let rejected = false;
+  try {
+    await scheduler.schedule({
+      name: 'nightly_refresh',
+      schedule: '0 0 * * *',
+      handler: async () => 'done',
+    });
+  } catch (error) {
+    rejected = error.message.includes('durable worker');
+  }
+
+  if (!rejected) throw new Error('Delayed job should be rejected until a worker exists');
+  if (created) throw new Error('Rejected delayed job must not be persisted as pending');
+  if (scheduler.status().delayedExecutionEnabled) throw new Error('Delayed execution must report disabled');
+});
+
+Deno.test('AVCU Scheduler executes supported immediate jobs and records completion', async () => {
+  const updates = [];
+  const scheduler = createScheduler({
+    asServiceRole: {
+      entities: {
+        ScheduledJob: {
+          async create() { return { id: 'job-immediate-1' }; },
+          async update(id, patch) { updates.push({ id, patch }); },
+        },
+      },
+    },
+  });
+
+  const result = await scheduler.schedule({
+    name: 'immediate_check',
+    schedule: 'immediate',
+    handler: async () => 'completed',
+  });
+
+  if (result.id !== 'job-immediate-1') throw new Error('Expected persisted immediate job');
+  if (!updates.some(item => item.patch.status === 'completed')) throw new Error('Expected completed job status');
+});
