@@ -150,7 +150,7 @@ const DOMAIN_CONFIG = {
       {
         label: 'Command',
         items: [
-          { label: 'Mission Control', path: '/operations/herobox', icon: Radar },
+          { label: 'Community Support', path: '/operations/herobox', icon: Radar },
         ],
       },
       {
