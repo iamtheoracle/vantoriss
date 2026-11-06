@@ -10,7 +10,7 @@ const RELATED_CATEGORIES = [
   { label: 'Sponsor a Hero', query: 'sponsor hero support', icon: Heart, color: 'bg-navy/8 text-navy' },
 ];
 
-export default function OrbitNoResults({ query, popularItems, onSelectSuggestion, onSelectItem }) {
+export default function Community SupportNoResults({ query, popularItems, onSelectSuggestion, onSelectItem }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
