@@ -9,19 +9,25 @@ export default async function(req) {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json().catch(() => ({}));
-    const { message, context, action = 'process' } = body;
+    const { message, action = 'process' } = body;
 
-    // Boot the runtime (cached after first call)
+    // Runtime instances are request-scoped; no member's session or service client is cached.
     const { services, runtime, stages: bootStages } = await boot(base44);
 
-    // Health check endpoint
+    // Health diagnostics expose internal service state and are staff-only.
     if (action === 'health') {
+      if (!['admin', 'administrator', 'super_administrator', 'it_administrator', 'executive'].includes(user.role)) {
+        return Response.json({ error: 'Forbidden' }, { status: 403 });
+      }
       const health = await services.health.runAll();
       return Response.json({ status: 'ok', health, stages: bootStages || [] });
     }
 
-    if (!message) {
+    if (typeof message !== 'string' || !message.trim()) {
       return Response.json({ error: 'Message is required' }, { status: 400 });
+    }
+    if (message.length > 4000) {
+      return Response.json({ error: 'Message exceeds the 4,000 character limit' }, { status: 413 });
     }
 
     // Build the AI request through the Oracle pipeline:
@@ -32,19 +38,20 @@ export default async function(req) {
       message,
       context: {
         userId: user.id,
-        sessionId: context?.sessionId || crypto.randomUUID(),
+        sessionId: crypto.randomUUID(),
         userRole: user.role,
         timestamp: new Date().toISOString(),
-        source: 'bud',
+        source: 'ava',
       },
-      capabilities: context?.capabilities || ['reasoning', 'knowledge'],
-      priority: context?.priority || 'normal',
+      // The browser cannot grant itself capabilities or request expensive model tiers.
+      capabilities: ['reasoning', 'knowledge'],
+      priority: 'normal',
     };
 
     const response = await runtime.oracle.process(request);
 
     // Persist conversation via ConversationService (not owned by Bud)
-    const thread = await services.conversation.getOrCreateThread(user.id, 'AI Assistant');
+    const thread = await services.conversation.getOrCreateThread(user.id, 'AVA');
     await services.conversation.addMessage(thread.id, user.id, 'user', message);
     await services.conversation.addMessage(thread.id, user.id, 'assistant', response.content);
 
@@ -168,6 +175,6 @@ export default async function(req) {
     });
   } catch (error) {
     logger.error('Oracle runtime error', { error: error.message });
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: 'The assistant is temporarily unavailable. Please try again.' }, { status: 500 });
   }
 }
