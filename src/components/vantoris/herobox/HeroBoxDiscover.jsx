@@ -61,7 +61,7 @@ export default function HeroBoxDiscover({ onActivate }) {
 
       {/* Discover Cards */}
       <div className="mb-5">
-        <h3 className="text-foreground font-semibold text-sm mb-3 px-1">Discover HeroBox</h3>
+        <h3 className="text-foreground font-semibold text-sm mb-3 px-1">Discover Community Support</h3>
         <div className="grid grid-cols-2 gap-3">
           {DISCOVER_CARDS.map((card, idx) => {
             const Icon = card.icon;
