@@ -54,5 +54,5 @@ jobs:
         with:
           deno-version: v2.x
 
-      - name: Test Guardian and workflow registry
-        run: deno test --no-check base44/shared/runtime/guardian.test.ts base44/shared/registries/WorkflowRegistry.test.ts
+      - name: Test AVCU Trust, identity aliases and workflow registry
+        run: deno test --no-check base44/shared/runtime/guardian.test.ts base44/shared/runtime/avcuIdentity.test.ts base44/shared/registries/WorkflowRegistry.test.ts
