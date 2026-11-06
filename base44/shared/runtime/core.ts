@@ -103,4 +103,5 @@ export function createCore(services, registries, trust, command, intelligence, s
   };
 }
 
-
+// Deprecated compatibility export for existing integrations.
+export const createOracle = createCore;
