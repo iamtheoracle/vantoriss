@@ -33,11 +33,11 @@ export function createModelService(base44) {
     list() {
       return [
         { name: 'gateway_default', provider: 'institution_gateway', cost: 'configured' },
-        { name: 'automatic', provider: 'legacy_invoke_llm', cost: 'medium', compatibility: true },
-        { name: 'gpt_5_mini', provider: 'legacy_invoke_llm', cost: 'low', compatibility: true },
-        { name: 'gemini_3_flash', provider: 'legacy_invoke_llm', cost: 'low', compatibility: true },
-        { name: 'claude_sonnet_4_6', provider: 'legacy_invoke_llm', cost: 'high', compatibility: true },
-        { name: 'claude_opus_4_6', provider: 'legacy_invoke_llm', cost: 'critical', compatibility: true },
+        { name: 'automatic', provider: 'classic_invoke_llm', cost: 'medium', compatibility: true },
+        { name: 'gpt_5_mini', provider: 'classic_invoke_llm', cost: 'low', compatibility: true },
+        { name: 'gemini_3_flash', provider: 'classic_invoke_llm', cost: 'low', compatibility: true },
+        { name: 'claude_sonnet_4_6', provider: 'classic_invoke_llm', cost: 'high', compatibility: true },
+        { name: 'claude_opus_4_6', provider: 'classic_invoke_llm', cost: 'critical', compatibility: true },
       ];
     },
   };
