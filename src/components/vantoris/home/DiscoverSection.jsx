@@ -13,8 +13,8 @@ const DISCOVER_CATALOG = [
   { id: 'financial-planning', title: 'Financial Planning', subtitle: 'Plan your financial future', icon: CalendarClock, route: '/advisor', hideIf: [] },
   { id: 'business-banking', title: 'Business Banking', subtitle: 'Treasury & payroll solutions', icon: Building2, route: '/services', hideIf: ['business-treasury'] },
   { id: 'premium-cards', title: 'Premium Cards', subtitle: 'Exclusive card benefits', icon: CreditCard, route: '/services', hideIf: [] },
-  { id: 'herobox-premium', title: 'HeroBox Premium', subtitle: 'Concierge care packages', icon: Package, route: '/herobox', hideIf: [] },
-  { id: 'herobox', title: 'HeroBox', subtitle: 'Support our military heroes', icon: Package, route: '/herobox', hideIf: [] },
+  { id: 'herobox-premium', title: 'Community Support', subtitle: 'Concierge care packages', icon: Package, route: '/herobox', hideIf: [] },
+  { id: 'herobox', title: 'Community Giving', subtitle: 'Support verified community needs and service members', icon: Package, route: '/herobox', hideIf: [] },
 ];
 
 export default function DiscoverSection({ hiddenServiceIds = [] }) {
