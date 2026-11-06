@@ -64,7 +64,7 @@ export default function AdminTopBar({ user, onMenuClick }) {
             </button>
           )}
           <div className="min-w-0">
-            <p className="text-gray/60 text-[9px] uppercase tracking-[0.13em] font-semibold truncate">AVCU Operations</p>
+            <p className="text-gray/60 text-[9px] uppercase tracking-[0.13em] font-semibold truncate">Atchison Village Credit Union · Operations</p>
             <h2 className="text-foreground font-semibold text-sm truncate">{pageTitle}</h2>
           </div>
         </div>
