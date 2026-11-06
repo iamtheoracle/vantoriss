@@ -9,7 +9,7 @@ import {
 const SERVICE_REGISTRY = [
   {
     id: 'herobox',
-    title: 'HeroBox',
+    title: 'Community Support',
     subtitle: 'Mission support platform',
     icon: Package,
     route: '/herobox',
@@ -90,7 +90,7 @@ function HeroBoxCard({ navigate, transactions }) {
               <Package size={18} className="text-brass" />
             </div>
             <div>
-              <h3 className="text-foreground font-semibold text-sm">HeroBox</h3>
+              <h3 className="text-foreground font-semibold text-sm">Community Support</h3>
               <p className="text-gray text-[11px]">Care packages worldwide</p>
             </div>
           </div>
@@ -134,7 +134,7 @@ function HeroBoxCard({ navigate, transactions }) {
                 <div key={txn.id} className="flex items-center justify-between p-2 rounded-lg bg-slate-50/60">
                   <div className="flex items-center gap-2 min-w-0">
                     <Heart size={12} className="text-brass/60 flex-shrink-0" />
-                    <p className="text-foreground text-xs font-medium truncate">{txn.description || 'HeroBox activity'}</p>
+                    <p className="text-foreground text-xs font-medium truncate">{txn.description || 'Community Support activity'}</p>
                   </div>
                   <span className="text-gray text-[10px] flex-shrink-0">
                     {new Date(txn.transaction_date || txn.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}

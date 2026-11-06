@@ -44,7 +44,7 @@ export default function HeroBoxDiscover({ onActivate }) {
           <div className="w-16 h-16 rounded-2xl bg-white/12 flex items-center justify-center mx-auto mb-4 border border-white/10">
             <Package size={28} className="text-brass" />
           </div>
-          <h1 className="text-white text-2xl font-bold mb-2">HeroBox</h1>
+          <h1 className="text-white text-2xl font-bold mb-2">Community Support</h1>
           <p className="text-white/60 text-sm mb-1">Supporting Those Who Serve</p>
           <p className="text-white/40 text-xs leading-relaxed max-w-sm mx-auto mb-6">
             A mission-driven support platform helping military members, veterans, and their families receive meaningful assistance through coordinated financial support, care packages, and community sponsorship.
@@ -61,7 +61,7 @@ export default function HeroBoxDiscover({ onActivate }) {
 
       {/* Discover Cards */}
       <div className="mb-5">
-        <h3 className="text-foreground font-semibold text-sm mb-3 px-1">Discover HeroBox</h3>
+        <h3 className="text-foreground font-semibold text-sm mb-3 px-1">Discover Community Support</h3>
         <div className="grid grid-cols-2 gap-3">
           {DISCOVER_CARDS.map((card, idx) => {
             const Icon = card.icon;

@@ -150,7 +150,7 @@ const DOMAIN_CONFIG = {
       {
         label: 'Command',
         items: [
-          { label: 'Mission Control', path: '/operations/herobox', icon: Radar },
+          { label: 'Community Support', path: '/operations/herobox', icon: Radar },
         ],
       },
       {
@@ -164,7 +164,7 @@ const DOMAIN_CONFIG = {
         label: 'Orders & Shipping',
         items: [
           { label: 'Orders', path: '/operations/herobox/orders', icon: Package },
-          { label: 'Heroes', path: '/operations/herobox/heroes', icon: Shield },
+          { label: 'Recipients', path: '/operations/herobox/heroes', icon: Shield },
           { label: 'Volunteers', path: '/operations/herobox/volunteers', icon: Users },
         ],
       },

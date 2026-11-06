@@ -53,8 +53,8 @@ function setLabel(convId, label) {
 
 export default function AgentChat({
   agentName = 'vantoris_assistant',
-  title = 'Classic Assistant',
-  subtitle = 'Legacy operations assistant',
+  title = 'Classic AVCU Assistant',
+  subtitle = 'AVCU operations compatibility assistant',
   suggestions = null,
   inputPlaceholder = 'Ask about members, applications, KYC status, account balances...',
   singleColumn = false,

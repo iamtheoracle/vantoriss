@@ -140,7 +140,7 @@ export default function OrbitSearch() {
     setLlmLoading(true);
     try {
       const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are Orbit, HeroBox's intelligent discovery assistant. A user searched for: "${q}".
+        prompt: `You are the AVCU Community Support search assistant. A user searched for: "${q}".
 
 Extract search keywords, synonyms, and related terms that would help find matching items in a HeroBox database.
 
