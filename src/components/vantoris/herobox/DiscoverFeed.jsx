@@ -102,7 +102,7 @@ export default function DiscoverFeed({ onShop, onDonate, standalone = false }) {
   const allNews = filterBySearch(activeCategory === 'all' || activeCategory === 'news' ? data.news : [], n => [n.headline, n.summary, n.source_name]);
   const featuredCases = allCases.slice(0, 4);
   const hasAnyContent = allOrgs.length > 0 || allCases.length > 0 || allNews.length > 0;
-  const title = standalone ? 'Discovery' : 'HeroBox';
+  const title = standalone ? 'Discovery' : 'Community Support';
   const subtitle = standalone ? 'Verified opportunities, needs and humanitarian intelligence.' : 'They are our heroes. We can be theirs too.';
   const searchPlaceholder = standalone ? 'Search Discovery...' : 'Search HeroBox...';
 
