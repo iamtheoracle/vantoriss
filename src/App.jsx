@@ -14,6 +14,7 @@ import { ExceptionAuthProvider } from '@/components/vantoris/ExceptionAuthContex
 import MemberLayout from './components/vantoris/MemberLayout';
 import AdminLayout from './components/vantoris/AdminLayout';
 import OperationsRoute from './components/OperationsRoute';
+import MemberRoute from './components/MemberRoute';
 
 const Login = React.lazy(() => import('./pages/Login'));
 const Register = React.lazy(() => import('./pages/Register'));
@@ -136,7 +137,8 @@ const AuthenticatedApp = () => {
           </Route>
 
           <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
-            <Route element={<MemberLayout />}>
+            <Route element={<MemberRoute />}>
+              <Route element={<MemberLayout />}>
               <Route path="/" element={<Home />} />
               <Route path="/apply" element={<Navigate to="/register" replace />} />
               <Route path="/apply/kyc" element={<ApplyKYC />} />
@@ -159,6 +161,7 @@ const AuthenticatedApp = () => {
               <Route path="/homes" element={<Homes />} />
               <Route path="/news" element={<News />} />
               <Route path="/cards" element={<MemberCards />} />
+              </Route>
             </Route>
 
             <Route path="/admin/*" element={<Navigate to="/operations" replace />} />
