@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import VantorisMonogram, { VANTORIS_COLORS } from '@/components/vantoris/brand/VantorisMonogram';
+import VantorisMonogram from '@/components/vantoris/brand/VantorisMonogram';
 import VantorisLogo from '@/components/vantoris/brand/VantorisLogo';
 import VantorisSeal from '@/components/vantoris/brand/VantorisSeal';
 import VantorisAppIcon from '@/components/vantoris/brand/VantorisAppIcon';
