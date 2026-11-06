@@ -49,7 +49,7 @@ npm run build
 
 Base44 backend resources live under `base44/`. Follow the Base44 project workflow before deploying entities, functions, agents or site changes.
 
-The branch CI blocks on changed-file lint, production build and Guardian/workflow runtime tests. Full-repository lint and the existing app typecheck are report-only while the pre-existing backlog is remediated; a green build does not mean those backlogs are clean.
+The branch CI blocks on changed-file lint, production build and Guardian/workflow runtime tests. Full-repository lint and the existing app typecheck are report-only while the pre-existing backlog is remediated; a green build does not mean those backlogs are clean. Dependency audit is also report-only pending remediation; the current install reported 30 vulnerabilities, including 17 high.
 
 ## Repository consolidation
 
