@@ -26,7 +26,7 @@ export default function SettingsSection({ user, referralLink, onDeleteAccount })
       {/* Advisory & Services — members only */}
       {isMember && (
         <ProfileSection title="Advisory & Services" icon={ShieldCheck} delay={0.15}>
-          <ProfileRow icon={ShieldCheck} iconColor="text-brass" iconBg="bg-brass/10" label="Vantoris Advisor" value="Your personal AI financial assistant" onClick={() => navigate('/advisor')} />
+          <ProfileRow icon={ShieldCheck} iconColor="text-brass" iconBg="bg-brass/10" label="AVA Assistant" value="Your personal credit-union guide" onClick={() => navigate('/ava')} />
           <ProfileDivider />
           <ProfileRow icon={Settings} iconColor="text-brass" iconBg="bg-brass/10" label="Services" value="Manage banking services" onClick={() => navigate('/services')} />
         </ProfileSection>
