@@ -5,7 +5,7 @@ import ShieldLogo from '@/components/vantoris/ShieldLogo';
 
 export default function AccessDenied() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0E1A2B] px-6">
+    <div className="min-h-screen flex items-center justify-center bg-[#102C25] px-6">
       <div className="text-center max-w-md">
         <div className="flex justify-center mb-6">
           <div className="w-16 h-16 rounded-full bg-crimson/15 flex items-center justify-center">
@@ -17,7 +17,7 @@ export default function AccessDenied() {
         </div>
         <h1 className="text-2xl font-bold text-white mb-2">Access Denied</h1>
         <p className="text-sm text-white/60 mb-8 leading-relaxed">
-          You do not have authorization to access the Vantoris Operating System.
+          You do not have authorization to access the Atchison Village Credit Union Operations workspace.
           This area is restricted to authorized administrators and operators.
         </p>
         <Link
@@ -25,7 +25,7 @@ export default function AccessDenied() {
           className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white text-sm font-medium transition border border-white/10"
         >
           <ArrowLeft className="w-4 h-4" />
-          Return to Vantoris
+          Return to Member Home
         </Link>
       </div>
     </div>
