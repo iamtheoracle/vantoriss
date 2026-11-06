@@ -1,10 +1,6 @@
 name: Atchison Village CI
 
 on:
-  push:
-    branches:
-      - main
-      - "feat/**"
   pull_request:
     branches:
       - main
