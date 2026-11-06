@@ -26,7 +26,7 @@ Provider credentials must remain in backend secrets. The gateway reads:
 - `AVCU_MODEL_GATEWAY_MODEL`
 - `AVCU_LEGACY_LLM_FALLBACK` (set to `false` to disable fallback)
 
-The configured endpoint must be HTTPS outside local development. A configured endpoint is not considered verified until provider, timeout, structured-output and fallback tests pass.
+The configured endpoint must be HTTPS outside local development. A configured endpoint is not considered verified until provider, timeout, structured-output and fallback tests pass. Existing discovery and Classic Assistant paths still use the retained compatibility provider until each is migrated and tested.
 
 ## Financial-operation safety
 
