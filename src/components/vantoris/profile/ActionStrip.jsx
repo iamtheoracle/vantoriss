@@ -4,11 +4,9 @@ import { motion } from 'framer-motion';
 import {
   ArrowLeftRight, Download, Upload, Send, FileText, MessageCircle, LifeBuoy, Heart, Sparkles,
 } from 'lucide-react';
-import { useWhatsAppConfig, whatsappLinkFromConfig } from '@/hooks/useWhatsAppConfig';
 
 export default function ActionStrip({ hasAccounts, hasHeroBox, isMember, hasDocuments }) {
   const navigate = useNavigate();
-  const whatsappNumber = useWhatsAppConfig();
 
   const actions = [];
   if (hasAccounts) {
@@ -21,13 +19,13 @@ export default function ActionStrip({ hasAccounts, hasHeroBox, isMember, hasDocu
     actions.push({ id: 'sponsor', label: 'Sponsor', icon: Heart, onClick: () => navigate('/herobox'), color: 'bg-brass/15 text-brass' });
   }
   if (isMember) {
-    actions.push({ id: 'advisor', label: 'Advisor', icon: Sparkles, onClick: () => navigate('/advisor'), color: 'bg-navy/8 text-navy' });
+    actions.push({ id: 'advisor', label: 'AVA', icon: Sparkles, onClick: () => navigate('/ava'), color: 'bg-navy/8 text-navy' });
   }
   if (hasDocuments || hasAccounts) {
     actions.push({ id: 'statements', label: 'Statements', icon: FileText, onClick: () => navigate('/documents'), color: 'bg-navy/8 text-navy' });
   }
   actions.push({ id: 'messages', label: 'Messages', icon: MessageCircle, onClick: () => navigate('/messages'), color: 'bg-navy/8 text-navy' });
-  actions.push({ id: 'support', label: 'Support', icon: LifeBuoy, onClick: () => window.open(whatsappLinkFromConfig(whatsappNumber, 'Hello Vantoris Support, I have a question regarding my account.'), '_blank', 'noopener,noreferrer'), color: 'bg-mint/10 text-mint' });
+  actions.push({ id: 'support', label: 'Support', icon: LifeBuoy, onClick: () => navigate('/messages'), color: 'bg-mint/10 text-mint' });
 
   if (actions.length === 0) return null;
 
