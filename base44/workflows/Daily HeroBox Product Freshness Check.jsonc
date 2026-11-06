@@ -1,6 +1,6 @@
 {
   "name": "Daily AVCU Community Support Catalog Freshness Check",
-  "description": "Daily scheduled workflow that checks HeroBox product catalog freshness, marks stale products, and attempts to refresh from connected commerce providers. If no real provider integration exists, it marks products as needing manual refresh without fabricating data. Requires the productFreshnessCheck backend function (Builder+ plan).",
+  "description": "Daily scheduled workflow that checks AVCU Community Support catalog freshness, marks stale products, and attempts to refresh from connected commerce providers. If no real provider integration exists, it marks products as needing manual refresh without fabricating data. Requires the productFreshnessCheck backend function (Builder+ plan).",
   "trigger": {
     "condition": null,
     "config": {
