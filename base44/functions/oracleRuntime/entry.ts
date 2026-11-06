@@ -165,6 +165,11 @@ export default async function(req) {
             },
           });
           workflowRunId = prepared?.run?.id || null;
+          if (workflowRunId) {
+            await base44.asServiceRole.entities.AssistantRecommendation.update(recommendation.id, {
+              workflow_run_id: workflowRunId,
+            });
+          }
         } catch (workflowError) {
           logger.error('Workflow preparation failed; recommendation remains pending review', {
             recommendationId: recommendation.id,
