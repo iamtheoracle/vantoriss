@@ -49,7 +49,7 @@ export default function DailyEmailSummary() {
 
       const dateStr = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
-      const subject = `Vantoris Daily Summary — ${dateStr}`;
+      const subject = `Atchison Village Credit Union Daily Summary — ${dateStr}`;
       const depositsList = todayDeposits.length > 0
         ? todayDeposits.map(t => `  - ${formatCurrency(Math.abs(t.amount || 0))} · ${t.description || 'Deposit'}`).join('\n')
         : '  (none)';
@@ -87,14 +87,14 @@ TOTAL AUM:         ${formatCurrency(totalAum)}
 
 ═══════════════════════════════════════════════
 
-This is an automated summary generated from the Vantoris Operations Center.
+This is an automated summary generated from the Atchison Village Credit Union Operations Center.
       `.trim();
 
       await base44.integrations.Core.SendEmail({
         to: email,
         subject,
         body,
-        from_name: 'Vantoris Operations',
+        from_name: 'Atchison Village Credit Union Operations',
       });
 
       setResult({ deposits: totalDeposits, depositCount: todayDeposits.length, pendingCount: pendingWithdrawals.length, pendingTotal: totalPendingWithdrawals });
@@ -124,7 +124,7 @@ This is an automated summary generated from the Vantoris Operations Center.
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            placeholder="team@vantoris.com"
+            placeholder="Enter verified operations email"
             className="bg-[#242D38] border border-[#242D38] rounded-xl px-3 py-2 text-white text-sm focus:border-brass/50 focus:outline-none w-56"
           />
           <button
