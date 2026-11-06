@@ -1,30 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
-import { FileText, ArrowUpRight, ShieldCheck, ChevronRight } from 'lucide-react';
+import { FileText, ArrowUpRight, ShieldCheck, ChevronRight, Sparkles } from 'lucide-react';
 
 export default function PendingApprovalsWidget() {
-  const [data, setData] = useState({ apps: 0, withdrawals: 0, verifications: 0, kyc: 0 });
+  const [data, setData] = useState({ apps: 0, withdrawals: 0, verifications: 0, kyc: 0, recommendations: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
     async function load() {
       try {
-        const [apps, withdrawals, verifications] = await Promise.all([
+        const [apps, withdrawals, verifications, recommendations] = await Promise.all([
           base44.entities.Application.list('-created_date', 100),
           base44.entities.WithdrawalRequest.filter({ status: 'pending' }),
           base44.entities.VerificationRequest.filter({ status: 'pending' }),
+          base44.entities.AssistantRecommendation.filter({ status: 'pending' }).catch(() => []),
         ]);
-        setData({
-          apps: apps.filter(a => a.application_status === 'pending').length,
-          withdrawals: withdrawals.length,
-          verifications: verifications.length,
-          kyc: apps.filter(a => a.kyc_status === 'pending').length,
-        });
-      } catch (e) { console.error(e); }
-      setLoading(false);
+        let workflowCount = null;
+        try {
+          const runs = await base44.entities.WorkflowRun.filter({ status: 'pending_approval' });
+          workflowCount = runs.length;
+        } catch {
+          // WorkflowRun is deployed separately from this source change; fall back to recommendation records.
+        }
+        if (mounted) {
+          setData({
+            apps: apps.filter(a => a.application_status === 'pending').length,
+            withdrawals: withdrawals.length,
+            verifications: verifications.length,
+            kyc: apps.filter(a => a.kyc_status === 'pending').length,
+            recommendations: workflowCount ?? recommendations.length,
+          });
+        }
+      } catch (error) {
+        console.error('Pending approvals could not load', error);
+      }
+      if (mounted) setLoading(false);
     }
     load();
+    return () => { mounted = false; };
   }, []);
 
   if (loading) return <div className="vantoris-glass-premium p-5 h-48 vantoris-shimmer rounded-2xl" />;
@@ -34,13 +49,14 @@ export default function PendingApprovalsWidget() {
     { label: 'Withdrawals', count: data.withdrawals, path: '/operations/withdrawals', icon: ArrowUpRight, accent: 'text-crimson' },
     { label: 'Verifications', count: data.verifications, path: '/operations/verification-requests', icon: ShieldCheck, accent: 'text-brass' },
     { label: 'KYC Reviews', count: data.kyc, path: '/operations/kyc', icon: ShieldCheck, accent: 'text-mint' },
+    { label: 'AVA recommendations', count: data.recommendations, path: '/operations/recommendations', icon: Sparkles, accent: 'text-[#8B7650]' },
   ];
-  const total = items.reduce((s, i) => s + i.count, 0);
+  const total = items.reduce((sum, item) => sum + item.count, 0);
 
   return (
     <div className="vantoris-glass-premium p-5">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-foreground font-semibold text-sm">Pending Approvals</h3>
+        <h3 className="text-foreground font-semibold text-sm">Pending Reviews</h3>
         <span className="px-2.5 py-0.5 rounded-full bg-crimson/10 text-crimson text-xs font-bold border border-crimson/20">{total} Total</span>
       </div>
       <div className="space-y-1">
