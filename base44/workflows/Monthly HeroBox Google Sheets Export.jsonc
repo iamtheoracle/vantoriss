@@ -1,6 +1,6 @@
 {
   "name": "Monthly AVCU Community Support Google Sheets Export",
-  "description": "Automatically exports all HeroBox financial transactions to Google Sheets on the 1st of each month for accounting reconciliation.",
+  "description": "Automatically exports AVCU Community Support transactions to Google Sheets on the 1st of each month for accounting reconciliation.",
   "trigger": {
     "condition": null,
     "config": {
