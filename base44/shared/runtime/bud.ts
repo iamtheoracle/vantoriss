@@ -8,7 +8,7 @@
  *   - displays progress
  *   - requests work from AVCU Core
  *
- * Bud does NOT own:
+ * AVA does not own:
  *   - memory, conversation history, capabilities, orchestration,
  *   - permissions, scheduling, auditing
  *
