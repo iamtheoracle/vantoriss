@@ -65,7 +65,7 @@ export default function CheckoutFlow({ cart, onClose, onOrderComplete, packageDa
     return (
       <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4" onClick={onClose}>
         <div className="bg-white rounded-2xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
-          <p className="text-center text-gray text-sm py-8">Your HeroBox is empty.</p>
+          <p className="text-center text-gray text-sm py-8">Your support basket is empty.</p>
           <button onClick={onClose} className="w-full py-3 rounded-xl bg-navy text-white text-sm font-semibold">Browse Products</button>
         </div>
       </div>
