@@ -14,7 +14,7 @@
   },
   "required": ["user_id", "card_type", "last4", "status"],
   "rls": {
-    "create": { "data.user_id": "{{user.id}}" },
+    "create": false,
     "read": {
       "$or": [
         { "data.user_id": "{{user.id}}" },
@@ -36,7 +36,7 @@
         { "user_condition": { "role": "customer_support" } }
       ]
     },
-    "update": { "data.user_id": "{{user.id}}" },
-    "delete": { "data.user_id": "{{user.id}}" }
+    "update": false,
+    "delete": false
   }
 }
