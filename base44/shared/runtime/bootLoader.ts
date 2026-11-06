@@ -24,11 +24,11 @@ import { WorkflowRegistry } from '../registries/WorkflowRegistry.ts';
 import { PolicyRegistry } from '../registries/PolicyRegistry.ts';
 import { EventRegistry } from '../registries/EventRegistry.ts';
 import { ServiceRegistry } from '../registries/ServiceRegistry.ts';
-import { createGuardian } from './guardian.ts';
-import { createNexus } from './nexus.ts';
-import { createSpark } from './spark.ts';
-import { createOrbit } from './orbit.ts';
-import { createOracle } from './oracle.ts';
+import { createTrust } from './guardian.ts';
+import { createCommand } from './nexus.ts';
+import { createIntelligence } from './spark.ts';
+import { createScheduler } from './orbit.ts';
+import { createCore } from './oracle.ts';
 
 export async function boot(base44) {
   const stages = [];
@@ -82,12 +82,19 @@ export async function boot(base44) {
 
   // Stage 5: AI Runtime Boot
   await runStage(stages, 'AIRuntimeBoot', async () => {
-    runtime.guardian = createGuardian(registries);
-    runtime.nexus = createNexus();
-    runtime.spark = createSpark();
-    runtime.orbit = createOrbit(base44);
-    runtime.oracle = createOracle(services, registries, runtime.guardian, runtime.nexus, runtime.spark, runtime.orbit);
-    logger.info('AI runtime initialized');
+    runtime.trust = createTrust(registries);
+    runtime.command = createCommand();
+    runtime.intelligence = createIntelligence();
+    runtime.scheduler = createScheduler(base44);
+    runtime.core = createCore(services, registries, runtime.trust, runtime.command, runtime.intelligence, runtime.scheduler);
+
+    // Temporary internal aliases preserve integrations while downstream consumers migrate.
+    runtime.guardian = runtime.trust;
+    runtime.nexus = runtime.command;
+    runtime.spark = runtime.intelligence;
+    runtime.orbit = runtime.scheduler;
+    runtime.oracle = runtime.core;
+    logger.info('AVCU intelligence runtime initialized');
   });
 
   // Stage 6: Application Boot
