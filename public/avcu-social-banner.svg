@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 520">
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#173D32"/><stop offset="1" stop-color="#102C25"/></linearGradient>
+  <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#F0D9A0"/><stop offset=".5" stop-color="#C5A66A"/><stop offset="1" stop-color="#92713D"/></linearGradient>
+  <radialGradient id="glow"><stop stop-color="#C5A66A" stop-opacity=".22"/><stop offset="1" stop-color="#C5A66A" stop-opacity="0"/></radialGradient>
+</defs>
+<rect width="1600" height="520" rx="32" fill="url(#bg)"/>
+<circle cx="1300" cy="250" r="430" fill="url(#glow)"/>
+<circle cx="1300" cy="250" r="300" fill="none" stroke="#C5A66A" stroke-opacity=".18" stroke-width="2"/>
+<circle cx="1300" cy="250" r="230" fill="none" stroke="#C5A66A" stroke-opacity=".12" stroke-width="2"/>
+<path d="M0 420 650 0M180 520 980 0M760 520 1360 0" stroke="#fff" stroke-opacity=".035" stroke-width="2"/>
+<path d="M250 115 325 85l75 30v58c0 48-28 82-75 103-47-21-75-55-75-103v-58Z" fill="#102C25" stroke="url(#gold)" stroke-width="5"/>
+<path d="M325 101 386 126v47c0 36-21 62-61 82-40-20-61-46-61-82v-47Z" fill="none" stroke="#C5A66A" stroke-width="2"/>
+<path d="m289 208 27-61h11l27 61h-12l-22-49-21 49h-10Zm25-19h30" fill="none" stroke="url(#gold)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="490" y="178" fill="#F7F4EC" font-family="Arial,sans-serif" font-size="66" font-weight="700" letter-spacing="7">ATCHISON VILLAGE</text>
+<text x="494" y="238" fill="#C5A66A" font-family="Arial,sans-serif" font-size="27" font-weight="700" letter-spacing="12">CREDIT UNION</text>
+<path d="M495 284h680" stroke="#C5A66A" stroke-opacity=".45" stroke-width="2"/>
+<text x="495" y="348" fill="#F7F4EC" fill-opacity=".82" font-family="Arial,sans-serif" font-size="30" letter-spacing="1.5">Banking built around your life.</text>
+<text x="495" y="405" fill="#F7F4EC" fill-opacity=".48" font-family="Arial,sans-serif" font-size="18" letter-spacing="4">MEMBER SERVICE · CLARITY · CONFIDENCE</text>
+</svg>
