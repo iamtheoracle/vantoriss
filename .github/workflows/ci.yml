@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+      - feat/atchison-village-unified-rebrand
 
 permissions:
   contents: read
