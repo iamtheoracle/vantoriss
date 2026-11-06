@@ -2,7 +2,7 @@ import React from 'react';
 import { Lock, ArrowRight, CheckCircle2, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useMemberAccess } from '@/hooks/useMemberAccess';
-import VantorisLoading from '@/components/vantoris/system/VantorisLoading';
+import Atchison Village Credit UnionLoading from '@/components/vantoris/system/VantorisLoading';
 
 /**
  * FeatureGate — Wraps account-dependent features. If the member has not been
