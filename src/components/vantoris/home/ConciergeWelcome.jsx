@@ -18,7 +18,7 @@ export default function ConciergeWelcome({
 
   const summaryParts = [
     `${greeting}, ${firstName}.`,
-    `Welcome back to your Atchison Village Credit Union sanctuary.`,
+    `Welcome back to your Atchison Village Credit Union member space.`,
     `Your total vault balance is ${formatCurrency(totalBalance)} across ${accountCount} ${accountCount === 1 ? 'account' : 'accounts'}.`,
     unreadCount > 0 ? `You have ${unreadCount} unread ${unreadCount === 1 ? 'notification' : 'notifications'}.` : 'All notifications are up to date.',
     'Your accounts and requests are ready to review. Enjoy your day.',
