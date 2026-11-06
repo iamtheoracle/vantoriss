@@ -4,6 +4,7 @@ import { ArrowUpRight, CreditCard, ShieldCheck } from 'lucide-react';
 
 const CARD_DESIGNS = [
   { title: 'Everyday Debit', image: '/cards/avcu-everyday-debit.svg', description: 'A clean everyday card design for member spending.' },
+  { title: 'Member Credit', image: '/cards/avcu-member-credit.svg', description: 'A refined member credit card design concept.' },
   { title: 'Virtual Debit', image: '/cards/avcu-virtual-debit.svg', description: 'A digital-first card concept for online and wallet use.' },
   { title: 'Business Debit', image: '/cards/avcu-business-debit.svg', description: 'A distinct design direction for business members.' },
 ];
@@ -27,7 +28,7 @@ export default function CardShowcase({ cards = [] }) {
       {hasActiveCards ? (
         <div className="grid gap-3">
           {cards.slice(0, 2).map(card => {
-            const image = card.card_type === 'virtual' ? CARD_DESIGNS[1].image : CARD_DESIGNS[0].image;
+            const image = card.card_type === 'virtual' ? '/cards/avcu-virtual-debit.svg' : card.card_type === 'credit' ? '/cards/avcu-member-credit.svg' : '/cards/avcu-everyday-debit.svg';
             return (
               <button key={card.id} onClick={() => navigate('/cards')} className="text-left rounded-2xl overflow-hidden border border-border bg-white shadow-sm">
                 <div className="relative">
