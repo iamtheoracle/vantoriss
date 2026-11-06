@@ -10,7 +10,7 @@ const services = [
   { type: 'Joint Account', icon: Users, desc: 'Request a joint account with a co-applicant', color: 'bg-brass/15 text-brass', requiresApproval: true },
   { type: 'Business Account', icon: Building2, desc: 'Request a business checking or savings account', color: 'bg-olive/20 text-emerald-400', requiresApproval: true },
   { type: 'Savings Account', icon: Landmark, desc: 'Open a savings account to earn interest', color: 'bg-blue-500/15 text-blue-400' },
-  { type: 'Debit Card', icon: CreditCard, desc: 'Request a debit card for your account', color: 'bg-purple-500/15 text-purple-400' },
+  { type: 'Card Service Enquiry', icon: CreditCard, desc: 'Ask about card designs, eligibility and issuer availability', color: 'bg-purple-500/15 text-purple-400' },
 ];
 
 export default function Services() {
