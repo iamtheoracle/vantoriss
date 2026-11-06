@@ -104,7 +104,7 @@ export default function DiscoverFeed({ onShop, onDonate, standalone = false }) {
   const hasAnyContent = allOrgs.length > 0 || allCases.length > 0 || allNews.length > 0;
   const title = standalone ? 'Discovery' : 'Community Support';
   const subtitle = standalone ? 'Verified opportunities, needs and humanitarian intelligence.' : 'They are our heroes. We can be theirs too.';
-  const searchPlaceholder = standalone ? 'Search Discovery...' : 'Search HeroBox...';
+  const searchPlaceholder = standalone ? 'Search Discovery...' : 'Search community support...';
 
   return (
     <div className="vantoris-scroll">
