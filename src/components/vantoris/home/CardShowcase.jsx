@@ -40,6 +40,7 @@ export default function CardShowcase({ cards = [] }) {
                   <div>
                     <p className="font-semibold text-sm text-foreground capitalize">{card.card_type || 'Debit'} card</p>
                     <p className="text-xs text-gray mt-0.5">•••• {card.last4 || '••••'}</p>
+                    <p className="text-[10px] text-gray/70 mt-1">Illustrative design · issuer artwork not synced</p>
                   </div>
                   <CreditCard size={18} className="text-[#C5A66A]" />
                 </div>
