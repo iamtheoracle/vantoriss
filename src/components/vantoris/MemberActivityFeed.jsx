@@ -89,7 +89,7 @@ export default function MemberActivityFeed({ memberId }) {
         const isFirst = i === 0;
         return (
           <div key={entry.id || i} className="relative pb-5 last:pb-0">
-            <div className={`absolute -left-[1.45rem] w-7 h-7 rounded-full ${meta.bg} flex items-center justify-center ring-4 ring-[#0E1A2B]`}>
+            <div className={`absolute -left-[1.45rem] w-7 h-7 rounded-full ${meta.bg} flex items-center justify-center ring-4 ring-[#102C25]`}>
               <Icon size={13} className={meta.color} />
             </div>
             <div className={`vantoris-card p-3.5 ${isFirst ? 'border-brass/30' : ''}`}>
