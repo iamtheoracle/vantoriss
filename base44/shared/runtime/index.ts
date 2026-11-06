@@ -1,10 +1,10 @@
 export { logger, createTracer } from './logger.ts';
 export { eventBus } from './eventBus.ts';
 export { CircuitBreaker, withRetry } from './circuitBreaker.ts';
-export { createCore, createOracle } from './oracle.ts';
-export { createCommand, createNexus } from './nexus.ts';
-export { createTrust, createGuardian } from './guardian.ts';
-export { createScheduler, createOrbit } from './orbit.ts';
-export { createIntelligence, createSpark } from './spark.ts';
+export { createCore, createOracle } from './core.ts';
+export { createCommand, createNexus } from './command.ts';
+export { createTrust, createGuardian } from './trust.ts';
+export { createScheduler, createOrbit } from './scheduler.ts';
+export { createIntelligence, createSpark } from './intelligence.ts';
 export { BudContract as AVAContract, BudContract } from './bud.ts';
 export { boot } from './bootLoader.ts';
