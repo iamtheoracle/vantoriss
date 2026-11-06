@@ -15,7 +15,27 @@
   "required": ["user_id", "card_type", "last4", "status"],
   "rls": {
     "create": { "data.user_id": "{{user.id}}" },
-    "read": { "data.user_id": "{{user.id}}" },
+    "read": {
+      "$or": [
+        { "data.user_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "administrator" } },
+        { "user_condition": { "role": "super_administrator" } },
+        { "user_condition": { "role": "operations_officer" } },
+        { "user_condition": { "role": "operations_manager" } },
+        { "user_condition": { "role": "compliance_officer" } },
+        { "user_condition": { "role": "executive" } },
+        { "user_condition": { "role": "finance_officer" } },
+        { "user_condition": { "role": "kyc_officer" } },
+        { "user_condition": { "role": "treasury_officer" } },
+        { "user_condition": { "role": "investment_officer" } },
+        { "user_condition": { "role": "investment_manager" } },
+        { "user_condition": { "role": "auditor" } },
+        { "user_condition": { "role": "risk_officer" } },
+        { "user_condition": { "role": "it_administrator" } },
+        { "user_condition": { "role": "customer_support" } }
+      ]
+    },
     "update": { "data.user_id": "{{user.id}}" },
     "delete": { "data.user_id": "{{user.id}}" }
   }
