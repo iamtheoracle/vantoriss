@@ -1,11 +1,11 @@
 const policies = new Map();
 
-// Default: authenticated users are allowed to use the AI runtime
+// Default: authenticated users receive only baseline reasoning and knowledge capabilities.
 policies.set('default_allow_authenticated', {
   id: 'default_allow_authenticated',
   name: 'Allow Authenticated Users',
   effect: 'allow',
-  actions: ['*'],
+  actions: ['reasoning', 'knowledge'],
   resources: ['*'],
   conditions: { authenticated: true },
   priority: 1,
