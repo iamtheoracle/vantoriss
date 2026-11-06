@@ -2,12 +2,12 @@ import { eventBus } from './eventBus.ts';
 import { logger } from './logger.ts';
 import { CircuitBreaker, withRetry } from './circuitBreaker.ts';
 
-export function createOrbit(base44) {
+export function createScheduler(base44) {
   const breakers = new Map();
 
   return {
     async schedule(job) {
-      logger.debug('Orbit scheduling job', { job: job.name });
+      logger.debug('Scheduler scheduling job', { job: job.name });
 
       const record = await base44.asServiceRole.entities.ScheduledJob.create({
         name: job.name,
@@ -18,7 +18,7 @@ export function createOrbit(base44) {
       });
 
       eventBus.publish({
-        type: 'workflow', source: 'orbit',
+        type: 'workflow', source: 'scheduler',
         payload: { jobId: record.id, name: job.name, status: 'pending' },
       });
 
@@ -47,7 +47,7 @@ export function createOrbit(base44) {
         await base44.asServiceRole.entities.ScheduledJob.update(jobId, { status: 'completed' });
 
         eventBus.publish({
-          type: 'workflow', source: 'orbit',
+          type: 'workflow', source: 'scheduler',
           payload: { jobId, status: 'completed' },
         });
 
@@ -56,7 +56,7 @@ export function createOrbit(base44) {
         await base44.asServiceRole.entities.ScheduledJob.update(jobId, { status: 'failed' });
 
         eventBus.publish({
-          type: 'monitoring', source: 'orbit',
+          type: 'monitoring', source: 'scheduler',
           payload: { jobId, error: error.message },
         });
 
@@ -66,21 +66,21 @@ export function createOrbit(base44) {
 
     async pause(jobId) {
       await base44.asServiceRole.entities.ScheduledJob.update(jobId, { status: 'paused' });
-      eventBus.publish({ type: 'workflow', source: 'orbit', payload: { jobId, status: 'paused' } });
+      eventBus.publish({ type: 'workflow', source: 'scheduler', payload: { jobId, status: 'paused' } });
     },
 
     async resume(jobId) {
       await base44.asServiceRole.entities.ScheduledJob.update(jobId, { status: 'pending' });
-      eventBus.publish({ type: 'workflow', source: 'orbit', payload: { jobId, status: 'resumed' } });
+      eventBus.publish({ type: 'workflow', source: 'scheduler', payload: { jobId, status: 'resumed' } });
     },
 
     async cancel(jobId) {
       await base44.asServiceRole.entities.ScheduledJob.update(jobId, { status: 'cancelled' });
-      eventBus.publish({ type: 'workflow', source: 'orbit', payload: { jobId, status: 'cancelled' } });
+      eventBus.publish({ type: 'workflow', source: 'scheduler', payload: { jobId, status: 'cancelled' } });
     },
 
     async recover(jobId, job) {
-      logger.info('Orbit recovering job', { jobId });
+      logger.info('Scheduler recovering job', { jobId });
       await base44.asServiceRole.entities.ScheduledJob.update(jobId, { status: 'pending' });
       return await this.execute(jobId, job);
     },
