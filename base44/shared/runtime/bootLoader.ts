@@ -122,6 +122,14 @@ export async function boot(base44) {
         details: providerStatus,
       };
     });
+    services.health.register('scheduler', async () => {
+      const schedulerStatus = runtime.scheduler.status();
+      return {
+        service: 'scheduler',
+        status: schedulerStatus.immediateExecutionEnabled && !schedulerStatus.delayedExecutionEnabled ? 'degraded' : 'healthy',
+        details: schedulerStatus,
+      };
+    });
     services.health.register('workflow', async () => ({
       service: 'workflow',
       status: 'wired_unverified',
