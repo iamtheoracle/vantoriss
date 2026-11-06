@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
-import { Users, FileText, ArrowUpRight, Wallet, Briefcase, Activity } from 'lucide-react';
+import { Users, FileText, ArrowUpRight, Wallet, Briefcase, Activity, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
@@ -56,7 +56,7 @@ export default function AdminOverview() {
 
   if (loading) {
     return (
-      <OperationsPageLayout title="Daily Operations" description="Operational dashboard and queue management" icon={Briefcase} breadcrumb="Operations Workspace">
+      <OperationsPageLayout title="Operations Overview" description="Protected staff workspace for member service, review queues and institution controls" icon={Briefcase} breadcrumb="Atchison Village · Operations">
         <VantorisLoading className="h-64" />
       </OperationsPageLayout>
     );
@@ -64,12 +64,26 @@ export default function AdminOverview() {
 
   return (
     <OperationsPageLayout
-      title="Daily Operations"
-      description="Operational dashboard and queue management"
+      title="Operations Overview"
+      description="Protected staff workspace for member service, review queues and institution controls"
       icon={Briefcase}
-      breadcrumb="Operations Workspace"
-      actions={<div className="flex items-center gap-2"><QuickActionsMenu onActionComplete={loadData} /><DailyEmailSummary /></div>}
+      breadcrumb="Atchison Village · Operations"
+      actions={<div className="flex items-center gap-2">
+        <button onClick={() => navigate('/operations/ava')} className="inline-flex items-center gap-2 rounded-xl bg-[#173D32] text-white px-3 py-2 text-xs font-semibold hover:bg-[#102C25] transition-colors"><Sparkles size={14} /> AVA Operations</button>
+        <QuickActionsMenu onActionComplete={loadData} />
+        <DailyEmailSummary />
+      </div>}
     >
+      <section className="relative overflow-hidden rounded-[24px] bg-gradient-to-r from-[#173D32] via-[#204F40] to-[#102C25] p-5 sm:p-6 mb-6 text-white">
+        <div className="absolute -right-12 -top-24 w-64 h-64 rounded-full border border-[#C5A66A]/20" />
+        <div className="absolute -right-3 -top-14 w-44 h-44 rounded-full border border-[#C5A66A]/15" />
+        <div className="relative max-w-3xl">
+          <p className="text-[10px] uppercase tracking-[.18em] text-[#E5D2A8] font-bold">Authorized personnel only</p>
+          <h2 className="text-xl sm:text-2xl font-bold mt-2">The institution, in focus.</h2>
+          <p className="text-sm text-white/75 mt-2 leading-relaxed">Review member activity, service requests and approval queues from this protected operations workspace. Member banking remains in its separate portal.</p>
+        </div>
+      </section>
+
       {/* Today's Operational Summary */}
       <div className="mb-6">
         <TodaysOperationalSummary />
