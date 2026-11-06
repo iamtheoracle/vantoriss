@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { AlertCircle, DollarSign, Save } from 'lucide-react';
+import { AlertCircle, Save } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
 
 const ACCOUNT_TYPES = ['Personal', 'Joint', 'Business', 'Organization'];
