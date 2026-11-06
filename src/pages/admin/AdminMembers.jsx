@@ -206,7 +206,7 @@ export default function AdminMembers() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowInvite(true)}
-            className="flex items-center justify-center gap-1.5 px-4 py-3 bg-brass text-[#0E1A2B] rounded-xl text-xs font-semibold hover:bg-brass/90 transition-all whitespace-nowrap"
+            className="flex items-center justify-center gap-1.5 px-4 py-3 bg-brass text-[#102C25] rounded-xl text-xs font-semibold hover:bg-brass/90 transition-all whitespace-nowrap"
           >
             <UserPlus size={14} /> Invite
           </button>
@@ -346,7 +346,7 @@ export default function AdminMembers() {
       </div>
 
       <Dialog open={!!showCreate} onOpenChange={() => setShowCreate(null)}>
-        <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-md">
+        <DialogContent className="bg-[#102C25] border-[#242D38] max-w-md">
           <DialogHeader>
             <DialogTitle className="text-white">Create Account for {showCreate?.full_name}</DialogTitle>
           </DialogHeader>
@@ -396,7 +396,7 @@ export default function AdminMembers() {
               <button
                 disabled={creating}
                 onClick={handleCreateAccount}
-                className="w-full py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl disabled:opacity-40 flex items-center justify-center gap-2"
+                className="w-full py-3 bg-brass text-[#102C25] font-semibold rounded-xl disabled:opacity-40 flex items-center justify-center gap-2"
               >
                 <Wallet size={16} /> {creating ? 'Creating...' : 'Create Account'}
               </button>
@@ -407,7 +407,7 @@ export default function AdminMembers() {
 
       {/* Admin Notes Dialog */}
       <Dialog open={!!notesMember} onOpenChange={() => setNotesMember(null)}>
-        <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-md">
+        <DialogContent className="bg-[#102C25] border-[#242D38] max-w-md">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <StickyNote size={18} className="text-brass" />
@@ -450,7 +450,7 @@ export default function AdminMembers() {
                   }
                   setSavingNotes(false);
                 }}
-                className="w-full py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl disabled:opacity-40"
+                className="w-full py-3 bg-brass text-[#102C25] font-semibold rounded-xl disabled:opacity-40"
               >
                 {savingNotes ? 'Saving...' : 'Save Notes'}
               </button>
@@ -461,7 +461,7 @@ export default function AdminMembers() {
 
       {/* Activity Timeline Dialog */}
       <Dialog open={!!activityMember} onOpenChange={() => setActivityMember(null)}>
-        <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogContent className="bg-[#102C25] border-[#242D38] max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <History size={18} className="text-brass" />
@@ -480,7 +480,7 @@ export default function AdminMembers() {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
-        <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-md">
+        <DialogContent className="bg-[#102C25] border-[#242D38] max-w-md">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Trash2 size={18} className="text-red-400" /> Delete Member
