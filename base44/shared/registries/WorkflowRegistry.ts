@@ -11,7 +11,7 @@ const builtIns = [
     description: 'Route an AVA action-impacting recommendation to an authorized reviewer.',
     enabled: true,
     approvalRequired: true,
-    requiredApproverRoles: ['admin', 'administrator', 'super_administrator', 'compliance_officer'],
+    requiredApproverRoles: ['admin', 'administrator', 'super_administrator', 'operations_officer', 'operations_manager', 'compliance_officer', 'executive'],
     steps: ['prepare', 'validate_evidence', 'staff_review', 'approval_decision', 'authorized_execution', 'verify_result', 'audit'],
     executionEnabled: false,
   },
