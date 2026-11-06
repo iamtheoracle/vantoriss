@@ -2,7 +2,7 @@ import React from 'react';
 import { Lock, ArrowRight, CheckCircle2, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useMemberAccess } from '@/hooks/useMemberAccess';
-import Atchison Village Credit UnionLoading from '@/components/vantoris/system/VantorisLoading';
+import VantorisLoading from '@/components/vantoris/system/VantorisLoading';
 
 /**
  * FeatureGate — Wraps account-dependent features. If the member has not been
@@ -33,7 +33,7 @@ export default function FeatureGate({ children, featureName = 'This feature' }) 
 
   if (!application) {
     stepLabel = 'Start your application';
-    stepDesc = 'You need an approved Vantoris account to access this feature. Begin your membership application to get started.';
+    stepDesc = 'You need an approved Atchison Village Credit Union account to access this feature. Begin your membership application to get started.';
   } else if (kycNotStarted || kycPending) {
     stepLabel = 'Complete KYC verification';
     stepDesc = 'Your identity verification is pending. Complete KYC to proceed with account opening.';
