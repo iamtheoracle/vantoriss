@@ -6,8 +6,23 @@ export function createScheduler(base44) {
   const breakers = new Map();
 
   return {
+    status() {
+      return {
+        workerConfigured: false,
+        immediateExecutionEnabled: true,
+        delayedExecutionEnabled: false,
+        recoveryEnabled: false,
+      };
+    },
+
     async schedule(job) {
-      logger.debug('Scheduler scheduling job', { job: job.name });
+      if (!job?.name || typeof job.handler !== 'function') {
+        throw new Error('Scheduler requires a registered job name and executable handler');
+      }
+      if (job.schedule && job.schedule !== 'immediate') {
+        throw new Error('Delayed scheduling is unavailable until a durable worker is configured');
+      }
+      logger.debug('Scheduler scheduling immediate job', { job: job.name });
 
       const record = await base44.asServiceRole.entities.ScheduledJob.create({
         name: job.name,
