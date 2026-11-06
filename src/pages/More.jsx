@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { useWhatsAppConfig, whatsappLinkFromConfig } from '@/hooks/useWhatsAppConfig';
-import { User, Bell, Settings, CreditCard, FileText, MessageCircle, Sparkles, Phone, Info, LogOut, ChevronRight, Shield } from 'lucide-react';
+import { User, Bell, Settings, CreditCard, FileText, MessageCircle, Sparkles, Info, LogOut, ChevronRight, Shield } from 'lucide-react';
 import ShieldLogo from '@/components/vantoris/ShieldLogo';
 import { getRoleLabel, isSuperAdmin } from '@/lib/operationsAccess';
 import { getDisplayName, getDisplayInitial } from '@/lib/displayName';
@@ -38,21 +37,21 @@ const SECTIONS = [
     title: 'Support',
     items: [
       { id: 'messages', label: 'Messages', desc: 'Your support conversations', icon: MessageCircle, route: '/messages', color: 'bg-navy/8 text-navy' },
-      { id: 'advisor', label: 'Member Advisor', desc: 'AI banking assistant', icon: Sparkles, route: '/advisor', color: 'bg-brass/10 text-brass' },
-      { id: 'contact', label: 'Contact Support', desc: 'WhatsApp & email support', icon: Phone, external: true, color: 'bg-emerald-500/10 text-emerald-600' },
+      { id: 'ava', label: 'AVA Assistant', desc: 'Your personal credit-union guide', icon: Sparkles, route: '/ava', color: 'bg-brass/10 text-brass' },
+      { id: 'classic', label: 'Classic Assistant', desc: 'Retained legacy conversations', icon: MessageCircle, route: '/assistant', color: 'bg-navy/8 text-navy' },
+      { id: 'contact', label: 'Contact Support', desc: 'Secure in-app member messages', icon: MessageCircle, route: '/messages', color: 'bg-emerald-500/10 text-emerald-600' },
     ],
   },
   {
     title: 'About',
     items: [
-      { id: 'about', label: 'About Vantoris', desc: 'Learn about us', icon: Info, color: 'bg-blue-500/10 text-blue-600' },
+      { id: 'about', label: 'About Atchison Village', desc: 'Learn about your credit union', icon: Info, color: 'bg-blue-500/10 text-blue-600' },
     ],
   },
 ];
 
 export default function More() {
   const navigate = useNavigate();
-  const whatsappNumber = useWhatsAppConfig();
   const [user, setUser] = useState(null);
   const [showAbout, setShowAbout] = useState(false);
 
@@ -61,13 +60,6 @@ export default function More() {
   }, []);
 
   function handleItemClick(item) {
-    if (item.external) {
-      window.open(
-        whatsappLinkFromConfig(whatsappNumber, 'Hello Vantoris Support, I have a question regarding my account.'),
-        '_blank', 'noopener,noreferrer'
-      );
-      return;
-    }
     if (item.id === 'about') {
       setShowAbout(true);
       return;
@@ -129,9 +121,9 @@ export default function More() {
           <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} onClick={e => e.stopPropagation()} className="vantoris-glass-premium w-full sm:max-w-sm p-6 rounded-t-3xl sm:rounded-3xl safe-bottom">
             <div className="text-center">
               <ShieldLogo size={48} className="mx-auto mb-3" />
-              <h3 className="text-foreground font-bold text-lg">VANTORIS</h3>
-              <p className="text-gray text-xs mt-1">Private Banking Solutions</p>
-              <p className="text-gray/60 text-[10px] mt-3 leading-relaxed">A secure, American banking platform providing personal banking, seamless money movement, and dedicated member support.</p>
+              <h3 className="text-foreground font-bold text-lg">ATCHISON VILLAGE</h3>
+              <p className="text-gray text-xs mt-1">CREDIT UNION</p>
+              <p className="text-gray/60 text-[10px] mt-3 leading-relaxed">Atchison Village Credit Union brings member accounts, card services and support together in one secure experience. Service availability depends on eligibility and verified provider connections.</p>
               <button onClick={() => setShowAbout(false)} className="mt-5 w-full py-2.5 bg-brass text-white font-semibold rounded-xl text-sm hover:bg-brass/90 transition-all">Close</button>
             </div>
           </motion.div>
