@@ -19,7 +19,7 @@ export default function ProfileHeader({ user, application, profileCompletion, ba
   const sinceDate = sinceRaw
     ? new Date(/^\d{4}-\d{2}-\d{2}$/.test(String(sinceRaw)) ? `${sinceRaw}T12:00:00` : sinceRaw)
     : null;
-  const memberSince = sinceDate && !isNaN(sinceDate)
+  const memberSince = sinceDate && !Number.isNaN(sinceDate.getTime())
     ? sinceDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short' })
     : null;
 
