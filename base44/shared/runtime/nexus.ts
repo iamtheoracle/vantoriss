@@ -85,3 +85,6 @@ export function createCommand() {
     },
   };
 }
+
+// Deprecated compatibility export; new AVCU code should use createCommand.
+export const createNexus = createCommand;
