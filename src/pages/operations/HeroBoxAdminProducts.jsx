@@ -63,7 +63,7 @@ export default function HeroBoxAdminProducts() {
         <div className="vantoris-glass p-12 text-center">
           <Package size={32} className="text-gray mx-auto mb-3" />
           <p className="text-gray">No products in the catalog.</p>
-          <p className="text-xs text-gray mt-2">Add products to enable HeroBox care-commerce.</p>
+          <p className="text-xs text-gray mt-2">Add products to enable the community support catalog.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
