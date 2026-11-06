@@ -102,3 +102,6 @@ export function createCore(services, registries, trust, command, intelligence, s
     getRegistries() { return registries; },
   };
 }
+
+// Deprecated compatibility export; new AVCU code should use createCore.
+export const createOracle = createCore;
