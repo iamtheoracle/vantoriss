@@ -42,7 +42,7 @@ export default function SecurityPinModal({ open, onVerified, onClose, title = 'S
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-sm">
+      <DialogContent className="bg-[#102C25] border-[#242D38] max-w-sm">
         <DialogHeader>
           <div className="flex items-center gap-3 mb-1">
             <div className="w-10 h-10 rounded-full bg-brass/15 flex items-center justify-center">
@@ -78,7 +78,7 @@ export default function SecurityPinModal({ open, onVerified, onClose, title = 'S
         <button
           onClick={handleVerify}
           disabled={pin.length < 6 || verifying}
-          className="w-full mt-4 py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl hover:bg-brass/90 transition-all disabled:opacity-40"
+          className="w-full mt-4 py-3 bg-brass text-[#102C25] font-semibold rounded-xl hover:bg-brass/90 transition-all disabled:opacity-40"
         >
           {verifying ? (
             <span className="flex items-center justify-center gap-2">
