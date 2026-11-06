@@ -2,16 +2,16 @@ import { eventBus } from './eventBus.ts';
 import { logger } from './logger.ts';
 import { routeSpecialist, getSpecialistPrompt, getRequiredApprover, shouldEscalate } from './specialists.ts';
 
-export function createNexus() {
+export function createCommand() {
   return {
     async orchestrate(request, services, registries) {
-      logger.debug('Nexus orchestrating', { requestId: request.id });
+      logger.debug('Command orchestrating', { requestId: request.id });
 
       // === Specialist Routing ===
       // The unified assistant transparently routes to the appropriate specialist.
       // The member never chooses which assistant to use.
       const routing = routeSpecialist(request.message);
-      logger.info('Nexus routed to specialist', {
+      logger.info('Command routed to specialist', {
         requestId: request.id,
         specialist: routing.specialist,
         confidence: routing.confidence,
@@ -57,7 +57,7 @@ export function createNexus() {
       const escalate = shouldEscalate(routing, hasConflictingEvidence);
 
       eventBus.publish({
-        type: 'workflow', source: 'nexus',
+        type: 'workflow', source: 'command',
         payload: {
           requestId: request.id,
           specialist: routing.specialist,
