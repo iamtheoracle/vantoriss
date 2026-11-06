@@ -24,11 +24,11 @@ import { WorkflowRegistry } from '../registries/WorkflowRegistry.ts';
 import { PolicyRegistry } from '../registries/PolicyRegistry.ts';
 import { EventRegistry } from '../registries/EventRegistry.ts';
 import { ServiceRegistry } from '../registries/ServiceRegistry.ts';
-import { createTrust } from './guardian.ts';
-import { createCommand } from './nexus.ts';
-import { createIntelligence } from './spark.ts';
-import { createScheduler } from './orbit.ts';
-import { createCore } from './oracle.ts';
+import { createTrust } from './trust.ts';
+import { createCommand } from './command.ts';
+import { createIntelligence } from './intelligence.ts';
+import { createScheduler } from './scheduler.ts';
+import { createCore } from './core.ts';
 
 export async function boot(base44) {
   const stages = [];
