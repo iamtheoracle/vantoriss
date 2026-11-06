@@ -18,7 +18,7 @@ The unified Atchison Village Credit Union application combines the full member a
 - **Spark** performs model-backed reasoning through the server-side model service.
 - **Orbit** handles deferred jobs.
 - **Classic Assistant** is retained as a restricted compatibility experience for older conversations.
-- The provider-independent model gateway is preferred when configured. Base44 `InvokeLLM` remains available as a compatibility provider; its old route is not deleted.
+- The provider-independent model gateway is preferred when configured. Base44 `InvokeLLM` remains available as the Classic compatibility provider; its old route is not deleted.
 
 Provider credentials must remain in backend secrets. The gateway reads:
 - `AVCU_MODEL_GATEWAY_URL` (or `AVCU_AI_GATEWAY_URL`)
