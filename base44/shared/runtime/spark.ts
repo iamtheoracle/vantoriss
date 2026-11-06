@@ -2,19 +2,19 @@ import { eventBus } from './eventBus.ts';
 import { logger } from './logger.ts';
 import { CircuitBreaker, withRetry } from './circuitBreaker.ts';
 
-export function createSpark() {
+export function createIntelligence() {
   const breaker = new CircuitBreaker({ failureThreshold: 3, resetTimeoutMs: 60000 });
 
   return {
     async reason(request, orchestration, services) {
-      logger.debug('Spark reasoning', { requestId: request.id });
+      logger.debug('Intelligence reasoning', { requestId: request.id });
 
       const model = orchestration.model?.name || 'automatic';
       const promptTemplate = orchestration.prompt?.template || 'You are a helpful assistant.';
       const routing = orchestration.routing;
       const isActionImpacting = routing?.isActionImpacting || false;
 
-      // Build context from platform services (Spark does NOT own these)
+      // Build context from platform services (Intelligence does NOT own these)
       const memory = orchestration.context?.memory;
       const history = orchestration.context?.history || [];
 
@@ -49,7 +49,7 @@ export function createSpark() {
       }
 
       eventBus.publish({
-        type: 'request', source: 'spark', target: 'modelService',
+        type: 'request', source: 'intelligence', target: 'modelService',
         payload: { requestId: request.id, model, structured: isActionImpacting },
       });
 
@@ -63,7 +63,7 @@ export function createSpark() {
         );
 
         eventBus.publish({
-          type: 'response', source: 'spark', target: 'oracle',
+          type: 'response', source: 'intelligence', target: 'oracle',
           payload: { requestId: request.id, model, structured: isActionImpacting },
         });
 
@@ -86,7 +86,7 @@ export function createSpark() {
           metadata: { model, specialist: routing?.specialist, structured: isActionImpacting },
         };
       } catch (error) {
-        logger.error('Spark reasoning failed', { requestId: request.id, error: error.message });
+        logger.error('Intelligence reasoning failed', { requestId: request.id, error: error.message });
         return {
           content: 'I apologize, but I encountered an issue processing your request. Please try again.',
           metadata: { error: error.message, model },
