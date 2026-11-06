@@ -28,7 +28,7 @@ function extractText(payload) {
   return '';
 }
 
-function parseStructured(text, schema) {
+function parseStructured(text) {
   const raw = String(text || '').trim().replace(/^\`\`\`(?:json)?\s*/i, '').replace(/\s*\`\`\`$/, '');
   let parsed;
   try { parsed = JSON.parse(raw); } catch { throw new Error('Model gateway returned invalid structured JSON'); }
@@ -66,7 +66,7 @@ export function createModelGateway(base44) {
     if (!response.ok) throw new Error(payload?.error?.message || payload?.error || `Model gateway HTTP ${response.status}`);
     const text = extractText(payload);
     if (!text.trim()) throw new Error('Model gateway returned an empty response');
-    return responseJsonSchema ? parseStructured(text, responseJsonSchema) : text;
+    return responseJsonSchema ? parseStructured(text) : text;
   }
 
   async function invokeLegacy({ prompt, model = 'automatic', responseJsonSchema, addContextFromInternet, fileUrls }) {
