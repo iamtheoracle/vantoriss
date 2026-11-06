@@ -108,4 +108,5 @@ export function createIntelligence() {
   };
 }
 
-
+// Deprecated compatibility export for existing integrations.
+export const createSpark = createIntelligence;
