@@ -97,7 +97,7 @@ export default function ResponseTemplates() {
     <OperationsPageLayout title="Response Templates" description="Manage pre-written responses for KYC, accounts, and more" icon={MessageSquare}>
       <button
         onClick={handleNew}
-        className="flex items-center gap-2 px-4 py-2.5 bg-brass text-[#0E1A2B] rounded-xl text-sm font-semibold hover:bg-brass/90 transition-all mb-6"
+        className="flex items-center gap-2 px-4 py-2.5 bg-brass text-[#102C25] rounded-xl text-sm font-semibold hover:bg-brass/90 transition-all mb-6"
       >
         <Plus size={16} /> New Template
       </button>
@@ -147,7 +147,7 @@ export default function ResponseTemplates() {
       </div>
 
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-2xl">
+        <DialogContent className="bg-[#102C25] border-[#242D38] max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-white">{editingId ? 'Edit Template' : 'New Response Template'}</DialogTitle>
           </DialogHeader>
@@ -189,7 +189,7 @@ export default function ResponseTemplates() {
               <button
                 onClick={handleSave}
                 disabled={!form.title.trim() || !form.body.trim() || submitting}
-                className="flex-1 py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl disabled:opacity-40"
+                className="flex-1 py-3 bg-brass text-[#102C25] font-semibold rounded-xl disabled:opacity-40"
               >
                 {submitting ? 'Saving...' : editingId ? 'Update' : 'Create'}
               </button>
