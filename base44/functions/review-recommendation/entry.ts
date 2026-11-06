@@ -114,27 +114,35 @@ Deno.serve(async (req) => {
       }
     }
 
-    await base44.asServiceRole.entities.AuditLog.create({
-      user_id: user.id,
-      admin_name: displayName,
-      target_user_id: rec.user_id,
-      action_type: decision === 'approved' ? 'workflow_approved' : 'workflow_rejected',
-      description: `Assistant recommendation ${decision}; no financial action executed.`,
-      details: JSON.stringify({
-        recommendation_id: recommendationId,
-        workflow_run_id: rec.workflow_run_id || null,
-        decision,
-        reviewer_role: user.role,
-        notes,
-        execution_enabled: false,
-      }),
-    });
+    let auditLogged = false;
+    try {
+      await base44.asServiceRole.entities.AuditLog.create({
+        user_id: user.id,
+        admin_name: displayName,
+        target_user_id: rec.user_id,
+        action_type: decision === 'approved' ? 'workflow_approved' : 'workflow_rejected',
+        description: `Assistant recommendation ${decision}; no financial action executed.`,
+        details: JSON.stringify({
+          recommendation_id: recommendationId,
+          workflow_run_id: rec.workflow_run_id || null,
+          decision,
+          reviewer_role: user.role,
+          notes,
+          execution_enabled: false,
+        }),
+      });
+      auditLogged = true;
+    } catch (auditError) {
+      console.error('Review decision was recorded but audit write failed', auditError?.message || 'unknown');
+    }
 
     return Response.json({
       success: true,
       recommendationId,
       status: decision,
       reviewedAt: now,
+      auditLogged,
+      warning: auditLogged ? null : 'The review decision was recorded, but the audit log write failed and needs staff follow-up.',
       executionEnabled: false,
       message: 'Review decision recorded. No financial or account operation was executed.',
     });
