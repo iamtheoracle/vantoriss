@@ -57,4 +57,5 @@ export function createTrust(registries) {
   };
 }
 
-
+// Deprecated compatibility export for existing integrations.
+export const createGuardian = createTrust;
