@@ -1,7 +1,7 @@
 import { eventBus } from './eventBus.ts';
 import { logger } from './logger.ts';
 
-export function createTrust(registries) {
+export function createTrust(registries, auditService = null) {
   // DENY by default — no implicit allow policy
   const DEFAULT_DECISION = { effect: 'deny', reason: 'No matching allow policy found' };
 
@@ -44,15 +44,26 @@ export function createTrust(registries) {
     },
 
     async _audit(request, decision, policyName) {
-      eventBus.publish({
-        type: 'security', source: 'trust',
-        payload: {
-          requestId: request.id,
-          userId: request.userId,
-          decision,
-          policy: policyName,
-        },
-      });
+      const details = {
+        requestId: request.id,
+        userId: request.userId,
+        decision,
+        policy: policyName,
+      };
+
+      // Persist the authorization decision before returning it to Core.
+      // If durable audit storage fails, authorization fails closed.
+      if (auditService?.log) {
+        await auditService.log({
+          actionType: 'trust_authorization',
+          description: `Trust ${decision}: ${policyName}`,
+          details: JSON.stringify(details),
+          actorId: request.userId,
+          targetUserId: request.userId,
+        });
+      }
+
+      eventBus.publish({ type: 'security', source: 'trust', payload: details });
     },
   };
 }
