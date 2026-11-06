@@ -332,7 +332,7 @@ export default function VerificationRequests() {
 
       {/* Review Dialog */}
       <Dialog open={!!selected} onOpenChange={() => setSelected(null)}>
-        <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-lg">
+        <DialogContent className="bg-[#102C25] border-[#242D38] max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-white">Review Funding Submission</DialogTitle>
           </DialogHeader>
