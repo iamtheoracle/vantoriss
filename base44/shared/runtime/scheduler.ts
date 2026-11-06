@@ -98,4 +98,5 @@ export function createScheduler(base44) {
   };
 }
 
-
+// Deprecated compatibility export for existing integrations.
+export const createOrbit = createScheduler;
