@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import Atchison VillageMonogram, { ATCHISON VILLAGE_COLORS } from '@/components/vantoris/brand/Atchison VillageMonogram';
-import Atchison VillageLogo from '@/components/vantoris/brand/Atchison VillageLogo';
-import Atchison VillageSeal from '@/components/vantoris/brand/Atchison VillageSeal';
-import Atchison VillageAppIcon from '@/components/vantoris/brand/Atchison VillageAppIcon';
+import VantorisMonogram, { VANTORIS_COLORS } from '@/components/vantoris/brand/VantorisMonogram';
+import VantorisLogo from '@/components/vantoris/brand/VantorisLogo';
+import VantorisSeal from '@/components/vantoris/brand/VantorisSeal';
+import VantorisAppIcon from '@/components/vantoris/brand/VantorisAppIcon';
 
 const PALETTE = [
   { name: 'Forest Green', hex: '#173D32', role: 'Primary', text: '#F7F4EC' },
@@ -54,7 +54,7 @@ export default function BrandIdentity() {
         >
           <div className="absolute inset-0 opacity-30" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(46,91,255,0.4) 0%, transparent 60%)' }} />
           <div className="relative z-10 flex flex-col items-center gap-6">
-            <Atchison VillageLogo layout="vertical" size={88} variant="metallic" theme="dark" showTagline />
+            <VantorisLogo layout="vertical" size={88} variant="metallic" theme="dark" showTagline />
             <p className="text-white/60 text-sm max-w-md leading-relaxed">
               A timeless brand identity for a world-class private financial institution —
               engineered with precision, restraint, and institutional confidence.
@@ -66,11 +66,11 @@ export default function BrandIdentity() {
         <Section title="Primary Logo" subtitle="01 — Core Identity" dark>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Card dark>
-              <Atchison VillageLogo layout="horizontal" size={44} variant="metallic" theme="dark" showTagline />
+              <VantorisLogo layout="horizontal" size={44} variant="metallic" theme="dark" showTagline />
               <span className="text-white/40 text-xs">Horizontal · Metallic · Dark</span>
             </Card>
             <Card dark>
-              <Atchison VillageLogo layout="horizontal" size={44} variant="flat" theme="dark" />
+              <VantorisLogo layout="horizontal" size={44} variant="flat" theme="dark" />
               <span className="text-white/40 text-xs">Horizontal · Flat · Dark</span>
             </Card>
           </div>
@@ -85,7 +85,7 @@ export default function BrandIdentity() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
             {VARIANTS.map((v) => (
               <Card key={v} dark={v === 'glass' || v === 'metallic' || v === 'foil' || v === 'embossed'}>
-                <Atchison VillageMonogram size={56} variant={v} theme={v === 'glass' || v === 'metallic' || v === 'foil' || v === 'embossed' ? 'dark' : 'light'} />
+                <VantorisMonogram size={56} variant={v} theme={v === 'glass' || v === 'metallic' || v === 'foil' || v === 'embossed' ? 'dark' : 'light'} />
                 <span className={`text-xs capitalize ${v === 'glass' || v === 'metallic' || v === 'foil' || v === 'embossed' ? 'text-white/40' : 'text-slate-400'}`}>{v}</span>
               </Card>
             ))}
@@ -93,7 +93,7 @@ export default function BrandIdentity() {
 
           {/* Interactive viewer */}
           <div className="rounded-2xl bg-[#102C25] p-8 flex flex-col items-center gap-5">
-            <Atchison VillageMonogram size={120} variant={selectedVariant} theme="dark" />
+            <VantorisMonogram size={120} variant={selectedVariant} theme="dark" />
             <div className="flex flex-wrap justify-center gap-2">
               {VARIANTS.map((v) => (
                 <button
@@ -114,28 +114,28 @@ export default function BrandIdentity() {
         <Section title="Logo System" subtitle="03 — Lockups & Treatments">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Card>
-              <Atchison VillageLogo layout="horizontal" size={40} variant="flat" theme="light" />
+              <VantorisLogo layout="horizontal" size={40} variant="flat" theme="light" />
               <span className="text-slate-400 text-xs">Horizontal · Light</span>
             </Card>
             <Card dark>
-              <Atchison VillageLogo layout="horizontal" size={40} variant="flat" theme="dark" />
+              <VantorisLogo layout="horizontal" size={40} variant="flat" theme="dark" />
               <span className="text-white/40 text-xs">Horizontal · Dark</span>
             </Card>
             <Card>
-              <Atchison VillageLogo layout="vertical" size={48} variant="metallic" theme="light" showTagline />
+              <VantorisLogo layout="vertical" size={48} variant="metallic" theme="light" showTagline />
               <span className="text-slate-400 text-xs">Vertical · With Tagline</span>
             </Card>
             <Card dark>
-              <Atchison VillageLogo layout="vertical" size={48} variant="metallic" theme="dark" showTagline />
+              <VantorisLogo layout="vertical" size={48} variant="metallic" theme="dark" showTagline />
               <span className="text-white/40 text-xs">Vertical · Dark</span>
             </Card>
             <Card>
-              <Atchison VillageMonogram size={64} variant="flat" theme="light" />
+              <VantorisMonogram size={64} variant="flat" theme="light" />
               <span className="text-slate-400 text-xs">Standalone Monogram</span>
             </Card>
             <Card dark className="relative overflow-hidden">
-              <Atchison VillageLogo layout="watermark" size={80} variant="metallic" theme="dark" className="absolute inset-0 flex items-center justify-center" />
-              <Atchison VillageMonogram size={64} variant="glass" theme="dark" />
+              <VantorisLogo layout="watermark" size={80} variant="metallic" theme="dark" className="absolute inset-0 flex items-center justify-center" />
+              <VantorisMonogram size={64} variant="glass" theme="dark" />
               <span className="text-white/40 text-xs relative z-10">Watermark + Glass</span>
             </Card>
           </div>
@@ -146,7 +146,7 @@ export default function BrandIdentity() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[32, 48, 72, 120].map((s) => (
               <Card key={s}>
-                <Atchison VillageAppIcon size={s} />
+                <VantorisAppIcon size={s} />
                 <span className="text-slate-400 text-xs">{s}px</span>
               </Card>
             ))}
@@ -157,11 +157,11 @@ export default function BrandIdentity() {
         <Section title="Executive Seal" subtitle="05 — Institutional Mark">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Card>
-              <Atchison VillageSeal size={180} theme="light" />
+              <VantorisSeal size={180} theme="light" />
               <span className="text-slate-400 text-xs">Light Seal</span>
             </Card>
             <Card dark>
-              <Atchison VillageSeal size={180} theme="dark" />
+              <VantorisSeal size={180} theme="dark" />
               <span className="text-white/40 text-xs">Dark Seal</span>
             </Card>
           </div>
@@ -206,19 +206,19 @@ export default function BrandIdentity() {
             {/* Debit Card */}
             <div className="relative rounded-2xl p-5 h-44 overflow-hidden" style={{ background: 'linear-gradient(135deg, #102C25 0%, #173D32 100%)' }}>
               <div className="flex justify-between items-start">
-                <Atchison VillageMonogram size={32} variant="metallic" theme="dark" />
+                <VantorisMonogram size={32} variant="metallic" theme="dark" />
                 <div className="w-9 h-7 rounded-md" style={{ background: 'linear-gradient(135deg, #B5945A, #C5A66A)' }} />
               </div>
               <p className="text-white/80 font-mono text-[11px] mt-8 tracking-widest">•••• •••• •••• ••••</p>
               <p className="text-white/50 text-[9px] uppercase tracking-widest mt-2">MEMBER · DEBIT</p>
               <div className="absolute bottom-3 right-4">
-                <Atchison VillageLogo layout="horizontal" size={16} variant="flat" theme="dark" />
+                <VantorisLogo layout="horizontal" size={16} variant="flat" theme="dark" />
               </div>
             </div>
 
             {/* Statement Header */}
             <div className="rounded-2xl bg-white p-5 h-44 border border-slate-200">
-              <Atchison VillageLogo layout="horizontal" size={22} variant="flat" theme="light" showTagline />
+              <VantorisLogo layout="horizontal" size={22} variant="flat" theme="light" showTagline />
               <div className="mt-4 h-px bg-slate-200" />
               <p className="text-[9px] text-slate-400 uppercase tracking-widest mt-3">Quarterly Statement</p>
               <div className="mt-3 space-y-1.5">
@@ -230,7 +230,7 @@ export default function BrandIdentity() {
 
             {/* Business Card */}
             <div className="rounded-2xl bg-white p-5 h-44 border border-slate-200 flex flex-col justify-between">
-              <Atchison VillageMonogram size={28} variant="metallic" theme="light" />
+              <VantorisMonogram size={28} variant="metallic" theme="light" />
               <div>
                 <p className="text-[#102C25] font-semibold text-sm">Member Name</p>
                 <p className="text-slate-500 text-[10px] uppercase tracking-widest">Member Services</p>
@@ -242,7 +242,7 @@ export default function BrandIdentity() {
 
         {/* Footer */}
         <div className="text-center py-10">
-          <Atchison VillageMonogram size={36} variant="flat" theme="light" className="mx-auto" />
+          <VantorisMonogram size={36} variant="flat" theme="light" className="mx-auto" />
           <p className="text-slate-400 text-xs mt-4 tracking-widest uppercase">Atchison Village Credit Union Identity System</p>
           <p className="text-slate-300 text-[10px] mt-1">Trust · Structure · Purpose</p>
         </div>
