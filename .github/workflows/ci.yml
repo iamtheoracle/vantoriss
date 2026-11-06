@@ -51,7 +51,7 @@ jobs:
           deno-version: v2.x
 
       - name: Check backend TypeScript modules
-        run: deno check base44/shared/runtime/guardian.ts base44/shared/registries/WorkflowRegistry.ts base44/shared/services/ModelGateway.ts base44/shared/services/ModelService.ts base44/shared/services/WorkflowService.ts base44/functions/oracleRuntime/entry.ts base44/functions/review-recommendation/entry.ts
+        run: deno check --node-modules-dir=auto base44/shared/runtime/guardian.ts base44/shared/registries/WorkflowRegistry.ts base44/shared/services/ModelGateway.ts base44/shared/services/ModelService.ts base44/shared/services/WorkflowService.ts base44/functions/oracleRuntime/entry.ts base44/functions/review-recommendation/entry.ts
 
       - name: Test Guardian and workflow registry
         run: deno test base44/shared/runtime/guardian.test.ts base44/shared/registries/WorkflowRegistry.test.ts
