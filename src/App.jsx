@@ -21,6 +21,7 @@ const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = React.lazy(() => import('./pages/ResetPassword'));
 
 const Home = React.lazy(() => import('./pages/Home'));
+const AVA = React.lazy(() => import('./pages/AVA'));
 const Apply = React.lazy(() => import('./pages/Apply'));
 const ApplyKYC = React.lazy(() => import('./pages/ApplyKYC'));
 const Accounts = React.lazy(() => import('./pages/Accounts'));
@@ -151,6 +152,7 @@ const AuthenticatedApp = () => {
               <Route path="/more" element={<More />} />
               <Route path="/dispute" element={<TransactionDispute />} />
               <Route path="/assistant" element={<VantorisAssistant />} />
+              <Route path="/ava" element={<AVA />} />
               <Route path="/herobox" element={<HeroBox />} />
               <Route path="/investment" element={<Investment />} />
               <Route path="/travel" element={<Travel />} />
