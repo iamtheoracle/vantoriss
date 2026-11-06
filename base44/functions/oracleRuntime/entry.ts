@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.57';
 import { boot } from '../../shared/runtime/bootLoader.ts';
 import { logger } from '../../shared/runtime/logger.ts';
 
