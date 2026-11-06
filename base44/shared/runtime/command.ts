@@ -86,4 +86,5 @@ export function createCommand() {
   };
 }
 
-
+// Deprecated compatibility export for existing integrations.
+export const createNexus = createCommand;
