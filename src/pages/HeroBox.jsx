@@ -67,7 +67,7 @@ export default function HeroBox() {
   if (loading) return <div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin text-brass" /></div>;
 
   if (!profile) {
-    return <div className="px-5 pt-6 min-h-screen"><div className="vantoris-glass-premium p-8 text-center"><Heart size={32} className="text-brass mx-auto mb-4" /><h2 className="text-xl font-bold text-foreground mb-2">Community Support is temporarily unavailable</h2><p className="text-gray text-sm leading-relaxed">We could not initialize your HeroBox membership. Please refresh and try again.</p></div></div>;
+    return <div className="px-5 pt-6 min-h-screen"><div className="vantoris-glass-premium p-8 text-center"><Heart size={32} className="text-brass mx-auto mb-4" /><h2 className="text-xl font-bold text-foreground mb-2">Community Support is temporarily unavailable</h2><p className="text-gray text-sm leading-relaxed">We could not initialize your Community Support profile. Please refresh and try again.</p></div></div>;
   }
 
   const cartCount = cart.reduce((s, c) => s + c.quantity, 0);
