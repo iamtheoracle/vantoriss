@@ -1,13 +1,13 @@
 import { eventBus } from './eventBus.ts';
 import { logger } from './logger.ts';
 
-export function createGuardian(registries) {
+export function createTrust(registries) {
   // DENY by default — no implicit allow policy
   const DEFAULT_DECISION = { effect: 'deny', reason: 'No matching allow policy found' };
 
   return {
     async authorize(request) {
-      logger.debug('Guardian evaluating request', { requestId: request.id, userId: request.userId });
+      logger.debug('Trust evaluating request', { requestId: request.id, userId: request.userId });
 
       // Get policies sorted by priority (highest first)
       const policies = registries.policy.list();
@@ -45,7 +45,7 @@ export function createGuardian(registries) {
 
     async _audit(request, decision, policyName) {
       eventBus.publish({
-        type: 'security', source: 'guardian',
+        type: 'security', source: 'trust',
         payload: {
           requestId: request.id,
           userId: request.userId,
