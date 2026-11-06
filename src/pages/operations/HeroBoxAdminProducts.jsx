@@ -50,7 +50,7 @@ export default function HeroBoxAdminProducts() {
 
   return (
     <OperationsPageLayout
-      title="HeroBox Products"
+      title="Community Support Catalog"
       description="Manage the care-commerce product catalog"
       icon={Package}
       actions={
