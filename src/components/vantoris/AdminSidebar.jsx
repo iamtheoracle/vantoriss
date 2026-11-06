@@ -13,6 +13,7 @@ import {
   Shield, Package, Heart, Headphones, PieChart, Coins, Signal,
 } from 'lucide-react';
 import ShieldLogo from './ShieldLogo';
+import VantorisLogo from './brand/VantorisLogo';
 import {
   getDomainsForRole, hasDomainAccess, getDefaultWorkspace,
   WORKSPACE_LABELS, getRoleLabel, isSuperAdmin,
@@ -236,10 +237,10 @@ export default function AdminSidebar({ user, activeWorkspace, onWorkspaceChange,
     <aside className="vantoris-glass-sidebar flex flex-col h-full w-64" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
       {/* Brand header */}
       <div className="px-5 py-4 flex items-center gap-3 flex-shrink-0 border-b border-slate-200" style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 1rem)' }}>
-        <ShieldLogo size={32} />
+        <VantorisLogo size={34} variant="metallic" theme="light" />
         <div className="min-w-0 flex-1">
-          <h1 className="text-foreground font-bold text-base tracking-[0.2em] leading-tight">VANTORIS</h1>
-          <p className="text-gray/60 text-[9px] tracking-[0.18em] uppercase font-medium">Command Center</p>
+          <p className="text-foreground font-bold text-[11px] tracking-[0.08em] leading-tight">ATCHISON VILLAGE</p>
+          <p className="text-gray/60 text-[9px] tracking-[0.14em] uppercase font-medium">Credit Union · Operations</p>
         </div>
         {onHide && (
           <button
