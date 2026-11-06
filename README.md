@@ -22,7 +22,7 @@ The unified Atchison Village Credit Union application combines the full member a
 
 Provider credentials must remain in backend secrets. The gateway reads:
 - `AVCU_MODEL_GATEWAY_URL` (or `AVCU_AI_GATEWAY_URL`)
-- `AVCU_MODEL_GATEWAY_API_KEY`
+- `AVCU_MODEL_GATEWAY_API_KEY` (or `AVCU_AI_GATEWAY_API_KEY`)
 - `AVCU_MODEL_GATEWAY_MODEL`
 - `AVCU_LEGACY_LLM_FALLBACK` (set to `false` to disable fallback)
 
@@ -48,6 +48,8 @@ npm run build
 ```
 
 Base44 backend resources live under `base44/`. Follow the Base44 project workflow before deploying entities, functions, agents or site changes.
+
+The branch CI blocks on changed-file lint, production build and Guardian/workflow runtime tests. Full-repository lint and the existing app typecheck are report-only while the pre-existing backlog is remediated; a green build does not mean those backlogs are clean.
 
 ## Repository consolidation
 
