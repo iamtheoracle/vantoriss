@@ -9,11 +9,11 @@ import { getMessageKey, isStarred, toggleStar } from '@/lib/starredMessages';
 import { useToast } from '@/components/ui/use-toast';
 
 const COLORS = {
-  container: '#F8FAFC',
+  container: '#F7F4EC',
   sidebar: '#FFFFFF',
-  surface: '#F1F5F9',
+  surface: '#F2F0E8',
   surfaceSent: '#173D32',
-  border: '#173D32 0.08)',
+  border: 'rgba(23, 61, 50, 0.08)',
   textPrimary: '#173D32',
   textSecondary: '#64748B',
   accent: '#C5A66A',
