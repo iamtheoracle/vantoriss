@@ -141,7 +141,7 @@ export default function ConciergeWelcome({
             >
               <p className="text-brass text-xs uppercase tracking-[0.25em] font-semibold mb-2">{greeting}</p>
               <h1 className="text-white text-3xl font-bold tracking-tight mb-1">{firstName}</h1>
-              <p className="text-white/50 text-sm">Welcome to your Vantoris sanctuary</p>
+              <p className="text-white/50 text-sm">Welcome to your Atchison Village member space</p>
             </motion.div>
 
             {/* Summary chips */}
