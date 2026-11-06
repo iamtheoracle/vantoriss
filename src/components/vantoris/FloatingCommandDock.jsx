@@ -23,7 +23,7 @@ import {
 
 const EDGE_MARGIN = 16;      // min distance from viewport edge (px)
 const DRAG_THRESHOLD = 6;    // px movement before a press counts as a drag
-const STORAGE_KEY = 'avcu.quickAction.pos';
+const STORAGE_KEY = 'vantoris.quickAction.pos';
 const BOTTOM_NAV_RESERVE = 84; // keep clear of the bottom navigation
 
 function haptic(ms = 8) {
