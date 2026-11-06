@@ -30,3 +30,79 @@ Deno.test('AVCU Trust denies requests when no policy matches', async () => {
   const decision = await trust.authorize({ id: 'identity-test', userId: 'member-1', capabilities: ['reasoning'] });
   if (decision.effect !== 'deny') throw new Error('AVCU Trust must deny by default');
 });
+
+
+Deno.test('AVCU Trust writes durable authorization audit before allowing', async () => {
+  const entries = [];
+  const trust = createTrust({
+    policy: {
+      list: () => [{
+        name: 'member_reasoning',
+        effect: 'allow',
+        actions: ['reasoning'],
+        conditions: { authenticated: true },
+      }],
+    },
+  }, {
+    async log(entry) { entries.push(entry); },
+  });
+
+  const decision = await trust.authorize({
+    id: 'audit-test',
+    userId: 'member-1',
+    capabilities: ['reasoning'],
+  });
+
+  if (decision.effect !== 'allow') throw new Error('Expected explicit allow');
+  if (entries.length !== 1) throw new Error('Expected one durable audit write');
+  if (entries[0].actionType !== 'trust_authorization') throw new Error('Expected Trust authorization audit type');
+});
+
+Deno.test('AVCU Trust fails closed when durable audit storage fails', async () => {
+  const trust = createTrust({
+    policy: {
+      list: () => [{
+        name: 'member_reasoning',
+        effect: 'allow',
+        actions: ['reasoning'],
+        conditions: { authenticated: true },
+      }],
+    },
+  }, {
+    async log() { throw new Error('audit unavailable'); },
+  });
+
+  let rejected = false;
+  try {
+    await trust.authorize({
+      id: 'audit-failure-test',
+      userId: 'member-1',
+      capabilities: ['reasoning'],
+    });
+  } catch {
+    rejected = true;
+  }
+  if (!rejected) throw new Error('Authorization must fail closed when audit persistence fails');
+});
+
+Deno.test('AVCU Core denies if Trust does not return an explicit allow', async () => {
+  let commandCalled = false;
+  const core = createCore(
+    {},
+    {},
+    { async authorize() { return undefined; } },
+    { async orchestrate() { commandCalled = true; return {}; } },
+    {},
+    {},
+  );
+
+  const result = await core.process({
+    id: 'core-deny-test',
+    userId: 'member-1',
+    message: 'hello',
+    capabilities: ['reasoning'],
+  });
+
+  if (!result.content.includes('Access denied')) throw new Error('Core must deny a missing Trust decision');
+  if (commandCalled) throw new Error('Core must not orchestrate after missing Trust allow');
+});
