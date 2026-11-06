@@ -41,7 +41,7 @@ export default function SupportedCauses() {
       </div>
       <div className="vantoris-glass-flat p-4 mb-3">
         <p className="text-gray text-xs leading-relaxed">
-          Vantoris is committed to creating lasting impact. A portion of our institutional proceeds supports verified
+          Atchison Village Credit Union is committed to creating lasting impact. A portion of our institutional proceeds supports verified
           charitable organizations and community initiatives aligned with our values of trust, structure, and purpose.
         </p>
       </div>
