@@ -169,6 +169,7 @@ const AuthenticatedApp = () => {
             <Route element={<OperationsRoute />}>
               <Route element={<AdminLayout />}>
                 <Route path="/operations" element={<AdminOverview />} />
+                <Route path="/operations/ava" element={<AVA mode="operations" />} />
                 <Route path="/operations/executive" element={<ExecutiveDashboard />} />
                 <Route path="/operations/security-dashboard" element={<SecurityComplianceDashboard />} />
                 <Route path="/operations/applications" element={<AdminApplications />} />
