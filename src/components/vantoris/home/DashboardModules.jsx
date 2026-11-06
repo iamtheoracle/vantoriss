@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CreditCard, Plane, Home as HomeIcon, Heart, Newspaper, Bell, ChevronRight, Wallet } from 'lucide-react';
+import { Plane, Home as HomeIcon, Heart, Newspaper, Bell, ChevronRight, Wallet } from 'lucide-react';
+import CardShowcase from '@/components/vantoris/home/CardShowcase';
 import { isProviderConnected } from '@/lib/providers/registry';
 import ProviderUnavailableCard from '@/components/vantoris/ProviderUnavailableCard';
 
@@ -11,7 +12,6 @@ export default function DashboardModules({ accounts, cards, portfolios }) {
   const navigate = useNavigate();
 
   const hasAccounts = accounts.length > 0;
-  const hasCards = cards.length > 0;
   const hasWealth = portfolios.length > 0;
 
   return (
@@ -33,31 +33,7 @@ export default function DashboardModules({ accounts, cards, portfolios }) {
         </button>
       )}
 
-      {/* Cards — real cards or truthful unavailable */}
-      {hasCards ? (
-        <button
-          onClick={() => navigate('/cards')}
-          className="w-full text-left vantoris-card p-4"
-        >
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <CreditCard size={16} className="text-brass" />
-              <span className="font-semibold text-sm">Cards</span>
-            </div>
-            <ChevronRight size={16} className="text-gray/40" />
-          </div>
-          <p className="text-xs text-gray">{cards.length} card{cards.length === 1 ? '' : 's'} active</p>
-        </button>
-      ) : (
-        <ProviderUnavailableCard
-          providerName="Cards"
-          description="Card management is not yet available. Request a card to get started."
-          icon={CreditCard}
-          actionLabel="View card services"
-          actionRoute="/cards"
-          compact
-        />
-      )}
+      <CardShowcase cards={cards} />
 
       {/* Travel — truthful unavailable */}
       {!isProviderConnected('travel') && (
