@@ -128,7 +128,7 @@ export default function FloatingCommandDock() {
   }, [pos]);
 
   const actions = [
-    { id: 'assistant', label: 'Assistant', icon: Sparkles, color: 'bg-navy/8 text-navy', onClick: () => navigate('/assistant') },
+    { id: 'assistant', label: 'AVA', icon: Sparkles, color: 'bg-navy/8 text-navy', onClick: () => navigate('/ava') },
     { id: 'freeze', label: 'Freeze My Card', icon: Lock, color: 'bg-crimson/10 text-crimson', onClick: () => { setFreezeOpen(true); setExpanded(false); } },
   ];
 
@@ -294,7 +294,7 @@ export default function FloatingCommandDock() {
         )}
       </AnimatePresence>
 
-      {/* Circular floating Quick Action — Vantoris V command mark */}
+      {/* Circular floating Quick Action — Atchison Village command mark */}
       <motion.button
         ref={buttonRef}
         type="button"
