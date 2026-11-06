@@ -25,7 +25,7 @@ const COLORS = {
 };
 
 // --- localStorage helpers for deleted convos & custom labels ---
-const DELETED_KEY = 'avcu_deleted_conversations';
+const DELETED_KEY = 'vantoris_deleted_conversations';
 const LABELS_KEY = 'avcu_conversation_labels';
 
 function getDeletedIds() {
