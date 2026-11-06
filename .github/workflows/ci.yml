@@ -1,6 +1,10 @@
 name: Atchison Village CI
 
 on:
+  push:
+    branches:
+      - feat/avcu-native-intelligence-naming
+      - feat/atchison-village-unified-rebrand
   pull_request:
     branches:
       - main
