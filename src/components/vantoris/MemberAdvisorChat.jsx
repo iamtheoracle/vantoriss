@@ -16,7 +16,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { getMessageKey, isStarred, toggleStar, addDeletedId, getDeletedIds } from '@/lib/starredMessages';
-import VantorisMonogram from '@/components/vantoris/brand/VantorisMonogram';
+import Atchison VillageMonogram from '@/components/vantoris/brand/Atchison VillageMonogram';
 import ConversationTabs from '@/components/vantoris/chat/ConversationTabs';
 import ChatMessage from '@/components/vantoris/chat/ChatMessage';
 import ChatInputBar from '@/components/vantoris/chat/ChatInputBar';
@@ -249,7 +249,7 @@ export default function MemberAdvisorChat() {
           {loading && activeTab === 'advisor' && (
             <div className="flex items-start gap-2 mb-3">
               <div className="w-7 h-7 rounded-full bg-navy/8 flex items-center justify-center flex-shrink-0 self-end">
-                <VantorisMonogram size={18} variant="flat" theme="light" />
+                <Atchison VillageMonogram size={18} variant="flat" theme="light" />
               </div>
               <div className="vantoris-chat-bubble-in rounded-2xl rounded-bl-md">
                 <TypingIndicator />
@@ -278,7 +278,7 @@ export default function MemberAdvisorChat() {
 function ChatHeader({ activeTab, whatsappNumber, conversations, activeConv, onSelectConv, onDeleteConv, onToggleStarred, starredOnly }) {
   const [showHistory, setShowHistory] = useState(false);
   const config = {
-    advisor: { name: 'Vantoris Advisor', status: 'Online · AI Financial Guide', online: true },
+    advisor: { name: 'Classic Assistant', status: 'Online · Legacy AI experience', online: true },
     support: { name: 'Human Support', status: whatsappNumber ? `WhatsApp · ${whatsappNumber}` : 'Available via WhatsApp', online: true },
     manager: { name: 'Relationship Manager', status: 'Your dedicated RM', online: true },
   };
@@ -288,7 +288,7 @@ function ChatHeader({ activeTab, whatsappNumber, conversations, activeConv, onSe
     <div className="flex items-center gap-3 p-3.5 border-b border-slate-200 vantoris-glass-header">
       <div className="relative">
         <div className="w-10 h-10 rounded-full bg-navy/8 flex items-center justify-center">
-          <VantorisMonogram size={24} variant="flat" theme="light" />
+          <Atchison VillageMonogram size={24} variant="flat" theme="light" />
         </div>
         {info.online && (
           <span className="absolute bottom-0 right-0 w-3 h-3 bg-mint rounded-full border-2 border-white" />
@@ -450,11 +450,11 @@ function ManagerChannel() {
       <div className="bg-white border border-slate-200 rounded-2xl p-4 w-full max-w-xs space-y-3">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-navy/8 flex items-center justify-center">
-            <VantorisMonogram size={22} variant="flat" theme="light" />
+            <Atchison VillageMonogram size={22} variant="flat" theme="light" />
           </div>
           <div className="text-left">
             <p className="text-sm font-semibold text-foreground">Assigned RM</p>
-            <p className="text-xs text-gray">Vantoris Wealth Management</p>
+            <p className="text-xs text-gray">Atchison Village Credit Union</p>
           </div>
         </div>
       </div>
