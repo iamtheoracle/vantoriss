@@ -14,7 +14,7 @@ export default function Cards() {
     (async () => {
       try {
         const me = await base44.auth.me();
-        const rows = await base44.entities.PaymentCard.filter({ user_id: me.id, status: 'active' }, '-created_date').catch(() => []);
+        const rows = await base44.entities.PaymentCard.filter({ user_id: me.id }, '-created_date').catch(() => []);
         if (!cancelled) setCards(Array.isArray(rows) ? rows : []);
       } catch (error) {
         console.error('Card records could not load', error);
@@ -42,8 +42,8 @@ export default function Cards() {
       </header>
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-28">
         <p className="text-[10px] uppercase tracking-[.16em] text-[#8B7650] font-bold">Member cards</p>
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground mt-1">Card services</h1>
-        <p className="text-sm text-gray mt-2 mb-6">Review your active card records or explore Atchison Village card design previews.</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground mt-1">Your card centre</h1>
+        <p className="text-sm text-gray mt-2 mb-6">View card records linked to your membership and explore the Atchison Village card collection.</p>
         <CardShowcase cards={cards} />
       </main>
     </div>
