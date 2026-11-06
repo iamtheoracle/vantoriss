@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { User, Bell, Settings, CreditCard, FileText, MessageCircle, Sparkles, Info, LogOut, ChevronRight, Shield } from 'lucide-react';
+import { User, Settings, CreditCard, FileText, MessageCircle, Sparkles, Info, LogOut, ChevronRight, Shield } from 'lucide-react';
 import ShieldLogo from '@/components/vantoris/ShieldLogo';
 import { getRoleLabel, isSuperAdmin } from '@/lib/operationsAccess';
 import { getDisplayName, getDisplayInitial } from '@/lib/displayName';
