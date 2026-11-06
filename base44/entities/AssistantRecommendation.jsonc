@@ -2,6 +2,10 @@
   "name": "AssistantRecommendation",
   "type": "object",
   "properties": {
+    "workflow_run_id": {
+      "type": "string",
+      "description": "Prepared workflow record linked to this recommendation"
+    },
     "workspace_id": {
       "type": "string",
       "description": "The case workspace this recommendation belongs to"
