@@ -107,3 +107,6 @@ export function createIntelligence() {
     },
   };
 }
+
+// Deprecated compatibility export; new AVCU code should use createIntelligence.
+export const createSpark = createIntelligence;
