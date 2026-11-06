@@ -314,7 +314,7 @@ export default function AdminKYC() {
       </div>
 
       <Dialog open={!!selected} onOpenChange={() => setSelected(null)}>
-        <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-md">
+        <DialogContent className="bg-[#102C25] border-[#242D38] max-w-md">
           <DialogHeader>
             <DialogTitle className="text-white">KYC Document Review</DialogTitle>
           </DialogHeader>
