@@ -1,30 +1,33 @@
 /**
- * Bud — User-facing conversational companion.
+ * AVA — Member-facing conversational assistant.
  *
- * Bud owns NOTHING. It only:
+ * AVA owns no financial authority. It only:
  *   - receives user messages
  *   - renders responses
  *   - streams output
  *   - displays progress
- *   - requests work from Oracle
+ *   - requests work from AVCU Core
  *
  * Bud does NOT own:
  *   - memory, conversation history, capabilities, orchestration,
  *   - permissions, scheduling, auditing
  *
- * On the frontend, Bud is implemented as BudCompanion.jsx.
- * On the backend, Bud delegates to the oracleRuntime backend function.
+ * On the frontend, AVA is the member-facing assistant experience.
+ * On the backend, AVA delegates to the authenticated AVCU assistant runtime.
  */
 
-export const BudContract = {
-  name: 'Bud',
-  role: 'user-facing conversational companion',
+export const AVAContract = {
+  name: 'AVA',
+  role: 'member-facing conversational assistant',
   responsibilities: ['receive', 'render', 'stream', 'progress', 'delegate'],
   doesNotOwn: ['memory', 'history', 'capabilities', 'orchestration', 'permissions', 'scheduling', 'auditing'],
 
-  // Bud delegates ALL work to Oracle via the oracleRuntime backend function
+  // AVA delegates all processing to the authenticated AVCU Core runtime
   // Frontend invocation:
-  //   base44.functions.invoke('oracleRuntime', { message, action: 'process' })
+  //   Existing assistant runtime function identifier is retained as a compatibility endpoint.
   // Health check:
-  //   base44.functions.invoke('oracleRuntime', { action: 'health' })
+  //   Health diagnostics remain restricted to authorized staff.
 };
+
+// Deprecated compatibility alias for existing integrations.
+export const BudContract = AVAContract;
