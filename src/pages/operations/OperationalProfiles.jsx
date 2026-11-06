@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ShieldCheck, Plus, Search, Mail, Phone, Building2, BadgeCheck, Trash2 } from 'lucide-react';
+import { ShieldCheck, Plus, Search, BadgeCheck, Trash2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
 const ROLES = [
