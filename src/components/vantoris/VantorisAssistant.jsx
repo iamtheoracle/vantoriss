@@ -8,7 +8,7 @@ import { isSuperAdmin } from '@/lib/operationsAccess';
 /**
  * VantorisAssistant — the single customer-facing AI assistant.
  *
- * Uses the Vantoris Assistant agent via the Base44 agents SDK.
+ * Uses the Classic Assistant agent via the Base44 agents SDK.
  * Internally, the agent coordinates through Vantoris Command with 16
  * specialist divisions. The frontend owns no business logic — it renders
  * messages and streams the agent's responses.
@@ -71,7 +71,7 @@ export default function VantorisAssistant() {
       if (!conv) {
         conv = await base44.agents.createConversation({
           agent_name: 'vantoris_assistant',
-          metadata: { name: 'Vantoris Assistant', description: 'Member assistance session' },
+          metadata: { name: 'Classic Assistant', description: 'Member assistance session' },
         });
         setConversation(conv);
       }
@@ -100,14 +100,14 @@ export default function VantorisAssistant() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-lg font-bold text-foreground">Vantoris Assistant</h1>
+                <h1 className="text-lg font-bold text-foreground">Classic Assistant</h1>
                 {isSuperAdmin(user) && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-navy/10 text-navy text-[10px] font-bold uppercase tracking-wider rounded-full">
                     <Crown size={10} /> Ultimate Command
                   </span>
                 )}
               </div>
-              <p className="text-xs text-gray">{isSuperAdmin(user) ? 'Authorized for all operator capabilities' : 'AI Financial Guide'}</p>
+              <p className="text-xs text-gray">{isSuperAdmin(user) ? 'Authorized for all operator capabilities' : 'Legacy AI experience'}</p>
             </div>
           </div>
         </div>
@@ -125,7 +125,7 @@ export default function VantorisAssistant() {
         <div className="px-5 py-2 max-w-3xl mx-auto w-full">
           <div className="flex items-center gap-2 text-xs text-gray">
             <Sparkles size={12} />
-            <span>Vantoris Command processing...</span>
+            <span>Classic Assistant processing...</span>
           </div>
         </div>
       )}
@@ -183,7 +183,7 @@ export default function VantorisAssistant() {
               el.style.height = 'auto';
               el.style.height = Math.min(el.scrollHeight, 120) + 'px';
             }}
-            placeholder="Message Vantoris Assistant…"
+            placeholder="Message Classic Assistant…"
             disabled={loading}
             rows={1}
             aria-label="Command input"
