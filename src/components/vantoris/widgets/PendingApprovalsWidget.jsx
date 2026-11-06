@@ -17,20 +17,13 @@ export default function PendingApprovalsWidget() {
           base44.entities.VerificationRequest.filter({ status: 'pending' }),
           base44.entities.AssistantRecommendation.filter({ status: 'pending' }).catch(() => []),
         ]);
-        let workflowCount = null;
-        try {
-          const runs = await base44.entities.WorkflowRun.filter({ status: 'pending_approval' });
-          workflowCount = runs.length;
-        } catch {
-          // WorkflowRun is deployed separately from this source change; fall back to recommendation records.
-        }
         if (mounted) {
           setData({
             apps: apps.filter(a => a.application_status === 'pending').length,
             withdrawals: withdrawals.length,
             verifications: verifications.length,
             kyc: apps.filter(a => a.kyc_status === 'pending').length,
-            recommendations: workflowCount ?? recommendations.length,
+            recommendations: recommendations.length,
           });
         }
       } catch (error) {
