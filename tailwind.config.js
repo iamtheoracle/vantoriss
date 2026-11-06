@@ -12,13 +12,13 @@ module.exports = {
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
-        /* === VANTORIS Unified Institutional Palette === */
-        navy: '#071C38',
-        charcoal: '#F8FAFC',
-        slate: '#F1F5F9',
-        brass: '#C9A227',
-        gold: '#C9A227',
-        champagne: '#1F5EFF',
+        /* === Atchison Village Credit Union institutional palette === */
+        navy: '#173D32',
+        charcoal: '#F7F4EC',
+        slate: '#F2F0E8',
+        brass: '#C5A66A',
+        gold: '#C5A66A',
+        champagne: '#376B5A',
         gray: '#64748B',
         mint: '#16A34A',
         crimson: '#DC2626',
@@ -55,11 +55,11 @@ module.exports = {
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
         chart: {
-          '1': '#071C38',
+          '1': '#173D32',
           '2': '#16A34A',
           '3': '#64748B',
           '4': '#DC2626',
-          '5': '#C9A227'
+          '5': '#C5A66A'
         },
         sidebar: {
           DEFAULT: 'hsl(var(--sidebar-background))',
