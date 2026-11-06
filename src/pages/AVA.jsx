@@ -11,11 +11,18 @@ const starterPrompts = [
   'Help me plan a savings goal',
 ];
 
-export default function AVA() {
+export default function AVA({ mode = 'member' }) {
   const navigate = useNavigate();
-  const [messages, setMessages] = useState([
-    { role: 'assistant', content: 'Hello. I’m AVA, your Atchison Village assistant. I can help you understand your accounts, explore services, prepare requests and find the right next step. I will always ask for the required approval before any restricted action.' },
-  ]);
+  const isOperations = mode === 'operations';
+  const prompts = isOperations
+    ? ['Prepare a member application review checklist', 'Explain the transfer approval workflow', 'Help me structure an evidence-based case review']
+    : starterPrompts;
+  const [messages, setMessages] = useState(() => [{
+    role: 'assistant',
+    content: isOperations
+      ? 'Hello. I’m AVA Operations, your Atchison Village staff assistant. I can help prepare reviews, organize evidence, explain procedures and draft approval packets within your role. I cannot approve or execute financial operations.'
+      : 'Hello. I’m AVA, your Atchison Village assistant. I can help you understand your accounts, explore services, prepare requests and find the right next step. I will always ask for the required approval before any restricted action.',
+  }]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [notice, setNotice] = useState('');
@@ -59,7 +66,7 @@ export default function AVA() {
         pendingApproval: Boolean(data?.pendingApproval),
         escalated: Boolean(data?.escalated),
       }]);
-      if (data?.pendingApproval) setNotice('Your request has been prepared and routed for authorized review. No restricted action has been executed.');
+      if (data?.pendingApproval) setNotice(isOperations ? 'A recommendation has been prepared for review. No controlled operation has been executed.' : 'Your request has been prepared and routed for authorized review. No restricted action has been executed.');
     } catch {
       setMessages(prev => [...prev, { role: 'assistant', content: 'I’m temporarily unable to reach the secure assistant service. Your request has not been submitted. Please try again shortly.' }]);
     } finally {
@@ -79,11 +86,11 @@ export default function AVA() {
             <VantorisMonogram size={34} variant="metallic" theme="dark" />
           </div>
           <div className="min-w-0 flex-1">
-            <h1 className="font-bold text-foreground leading-tight">{BRAND.assistant.name}</h1>
-            <p className="text-xs text-gray truncate">{BRAND.assistant.fullName}</p>
+            <h1 className="font-bold text-foreground leading-tight">{isOperations ? 'AVA Operations' : BRAND.assistant.name}</h1>
+            <p className="text-xs text-gray truncate">{isOperations ? 'Atchison Village Operations Assistant' : BRAND.assistant.fullName}</p>
           </div>
           <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-[#173D32] bg-[#173D32]/8 px-2.5 py-1.5 rounded-full">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" /> Secure
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" /> {isOperations ? 'Staff workspace' : 'Secure'}
           </span>
         </div>
       </header>
@@ -91,9 +98,9 @@ export default function AVA() {
       <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-5">
         <div className="rounded-2xl bg-[#173D32] text-white p-4 sm:p-5 mb-5">
           <div className="flex items-center gap-2 text-[#E5D2A8] text-xs font-semibold uppercase tracking-[.12em]">
-            <ShieldCheck size={15} /> Member support
+            <ShieldCheck size={15} /> {isOperations ? 'Operations support' : 'Member support'}
           </div>
-          <p className="mt-2 text-sm text-white/85">Ask questions, explore services, prepare requests and understand your options. AVA cannot bypass member permissions or approval requirements.</p>
+          <p className="mt-2 text-sm text-white/85">{isOperations ? 'Prepare case reviews, summarize permitted information and draft approval packets. AVA follows your staff role and cannot bypass approval or execution controls.' : 'Ask questions, explore services, prepare requests and understand your options. AVA cannot bypass member permissions or approval requirements.'}</p>
         </div>
 
         <div className="space-y-4">
@@ -116,7 +123,7 @@ export default function AVA() {
 
         {messages.length === 1 && (
           <div className="mt-6 flex flex-col gap-2">
-            {starterPrompts.map(prompt => (
+            {prompts.map(prompt => (
               <button key={prompt} onClick={() => sendMessage(prompt)} className="text-left text-sm rounded-xl border border-border bg-white hover:border-[#C5A66A] px-4 py-3 transition-colors">
                 {prompt}
               </button>
@@ -128,7 +135,7 @@ export default function AVA() {
       {notice && <p className="max-w-3xl w-full mx-auto px-4 pb-2 text-xs text-[#6B5A35]" role="status">{notice}</p>}
       <form onSubmit={e => { e.preventDefault(); sendMessage(); }} className="sticky bottom-0 bg-white/95 backdrop-blur border-t border-border safe-bottom">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-end gap-2">
-          <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }} placeholder="Ask AVA anything…" rows={1} maxLength={4000} className="min-h-11 max-h-32 flex-1 resize-y rounded-2xl border border-border bg-[#F7F4EC] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C5A66A]/40" />
+          <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }} placeholder={isOperations ? 'Ask AVA Operations…' : 'Ask AVA anything…'} rows={1} maxLength={4000} className="min-h-11 max-h-32 flex-1 resize-y rounded-2xl border border-border bg-[#F7F4EC] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#C5A66A]/40" />
           <button type="submit" disabled={!input.trim() || sending} aria-label="Send message" className="w-11 h-11 rounded-full bg-[#173D32] text-white flex items-center justify-center disabled:opacity-40">
             <ArrowUp size={19} />
           </button>
