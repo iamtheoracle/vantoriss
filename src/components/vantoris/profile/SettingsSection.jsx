@@ -7,11 +7,9 @@ import {
   Gift, Bell, MessageCircle, ShieldCheck, Settings,
 } from 'lucide-react';
 import ProfileSection, { ProfileRow, ProfileDivider } from '@/components/vantoris/profile/ProfileSection';
-import { useWhatsAppConfig, whatsappLinkFromConfig } from '@/hooks/useWhatsAppConfig';
 import { hasOperationsAccess } from '@/lib/operationsAccess';
 
 export default function SettingsSection({ user, referralLink, onDeleteAccount }) {
-  const whatsappNumber = useWhatsAppConfig();
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const isMember = user.role === 'user';
@@ -22,17 +20,7 @@ export default function SettingsSection({ user, referralLink, onDeleteAccount })
       <ProfileSection title="Communication" icon={Bell} delay={0.1}>
         <ProfileRow icon={Bell} iconColor="text-brass" iconBg="bg-brass/10" label="Messages" value="Secure messages" onClick={() => navigate('/messages')} />
         <ProfileDivider />
-        <ProfileRow
-          icon={MessageCircle}
-          iconColor="text-mint"
-          iconBg="bg-mint/10"
-          label="WhatsApp Support"
-          value="Chat with us directly"
-          onClick={() => window.open(
-            whatsappLinkFromConfig(whatsappNumber, 'Hello Vantoris Support, I have a question regarding my account.'),
-            '_blank', 'noopener,noreferrer'
-          )}
-        />
+        <ProfileRow icon={MessageCircle} iconColor="text-mint" iconBg="bg-mint/10" label="Contact Support" value="Secure in-app member messages" onClick={() => navigate('/messages')} />
       </ProfileSection>
 
       {/* Advisory & Services — members only */}
