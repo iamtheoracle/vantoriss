@@ -267,8 +267,8 @@ export default function FloatingCommandDock() {
           height: size,
           zIndex: 50,
           touchAction: 'none',
-          background: 'linear-gradient(145deg, #071C38 0%, #0E2A4A 100%)',
-          boxShadow: '0 10px 30px rgba(7, 28, 56, 0.28), 0 2px 8px rgba(7, 28, 56, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.10)',
+          background: 'linear-gradient(145deg, #173D32 0%, #204F40 100%)',
+          boxShadow: '0 10px 30px rgba(23, 61, 50, 0.28), 0 2px 8px rgba(23, 61, 50, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.10)',
         }}
         className="rounded-full flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-brass/50 focus-visible:ring-offset-2 cursor-pointer select-none"
       >
