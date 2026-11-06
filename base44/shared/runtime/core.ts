@@ -19,10 +19,10 @@ export function createCore(services, registries, trust, command, intelligence, s
       try {
         // 1. Trust — enforce governance (DENY by default)
         const authDecision = await trust.authorize(request);
-        if (authDecision.effect === 'deny') {
+        if (authDecision?.effect !== 'allow') {
           eventBus.publish({
             type: 'security', source: 'trust',
-            payload: { requestId: request.id, decision: 'deny', reason: authDecision.reason },
+            payload: { requestId: request.id, decision: 'deny', reason: authDecision?.reason || 'Trust returned no explicit allow decision' },
             correlationId: traceId,
           });
           span.setAttribute('decision', 'denied');
@@ -30,7 +30,7 @@ export function createCore(services, registries, trust, command, intelligence, s
           return {
             requestId: request.id,
             content: 'Access denied by Trust policy.',
-            metadata: { reason: authDecision.reason, traceId },
+            metadata: { reason: authDecision?.reason || 'Trust returned no explicit allow decision', traceId },
           };
         }
 
