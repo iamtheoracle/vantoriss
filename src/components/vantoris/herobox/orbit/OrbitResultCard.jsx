@@ -17,7 +17,7 @@ const STATUS_COLORS = {
   rejected: 'bg-crimson/10 text-crimson', not_started: 'bg-slate-100 text-gray',
 };
 
-export default function Community SupportResultCard({ result, onAction, index = 0 }) {
+export default function CommunitySupportResultCard({ result, onAction, index = 0 }) {
   const config = TYPE_CONFIG[result.type] || TYPE_CONFIG.request;
   const Icon = config.icon;
   const statusClass = STATUS_COLORS[result.status] || 'bg-slate-100 text-gray';
