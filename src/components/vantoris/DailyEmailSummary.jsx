@@ -60,7 +60,7 @@ export default function DailyEmailSummary() {
         ? todayServiceRequests.map(r => `  - ${r.service_type} · ${getUserName(r.user_id)}${r.details ? ' · ' + r.details.slice(0, 80) : ''}`).join('\n')
         : '  (none)';
       const body = `
-VANTORIS — DAILY OPERATIONS SUMMARY
+ATCHISON VILLAGE CREDIT UNION — DAILY OPERATIONS SUMMARY
 ${dateStr}
 
 ═══════════════════════════════════════════════
