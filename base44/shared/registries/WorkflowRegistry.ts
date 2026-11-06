@@ -75,7 +75,7 @@ export const WorkflowRegistry = {
     return definitions.get(key);
   },
 
-  get(name, version) {
+  get(name, version = null) {
     if (version) return definitions.get(keyFor(name, version)) || null;
     return this.list().filter(item => item.name === name).sort((a, b) => b.version.localeCompare(a.version))[0] || null;
   },
@@ -84,12 +84,12 @@ export const WorkflowRegistry = {
     return Array.from(definitions.values()).map(item => ({ ...item, steps: [...item.steps] }));
   },
 
-  resolve(name, version) {
+  resolve(name, version = null) {
     const definition = this.get(name, version);
     return definition ? { ...definition, steps: [...definition.steps] } : null;
   },
 
-  remove(name, version) {
+  remove(name, version = null) {
     if (version) return definitions.delete(keyFor(name, version));
     let removed = false;
     for (const key of definitions.keys()) {
