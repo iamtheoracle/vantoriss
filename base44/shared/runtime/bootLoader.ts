@@ -29,11 +29,7 @@ import { createSpark } from './spark.ts';
 import { createOrbit } from './orbit.ts';
 import { createOracle } from './oracle.ts';
 
-let cachedRuntime = null;
-
 export async function boot(base44) {
-  if (cachedRuntime) return cachedRuntime;
-
   const stages = [];
   const registries = {};
   const services = {};
@@ -119,8 +115,7 @@ export async function boot(base44) {
     payload: { status: 'ready', stages: stages.length },
   });
 
-  cachedRuntime = { services, registries, runtime, stages };
-  return cachedRuntime;
+  return { services, registries, runtime, stages };
 }
 
 async function runStage(stages, name, fn) {
