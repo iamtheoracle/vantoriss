@@ -63,7 +63,7 @@ export function createIntelligence() {
         );
 
         eventBus.publish({
-          type: 'response', source: 'intelligence', target: 'oracle',
+          type: 'response', source: 'intelligence', target: 'core',
           payload: { requestId: request.id, model, structured: isActionImpacting },
         });
 
