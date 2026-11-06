@@ -1,14 +1,23 @@
+import { createModelGateway } from './ModelGateway.ts';
+
+/**
+ * AVA's provider-independent model service.
+ * The AVU model gateway is preferred when configured; the retained InvokeLLM
+ * integration remains available through an explicit compatibility method.
+ */
 export function createModelService(base44) {
+  const gateway = createModelGateway(base44);
   return {
-    async invoke({ prompt, model = 'automatic', responseJsonSchema, addContextFromInternet, fileUrls }) {
-      const params = { prompt, model };
-      if (responseJsonSchema) params.response_json_schema = responseJsonSchema;
-      if (addContextFromInternet) params.add_context_from_internet = true;
-      if (fileUrls) params.file_urls = fileUrls;
-      const result = await base44.asServiceRole.integrations.Core.InvokeLLM(params);
-      // When a JSON schema is specified, InvokeLLM returns the structured dict directly
-      if (responseJsonSchema) return result;
-      return result.response || result.result || result;
+    async invoke(params) {
+      return gateway.invoke(params || {});
+    },
+
+    async invokeLegacy(params) {
+      return gateway.invokeLegacy(params || {});
+    },
+
+    providerStatus() {
+      return gateway.status();
     },
 
     select(priority = 'normal') {
@@ -23,11 +32,12 @@ export function createModelService(base44) {
 
     list() {
       return [
-        { name: 'automatic', cost: 'medium' },
-        { name: 'gpt_5_mini', cost: 'low' },
-        { name: 'gemini_3_flash', cost: 'low' },
-        { name: 'claude_sonnet_4_6', cost: 'high' },
-        { name: 'claude_opus_4_6', cost: 'critical' },
+        { name: 'gateway_default', provider: 'institution_gateway', cost: 'configured' },
+        { name: 'automatic', provider: 'legacy_invoke_llm', cost: 'medium', compatibility: true },
+        { name: 'gpt_5_mini', provider: 'legacy_invoke_llm', cost: 'low', compatibility: true },
+        { name: 'gemini_3_flash', provider: 'legacy_invoke_llm', cost: 'low', compatibility: true },
+        { name: 'claude_sonnet_4_6', provider: 'legacy_invoke_llm', cost: 'high', compatibility: true },
+        { name: 'claude_opus_4_6', provider: 'legacy_invoke_llm', cost: 'critical', compatibility: true },
       ];
     },
   };
