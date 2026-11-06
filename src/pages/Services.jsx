@@ -4,6 +4,7 @@ import { Users, Building2, CreditCard, Check, Clock, Landmark, ShieldCheck } fro
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
+import { OPERATIONS_EMAIL } from '@/lib/businessConfig';
 
 const services = [
   { type: 'Joint Account', icon: Users, desc: 'Request a joint account with a co-applicant', color: 'bg-brass/15 text-brass', requiresApproval: true },
@@ -67,12 +68,14 @@ export default function Services() {
         message: `Your request for ${serviceType} has been submitted for review.`,
         type: 'info',
       });
-      // Alert operations team
-      await base44.integrations.Core.SendEmail({
-        to: 'operations@vantoris.com',
-        subject: `New Service Request: ${serviceType}`,
-        body: `A new service request has been submitted.\n\nMember: ${user.full_name || '—'} (${user.email || '—'})\nService: ${serviceType}\nDetails: ${reqDetails || 'None provided'}\n\nReview it in the Operations Center under Service Requests.`,
-      });
+      // Send operations email only when the institution has configured a verified address.
+      if (OPERATIONS_EMAIL) {
+        await base44.integrations.Core.SendEmail({
+          to: OPERATIONS_EMAIL,
+          subject: `New Service Request: ${serviceType}`,
+          body: `A new service request has been submitted.\n\nMember: ${user.full_name || '—'} (${user.email || '—'})\nService: ${serviceType}\nDetails: ${reqDetails || 'None provided'}\n\nReview it in the Operations Center under Service Requests.`,
+        });
+      }
     } catch (e) {
       console.error(e);
       setRequests(prev => prev.filter(r => r.id !== tempId));
