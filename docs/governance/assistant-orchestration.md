@@ -1,13 +1,13 @@
-# VANTORIS GUIDE — ASSISTANT ORCHESTRATION
+# ATCHISON VILLAGE CREDIT UNION — INTELLIGENCE ORCHESTRATION
 ## Production Amendment v1.1
 
-This section extends the existing assistant architecture. It does not replace any existing functionality.
+This standard governs the AVCU assistant architecture and internal intelligence components. It does not authorize financial execution or replace existing controls.
 
 ---
 
-## Unified Assistant Experience
+## AVA Member Assistant Experience
 
-The platform exposes only one visible assistant. The user should never need to decide which assistant to use. The visible assistant automatically routes work to the appropriate specialist.
+Atchison Village Credit Union exposes one member-facing assistant: AVA. The user should never need to decide which assistant to use. AVA routes supported work through AVCU Core and AVCU Command to the appropriate internal capability.
 
 ### Routing Examples
 
@@ -26,7 +26,7 @@ Routing is automatic and transparent.
 
 ## Collaboration
 
-Assistants may collaborate internally. A loan review may involve Banking, Credit, Compliance, Fraud, and Document Assistants — each contributes recommendations. A consolidated recommendation is presented to staff. Staff remains responsible for every approval.
+AVCU internal capabilities may collaborate under explicit permissions. A loan review may involve Banking, Credit, Compliance, Fraud, and Document Assistants — each contributes recommendations. A consolidated recommendation is presented to staff. Staff remains responsible for every approval.
 
 ---
 
@@ -74,7 +74,7 @@ Each member interaction creates a shared workspace containing:
 - Audit history
 - Assigned owner
 
-All assistants contribute to the same workspace.
+Authorized internal capabilities contribute to the same workspace.
 
 ---
 
@@ -84,7 +84,7 @@ If confidence is low, conflicting evidence exists, or additional authority is re
 
 ---
 
-## Assistant Identity
+## AVA and Internal Component Identity
 
 Assistants should behave like experienced banking colleagues:
 - Concise, professional, and policy-driven
