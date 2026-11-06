@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 540">
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#102C25"/><stop offset=".55" stop-color="#173D32"/><stop offset="1" stop-color="#0A211B"/></linearGradient>
+  <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#F0D9A0"/><stop offset=".5" stop-color="#C5A66A"/><stop offset="1" stop-color="#92713D"/></linearGradient>
+  <radialGradient id="glow"><stop stop-color="#C5A66A" stop-opacity=".25"/><stop offset="1" stop-color="#C5A66A" stop-opacity="0"/></radialGradient>
+</defs>
+<rect width="860" height="540" rx="38" fill="url(#bg)"/>
+<circle cx="760" cy="80" r="300" fill="url(#glow)"/>
+<path d="M0 430 620 0M150 540 850 50" stroke="#fff" stroke-opacity=".035" stroke-width="2"/>
+<rect x="64" y="65" width="92" height="68" rx="12" fill="url(#gold)" opacity=".95"/>
+<path d="M110 78 142 91v22c0 19-11 32-32 42-21-10-32-23-32-42V91Z" fill="#102C25" stroke="#173D32" stroke-width="2"/>
+<path d="m90 117 13-27h7l13 27h-7l-9-19-9 19Z" fill="#C5A66A"/>
+<text x="190" y="102" fill="#F7F4EC" font-family="Arial,sans-serif" font-size="25" font-weight="700" letter-spacing="3">ATCHISON VILLAGE</text>
+<text x="192" y="133" fill="#C5A66A" font-family="Arial,sans-serif" font-size="13" font-weight="700" letter-spacing="6">CREDIT UNION</text>
+<rect x="66" y="215" width="96" height="72" rx="12" fill="url(#gold)" opacity=".9"/>
+<path d="M84 235h60M84 250h60M84 265h40" stroke="#92713D" stroke-width="4" stroke-linecap="round"/>
+<text x="66" y="366" fill="#F7F4EC" font-family="Arial,sans-serif" font-size="28" letter-spacing="5">••••  ••••  ••••  ••••</text>
+<text x="68" y="424" fill="#F7F4EC" fill-opacity=".65" font-family="Arial,sans-serif" font-size="14" letter-spacing="3">MEMBER CREDIT</text>
+<text x="68" y="482" fill="#C5A66A" font-family="Arial,sans-serif" font-size="16" font-weight="700" letter-spacing="3">BUILT AROUND YOUR LIFE</text>
+<circle cx="710" cy="430" r="80" fill="none" stroke="#C5A66A" stroke-opacity=".3" stroke-width="2"/>
+<circle cx="710" cy="430" r="58" fill="none" stroke="#C5A66A" stroke-opacity=".18" stroke-width="2"/>
+</svg>
