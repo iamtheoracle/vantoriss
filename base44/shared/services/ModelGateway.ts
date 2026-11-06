@@ -39,8 +39,8 @@ function parseStructured(text) {
 
 export function createModelGateway(base44) {
   const endpoint = safeEndpoint(readEnv('AVCU_MODEL_GATEWAY_URL') || readEnv('AVCU_AI_GATEWAY_URL'));
-  const apiKey = readEnv('AVCU_MODEL_GATEWAY_API_KEY');
-  const configuredModel = readEnv('AVCU_MODEL_GATEWAY_MODEL') || 'default';
+  const apiKey = readEnv('AVCU_MODEL_GATEWAY_API_KEY') || readEnv('AVCU_AI_GATEWAY_API_KEY');
+  const configuredModel = readEnv('AVCU_MODEL_GATEWAY_MODEL') || readEnv('AVCU_AI_MODEL') || 'default';
   const fallbackEnabled = readEnv('AVCU_LEGACY_LLM_FALLBACK') !== 'false';
 
   async function invokeGateway({ prompt, model, responseJsonSchema }) {
