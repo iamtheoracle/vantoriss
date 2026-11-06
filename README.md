@@ -1,77 +1,58 @@
-# Base44 Project
+# Atchison Village Credit Union
 
-Use this repository to run and edit the app locally, then publish changes back through Base44.
+The unified Atchison Village Credit Union application combines the full member and protected operations experience with the recovered interface and backend improvements from the Vantoris X Money recovery work.
 
-Any change pushed to the repo will also be reflected in the Base44 Builder.
+## Application boundaries
 
-## Prerequisites
+- **Member portal:** personal accounts, cards, activity, service requests, documents, investments and AVA.
+- **Operations workspace:** a separate role-protected environment for member servicing, applications, KYC, card programme oversight, approvals, reports, audit and system administration.
+- **Shared platform services:** authenticated identity, policy enforcement, audit, model gateway, workflow orchestration and provider integrations.
+- Member and operations dashboards remain separate. Shared branding and backend services do not grant members access to staff routes or staff data.
 
-1. Clone the repository using the project's Git URL.
-2. Navigate to the project directory.
-3. Install dependencies: `npm install`.
-4. Install the Base44 CLI: `npm install -g base44@latest`.
+## AI architecture
 
-See the [Base44 CLI docs](https://docs.base44.com/developers/references/cli/get-started/overview) if you want to run Base44 commands directly.
+- **AVA** is the new Atchison Village Assistant and the member-facing AI experience.
+- **Oracle** coordinates the authenticated request pipeline.
+- **Guardian** enforces explicit capability grants and deny-by-default policy.
+- **Nexus** routes work to the appropriate specialist.
+- **Spark** performs model-backed reasoning through the server-side model service.
+- **Orbit** handles deferred jobs.
+- **Classic Assistant** is retained as a restricted compatibility experience for older conversations.
+- The provider-independent model gateway is preferred when configured. Base44 `InvokeLLM` remains available as a compatibility provider; its old route is not deleted.
 
-## Run Locally
+Provider credentials must remain in backend secrets. The gateway reads:
+- `AVCU_MODEL_GATEWAY_URL` (or `AVCU_AI_GATEWAY_URL`)
+- `AVCU_MODEL_GATEWAY_API_KEY`
+- `AVCU_MODEL_GATEWAY_MODEL`
+- `AVCU_LEGACY_LLM_FALLBACK` (set to `false` to disable fallback)
 
-Run the full local development environment from the project root:
+The configured endpoint must be HTTPS outside local development. A configured endpoint is not considered verified until provider, timeout, structured-output and fallback tests pass.
 
-```bash
-base44 dev
-```
+## Financial-operation safety
 
-`base44 dev` starts the local Base44 development backend and, when this app is configured for it, also starts the frontend dev server for you. Use the frontend URL printed by the command.
+A model response or recommendation is not a financial execution. Payments, transfers, withdrawals, trades, account changes, card issuance and other controlled actions must pass through authenticated server-side workflows, exact-action approval checks, idempotency controls and audit logging. Do not mark a financial capability live until its provider and both approval and rejection paths have been tested.
 
-For example, when the Base44 project config includes a `serveCommand`, `base44 dev` can launch the frontend too:
-
-```json5
-{
-  "site": {
-    "serveCommand": "npm run dev"
-  }
-}
-```
-
-In a Base44 project this lives in `base44/config.jsonc`.
-
-## Run Only The Frontend
-
-If you only want to work on the frontend against the hosted Base44 backend, run:
+## Local development
 
 ```bash
+npm install
 npm run dev
 ```
 
-Open the local URL printed by Vite.
-
-## Use The Hosted Backend
-
-For frontend-only development, create or update `.env.local` in the project root:
+Validation commands:
 
 ```bash
-VITE_BASE44_APP_ID=your_app_id
-VITE_BASE44_APP_BASE_URL=https://your-app.base44.app
+npm run lint
+npm run typecheck
+npm run build
 ```
 
-`VITE_BASE44_APP_ID` identifies the Base44 app.
+Base44 backend resources live under `base44/`. Follow the Base44 project workflow before deploying entities, functions, agents or site changes.
 
-`VITE_BASE44_APP_BASE_URL` tells the Base44 Vite plugin where to send local `/api` requests. Point it at your deployed Base44 app URL when you want the local frontend to use the hosted backend.
+## Repository consolidation
 
-When you use `base44 dev`, the command injects the local Base44 values for you, so `.env.local` is mainly needed for frontend-only workflows.
+`iamtheoracle/vantoriss` is the canonical application repository for this consolidation branch. The `vantoris-x-money` recovery branch is a source of selected interface and security improvements, not an independent production application. Its open PR must not be merged wholesale: inspect and selectively port changes, especially any payment schema or database integration, before adopting them. Never reuse credentials or databases from another institution or project.
 
-## Publish Your Changes
+## Release status
 
-After pushing your changes to git, open the Base44 dashboard and publish the app:
-
-```bash
-base44 dashboard open
-```
-
-## Docs & Support
-
-Documentation: [https://docs.base44.com/Integrations/Using-GitHub](https://docs.base44.com/Integrations/Using-GitHub)
-
-Base44 CLI command reference: [https://docs.base44.com/developers/references/cli/commands/introduction](https://docs.base44.com/developers/references/cli/commands/introduction)
-
-Support: [https://app.base44.com/support](https://app.base44.com/support)
+This branch is a development change set. It has not been deployed to production. Live Base44 RLS, provider integrations, card issuance, real payment rails, authenticated browser testing and end-to-end operations workflows require independent verification before release.
