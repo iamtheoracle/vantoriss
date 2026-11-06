@@ -46,7 +46,7 @@ export function createModelGateway(base44) {
   async function invokeGateway({ prompt, model, responseJsonSchema }) {
     if (!endpoint || !apiKey) throw new Error('AVCU model gateway is not configured');
     const instruction = responseJsonSchema
-      ? '\\n\\nReturn only valid JSON matching this schema:\\n' + JSON.stringify(responseJsonSchema)
+      ? '\n\nReturn only valid JSON matching this schema:\n' + JSON.stringify(responseJsonSchema)
       : '';
     const response = await fetch(endpoint, {
       method: 'POST',
