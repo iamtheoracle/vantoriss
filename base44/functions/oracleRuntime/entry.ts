@@ -45,8 +45,8 @@ export default async function(req) {
       return Response.json({ error: 'Message exceeds the 4,000 character limit' }, { status: 413 });
     }
 
-    // Build the AI request through the Oracle pipeline:
-    // User → Bud → Oracle → Guardian → Nexus → Capability Registry → Platform Services / Spark / Orbit → Oracle → Bud
+    // Build the request through the AVCU intelligence pipeline:
+    // Member → AVA → Core → Trust → Command → Capability Registry → Services / Intelligence / Scheduler → Core → AVA
     const request = {
       id: crypto.randomUUID(),
       userId: user.id,
@@ -63,7 +63,7 @@ export default async function(req) {
       priority: 'normal',
     };
 
-    const response = await runtime.oracle.process(request);
+    const response = await runtime.core.process(request);
 
     // Persist conversation via ConversationService (not owned by Bud)
     const thread = await services.conversation.getOrCreateThread(user.id, 'AVA');
@@ -225,7 +225,7 @@ export default async function(req) {
       escalated: response.escalate || false,
     });
   } catch (error) {
-    logger.error('Oracle runtime error', { error: error.message });
+    logger.error('AVCU Core runtime error', { error: error.message });
     return Response.json({ error: 'The assistant is temporarily unavailable. Please try again.' }, { status: 500 });
   }
 }
