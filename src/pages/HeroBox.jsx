@@ -75,7 +75,7 @@ export default function HeroBox() {
   return (
     <div className="px-5 pt-6 pb-8 vantoris-scroll min-h-screen">
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3"><div className="w-11 h-11 rounded-xl bg-brass/10 border border-brass/15 flex items-center justify-center"><Heart size={22} className="text-brass" /></div><div><h1 className="text-xl font-bold text-foreground">Community Support</h1><p className="text-xs text-gray">They are our heroes. We can be theirs too.</p></div></div>
+        <div className="flex items-center gap-3"><div className="w-11 h-11 rounded-xl bg-brass/10 border border-brass/15 flex items-center justify-center"><Heart size={22} className="text-brass" /></div><div><h1 className="text-xl font-bold text-foreground">Community Support</h1><p className="text-xs text-gray">Verified support for service members, families and communities.</p></div></div>
         {cartCount > 0 && <button onClick={() => setShowCheckout(true)} aria-label="Open cart" className="relative w-11 h-11 rounded-xl bg-navy flex items-center justify-center"><ShoppingCart size={20} className="text-white" /><span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-brass text-white text-[10px] font-bold flex items-center justify-center">{cartCount}</span></button>}
       </div>
 
