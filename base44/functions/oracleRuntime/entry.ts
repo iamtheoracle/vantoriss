@@ -14,6 +14,21 @@ export default async function(req) {
     // Runtime instances are request-scoped; no member's session or service client is cached.
     const { services, runtime, stages: bootStages } = await boot(base44);
 
+    // Return only the authenticated member's own AVA conversation history.
+    if (action === 'history') {
+      const thread = await services.conversation.getOrCreateThread(user.id, 'AVA');
+      const history = await services.conversation.getHistory(thread.id, 50);
+      const messages = history
+        .slice()
+        .sort((a, b) => new Date(a.created_date || 0).getTime() - new Date(b.created_date || 0).getTime())
+        .map(item => ({
+          role: item.sender === 'member' ? 'user' : 'assistant',
+          content: item.body,
+          created_date: item.created_date,
+        }));
+      return Response.json({ threadId: thread.id, messages });
+    }
+
     // Health diagnostics expose internal service state and are staff-only.
     if (action === 'health') {
       if (!['admin', 'administrator', 'super_administrator', 'it_administrator', 'executive'].includes(user.role)) {
