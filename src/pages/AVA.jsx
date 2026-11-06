@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowUp, Clock3, Sparkles, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
@@ -20,6 +20,21 @@ export default function AVA() {
   const [sending, setSending] = useState(false);
   const [notice, setNotice] = useState('');
   const scrollRef = useRef(null);
+
+  useEffect(() => {
+    let active = true;
+    base44.functions.invoke('oracleRuntime', { action: 'history' })
+      .then(result => {
+        const data = result?.data ?? result;
+        if (active && Array.isArray(data?.messages) && data.messages.length) {
+          setMessages(data.messages);
+        }
+      })
+      .catch(() => {
+        // Keep the welcome message if history is unavailable.
+      });
+    return () => { active = false; };
+  }, []);
 
   async function sendMessage(value = input) {
     const message = String(value || '').trim();
