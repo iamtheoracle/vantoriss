@@ -54,7 +54,7 @@ export function createWorkflowService(base44) {
         execution_enabled: false,
         created_at: now,
         updated_at: now,
-        expires_at: expiresAt || '',
+        ...(expiresAt ? { expires_at: expiresAt } : {}),
       });
 
       return { run, reused: false };
