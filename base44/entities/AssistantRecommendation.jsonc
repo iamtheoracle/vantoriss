@@ -2,6 +2,10 @@
   "name": "AssistantRecommendation",
   "type": "object",
   "properties": {
+    "workflow_run_id": {
+      "type": "string",
+      "description": "Prepared workflow record linked to this recommendation"
+    },
     "workspace_id": {
       "type": "string",
       "description": "The case workspace this recommendation belongs to"
@@ -116,5 +120,29 @@
     "user_id",
     "specialist",
     "summary"
-  ]
+  ],
+  "rls": {
+    "create": false,
+    "read": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "administrator" } },
+        { "user_condition": { "role": "super_administrator" } },
+        { "user_condition": { "role": "operations_officer" } },
+        { "user_condition": { "role": "operations_manager" } },
+        { "user_condition": { "role": "compliance_officer" } },
+        { "user_condition": { "role": "executive" } },
+        { "user_condition": { "role": "finance_officer" } },
+        { "user_condition": { "role": "kyc_officer" } },
+        { "user_condition": { "role": "treasury_officer" } },
+        { "user_condition": { "role": "investment_officer" } },
+        { "user_condition": { "role": "investment_manager" } },
+        { "user_condition": { "role": "auditor" } },
+        { "user_condition": { "role": "risk_officer" } },
+        { "user_condition": { "role": "it_administrator" } }
+      ]
+    },
+    "update": false,
+    "delete": false
+  }
 }

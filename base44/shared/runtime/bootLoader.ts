@@ -6,6 +6,7 @@ import { createKnowledgeService } from '../services/KnowledgeService.ts';
 import { createSearchService } from '../services/SearchService.ts';
 import { createPromptService } from '../services/PromptService.ts';
 import { createModelService } from '../services/ModelService.ts';
+import { createWorkflowService } from '../services/WorkflowService.ts';
 import { createAuditService } from '../services/AuditService.ts';
 import { createNotificationService } from '../services/NotificationService.ts';
 import { createIdentityService } from '../services/IdentityService.ts';
@@ -29,11 +30,7 @@ import { createSpark } from './spark.ts';
 import { createOrbit } from './orbit.ts';
 import { createOracle } from './oracle.ts';
 
-let cachedRuntime = null;
-
 export async function boot(base44) {
-  if (cachedRuntime) return cachedRuntime;
-
   const stages = [];
   const registries = {};
   const services = {};
@@ -71,6 +68,7 @@ export async function boot(base44) {
     services.search = createSearchService(base44);
     services.prompt = createPromptService(base44);
     services.model = createModelService(base44);
+    services.workflow = createWorkflowService(base44);
     services.audit = createAuditService(base44);
     services.notification = createNotificationService(base44);
     services.identity = createIdentityService(base44);
@@ -110,8 +108,19 @@ export async function boot(base44) {
       }
     });
     services.health.register('llm', async () => {
-      return { service: 'llm', status: 'healthy' };
+      const providerStatus = services.model.providerStatus();
+      return {
+        service: 'llm',
+        status: providerStatus.primary === 'configured_unverified' ? 'configured_unverified' : 'degraded',
+        details: providerStatus,
+      };
     });
+    services.health.register('workflow', async () => ({
+      service: 'workflow',
+      status: 'wired_unverified',
+      definitions: registries.workflow.list().length,
+      executionEnabled: false,
+    }));
   });
 
   eventBus.publish({
@@ -119,8 +128,7 @@ export async function boot(base44) {
     payload: { status: 'ready', stages: stages.length },
   });
 
-  cachedRuntime = { services, registries, runtime, stages };
-  return cachedRuntime;
+  return { services, registries, runtime, stages };
 }
 
 async function runStage(stages, name, fn) {

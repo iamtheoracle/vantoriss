@@ -1,64 +1,31 @@
 import React, { useId } from 'react';
 import VantorisMonogram from './VantorisMonogram';
+import { BRAND } from '@/lib/brand';
 
-/**
- * VANTORIS App Icon — V monogram centered on deep navy with premium blue
- * gradients, soft glass depth, and brushed gold metallic detailing.
- */
+/** Atchison Village Credit Union app icon; legacy import path retained. */
 export default function VantorisAppIcon({ size = 120, rounded = true, className = '' }) {
   const uid = useId().replace(/:/g, '');
-  const bg = `ic-bg-${uid}`;
-  const glow = `ic-glow-${uid}`;
-  const glass = `ic-glass-${uid}`;
   const radius = rounded ? 22 : 0;
-
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 120 120"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      role="img"
-      aria-label="Vantoris app icon"
-    >
+    <svg width={size} height={size} viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} role="img" aria-label="Atchison Village Credit Union app icon">
       <defs>
-        <linearGradient id={bg} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#0C2647" />
-          <stop offset="0.5" stopColor="#071A2D" />
-          <stop offset="1" stopColor="#123A6E" />
+        <linearGradient id={`av-bg-${uid}`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor={BRAND.colors.forest} />
+          <stop offset="1" stopColor={BRAND.colors.deepForest} />
         </linearGradient>
-        <radialGradient id={glow} cx="0.5" cy="0.32" r="0.7">
-          <stop offset="0" stopColor="#2E5BFF" stopOpacity="0.28" />
-          <stop offset="1" stopColor="#2E5BFF" stopOpacity="0" />
-        </radialGradient>
-        <linearGradient id={glass} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#FFFFFF" stopOpacity="0.16" />
-          <stop offset="0.45" stopColor="#FFFFFF" stopOpacity="0.02" />
+        <linearGradient id={`av-glass-${uid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#FFFFFF" stopOpacity=".16" />
           <stop offset="1" stopColor="#FFFFFF" stopOpacity="0" />
         </linearGradient>
-        <clipPath id={`clip-${uid}`}>
-          <rect x="0" y="0" width="120" height="120" rx={radius} />
-        </clipPath>
+        <clipPath id={`av-clip-${uid}`}><rect width="120" height="120" rx={radius} /></clipPath>
       </defs>
-
-      <g clipPath={`url(#clip-${uid})`}>
-        <rect width="120" height="120" fill={`url(#${bg})`} />
-        <rect width="120" height="120" fill={`url(#${glow})`} />
-        {/* glass depth overlay */}
-        <rect width="120" height="60" fill={`url(#${glass})`} />
-
-        {/* subtle inner border */}
-        <rect x="3" y="3" width="114" height="114" rx={radius - 2} stroke="#D4AF37" strokeOpacity="0.18" strokeWidth="0.75" />
-
-        {/* monogram */}
-        <g transform="translate(0,0)">
-          <VantorisMonogram size={120} variant="metallic" />
-        </g>
+      <g clipPath={`url(#av-clip-${uid})`}>
+        <rect width="120" height="120" fill={`url(#av-bg-${uid})`} />
+        <rect width="120" height="60" fill={`url(#av-glass-${uid})`} />
+        <circle cx="60" cy="60" r="53" stroke={BRAND.colors.gold} strokeOpacity=".25" />
+        <VantorisMonogram size={120} variant="metallic" theme="dark" />
       </g>
-
-      <rect x="0.5" y="0.5" width="119" height="119" rx={radius} stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+      <rect x=".5" y=".5" width="119" height="119" rx={radius} stroke="rgba(255,255,255,.12)" />
     </svg>
   );
 }

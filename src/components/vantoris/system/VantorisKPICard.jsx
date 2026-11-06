@@ -19,8 +19,8 @@ import { TrendingUp, TrendingDown } from 'lucide-react';
  * - hero: Spans 2 columns on large screens
  */
 const ACCENTS = {
-  navy:     { iconBg: 'bg-navy/8',         iconText: 'text-navy',         badge: 'bg-navy/10 text-navy border-navy/15',         hex: '#071C38' },
-  gold:     { iconBg: 'bg-brass/10',       iconText: 'text-brass',         badge: 'bg-brass/10 text-brass border-brass/20',     hex: '#C9A227' },
+  navy:     { iconBg: 'bg-navy/8',         iconText: 'text-navy',         badge: 'bg-navy/10 text-navy border-navy/15',         hex: '#173D32' },
+  gold:     { iconBg: 'bg-brass/10',       iconText: 'text-brass',         badge: 'bg-brass/10 text-brass border-brass/20',     hex: '#C5A66A' },
   blue:     { iconBg: 'bg-champagne/10',   iconText: 'text-champagne',     badge: 'bg-champagne/10 text-champagne border-champagne/20', hex: '#1F5EFF' },
   mint:     { iconBg: 'bg-mint/10',        iconText: 'text-mint',          badge: 'bg-mint/10 text-mint border-mint/20',         hex: '#16A34A' },
   crimson:  { iconBg: 'bg-crimson/10',     iconText: 'text-crimson',       badge: 'bg-crimson/10 text-crimson border-crimson/20', hex: '#DC2626' },

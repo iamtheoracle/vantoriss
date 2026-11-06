@@ -6,8 +6,8 @@ import { cn } from '@/lib/utils';
  * Every button in the app should use this or the shadcn Button (which shares the same variants).
  *
  * Variants:
- * - primary: Deep Navy (#071C38) — default action
- * - gold: Rich Gold (#C9A227) — premium/featured action
+ * - primary: Deep Navy (#173D32) — default action
+ * - gold: Rich Gold (#C5A66A) — premium/featured action
  * - outline: White with border — secondary action
  * - ghost: Transparent — tertiary action
  * - destructive: Crimson — dangerous action

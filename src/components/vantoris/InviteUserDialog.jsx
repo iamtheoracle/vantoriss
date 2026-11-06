@@ -32,7 +32,7 @@ export default function InviteUserDialog({ open, onOpenChange, onInvited }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-md">
+      <DialogContent className="bg-[#102C25] border-[#242D38] max-w-md">
         <DialogHeader>
           <DialogTitle className="text-white flex items-center gap-2">
             <UserPlus size={18} className="text-brass" /> Invite User
@@ -75,7 +75,7 @@ export default function InviteUserDialog({ open, onOpenChange, onInvited }) {
             <button
               disabled={!email.trim() || submitting}
               onClick={handleInvite}
-              className="w-full py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl disabled:opacity-40 flex items-center justify-center gap-2"
+              className="w-full py-3 bg-brass text-[#102C25] font-semibold rounded-xl disabled:opacity-40 flex items-center justify-center gap-2"
             >
               {submitting ? (
                 <><Loader2 size={16} className="animate-spin" /> Sending...</>

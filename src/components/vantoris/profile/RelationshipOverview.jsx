@@ -28,11 +28,11 @@ export default function RelationshipOverview({ accounts, heroProfile, heroReques
         <OpportunityCard
           icon={Wallet}
           title="Begin Your Banking Relationship"
-          description="Open your first account with Vantoris to access premium financial services."
+          description="Open your first account with Atchison Village Credit Union to begin your membership."
           actions={[
             { label: 'Open Account', to: '/apply', primary: true },
             { label: 'Learn More', to: '/services' },
-            { label: 'Schedule Advisor', to: '/advisor' },
+            { label: 'Ask AVA', to: '/ava' },
           ]}
         />
       ) : (

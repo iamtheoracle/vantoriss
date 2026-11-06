@@ -5,7 +5,7 @@ import StatusBadge from '@/components/vantoris/StatusBadge';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
 import InternalComments from '@/components/vantoris/InternalComments';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { CheckSquare, Square, Check, X, ShieldCheck, Mail } from 'lucide-react';
+import { CheckSquare, Square, Check, X, ShieldCheck } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
 import { sendTransactionEmail } from '@/lib/transactionEmails';
 import { useToast } from '@/components/ui/use-toast';
@@ -332,7 +332,7 @@ export default function VerificationRequests() {
 
       {/* Review Dialog */}
       <Dialog open={!!selected} onOpenChange={() => setSelected(null)}>
-        <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-lg">
+        <DialogContent className="bg-[#102C25] border-[#242D38] max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-white">Review Funding Submission</DialogTitle>
           </DialogHeader>

@@ -172,7 +172,7 @@ export default function ServiceRequests() {
 
       {/* Review Dialog */}
       <Dialog open={!!selected} onOpenChange={() => setSelected(null)}>
-        <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-lg">
+        <DialogContent className="bg-[#102C25] border-[#242D38] max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-white">Review Service Request</DialogTitle>
           </DialogHeader>
@@ -225,7 +225,7 @@ export default function ServiceRequests() {
 
       {/* Template Management Dialog */}
       <Dialog open={showTemplates} onOpenChange={() => setShowTemplates(false)}>
-        <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-lg">
+        <DialogContent className="bg-[#102C25] border-[#242D38] max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <FileText size={18} className="text-brass" /> Response Templates
@@ -284,7 +284,7 @@ export default function ServiceRequests() {
               <button
                 disabled={savingTemplate || !newTemplate.title || !newTemplate.body}
                 onClick={handleCreateTemplate}
-                className="w-full py-2.5 bg-brass text-[#0E1A2B] font-semibold rounded-xl disabled:opacity-40 flex items-center justify-center gap-2"
+                className="w-full py-2.5 bg-brass text-[#102C25] font-semibold rounded-xl disabled:opacity-40 flex items-center justify-center gap-2"
               >
                 <Plus size={14} /> {savingTemplate ? 'Saving...' : 'Add Template'}
               </button>

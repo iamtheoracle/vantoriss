@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 const CHART = {
-  brass: '#B08D57',
+  brass: '#C5A66A',
   mint: '#7EB89F',
   crimson: '#8C2F39',
   champagne: '#D4B996',

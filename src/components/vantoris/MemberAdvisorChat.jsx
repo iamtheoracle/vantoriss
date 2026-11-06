@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Loader2,
   Sparkles,
@@ -15,7 +15,7 @@ import {
   Trash2,
   Clock,
 } from 'lucide-react';
-import { getMessageKey, isStarred, toggleStar, addDeletedId, getDeletedIds } from '@/lib/starredMessages';
+import { getMessageKey, isStarred, addDeletedId, getDeletedIds } from '@/lib/starredMessages';
 import VantorisMonogram from '@/components/vantoris/brand/VantorisMonogram';
 import ConversationTabs from '@/components/vantoris/chat/ConversationTabs';
 import ChatMessage from '@/components/vantoris/chat/ChatMessage';
@@ -278,7 +278,7 @@ export default function MemberAdvisorChat() {
 function ChatHeader({ activeTab, whatsappNumber, conversations, activeConv, onSelectConv, onDeleteConv, onToggleStarred, starredOnly }) {
   const [showHistory, setShowHistory] = useState(false);
   const config = {
-    advisor: { name: 'Vantoris Advisor', status: 'Online · AI Financial Guide', online: true },
+    advisor: { name: 'Classic Assistant', status: 'Online · Legacy AI experience', online: true },
     support: { name: 'Human Support', status: whatsappNumber ? `WhatsApp · ${whatsappNumber}` : 'Available via WhatsApp', online: true },
     manager: { name: 'Relationship Manager', status: 'Your dedicated RM', online: true },
   };
@@ -454,7 +454,7 @@ function ManagerChannel() {
           </div>
           <div className="text-left">
             <p className="text-sm font-semibold text-foreground">Assigned RM</p>
-            <p className="text-xs text-gray">Vantoris Wealth Management</p>
+            <p className="text-xs text-gray">Atchison Village Credit Union</p>
           </div>
         </div>
       </div>

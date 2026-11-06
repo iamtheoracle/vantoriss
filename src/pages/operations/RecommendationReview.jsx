@@ -46,7 +46,6 @@ const STATUS_FILTERS = [
 export default function RecommendationReview() {
   const [recommendations, setRecommendations] = useState([]);
   const [workspaces, setWorkspaces] = useState({});
-  const [members, setMembers] = useState({});
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('pending');
   const [selectedRec, setSelectedRec] = useState(null);
@@ -55,7 +54,6 @@ export default function RecommendationReview() {
   const { toast } = useToast();
 
   const loadData = useCallback(async () => {
-    const me = await base44.auth.me();
     const recs = await base44.entities.AssistantRecommendation.filter(
       { status: activeFilter },
       '-created_date',
@@ -63,26 +61,14 @@ export default function RecommendationReview() {
     );
     setRecommendations(recs);
 
-    // Fetch related workspaces and members
+    // Workspace data is read only inside the protected operations workspace.
     const wsIds = [...new Set(recs.map(r => r.workspace_id).filter(Boolean))];
-    const userIds = [...new Set(recs.map(r => r.user_id).filter(Boolean))];
-
-    const [wsList, userList] = await Promise.all([
-      wsIds.length > 0
-        ? base44.entities.CaseWorkspace.filter({ id: { $in: wsIds } })
-        : Promise.resolve([]),
-      userIds.length > 0
-        ? base44.entities.User.filter({ id: { $in: userIds } })
-        : Promise.resolve([]),
-    ]);
-
+    const wsList = wsIds.length > 0
+      ? await base44.entities.CaseWorkspace.filter({ id: { $in: wsIds } })
+      : [];
     const wsMap = {};
-    wsList.forEach(w => { wsMap[w.id] = w; });
+    wsList.forEach(workspace => { wsMap[workspace.id] = workspace; });
     setWorkspaces(wsMap);
-
-    const memberMap = {};
-    userList.forEach(u => { memberMap[u.id] = u; });
-    setMembers(memberMap);
   }, [activeFilter]);
 
   useEffect(() => {
@@ -94,52 +80,24 @@ export default function RecommendationReview() {
   async function handleAction(recId, action) {
     setActionLoading(true);
     try {
-      const me = await base44.auth.me();
-      const now = new Date().toISOString();
-      await base44.entities.AssistantRecommendation.update(recId, {
-        status: action,
-        reviewer_id: me.id,
-        reviewer_name: me.full_name,
-        review_notes: reviewNotes,
-        reviewed_date: now,
+      const result = await base44.functions.invoke('review-recommendation', {
+        recommendationId: recId,
+        decision: action,
+        notes: reviewNotes,
       });
-
-      // Update workspace status
-      const rec = recommendations.find(r => r.id === recId);
-      if (rec?.workspace_id) {
-        const ws = workspaces[rec.workspace_id];
-        if (ws) {
-          const timeline = ws.timeline ? JSON.parse(ws.timeline) : [];
-          timeline.push({
-            timestamp: now,
-            event: `recommendation_${action}`,
-            reviewer: me.full_name,
-            notes: reviewNotes,
-          });
-          await base44.entities.CaseWorkspace.update(ws.id, {
-            status: action === 'approved' ? 'approved' : action === 'rejected' ? 'rejected' : ws.status,
-            timeline: JSON.stringify(timeline.slice(-20)),
-          });
-        }
-      }
-
-      // Audit log
-      await base44.integrations.Core.SendEmail({
-        to: me.email,
-        subject: `Recommendation ${action}`,
-        body: `You ${action} a recommendation from the ${SPECIALIST_LABELS[rec?.specialist] || 'Banking'} specialist.\n\nNotes: ${reviewNotes || 'None'}`,
-      }).catch(() => {});
+      const data = result?.data ?? result;
+      if (!data?.success) throw new Error(data?.error || 'Review decision could not be recorded');
 
       toast({
         title: `Recommendation ${action}`,
-        description: `The ${SPECIALIST_LABELS[rec?.specialist] || 'Banking'} specialist's recommendation has been ${action}.`,
+        description: data.warning || data.message || 'Review decision recorded. No financial action was executed.',
       });
 
       setSelectedRec(null);
       setReviewNotes('');
-      loadData();
-    } catch (e) {
-      toast({ title: 'Action failed', description: e.message, variant: 'destructive' });
+      await loadData();
+    } catch (error) {
+      toast({ title: 'Review failed', description: error.message || 'Unable to record the decision.', variant: 'destructive' });
     } finally {
       setActionLoading(false);
     }
@@ -153,7 +111,7 @@ export default function RecommendationReview() {
     <div className="px-5 lg:px-8 py-6">
       <OperationsPageLayout
         title="Assistant Recommendations"
-        description="Review and approve AI assistant recommendations before execution."
+        description="Review AI recommendations and record staff decisions. This page does not execute financial operations."
         icon={Bot}
         breadcrumb="AI & Administration"
       >
@@ -197,7 +155,6 @@ export default function RecommendationReview() {
             <div className="space-y-3">
               {recommendations.map(rec => {
                 const ws = workspaces[rec.workspace_id];
-                const member = members[rec.user_id];
                 const isSelected = selectedRec?.id === rec.id;
                 return (
                   <button
@@ -215,7 +172,7 @@ export default function RecommendationReview() {
                             {SPECIALIST_LABELS[rec.specialist]} Assistant
                           </p>
                           <p className="text-xs text-gray truncate">
-                            {member?.full_name || rec.user_id?.substring(0, 8)}
+                            {`Member ${rec.user_id?.substring(0, 8) || 'record'}`}
                             {ws?.subject ? ` · ${ws.subject.substring(0, 40)}` : ''}
                           </p>
                         </div>
@@ -311,6 +268,7 @@ export default function RecommendationReview() {
                 {/* Review notes */}
                 {selectedRec.status === 'pending' || selectedRec.status === 'escalated' ? (
                   <>
+                    <p className="text-[11px] text-[#80683D] leading-relaxed mb-3">This records a review decision only. No transfer, payment, withdrawal, card issuance or account change is executed from this screen.</p>
                     <textarea
                       value={reviewNotes}
                       onChange={e => setReviewNotes(e.target.value)}
@@ -325,7 +283,7 @@ export default function RecommendationReview() {
                         className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-mint text-white font-semibold rounded-lg text-sm hover:bg-mint/90 transition-all disabled:opacity-50"
                       >
                         <CheckCircle2 size={16} />
-                        Approve
+                        Record approval
                       </button>
                       <button
                         onClick={() => handleAction(selectedRec.id, 'rejected')}
@@ -333,7 +291,7 @@ export default function RecommendationReview() {
                         className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-crimson text-white font-semibold rounded-lg text-sm hover:bg-crimson/90 transition-all disabled:opacity-50"
                       >
                         <XCircle size={16} />
-                        Reject
+                        Record rejection
                       </button>
                     </div>
                   </>

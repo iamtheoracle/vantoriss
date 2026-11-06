@@ -5,7 +5,7 @@ const THEME = {
   navy: '#0B0F18',
   slate: '#242D38',
   gray: '#AAB4C3',
-  brass: '#B08D57',
+  brass: '#C5A66A',
   mint: '#7EB89F',
   crimson: '#8C2F39',
   champagne: '#D4B996',

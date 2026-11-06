@@ -28,8 +28,17 @@ export function createNexus() {
       // Resolve model from Model Registry
       const model = registries.model.select(request.priority || 'normal');
 
-      // Resolve prompt from Prompt Registry — unified assistant identity
-      const prompt = registries.prompt.resolve('default_assistant');
+      // Select the assistant identity from the authenticated server-side role.
+      const operationsRoles = [
+        'admin', 'operations_officer', 'finance_officer', 'compliance_officer',
+        'executive', 'administrator', 'super_administrator', 'customer_support',
+        'kyc_officer', 'operations_manager', 'treasury_officer', 'it_administrator',
+        'risk_officer', 'auditor', 'investment_officer', 'investment_manager',
+      ];
+      const promptKey = operationsRoles.includes(request.userRole)
+        ? 'operations_assistant'
+        : 'default_assistant';
+      const prompt = registries.prompt.resolve(promptKey);
 
       // Build specialist-specific prompt context
       const specialistPrompt = getSpecialistPrompt(routing.specialist);

@@ -18,10 +18,10 @@ export default function ConciergeWelcome({
 
   const summaryParts = [
     `${greeting}, ${firstName}.`,
-    `Welcome back to your Vantoris sanctuary.`,
+    `Welcome back to your Atchison Village Credit Union member space.`,
     `Your total vault balance is ${formatCurrency(totalBalance)} across ${accountCount} ${accountCount === 1 ? 'account' : 'accounts'}.`,
     unreadCount > 0 ? `You have ${unreadCount} unread ${unreadCount === 1 ? 'notification' : 'notifications'}.` : 'All notifications are up to date.',
-    'Your wealth is secured and monitored. Enjoy your day.',
+    'Your accounts and requests are ready to review. Enjoy your day.',
   ];
 
   useEffect(() => {
@@ -141,7 +141,7 @@ export default function ConciergeWelcome({
             >
               <p className="text-brass text-xs uppercase tracking-[0.25em] font-semibold mb-2">{greeting}</p>
               <h1 className="text-white text-3xl font-bold tracking-tight mb-1">{firstName}</h1>
-              <p className="text-white/50 text-sm">Welcome to your Vantoris sanctuary</p>
+              <p className="text-white/50 text-sm">Welcome to your Atchison Village member space</p>
             </motion.div>
 
             {/* Summary chips */}

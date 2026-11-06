@@ -1,78 +1,46 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, MessageCircle, Sparkles, Phone } from 'lucide-react';
+import { Sparkles, MessageCircle, Mail, LifeBuoy } from 'lucide-react';
 import { useWhatsAppConfig, whatsappLinkFromConfig } from '@/hooks/useWhatsAppConfig';
 import { BUSINESS_WHATSAPP_DISPLAY, SUPPORT_EMAIL } from '@/lib/businessConfig';
 
-const TONES = {
-  blue: { icon: 'text-brass', bg: 'bg-brass/12' },
-  green: { icon: 'text-mint', bg: 'bg-mint/12' },
-  champagne: { icon: 'text-champagne', bg: 'bg-champagne/12' },
-  gray: { icon: 'text-gray', bg: 'bg-white/[0.06]' },
-};
-
-function SupportCard({ icon: Icon, title, detail, tone = 'blue', ...props }) {
-  const t = TONES[tone] || TONES.blue;
-  const Component = props.href ? 'a' : 'button';
-
-  return (
-    <Component
-      {...props}
-      className="vantoris-glass-flat p-4 text-left hover:border-brass/20 transition-all"
-    >
-      <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${t.bg}`}>
-        <Icon size={18} className={t.icon} />
-      </div>
-      <p className="text-sm font-bold text-white">{title}</p>
-      <p className="mt-1 break-words text-xs text-gray">{detail}</p>
-    </Component>
-  );
-}
-
 export default function OnboardingSupport() {
-  const whatsappNumber = useWhatsAppConfig();
   const navigate = useNavigate();
+  const whatsappNumber = useWhatsAppConfig();
+
+  const channels = [
+    { icon: Sparkles, title: 'Ask AVA', subtitle: 'Your personal credit-union guide', onClick: () => navigate('/ava') },
+    { icon: MessageCircle, title: 'Secure Messages', subtitle: 'Contact member support in the app', onClick: () => navigate('/messages') },
+    ...(whatsappNumber ? [{
+      icon: MessageCircle,
+      title: 'WhatsApp',
+      subtitle: BUSINESS_WHATSAPP_DISPLAY || whatsappNumber,
+      href: whatsappLinkFromConfig(whatsappNumber, 'Hello Atchison Village Credit Union, I need support.'),
+    }] : []),
+    ...(SUPPORT_EMAIL ? [{ icon: Mail, title: 'Email Support', subtitle: SUPPORT_EMAIL, href: `mailto:${SUPPORT_EMAIL}` }] : []),
+  ];
 
   return (
-    <section className="mt-5">
-      <div className="mb-3">
-        <p className="text-sm font-bold text-white">Need help? We are here for you</p>
-        <p className="mt-1 text-xs text-gray">Get onboarding support from Vantoris through your preferred channel.</p>
+    <div className="rounded-2xl bg-white border border-border p-5 shadow-sm">
+      <div className="flex items-center gap-2 mb-4">
+        <LifeBuoy size={18} className="text-[#C5A66A]" />
+        <h3 className="font-semibold text-foreground">We're here to help</h3>
       </div>
-
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <SupportCard
-          type="button"
-          icon={Sparkles}
-          title="Vantoris Advisor"
-          detail="AI onboarding assistant"
-          tone="blue"
-          onClick={() => navigate('/advisor')}
-        />
-        <SupportCard
-          icon={MessageCircle}
-          title="WhatsApp"
-          detail="Chat with support"
-          tone="green"
-          href={whatsappLinkFromConfig(whatsappNumber, 'Hello Vantoris, I need help with my onboarding.')}
-          target="_blank"
-          rel="noopener noreferrer"
-        />
-        <SupportCard
-          icon={Mail}
-          title="Email"
-          detail={SUPPORT_EMAIL}
-          tone="champagne"
-          href={`mailto:${SUPPORT_EMAIL}`}
-        />
-        <SupportCard
-          icon={Phone}
-          title="Call Us"
-          detail={BUSINESS_WHATSAPP_DISPLAY}
-          tone="gray"
-          href={`tel:${BUSINESS_WHATSAPP_DISPLAY.replace(/[^0-9+]/g, '')}`}
-        />
+      <div className="grid grid-cols-2 gap-3">
+        {channels.map((channel, index) => {
+          const Icon = channel.icon;
+          const className = "flex flex-col items-start gap-2 rounded-xl border border-border bg-[#FBF9F3] p-4 text-left hover:border-[#C5A66A] transition-colors";
+          const content = (
+            <>
+              <Icon size={19} className="text-[#173D32]" />
+              <span className="font-semibold text-sm text-foreground">{channel.title}</span>
+              <span className="text-[11px] leading-relaxed text-gray">{channel.subtitle}</span>
+            </>
+          );
+          if (channel.href) return <a key={index} href={channel.href} target="_blank" rel="noopener noreferrer" className={className}>{content}</a>;
+          return <button key={index} onClick={channel.onClick} className={className}>{content}</button>;
+        })}
       </div>
-    </section>
+    </div>
   );
 }

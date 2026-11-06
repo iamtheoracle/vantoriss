@@ -1,31 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Send, Loader2, Sparkles, ChevronLeft, Clock, Crown } from 'lucide-react';
+import { Send, Loader2, Sparkles, ChevronLeft, ArrowUpRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ShieldLogo from '@/components/vantoris/ShieldLogo';
-import { isSuperAdmin } from '@/lib/operationsAccess';
 
 /**
- * VantorisAssistant — the single customer-facing AI assistant.
- *
- * Uses the Vantoris Assistant agent via the Base44 agents SDK.
- * Internally, the agent coordinates through Vantoris Command with 16
- * specialist divisions. The frontend owns no business logic — it renders
- * messages and streams the agent's responses.
+ * Classic Assistant — retained legacy conversation experience.
+ * AVA is the current member-facing assistant and uses the authenticated Oracle runtime.
  */
 export default function VantorisAssistant() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [user, setUser] = useState(null);
   const [conversation, setConversation] = useState(null);
   const scrollRef = useRef(null);
   const textareaRef = useRef(null);
-
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -71,7 +61,7 @@ export default function VantorisAssistant() {
       if (!conv) {
         conv = await base44.agents.createConversation({
           agent_name: 'vantoris_assistant',
-          metadata: { name: 'Vantoris Assistant', description: 'Member assistance session' },
+          metadata: { name: 'Classic Assistant', description: 'Member assistance session' },
         });
         setConversation(conv);
       }
@@ -99,15 +89,9 @@ export default function VantorisAssistant() {
               <ShieldLogo size={22} />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-lg font-bold text-foreground">Vantoris Assistant</h1>
-                {isSuperAdmin(user) && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-navy/10 text-navy text-[10px] font-bold uppercase tracking-wider rounded-full">
-                    <Crown size={10} /> Ultimate Command
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-gray">{isSuperAdmin(user) ? 'Authorized for all operator capabilities' : 'AI Financial Guide'}</p>
+              <h1 className="text-lg font-bold text-foreground">Classic Assistant</h1>
+              <p className="text-xs text-gray">Retained legacy guidance · AVA handles current member support</p>
+              <Link to="/ava" className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#173D32]">Open AVA <ArrowUpRight size={13} /></Link>
             </div>
           </div>
         </div>
@@ -125,7 +109,7 @@ export default function VantorisAssistant() {
         <div className="px-5 py-2 max-w-3xl mx-auto w-full">
           <div className="flex items-center gap-2 text-xs text-gray">
             <Sparkles size={12} />
-            <span>Vantoris Command processing...</span>
+            <span>Classic Assistant processing...</span>
           </div>
         </div>
       )}
@@ -183,7 +167,7 @@ export default function VantorisAssistant() {
               el.style.height = 'auto';
               el.style.height = Math.min(el.scrollHeight, 120) + 'px';
             }}
-            placeholder="Message Vantoris Assistant…"
+            placeholder="Message Classic Assistant…"
             disabled={loading}
             rows={1}
             aria-label="Command input"

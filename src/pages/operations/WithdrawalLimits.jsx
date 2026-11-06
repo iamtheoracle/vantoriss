@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { AlertCircle, DollarSign, Save } from 'lucide-react';
+import { AlertCircle, Save } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
 
 const ACCOUNT_TYPES = ['Personal', 'Joint', 'Business', 'Organization'];
@@ -109,7 +109,7 @@ export default function WithdrawalLimits() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center gap-2 px-6 py-3 bg-brass text-[#0E1A2B] font-semibold rounded-lg disabled:opacity-40"
+          className="flex items-center gap-2 px-6 py-3 bg-brass text-[#102C25] font-semibold rounded-lg disabled:opacity-40"
         >
           <Save size={16} /> {saving ? 'Saving...' : 'Save Configuration'}
         </button>

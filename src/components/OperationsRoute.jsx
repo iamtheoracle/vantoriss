@@ -8,7 +8,7 @@ export default function OperationsRoute() {
 
   if (isLoadingAuth || !authChecked) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-[#0E1A2B]">
+      <div className="fixed inset-0 flex items-center justify-center bg-[#102C25]">
         <div className="w-8 h-8 border-2 border-brass/30 border-t-brass rounded-full animate-spin" />
       </div>
     );

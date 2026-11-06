@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ShieldCheck, Plus, Search, Mail, Phone, Building2, BadgeCheck, Trash2 } from 'lucide-react';
+import { ShieldCheck, Plus, Search, BadgeCheck, Trash2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
 const ROLES = [
@@ -153,7 +153,7 @@ export default function OperationalProfiles() {
   return (
     <OperationsPageLayout title="Operational Profiles" description="Staff identities — completely separate from member accounts" icon={ShieldCheck}
       actions={
-        <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2.5 bg-brass text-[#0E1A2B] rounded-xl text-sm font-semibold hover:bg-brass/90 transition-all">
+        <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2.5 bg-brass text-[#102C25] rounded-xl text-sm font-semibold hover:bg-brass/90 transition-all">
           <Plus size={16} /> Add Profile
         </button>
       }
@@ -283,7 +283,7 @@ export default function OperationalProfiles() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
-        <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-lg">
+        <DialogContent className="bg-[#102C25] border-[#242D38] max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-white">{editing ? 'Edit Operational Profile' : 'Add Operational Profile'}</DialogTitle>
           </DialogHeader>
@@ -352,7 +352,7 @@ export default function OperationalProfiles() {
               </div>
             </div>
             <div className="flex gap-3 pt-2">
-              <button onClick={handleSave} disabled={saving || !form.full_name.trim()} className="flex-1 py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl disabled:opacity-40">
+              <button onClick={handleSave} disabled={saving || !form.full_name.trim()} className="flex-1 py-3 bg-brass text-[#102C25] font-semibold rounded-xl disabled:opacity-40">
                 {saving ? 'Saving...' : editing ? 'Save Changes' : 'Create Profile'}
               </button>
               <button onClick={() => setShowCreate(false)} className="px-6 py-3 bg-[#242D38] text-[#AAB4C3] rounded-xl text-sm font-medium hover:text-white">

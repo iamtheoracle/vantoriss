@@ -149,13 +149,13 @@ export default function QuickActionsMenu({ onActionComplete }) {
     <>
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 px-4 py-2.5 bg-brass text-[#0E1A2B] rounded-xl text-sm font-semibold hover:bg-brass/90 transition-all"
+        className="flex items-center gap-2 px-4 py-2.5 bg-brass text-[#102C25] rounded-xl text-sm font-semibold hover:bg-brass/90 transition-all"
       >
         <Zap size={16} /> Quick Actions
       </button>
 
       <Dialog open={!!selectedAction} onOpenChange={() => setSelectedAction(null)}>
-        <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-md">
+        <DialogContent className="bg-[#102C25] border-[#242D38] max-w-md">
           <DialogHeader>
             <DialogTitle className="text-white">
               {QUICK_ACTIONS.find(a => a.id === selectedAction)?.label}
@@ -220,7 +220,7 @@ export default function QuickActionsMenu({ onActionComplete }) {
                     handleAdjustment
                   }
                   disabled={!selectedAccount || (selectedAction === 'adjustment' && !adjustmentAmount) || submitting}
-                  className="flex-1 py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl disabled:opacity-40 flex items-center justify-center gap-2"
+                  className="flex-1 py-3 bg-brass text-[#102C25] font-semibold rounded-xl disabled:opacity-40 flex items-center justify-center gap-2"
                 >
                   <Check size={14} /> {submitting ? 'Processing...' : 'Confirm'}
                 </button>

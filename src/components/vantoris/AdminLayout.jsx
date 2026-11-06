@@ -13,6 +13,7 @@ export default function AdminLayout() {
   const [user, setUser] = useState(null);
   const [activeWorkspace, setActiveWorkspace] = useState(null);
   const location = useLocation();
+  const isAvaRoute = location.pathname === '/operations/ava';
 
   useEffect(() => {
     base44.auth.me()
@@ -79,7 +80,7 @@ export default function AdminLayout() {
         </main>
       </div>
 
-      <FloatingAIDock />
+      {!isAvaRoute && <FloatingAIDock />}
     </div>
   );
 }

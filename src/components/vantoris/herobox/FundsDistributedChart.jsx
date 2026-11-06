@@ -21,7 +21,7 @@ function CustomTooltip({ active, payload, label }) {
 
 export default function FundsDistributedChart({ data, period, onPeriodChange, breakdown, onBreakdownChange }) {
   const breakdowns = ['Mission', 'Community', 'Campaign', 'Package', 'Region'];
-  const colors = ['#071C38', '#1F5EFF', '#16A34A', '#C9A227', '#DC2626'];
+  const colors = ['#173D32', '#1F5EFF', '#16A34A', '#C5A66A', '#DC2626'];
   const keys = breakdowns.slice(0, Math.max(1, breakdown ? breakdowns.indexOf(breakdown) + 1 : 3));
 
   return (

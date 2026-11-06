@@ -7,11 +7,9 @@ import {
   Gift, Bell, MessageCircle, ShieldCheck, Settings,
 } from 'lucide-react';
 import ProfileSection, { ProfileRow, ProfileDivider } from '@/components/vantoris/profile/ProfileSection';
-import { useWhatsAppConfig, whatsappLinkFromConfig } from '@/hooks/useWhatsAppConfig';
 import { hasOperationsAccess } from '@/lib/operationsAccess';
 
 export default function SettingsSection({ user, referralLink, onDeleteAccount }) {
-  const whatsappNumber = useWhatsAppConfig();
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const isMember = user.role === 'user';
@@ -22,23 +20,13 @@ export default function SettingsSection({ user, referralLink, onDeleteAccount })
       <ProfileSection title="Communication" icon={Bell} delay={0.1}>
         <ProfileRow icon={Bell} iconColor="text-brass" iconBg="bg-brass/10" label="Messages" value="Secure messages" onClick={() => navigate('/messages')} />
         <ProfileDivider />
-        <ProfileRow
-          icon={MessageCircle}
-          iconColor="text-mint"
-          iconBg="bg-mint/10"
-          label="WhatsApp Support"
-          value="Chat with us directly"
-          onClick={() => window.open(
-            whatsappLinkFromConfig(whatsappNumber, 'Hello Vantoris Support, I have a question regarding my account.'),
-            '_blank', 'noopener,noreferrer'
-          )}
-        />
+        <ProfileRow icon={MessageCircle} iconColor="text-mint" iconBg="bg-mint/10" label="Contact Support" value="Secure in-app member messages" onClick={() => navigate('/messages')} />
       </ProfileSection>
 
       {/* Advisory & Services — members only */}
       {isMember && (
         <ProfileSection title="Advisory & Services" icon={ShieldCheck} delay={0.15}>
-          <ProfileRow icon={ShieldCheck} iconColor="text-brass" iconBg="bg-brass/10" label="Vantoris Advisor" value="Your personal AI financial assistant" onClick={() => navigate('/advisor')} />
+          <ProfileRow icon={ShieldCheck} iconColor="text-brass" iconBg="bg-brass/10" label="AVA Assistant" value="Your personal credit-union guide" onClick={() => navigate('/ava')} />
           <ProfileDivider />
           <ProfileRow icon={Settings} iconColor="text-brass" iconBg="bg-brass/10" label="Services" value="Manage banking services" onClick={() => navigate('/services')} />
         </ProfileSection>

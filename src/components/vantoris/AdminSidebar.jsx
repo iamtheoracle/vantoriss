@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, FileText, Users, Building2, ShieldCheck,
   DollarSign, ArrowDownToLine, ArrowUpRight, ArrowLeftRight,
   Wallet, CreditCard, UserCheck, FolderOpen,
   BarChart3, TrendingUp, ScrollText, Activity,
-  Bot, Settings, Code, Plug, Bell, Lock, Flag, Cog, HeartPulse,
+  Bot, Settings, Code, Plug, Bell, Lock, Flag, HeartPulse,
   ChevronRight, Wrench, Users2, MessageSquare, Crown, Briefcase,
-  AlertTriangle, Scale, GitBranch, Database, ServerCog,
-  Search, Eye, ShieldAlert, Network, Globe, Zap,
+  Scale, GitBranch, Database, ServerCog,
+  Search, Eye, ShieldAlert,
   PanelLeftClose, FileUp, CalendarDays, Gavel, FileSpreadsheet, Trophy, Radar,
-  Shield, Package, Heart, Headphones, PieChart, Coins, Signal,
+  Shield, Package, Heart, Headphones, PieChart, Signal,
 } from 'lucide-react';
-import ShieldLogo from './ShieldLogo';
+import VantorisMonogram from './brand/VantorisMonogram';
 import {
-  getDomainsForRole, hasDomainAccess, getDefaultWorkspace,
+  getDomainsForRole, getDefaultWorkspace,
   WORKSPACE_LABELS, getRoleLabel, isSuperAdmin,
 } from '@/lib/operationsAccess';
 
@@ -79,6 +79,13 @@ const DOMAIN_CONFIG = {
         items: [
           { label: 'Discovery Network', path: '/operations/discovery-network', icon: Search },
           { label: 'Humanitarian Cases', path: '/operations/humanitarian-cases', icon: Heart },
+        ],
+      },
+      {
+        label: 'AI & Intelligence',
+        items: [
+          { label: 'AVA Operations', path: '/operations/ava', icon: Bot },
+          { label: 'Assistant Recommendations', path: '/operations/recommendations', icon: Gavel },
         ],
       },
       {
@@ -236,10 +243,10 @@ export default function AdminSidebar({ user, activeWorkspace, onWorkspaceChange,
     <aside className="vantoris-glass-sidebar flex flex-col h-full w-64" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
       {/* Brand header */}
       <div className="px-5 py-4 flex items-center gap-3 flex-shrink-0 border-b border-slate-200" style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 1rem)' }}>
-        <ShieldLogo size={32} />
+        <VantorisMonogram size={36} variant="metallic" theme="light" />
         <div className="min-w-0 flex-1">
-          <h1 className="text-foreground font-bold text-base tracking-[0.2em] leading-tight">VANTORIS</h1>
-          <p className="text-gray/60 text-[9px] tracking-[0.18em] uppercase font-medium">Command Center</p>
+          <p className="text-foreground font-bold text-[11px] tracking-[0.08em] leading-tight">ATCHISON VILLAGE</p>
+          <p className="text-gray/60 text-[9px] tracking-[0.14em] uppercase font-medium">Credit Union · Operations</p>
         </div>
         {onHide && (
           <button

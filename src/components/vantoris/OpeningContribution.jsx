@@ -268,7 +268,7 @@ export default function OpeningContribution({ application, onUpdate }) {
       <button
         disabled={!canSubmit}
         onClick={handleSubmit}
-        className="w-full py-3.5 bg-brass text-[#0E1A2B] font-semibold rounded-xl hover:bg-brass/90 transition-all disabled:opacity-40"
+        className="w-full py-3.5 bg-brass text-[#102C25] font-semibold rounded-xl hover:bg-brass/90 transition-all disabled:opacity-40"
       >
         {submitting ? 'Submitting...' : 'Submit Deposit'}
       </button>

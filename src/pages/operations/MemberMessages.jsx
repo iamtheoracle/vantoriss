@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
 import {
   MessageSquare, Send, CheckCheck, User, Trash2, Edit3, Check,
-  MoreVertical, ArrowLeft, Search, X
+  MoreVertical, ArrowLeft, Search
 } from 'lucide-react';
 import ReadReceipt from '@/components/vantoris/chat/ReadReceipt';
 import { useToast } from '@/components/ui/use-toast';
@@ -92,7 +92,7 @@ export default function MemberMessages() {
       await base44.entities.ThreadMessage.create({
         thread_id: selected.id, user_id: selected.user_id,
         sender: 'admin', body: reply,
-        admin_name: me?.full_name || 'Vantoris Support',
+        admin_name: me?.full_name || 'Atchison Village Support',
       });
       await base44.entities.MessageThread.update(selected.id, {
         last_message: reply.slice(0, 200), last_sender: 'admin',
@@ -103,8 +103,8 @@ export default function MemberMessages() {
       if (member?.email) {
         await base44.integrations.Core.SendEmail({
           to: member.email,
-          subject: `Vantoris Support: ${selected.subject}`,
-          body: `Dear ${member.full_name || 'Member'},\n\nYou have a new reply from Vantoris Support:\n\n${reply}\n\nView the full conversation in your Vantoris app under Messages.\n\nWarm regards,\nThe Vantoris Team`,
+          subject: `Atchison Village Support: ${selected.subject}`,
+          body: `Dear ${member.full_name || 'Member'},\n\nYou have a new reply from Atchison Village Support:\n\n${reply}\n\nView the full conversation in your Atchison Village app under Messages.\n\nWarm regards,\nThe Atchison Village Credit Union Team`,
         });
       }
       const msgs = await base44.entities.ThreadMessage.filter({ thread_id: selected.id }, 'created_date', 200);

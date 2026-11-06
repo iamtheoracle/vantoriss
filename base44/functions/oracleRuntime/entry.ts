@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.57';
 import { boot } from '../../shared/runtime/bootLoader.ts';
 import { logger } from '../../shared/runtime/logger.ts';
 
@@ -9,19 +9,40 @@ export default async function(req) {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json().catch(() => ({}));
-    const { message, context, action = 'process' } = body;
+    const { message, action = 'process' } = body;
 
-    // Boot the runtime (cached after first call)
+    // Runtime instances are request-scoped; no member's session or service client is cached.
     const { services, runtime, stages: bootStages } = await boot(base44);
 
-    // Health check endpoint
+    // Return only the authenticated member's own AVA conversation history.
+    if (action === 'history') {
+      const thread = await services.conversation.getOrCreateThread(user.id, 'AVA');
+      const history = await services.conversation.getHistory(thread.id, 50);
+      const messages = history
+        .slice()
+        .sort((a, b) => new Date(a.created_date || 0).getTime() - new Date(b.created_date || 0).getTime())
+        .map(item => ({
+          role: item.sender === 'member' ? 'user' : 'assistant',
+          content: item.body,
+          created_date: item.created_date,
+        }));
+      return Response.json({ threadId: thread.id, messages });
+    }
+
+    // Health diagnostics expose internal service state and are staff-only.
     if (action === 'health') {
+      if (!['admin', 'administrator', 'super_administrator', 'it_administrator', 'executive'].includes(user.role)) {
+        return Response.json({ error: 'Forbidden' }, { status: 403 });
+      }
       const health = await services.health.runAll();
       return Response.json({ status: 'ok', health, stages: bootStages || [] });
     }
 
-    if (!message) {
+    if (typeof message !== 'string' || !message.trim()) {
       return Response.json({ error: 'Message is required' }, { status: 400 });
+    }
+    if (message.length > 4000) {
+      return Response.json({ error: 'Message exceeds the 4,000 character limit' }, { status: 413 });
     }
 
     // Build the AI request through the Oracle pipeline:
@@ -32,19 +53,20 @@ export default async function(req) {
       message,
       context: {
         userId: user.id,
-        sessionId: context?.sessionId || crypto.randomUUID(),
+        sessionId: crypto.randomUUID(),
         userRole: user.role,
         timestamp: new Date().toISOString(),
-        source: 'bud',
+        source: 'ava',
       },
-      capabilities: context?.capabilities || ['reasoning', 'knowledge'],
-      priority: context?.priority || 'normal',
+      // The browser cannot grant itself capabilities or request expensive model tiers.
+      capabilities: ['reasoning', 'knowledge'],
+      priority: 'normal',
     };
 
     const response = await runtime.oracle.process(request);
 
     // Persist conversation via ConversationService (not owned by Bud)
-    const thread = await services.conversation.getOrCreateThread(user.id, 'AI Assistant');
+    const thread = await services.conversation.getOrCreateThread(user.id, 'AVA');
     await services.conversation.addMessage(thread.id, user.id, 'user', message);
     await services.conversation.addMessage(thread.id, user.id, 'assistant', response.content);
 
@@ -56,6 +78,7 @@ export default async function(req) {
     // If the assistant produced a structured recommendation, persist it for staff approval.
     let workspaceId = null;
     let recommendationId = null;
+    let workflowRunId = null;
     let pendingApproval = false;
 
     try {
@@ -135,6 +158,40 @@ export default async function(req) {
         recommendationId = recommendation.id;
         pendingApproval = true;
 
+        // Persist a durable review record. This queues work for staff; it does not execute it.
+        try {
+          const prepared = await services.workflow.prepare({
+            workflowName: 'assistant_recommendation_review',
+            requesterId: user.id,
+            requesterRole: user.role,
+            subjectUserId: user.id,
+            idempotencyKey: `ava-recommendation:${recommendation.id}`,
+            payload: {
+              recommendationId: recommendation.id,
+              specialist: response.routing?.specialist || 'banking',
+              summary: rec.summary || 'Recommendation prepared for staff review.',
+              recommendedAction: rec.recommended_action || '',
+            },
+            evidence: {
+              supportingEvidence: rec.supporting_evidence || '',
+              confidence: rec.confidence_level || response.routing?.confidence || 'medium',
+              risks: rec.potential_risks || '',
+              applicablePolicies: rec.applicable_policies || '',
+            },
+          });
+          workflowRunId = prepared?.run?.id || null;
+          if (workflowRunId) {
+            await base44.asServiceRole.entities.AssistantRecommendation.update(recommendation.id, {
+              workflow_run_id: workflowRunId,
+            });
+          }
+        } catch (workflowError) {
+          logger.error('Workflow preparation failed; recommendation remains pending review', {
+            recommendationId: recommendation.id,
+            error: workflowError?.message || 'unknown',
+          });
+        }
+
         // Audit the recommendation creation
         await services.audit.log({
           actionType: 'recommendation_created',
@@ -163,11 +220,12 @@ export default async function(req) {
       routing: response.routing,
       workspaceId,
       recommendationId,
+      workflowRunId,
       pendingApproval,
       escalated: response.escalate || false,
     });
   } catch (error) {
     logger.error('Oracle runtime error', { error: error.message });
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: 'The assistant is temporarily unavailable. Please try again.' }, { status: 500 });
   }
 }

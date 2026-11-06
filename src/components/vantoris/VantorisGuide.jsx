@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, MessageCircle, Mail, Phone, HelpCircle, ChevronRight } from 'lucide-react';
+import { Sparkles, MessageCircle, Mail, HelpCircle } from 'lucide-react';
 import { useWhatsAppConfig, whatsappLinkFromConfig } from '@/hooks/useWhatsAppConfig';
 import { BUSINESS_WHATSAPP_DISPLAY, SUPPORT_EMAIL } from '@/lib/businessConfig';
 
@@ -11,68 +11,60 @@ export default function VantorisGuide() {
   const guides = [
     {
       icon: Sparkles,
-      label: 'Vantoris Advisor',
-      desc: 'AI-guided onboarding & account help',
+      label: 'AVA Assistant',
+      desc: 'Your personal credit-union guide',
       color: 'text-brass',
       bg: 'bg-brass/12',
-      onClick: () => navigate('/advisor'),
+      onClick: () => navigate('/ava'),
     },
     {
       icon: MessageCircle,
-      label: 'WhatsApp Support',
-      desc: `Chat · ${BUSINESS_WHATSAPP_DISPLAY}`,
+      label: 'Secure Messages',
+      desc: 'Contact member support in the app',
       color: 'text-mint',
       bg: 'bg-mint/12',
-      href: whatsappLinkFromConfig(whatsappNumber, 'Hello Vantoris Support, I need guidance.'),
+      onClick: () => navigate('/messages'),
     },
-    {
+    ...(whatsappNumber ? [{
+      icon: MessageCircle,
+      label: 'WhatsApp Support',
+      desc: `Chat · ${BUSINESS_WHATSAPP_DISPLAY || whatsappNumber}`,
+      color: 'text-mint',
+      bg: 'bg-mint/12',
+      href: whatsappLinkFromConfig(whatsappNumber, 'Hello Atchison Village Credit Union Support, I need guidance.'),
+    }] : []),
+    ...(SUPPORT_EMAIL ? [{
       icon: Mail,
-      label: 'Email Us',
+      label: 'Email Support',
       desc: SUPPORT_EMAIL,
       color: 'text-champagne',
       bg: 'bg-champagne/12',
       href: `mailto:${SUPPORT_EMAIL}`,
-    },
-    {
-      icon: Phone,
-      label: 'Call Support',
-      desc: BUSINESS_WHATSAPP_DISPLAY,
-      color: 'text-gray',
-      bg: 'bg-slate-100',
-      href: `tel:${BUSINESS_WHATSAPP_DISPLAY.replace(/[^0-9+]/g, '')}`,
-    },
+    }] : []),
   ];
 
   return (
     <div>
       <div className="flex items-center gap-2 mb-3">
         <HelpCircle size={16} className="text-brass" />
-        <h3 className="text-foreground font-semibold text-sm">Vantoris Guide</h3>
+        <h3 className="text-foreground font-semibold text-sm">Member support</h3>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        {guides.map((g, i) => {
-          const Icon = g.icon;
+        {guides.map((guide, index) => {
+          const Icon = guide.icon;
           const content = (
             <>
-              <div className={`w-10 h-10 rounded-xl ${g.bg} flex items-center justify-center mb-2`}>
-                <Icon size={20} className={g.color} />
+              <div className={`w-10 h-10 rounded-xl ${guide.bg} flex items-center justify-center mb-2`}>
+                <Icon size={20} className={guide.color} />
               </div>
-              <p className="text-foreground font-medium text-sm">{g.label}</p>
-              <p className="text-gray text-xs">{g.desc}</p>
+              <p className="text-foreground font-medium text-sm">{guide.label}</p>
+              <p className="text-gray text-xs">{guide.desc}</p>
             </>
           );
-          if (g.href) {
-            return (
-              <a key={i} href={g.href} target="_blank" rel="noopener noreferrer" className="vantoris-glass-flat p-4 text-left hover:border-brass/25 transition-all">
-                {content}
-              </a>
-            );
+          if (guide.href) {
+            return <a key={index} href={guide.href} target="_blank" rel="noopener noreferrer" className="vantoris-glass-flat p-4 text-left hover:border-brass/25 transition-all">{content}</a>;
           }
-          return (
-            <button key={i} onClick={g.onClick} className="vantoris-glass-flat p-4 text-left hover:border-brass/25 transition-all">
-              {content}
-            </button>
-          );
+          return <button key={index} onClick={guide.onClick} className="vantoris-glass-flat p-4 text-left hover:border-brass/25 transition-all">{content}</button>;
         })}
       </div>
     </div>

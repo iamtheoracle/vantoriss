@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, Bell, ChevronDown, LogOut, ArrowUpRight } from 'lucide-react';
+import { Search, Bell, ChevronDown, LogOut } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getRoleLabel } from '@/lib/operationsAccess';
 
@@ -64,7 +64,7 @@ export default function AdminTopBar({ user, onMenuClick }) {
             </button>
           )}
           <div className="min-w-0">
-            <p className="text-gray/60 text-[9px] uppercase tracking-[0.13em] font-semibold truncate">Vantoris Command</p>
+            <p className="text-gray/60 text-[9px] uppercase tracking-[0.13em] font-semibold truncate">Atchison Village Credit Union · Operations</p>
             <h2 className="text-foreground font-semibold text-sm truncate">{pageTitle}</h2>
           </div>
         </div>
@@ -131,13 +131,7 @@ export default function AdminTopBar({ user, onMenuClick }) {
                     {getRoleLabel(user?.role)}
                   </span>
                 </div>
-                <button
-                  onClick={() => { setShowUserMenu(false); navigate('/'); }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray hover:bg-slate-100 hover:text-foreground rounded-lg transition-all mt-1"
-                >
-                  <ArrowUpRight size={15} className="rotate-180" />
-                  Member Portal
-                </button>
+
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray hover:bg-crimson/10 hover:text-crimson rounded-lg transition-all"

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560">
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#F4EBD7"/><stop offset="1" stop-color="#D9C9A5"/></linearGradient><linearGradient id="green" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#204F40"/><stop offset="1" stop-color="#102C25"/></linearGradient></defs>
+<rect width="900" height="560" rx="42" fill="url(#bg)"/><circle cx="740" cy="270" r="250" fill="#173D32" opacity=".08"/><circle cx="740" cy="270" r="185" fill="none" stroke="#173D32" stroke-opacity=".18" stroke-width="2"/>
+<rect x="64" y="64" width="772" height="432" rx="30" fill="none" stroke="#173D32" stroke-opacity=".18" stroke-width="2"/>
+<path d="M108 112 142 91l34 21v39l-34 21-34-21z" fill="url(#green)"/><path d="m119 149 17-32 17 32m-26-12h19" fill="none" stroke="#C5A66A" stroke-width="4" stroke-linecap="round"/>
+<text x="205" y="124" fill="#173D32" font-family="Arial,sans-serif" font-size="28" font-weight="700" letter-spacing="2">ATCHISON VILLAGE</text><text x="205" y="160" fill="#52685E" font-family="Arial,sans-serif" font-size="16" font-weight="700" letter-spacing="6">CREDIT UNION</text>
+<rect x="108" y="246" width="114" height="82" rx="14" fill="url(#green)"/><path d="M165 246v82M108 287h114M137 246v82M194 246v82" stroke="#C5A66A" stroke-width="2" opacity=".75"/>
+<rect x="260" y="235" width="240" height="108" rx="18" fill="url(#green)" opacity=".95"/><text x="380" y="280" text-anchor="middle" fill="#F7F4EC" font-family="Arial,sans-serif" font-size="18" letter-spacing="4">VIRTUAL</text><text x="380" y="311" text-anchor="middle" fill="#C5A66A" font-family="Arial,sans-serif" font-size="13" letter-spacing="3">DEBIT</text>
+<text x="108" y="414" fill="#173D32" font-family="Arial,sans-serif" font-size="30" letter-spacing="7">••••  ••••  ••••  ••••</text><text x="108" y="460" fill="#52685E" font-family="Arial,sans-serif" font-size="18" letter-spacing="4">DIGITAL WALLET READY</text>
+</svg>

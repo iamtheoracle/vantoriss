@@ -49,7 +49,7 @@ export default function DailyEmailSummary() {
 
       const dateStr = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
-      const subject = `Vantoris Daily Summary — ${dateStr}`;
+      const subject = `Atchison Village Credit Union Daily Summary — ${dateStr}`;
       const depositsList = todayDeposits.length > 0
         ? todayDeposits.map(t => `  - ${formatCurrency(Math.abs(t.amount || 0))} · ${t.description || 'Deposit'}`).join('\n')
         : '  (none)';
@@ -60,7 +60,7 @@ export default function DailyEmailSummary() {
         ? todayServiceRequests.map(r => `  - ${r.service_type} · ${getUserName(r.user_id)}${r.details ? ' · ' + r.details.slice(0, 80) : ''}`).join('\n')
         : '  (none)';
       const body = `
-VANTORIS — DAILY OPERATIONS SUMMARY
+ATCHISON VILLAGE CREDIT UNION — DAILY OPERATIONS SUMMARY
 ${dateStr}
 
 ═══════════════════════════════════════════════
@@ -87,14 +87,14 @@ TOTAL AUM:         ${formatCurrency(totalAum)}
 
 ═══════════════════════════════════════════════
 
-This is an automated summary generated from the Vantoris Operations Center.
+This is an automated summary generated from the Atchison Village Credit Union Operations Center.
       `.trim();
 
       await base44.integrations.Core.SendEmail({
         to: email,
         subject,
         body,
-        from_name: 'Vantoris Operations',
+        from_name: 'Atchison Village Credit Union Operations',
       });
 
       setResult({ deposits: totalDeposits, depositCount: todayDeposits.length, pendingCount: pendingWithdrawals.length, pendingTotal: totalPendingWithdrawals });
@@ -124,13 +124,13 @@ This is an automated summary generated from the Vantoris Operations Center.
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            placeholder="team@vantoris.com"
+            placeholder="Enter verified operations email"
             className="bg-[#242D38] border border-[#242D38] rounded-xl px-3 py-2 text-white text-sm focus:border-brass/50 focus:outline-none w-56"
           />
           <button
             onClick={handleSend}
             disabled={!email || sending}
-            className="flex items-center gap-1.5 px-3 py-2 bg-brass text-[#0E1A2B] rounded-xl text-xs font-semibold disabled:opacity-40"
+            className="flex items-center gap-1.5 px-3 py-2 bg-brass text-[#173D32] rounded-xl text-xs font-semibold disabled:opacity-40"
           >
             {sending ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />}
             Send

@@ -2,7 +2,6 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ShieldCheck, Calendar, MessageCircle, Bell, Crown, Award, Star, User } from 'lucide-react';
-import { useWhatsAppConfig, whatsappLinkFromConfig } from '@/hooks/useWhatsAppConfig';
 import { getDisplayName, getDisplayInitial } from '@/lib/displayName';
 
 const TIER_CONFIG = {
@@ -13,7 +12,6 @@ const TIER_CONFIG = {
 };
 
 export default function ProfileHeader({ user, application, profileCompletion, bankingTier, memberSinceDate }) {
-  const whatsappNumber = useWhatsAppConfig();
   const kycStatus = application?.kyc_status || 'not_started';
   const isVerified = kycStatus === 'approved';
   // Membership start comes from the earliest recorded account activity, falling back to the profile date.
@@ -21,7 +19,7 @@ export default function ProfileHeader({ user, application, profileCompletion, ba
   const sinceDate = sinceRaw
     ? new Date(/^\d{4}-\d{2}-\d{2}$/.test(String(sinceRaw)) ? `${sinceRaw}T12:00:00` : sinceRaw)
     : null;
-  const memberSince = sinceDate && !isNaN(sinceDate)
+  const memberSince = sinceDate && !Number.isNaN(sinceDate.getTime())
     ? sinceDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short' })
     : null;
 
@@ -82,16 +80,9 @@ export default function ProfileHeader({ user, application, profileCompletion, ba
             </div>
           )}
           <div className="flex-1" />
-          <button
-            onClick={() => window.open(
-              whatsappLinkFromConfig(whatsappNumber, 'Hello Vantoris Support, I have a question regarding my account.'),
-              '_blank', 'noopener,noreferrer'
-            )}
-            className="w-9 h-9 rounded-xl bg-mint/10 flex items-center justify-center hover:bg-mint/20 transition-colors"
-            title="WhatsApp Support"
-          >
+          <Link to="/messages" className="w-9 h-9 rounded-xl bg-mint/10 flex items-center justify-center hover:bg-mint/20 transition-colors" title="Secure member messages">
             <MessageCircle size={15} className="text-mint" />
-          </button>
+          </Link>
           <Link to="/messages" className="w-9 h-9 rounded-xl bg-navy/8 flex items-center justify-center hover:bg-navy/12 transition-colors" title="Messages">
             <Bell size={15} className="text-navy" />
           </Link>

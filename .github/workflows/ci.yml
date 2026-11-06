@@ -1,0 +1,58 @@
+name: Atchison Village CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: avcu-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Lint, typecheck, build and backend tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Report production dependency vulnerabilities
+        run: npm audit --omit=dev --audit-level=high
+        continue-on-error: true
+
+      - name: Lint changed JavaScript and JSX files
+        run: git diff --name-only origin/main...HEAD -- '*.js' '*.jsx' | xargs -r npx eslint --quiet
+
+      - name: Report existing full-repository lint backlog
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Report existing full-app typecheck backlog
+        run: npm run typecheck
+        continue-on-error: true
+
+      - name: Production build
+        run: npm run build
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Test Guardian and workflow registry
+        run: deno test --no-check base44/shared/runtime/guardian.test.ts base44/shared/registries/WorkflowRegistry.test.ts

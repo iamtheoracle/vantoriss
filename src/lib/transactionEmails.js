@@ -1,7 +1,6 @@
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
-
-const ADMIN_EMAIL = 'operations@vantoris.com';
+import { OPERATIONS_EMAIL } from '@/lib/businessConfig';
 
 /**
  * Sends email notification to the member AND the admin team
@@ -21,8 +20,8 @@ export async function sendTransactionEmail({ user_id, account, type, amount, des
 
     const isCredit = type === 'deposit' || type === 'opening_balance' || (type === 'adjustment' && amount >= 0);
 
-    const subject = `Vantoris — ${typeLabel}: ${formatCurrency(Math.abs(amount))}`;
-    const body = `Dear ${memberName},\n\nA transaction has been recorded on your account:\n\nType: ${typeLabel}\nAmount: ${isCredit ? '+' : '-'}${formatCurrency(Math.abs(amount))}\nDescription: ${description || typeLabel}\nNew Balance: ${formatCurrency(newBalance)}\nAccount: ${account?.account_name || ''} (${account?.account_number || ''})\n\nIf you did not authorize this transaction, please contact us immediately.\n\nWarm regards,\nThe Vantoris Team`;
+    const subject = `Atchison Village Credit Union — ${typeLabel}: ${formatCurrency(Math.abs(amount))}`;
+    const body = `Dear ${memberName},\n\nA transaction has been recorded on your account:\n\nType: ${typeLabel}\nAmount: ${isCredit ? '+' : '-'}${formatCurrency(Math.abs(amount))}\nDescription: ${description || typeLabel}\nNew Balance: ${formatCurrency(newBalance)}\nAccount: ${account?.account_name || ''} (${account?.account_number || ''})\n\nIf you did not authorize this transaction, please contact us immediately.\n\nWarm regards,\nAtchison Village Credit Union`;
 
     const promises = [];
 
@@ -30,12 +29,14 @@ export async function sendTransactionEmail({ user_id, account, type, amount, des
       promises.push(base44.integrations.Core.SendEmail({ to: memberEmail, subject, body }));
     }
 
-    // Admin team notification
-    promises.push(base44.integrations.Core.SendEmail({
-      to: ADMIN_EMAIL,
-      subject: `[ADMIN] ${subject}`,
-      body: `ADMIN NOTIFICATION\n\nMember: ${memberName} (${memberEmail})\n\n${body}`,
-    }));
+    // Send staff email only after an institution-owned operations address is configured.
+    if (OPERATIONS_EMAIL) {
+      promises.push(base44.integrations.Core.SendEmail({
+        to: OPERATIONS_EMAIL,
+        subject: `[OPERATIONS] ${subject}`,
+        body: `OPERATIONS NOTIFICATION\n\nMember: ${memberName} (${memberEmail})\n\n${body}`,
+      }));
+    }
 
     await Promise.all(promises);
   } catch (e) {

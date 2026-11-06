@@ -82,7 +82,7 @@ export default function ApplyKYC() {
           </div>
           <h2 className="text-xl font-bold text-white mb-2">Documents Submitted</h2>
           <p className="text-[#AAB4C3] text-sm mb-6">Your identity verification is under review. We'll notify you once it's processed.</p>
-          <button onClick={() => navigate('/')} className="w-full py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl">
+          <button onClick={() => navigate('/')} className="w-full py-3 bg-brass text-[#102C25] font-semibold rounded-xl">
             Go to Dashboard
           </button>
         </div>
@@ -151,7 +151,7 @@ export default function ApplyKYC() {
       <button
         disabled={documents.length === 0 || submitting}
         onClick={handleSubmit}
-        className="w-full py-3.5 bg-brass text-[#0E1A2B] font-semibold rounded-xl hover:bg-brass/90 transition-all disabled:opacity-40"
+        className="w-full py-3.5 bg-brass text-[#102C25] font-semibold rounded-xl hover:bg-brass/90 transition-all disabled:opacity-40"
       >
         {submitting ? 'Submitting...' : 'Submit for Verification'}
       </button>

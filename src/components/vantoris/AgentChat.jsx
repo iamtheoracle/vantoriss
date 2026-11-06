@@ -2,23 +2,23 @@ import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
 import {
-  Send, Bot, User, Loader2, ChevronDown, ChevronRight, Search, Plus,
+  Send, Bot, Loader2, ChevronDown, ChevronRight, Search, Plus,
   Menu, X, Trash2, Edit3, Check, CheckCheck, MoreVertical, ArrowLeft, Star
 } from 'lucide-react';
 import { getMessageKey, isStarred, toggleStar } from '@/lib/starredMessages';
 import { useToast } from '@/components/ui/use-toast';
 
 const COLORS = {
-  container: '#F8FAFC',
+  container: '#F7F4EC',
   sidebar: '#FFFFFF',
-  surface: '#F1F5F9',
-  surfaceSent: '#071C38',
-  border: 'rgba(7, 28, 56, 0.08)',
-  textPrimary: '#071C38',
+  surface: '#F2F0E8',
+  surfaceSent: '#173D32',
+  border: 'rgba(23, 61, 50, 0.08)',
+  textPrimary: '#173D32',
   textSecondary: '#64748B',
-  accent: '#C9A227',
-  accentBright: '#B08D57',
-  bubbleOut: '#071C38',
+  accent: '#C5A66A',
+  accentBright: '#B5945A',
+  bubbleOut: '#173D32',
   bubbleIn: '#FFFFFF',
   checkSent: '#94A3B8',
   checkRead: '#3B82F6',
@@ -53,8 +53,8 @@ function setLabel(convId, label) {
 
 export default function AgentChat({
   agentName = 'vantoris_assistant',
-  title = 'Vantoris AI Assistant',
-  subtitle = 'Platform-wide operations',
+  title = 'Classic Assistant',
+  subtitle = 'Legacy operations assistant',
   suggestions = null,
   inputPlaceholder = 'Ask about members, applications, KYC status, account balances...',
   singleColumn = false,
@@ -370,7 +370,7 @@ export default function AgentChat({
               </div>
               <h4 className="font-bold text-base mb-1" style={{ color: COLORS.textPrimary }}>What can I help you with?</h4>
               <p className="text-sm max-w-sm mb-6" style={{ color: COLORS.textSecondary }}>
-                I have full access to your Vantoris platform. Ask me about members, accounts, applications, withdrawals, KYC status, and more.
+                I’m the Classic Assistant. I can provide general guidance and help draft text, but I do not have access to live member records or operations tools. Use AVA for authenticated, role-aware support.
               </p>
               {renderActionSuggestions
                 ? renderActionSuggestions({ setInput, sendMessage })
@@ -387,7 +387,7 @@ export default function AgentChat({
                         key={suggestion}
                         onClick={() => setInput(suggestion)}
                         className="w-full text-left px-4 py-3 rounded-2xl text-xs transition-all hover:opacity-80"
-                        style={{ background: 'rgba(7, 28, 56, 0.04)', color: COLORS.textSecondary, border: '1px solid ' + COLORS.border }}
+                        style={{ background: '#173D32 0.04)', color: COLORS.textSecondary, border: '1px solid ' + COLORS.border }}
                       >
                         → {suggestion}
                       </button>
@@ -679,7 +679,7 @@ function ToolCallDisplay({ toolCall }) {
   return (
     <div
       className="mt-2 text-xs rounded-xl overflow-hidden"
-      style={{ border: '1px solid ' + COLORS.border, background: 'rgba(7, 28, 56, 0.04)' }}
+      style={{ border: '1px solid ' + COLORS.border, background: '#173D32 0.04)' }}
     >
       <button
         onClick={() => setExpanded(!expanded)}
@@ -697,13 +697,13 @@ function ToolCallDisplay({ toolCall }) {
         <span className="capitalize font-medium text-[10px]" style={{ color: statusColor }}>{status}</span>
       </button>
       {expanded && (
-        <div className="px-3 py-2.5 space-y-2" style={{ borderTop: '1px solid ' + COLORS.border, background: 'rgba(7, 28, 56, 0.02)' }}>
+        <div className="px-3 py-2.5 space-y-2" style={{ borderTop: '1px solid ' + COLORS.border, background: '#173D32 0.02)' }}>
           {toolCall.arguments_string && (
             <div>
               <p className="text-[10px] uppercase tracking-widest font-bold mb-1.5 opacity-60" style={{ color: COLORS.textSecondary }}>Parameters</p>
               <pre
                 className="text-[11px] overflow-x-auto whitespace-pre-wrap p-2 rounded-lg"
-                style={{ background: 'rgba(7, 28, 56, 0.06)', color: '#16A34A', border: '1px solid ' + COLORS.border }}
+                style={{ background: '#173D32 0.06)', color: '#16A34A', border: '1px solid ' + COLORS.border }}
               >
                 {(() => { try { return JSON.stringify(JSON.parse(toolCall.arguments_string), null, 2); } catch { return toolCall.arguments_string; } })()}
               </pre>
@@ -715,7 +715,7 @@ function ToolCallDisplay({ toolCall }) {
               <pre
                 className="text-[11px] overflow-x-auto whitespace-pre-wrap p-2 rounded-lg"
                 style={{
-                  background: 'rgba(7, 28, 56, 0.06)',
+                  background: '#173D32 0.06)',
                   border: '1px solid ' + (isFailed ? 'rgba(239, 68, 68, 0.3)' : COLORS.border),
                   color: isFailed ? '#ef4444' : 'rgba(34, 197, 94, 0.8)',
                 }}

@@ -1,5 +1,6 @@
 {
-  "name": "untitled",
+  "name": "Atchison Village Credit Union",
+  "description": "Member banking and protected credit-union operations for Atchison Village.",
   "site": {
     "installCommand": "npm install",
     "buildCommand": "npm run build",

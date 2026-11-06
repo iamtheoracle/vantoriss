@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Users, Building2, CreditCard, Check, Clock, Landmark, ShieldCheck } from 'lucide-react';
+import { Users, Building2, CreditCard, Landmark, ShieldCheck } from 'lucide-react';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
+import { OPERATIONS_EMAIL } from '@/lib/businessConfig';
 
 const services = [
   { type: 'Joint Account', icon: Users, desc: 'Request a joint account with a co-applicant', color: 'bg-brass/15 text-brass', requiresApproval: true },
   { type: 'Business Account', icon: Building2, desc: 'Request a business checking or savings account', color: 'bg-olive/20 text-emerald-400', requiresApproval: true },
   { type: 'Savings Account', icon: Landmark, desc: 'Open a savings account to earn interest', color: 'bg-blue-500/15 text-blue-400' },
-  { type: 'Debit Card', icon: CreditCard, desc: 'Request a debit card for your account', color: 'bg-purple-500/15 text-purple-400' },
+  { type: 'Card Service Enquiry', icon: CreditCard, desc: 'Ask about card designs, eligibility and issuer availability', color: 'bg-purple-500/15 text-purple-400' },
 ];
 
 export default function Services() {
@@ -67,12 +68,14 @@ export default function Services() {
         message: `Your request for ${serviceType} has been submitted for review.`,
         type: 'info',
       });
-      // Alert operations team
-      await base44.integrations.Core.SendEmail({
-        to: 'operations@vantoris.com',
-        subject: `New Service Request: ${serviceType}`,
-        body: `A new service request has been submitted.\n\nMember: ${user.full_name || '—'} (${user.email || '—'})\nService: ${serviceType}\nDetails: ${reqDetails || 'None provided'}\n\nReview it in the Operations Center under Service Requests.`,
-      });
+      // Send operations email only when the institution has configured a verified address.
+      if (OPERATIONS_EMAIL) {
+        await base44.integrations.Core.SendEmail({
+          to: OPERATIONS_EMAIL,
+          subject: `New Service Request: ${serviceType}`,
+          body: `A new service request has been submitted.\n\nMember: ${user.full_name || '—'} (${user.email || '—'})\nService: ${serviceType}\nDetails: ${reqDetails || 'None provided'}\n\nReview it in the Operations Center under Service Requests.`,
+        });
+      }
     } catch (e) {
       console.error(e);
       setRequests(prev => prev.filter(r => r.id !== tempId));

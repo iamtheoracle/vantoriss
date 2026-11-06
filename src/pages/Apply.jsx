@@ -16,7 +16,7 @@ const accountTypes = [
 const BUSINESS_TYPES = ['LLC', 'Corporation', 'Partnership', 'Sole Proprietorship', 'Non-Profit'];
 
 function fieldClass() {
-  return 'w-full rounded-lg border border-[#D8DEE8] bg-white px-4 py-3 text-sm text-[#111827] outline-none transition placeholder:text-[#9CA3AF] focus:border-[#B08D57] focus:ring-2 focus:ring-[#F5EFE5]';
+  return 'w-full rounded-lg border border-[#E5DDCA] bg-white px-4 py-3 text-sm text-[#111827] outline-none transition placeholder:text-[#9AA39D] focus:border-[#C5A66A] focus:ring-2 focus:ring-[#F0EBDD]';
 }
 
 export default function Apply() {
@@ -84,14 +84,14 @@ export default function Apply() {
 
   if (done) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#F8FAFC] px-5">
-        <section className="w-full max-w-sm rounded-lg border border-[#D8DEE8] bg-white p-8 text-center shadow-sm">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#E7F8F1] text-[#12805C]">
+      <main className="flex min-h-screen items-center justify-center bg-[#F7F4EC] px-5">
+        <section className="w-full max-w-sm rounded-lg border border-[#E5DDCA] bg-white p-8 text-center shadow-sm">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#E6F0E9] text-[#204F40]">
             <Check size={28} />
           </div>
-          <h2 className="mb-2 text-xl font-bold text-[#071A33]">Application Received</h2>
-          <p className="mb-6 text-sm leading-relaxed text-[#5B6472]">Your application is under review. You will be notified once your account is approved.</p>
-          <button type="button" onClick={() => navigate('/')} className="w-full rounded-lg bg-[#B08D57] py-3 font-bold text-[#071A33]">
+          <h2 className="mb-2 text-xl font-bold text-[#173D32]">Application Received</h2>
+          <p className="mb-6 text-sm leading-relaxed text-[#68766F]">Your application is under review. You will be notified once your account is approved.</p>
+          <button type="button" onClick={() => navigate('/')} className="w-full rounded-lg bg-[#C5A66A] py-3 font-bold text-[#173D32]">
             Go to Dashboard
           </button>
         </section>
@@ -100,21 +100,21 @@ export default function Apply() {
   }
 
   return (
-    <main className="min-h-screen bg-[#F8FAFC] px-5 pt-6 text-[#111827]">
-      <button type="button" onClick={() => (step > 1 ? setStep(step - 1) : navigate('/'))} className="mb-6 flex items-center gap-2 text-sm font-semibold text-[#5B6472]">
+    <main className="min-h-screen bg-[#F7F4EC] px-5 pt-6 text-[#111827]">
+      <button type="button" onClick={() => (step > 1 ? setStep(step - 1) : navigate('/'))} className="mb-6 flex items-center gap-2 text-sm font-semibold text-[#68766F]">
         <ArrowLeft size={18} />
         <span>Back</span>
       </button>
 
       <header className="mb-6">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#B08D57]">Vantoris Application</p>
-        <h1 className="mt-2 text-2xl font-bold text-[#071A33]">Let us get started</h1>
-        <p className="mt-1 text-sm text-[#5B6472]">{step === 1 ? 'Choose the account type you want to apply for.' : 'Complete your information.'}</p>
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#C5A66A]">Atchison Village Application</p>
+        <h1 className="mt-2 text-2xl font-bold text-[#173D32]">Let us get started</h1>
+        <p className="mt-1 text-sm text-[#68766F]">{step === 1 ? 'Choose the account type you want to apply for.' : 'Complete your information.'}</p>
       </header>
 
       <div className="mb-8 flex items-center gap-2">
         {[1, 2].map(item => (
-          <div key={item} className={`h-1 flex-1 rounded-full transition ${item <= step ? 'bg-[#B08D57]' : 'bg-[#D8DEE8]'}`} />
+          <div key={item} className={`h-1 flex-1 rounded-full transition ${item <= step ? 'bg-[#C5A66A]' : 'bg-[#E5DDCA]'}`} />
         ))}
       </div>
 
@@ -130,26 +130,26 @@ export default function Apply() {
                 onClick={() => setSelectedType(accountType.type)}
                 className={`w-full rounded-lg border p-4 text-left transition ${
                   selected
-                    ? 'border-[#B08D57] bg-[#F5EFE5]'
-                    : 'border-[#D8DEE8] bg-white hover:border-[#B08D57]/40 hover:bg-[#F8FAFC]'
+                    ? 'border-[#C5A66A] bg-[#F0EBDD]'
+                    : 'border-[#E5DDCA] bg-white hover:border-[#C5A66A]/40 hover:bg-[#F7F4EC]'
                 }`}
               >
                 <div className="flex items-center gap-4">
-                  <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${selected ? 'bg-[#B08D57] text-white' : 'bg-[#E7EEF9] text-[#012169]'}`}>
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${selected ? 'bg-[#C5A66A] text-white' : 'bg-[#E5EBDD] text-[#173D32]'}`}>
                     <Icon size={20} />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-bold text-[#071A33]">{accountType.type} Account</p>
+                      <p className="text-sm font-bold text-[#173D32]">{accountType.type} Account</p>
                       {!accountType.standard && (
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-[#B08D57] bg-[#B08D57]/10 px-1.5 py-0.5 rounded-full">Requires Approval</span>
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-[#C5A66A] bg-[#C5A66A]/10 px-1.5 py-0.5 rounded-full">Requires Approval</span>
                       )}
                     </div>
-                    <p className="text-xs text-[#5B6472]">{accountType.desc}</p>
+                    <p className="text-xs text-[#68766F]">{accountType.desc}</p>
                   </div>
                   {selected && (
-                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#B08D57]">
-                      <Check size={12} className="text-[#071A33]" />
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#C5A66A]">
+                      <Check size={12} className="text-[#173D32]" />
                     </div>
                   )}
                 </div>
@@ -160,7 +160,7 @@ export default function Apply() {
             type="button"
             disabled={!selectedType}
             onClick={() => setStep(2)}
-            className="mt-4 w-full rounded-lg bg-[#B08D57] py-3.5 font-bold text-[#071A33] transition disabled:opacity-40"
+            className="mt-4 w-full rounded-lg bg-[#C5A66A] py-3.5 font-bold text-[#173D32] transition disabled:opacity-40"
           >
             Continue
           </button>
@@ -175,7 +175,7 @@ export default function Apply() {
             </div>
           )}
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#5B6472]">Full Name</label>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#68766F]">Full Name</label>
             <input
               value={form.full_name}
               onChange={e => setForm({ ...form, full_name: e.target.value })}
@@ -183,7 +183,7 @@ export default function Apply() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#5B6472]">Email</label>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#68766F]">Email</label>
             <input
               value={form.email}
               onChange={e => setForm({ ...form, email: e.target.value })}
@@ -191,7 +191,7 @@ export default function Apply() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#5B6472]">Phone</label>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#68766F]">Phone</label>
             <input
               value={form.phone}
               onChange={e => setForm({ ...form, phone: e.target.value })}
@@ -200,7 +200,7 @@ export default function Apply() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#5B6472]">Address</label>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#68766F]">Address</label>
             <input
               value={form.address}
               onChange={e => setForm({ ...form, address: e.target.value })}
@@ -209,7 +209,7 @@ export default function Apply() {
           </div>
           {selectedType === 'CD' && (
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#5B6472]">Beneficiary / Account Holder Name</label>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#68766F]">Beneficiary / Account Holder Name</label>
               <input
                 value={form.business_name}
                 onChange={e => setForm({ ...form, business_name: e.target.value })}
@@ -219,12 +219,12 @@ export default function Apply() {
           )}
           {selectedType === 'Joint' && (
             <>
-              <div className="rounded-lg border border-[#B08D57]/30 bg-[#FDFBF5] p-3 flex items-start gap-2">
-                <ShieldCheck size={16} className="text-[#B08D57] flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-[#5B6472] leading-relaxed">Joint accounts require co-applicant verification. Both account holders must complete identity verification.</p>
+              <div className="rounded-lg border border-[#C5A66A]/30 bg-[#FDFBF5] p-3 flex items-start gap-2">
+                <ShieldCheck size={16} className="text-[#C5A66A] flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-[#68766F] leading-relaxed">Joint accounts require co-applicant verification. Both account holders must complete identity verification.</p>
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#5B6472]">Co-Applicant Full Name</label>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#68766F]">Co-Applicant Full Name</label>
                 <input
                   value={form.joint_account_holder_name}
                   onChange={e => setForm({ ...form, joint_account_holder_name: e.target.value })}
@@ -233,7 +233,7 @@ export default function Apply() {
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#5B6472]">Co-Applicant SSN (Last 4 Digits)</label>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#68766F]">Co-Applicant SSN (Last 4 Digits)</label>
                 <input
                   value={form.joint_account_holder_ssn}
                   onChange={e => setForm({ ...form, joint_account_holder_ssn: e.target.value.slice(0, 4) })}
@@ -246,12 +246,12 @@ export default function Apply() {
           )}
           {selectedType === 'Business' && (
             <>
-              <div className="rounded-lg border border-[#B08D57]/30 bg-[#FDFBF5] p-3 flex items-start gap-2">
-                <ShieldCheck size={16} className="text-[#B08D57] flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-[#5B6472] leading-relaxed">Business accounts require EIN verification and additional documentation. Subject to enhanced review.</p>
+              <div className="rounded-lg border border-[#C5A66A]/30 bg-[#FDFBF5] p-3 flex items-start gap-2">
+                <ShieldCheck size={16} className="text-[#C5A66A] flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-[#68766F] leading-relaxed">Business accounts require EIN verification and additional documentation. Subject to enhanced review.</p>
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#5B6472]">Business Legal Name</label>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#68766F]">Business Legal Name</label>
                 <input
                   value={form.business_name}
                   onChange={e => setForm({ ...form, business_name: e.target.value })}
@@ -260,7 +260,7 @@ export default function Apply() {
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#5B6472]">Business Type</label>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#68766F]">Business Type</label>
                 <select
                   value={form.business_type}
                   onChange={e => setForm({ ...form, business_type: e.target.value })}
@@ -271,7 +271,7 @@ export default function Apply() {
                 </select>
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#5B6472]">EIN (Employer Identification Number)</label>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#68766F]">EIN (Employer Identification Number)</label>
                 <input
                   value={form.ein}
                   onChange={e => setForm({ ...form, ein: e.target.value })}
@@ -285,7 +285,7 @@ export default function Apply() {
             type="button"
             disabled={!form.full_name || !form.email || submitting}
             onClick={handleSubmit}
-            className="mt-2 w-full rounded-lg bg-[#B08D57] py-3.5 font-bold text-[#071A33] transition disabled:opacity-40"
+            className="mt-2 w-full rounded-lg bg-[#C5A66A] py-3.5 font-bold text-[#173D32] transition disabled:opacity-40"
           >
             {submitting ? 'Submitting...' : 'Submit Application'}
           </button>

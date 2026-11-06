@@ -4,7 +4,7 @@ import { formatCurrency } from '@/lib/formatCurrency';
 import { exportToCsv } from '@/lib/exportCsv';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Plus, Search, Download, History, Pencil, ArrowLeft, ScrollText, Mail, Lock, Unlock, Upload } from 'lucide-react';
+import { Plus, Search, Download, History, Pencil, ArrowLeft, ScrollText, Lock, Unlock, Upload } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
 import { sendTransactionEmail } from '@/lib/transactionEmails';
 import { useToast } from '@/components/ui/use-toast';
@@ -516,7 +516,7 @@ export default function AdminAccounts() {
 
         {/* Add Transaction Dialog (reused in history view) */}
         <Dialog open={!!showTxn} onOpenChange={() => setShowTxn(null)}>
-          <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-md">
+          <DialogContent className="bg-[#102C25] border-[#242D38] max-w-md">
             <DialogHeader>
               <DialogTitle className="text-white">Add Transaction</DialogTitle>
             </DialogHeader>
@@ -526,7 +526,7 @@ export default function AdminAccounts() {
 
         {/* Edit Transaction Dialog */}
         <Dialog open={!!editingTxn} onOpenChange={() => setEditingTxn(null)}>
-          <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-md">
+          <DialogContent className="bg-[#102C25] border-[#242D38] max-w-md">
             <DialogHeader>
               <DialogTitle className="text-white">Edit Transaction</DialogTitle>
             </DialogHeader>
@@ -633,7 +633,7 @@ export default function AdminAccounts() {
       </div>
 
       <Dialog open={!!showTxn} onOpenChange={() => setShowTxn(null)}>
-        <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-md">
+        <DialogContent className="bg-[#102C25] border-[#242D38] max-w-md">
           <DialogHeader>
             <DialogTitle className="text-white">Add Transaction</DialogTitle>
           </DialogHeader>
@@ -643,7 +643,7 @@ export default function AdminAccounts() {
 
       {/* CSV Import Dialog */}
       <Dialog open={showImport} onOpenChange={setShowImport}>
-        <DialogContent className="bg-[#0E1A2B] border-[#242D38] max-w-md">
+        <DialogContent className="bg-[#102C25] border-[#242D38] max-w-md">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Upload size={18} className="text-olive" /> Import Transactions
@@ -755,7 +755,7 @@ function TransactionForm({ txnForm, setTxnForm, submitting, onSubmit, account, i
       <button
         disabled={!txnForm.amount || submitting}
         onClick={onSubmit}
-        className="w-full py-3 bg-brass text-[#0E1A2B] font-semibold rounded-xl disabled:opacity-40"
+        className="w-full py-3 bg-brass text-[#102C25] font-semibold rounded-xl disabled:opacity-40"
       >
         {submitting ? 'Processing...' : isEdit ? 'Save Changes' : 'Add Transaction'}
       </button>

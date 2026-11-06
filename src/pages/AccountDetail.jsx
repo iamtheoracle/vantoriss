@@ -8,7 +8,6 @@ import {
   ArrowLeft,
   ArrowUpRight,
   Check,
-  ChevronRight,
   Copy,
   Download,
   FileText,
@@ -253,10 +252,10 @@ export default function AccountDetail() {
       doc.setTextColor(176, 141, 87);
       doc.setFontSize(22);
       doc.setFont(undefined, 'bold');
-      doc.text('VANTORIS', 20, 25);
+      doc.text('ATCHISON VILLAGE CREDIT UNION', 20, 25);
       doc.setFontSize(8);
       doc.setTextColor(170, 180, 195);
-      doc.text('VANTORIS PIP · PRIVATE INVESTMENT & PAYMENTS', 20, 31);
+      doc.text('ATCHISON VILLAGE CREDIT UNION · MEMBER ACCOUNT STATEMENT', 20, 31);
 
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(16);
@@ -389,12 +388,12 @@ export default function AccountDetail() {
         doc.setFontSize(7);
         doc.text('SECURE. TRUSTED. TAILORED FOR YOU.', 20, 287);
         doc.setTextColor(170, 180, 195);
-        doc.text('VANTORIS — Elevating Your Financial World.', 20, 292);
+        doc.text('ATCHISON VILLAGE CREDIT UNION — Elevating Your Financial World.', 20, 292);
         doc.text(`Page ${i} of ${pageCount}`, 170, 292);
         doc.text(referenceNumber, 90, 292);
       }
 
-      doc.save(`Vantoris_Statement_${account.account_number}.pdf`);
+      doc.save(`Atchison_Village_Statement_${account.account_number}.pdf`);
 
       try {
         const blob = doc.output('blob');

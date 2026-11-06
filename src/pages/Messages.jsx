@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import {
-  Bell, CheckCheck, Shield, ArrowDownLeft, ArrowUpRight, Info, Send,
-  MessageCircle, ChevronRight, X, Trash2, Edit3, Check, MoreVertical,
-  ArrowLeft, Plus, Search, User
+  Bell, CheckCheck, Shield, ArrowUpRight, Info, Send,
+  MessageCircle, Trash2, Edit3, Check, MoreVertical,
+  ArrowLeft, Search
 } from 'lucide-react';
 import { OPERATIONS_EMAIL } from '@/lib/businessConfig';
 import ReadReceipt from '@/components/vantoris/chat/ReadReceipt';
@@ -434,7 +434,7 @@ export default function Messages() {
                 {openThread.status === 'closed' ? (
                   <span className="flex items-center gap-1"><CheckCheck size={10} /> Conversation closed</span>
                 ) : (
-                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> Vantoris Support · Online</span>
+                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> Atchison Village Member Support</span>
                 )}
               </p>
             </div>

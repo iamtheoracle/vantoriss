@@ -14,6 +14,7 @@ import { ExceptionAuthProvider } from '@/components/vantoris/ExceptionAuthContex
 import MemberLayout from './components/vantoris/MemberLayout';
 import AdminLayout from './components/vantoris/AdminLayout';
 import OperationsRoute from './components/OperationsRoute';
+import MemberRoute from './components/MemberRoute';
 
 const Login = React.lazy(() => import('./pages/Login'));
 const Register = React.lazy(() => import('./pages/Register'));
@@ -21,6 +22,7 @@ const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = React.lazy(() => import('./pages/ResetPassword'));
 
 const Home = React.lazy(() => import('./pages/Home'));
+const AVA = React.lazy(() => import('./pages/AVA'));
 const Apply = React.lazy(() => import('./pages/Apply'));
 const ApplyKYC = React.lazy(() => import('./pages/ApplyKYC'));
 const Accounts = React.lazy(() => import('./pages/Accounts'));
@@ -135,7 +137,8 @@ const AuthenticatedApp = () => {
           </Route>
 
           <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
-            <Route element={<MemberLayout />}>
+            <Route element={<MemberRoute />}>
+              <Route element={<MemberLayout />}>
               <Route path="/" element={<Home />} />
               <Route path="/apply" element={<Navigate to="/register" replace />} />
               <Route path="/apply/kyc" element={<ApplyKYC />} />
@@ -151,12 +154,14 @@ const AuthenticatedApp = () => {
               <Route path="/more" element={<More />} />
               <Route path="/dispute" element={<TransactionDispute />} />
               <Route path="/assistant" element={<VantorisAssistant />} />
+              <Route path="/ava" element={<AVA />} />
               <Route path="/herobox" element={<HeroBox />} />
               <Route path="/investment" element={<Investment />} />
               <Route path="/travel" element={<Travel />} />
               <Route path="/homes" element={<Homes />} />
               <Route path="/news" element={<News />} />
               <Route path="/cards" element={<MemberCards />} />
+              </Route>
             </Route>
 
             <Route path="/admin/*" element={<Navigate to="/operations" replace />} />
@@ -164,6 +169,7 @@ const AuthenticatedApp = () => {
             <Route element={<OperationsRoute />}>
               <Route element={<AdminLayout />}>
                 <Route path="/operations" element={<AdminOverview />} />
+                <Route path="/operations/ava" element={<AVA mode="operations" />} />
                 <Route path="/operations/executive" element={<ExecutiveDashboard />} />
                 <Route path="/operations/security-dashboard" element={<SecurityComplianceDashboard />} />
                 <Route path="/operations/applications" element={<AdminApplications />} />
