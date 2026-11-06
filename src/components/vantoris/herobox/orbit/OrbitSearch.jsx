@@ -98,11 +98,11 @@ export default function OrbitSearch() {
     try {
       // LLM intent parsing
       const intent = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are Orbit, the intelligent discovery assistant for HeroBox, a humanitarian support platform for military members, veterans, and their families.
+        prompt: `You are the AVCU Community Support search assistant for members, service families, veterans and verified community initiatives.
 
 Parse the user's natural language search query and extract structured search intent.
 
-HeroBox request types:
+Community Support request types:
 - care_package: Care packages with snacks, hygiene products, essentials for deployed personnel
 - internet_support: Internet connectivity and communication technology support
 - financial_assistance: Financial aid, monetary support, emergency funding
