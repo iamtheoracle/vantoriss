@@ -65,7 +65,7 @@ export default async function(req) {
 
     const response = await runtime.core.process(request);
 
-    // Persist conversation via ConversationService (not owned by Bud)
+    // Persist conversation through the institution's ConversationService.
     const thread = await services.conversation.getOrCreateThread(user.id, 'AVA');
     await services.conversation.addMessage(thread.id, user.id, 'user', message);
     await services.conversation.addMessage(thread.id, user.id, 'assistant', response.content);
