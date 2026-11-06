@@ -95,7 +95,7 @@ export function createModelGateway(base44) {
     status() {
       return {
         primary: endpoint && apiKey ? 'configured_unverified' : 'not_configured',
-        compatibilityProvider: 'available_unverified',
+        compatibilityProvider: 'classic_invoke_llm_unverified',
         fallbackEnabled,
       };
     },
