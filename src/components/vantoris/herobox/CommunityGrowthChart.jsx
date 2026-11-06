@@ -62,8 +62,8 @@ export default function CommunityGrowthChart({ data }) {
         <ComposedChart data={data} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="gradGrowth" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#071C38" stopOpacity={0.12} />
-              <stop offset="100%" stopColor="#071C38" stopOpacity={0} />
+              <stop offset="0%" stopColor="#173D32" stopOpacity={0.12} />
+              <stop offset="100%" stopColor="#173D32" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="gradSponsor" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#1F5EFF" stopOpacity={0.1} />
@@ -75,10 +75,10 @@ export default function CommunityGrowthChart({ data }) {
           <YAxis tick={{ fontSize: 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
           <Tooltip content={<CustomTooltip />} />
           <Legend wrapperStyle={{ fontSize: 10, paddingTop: 8 }} />
-          <Area type="monotone" dataKey="cumulative" name="Cumulative Support" stroke="#071C38" strokeWidth={2.5} fill="url(#gradGrowth)" animationDuration={600} />
+          <Area type="monotone" dataKey="cumulative" name="Cumulative Support" stroke="#173D32" strokeWidth={2.5} fill="url(#gradGrowth)" animationDuration={600} />
           <Area type="monotone" dataKey="sponsors" name="Sponsor Growth" stroke="#1F5EFF" strokeWidth={2} fill="url(#gradSponsor)" animationDuration={600} />
           {showAverage && (
-            <Line type="monotone" dataKey="average" name="Rolling Average" stroke="#C9A227" strokeWidth={1.5} strokeDasharray="5 5" dot={false} animationDuration={600} />
+            <Line type="monotone" dataKey="average" name="Rolling Average" stroke="#C5A66A" strokeWidth={1.5} strokeDasharray="5 5" dot={false} animationDuration={600} />
           )}
           <Line type="monotone" dataKey="weekly" name="Weekly Growth" stroke="#16A34A" strokeWidth={2} dot={false} animationDuration={600} />
         </ComposedChart>
