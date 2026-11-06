@@ -5,6 +5,7 @@ import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
 import { BarChart3, Users, Wallet, FileText, ArrowDownToLine, Download, Mail, Calendar } from 'lucide-react';
 import { exportToCsv } from '@/lib/exportCsv';
 import { useToast } from '@/components/ui/use-toast';
+import { OPERATIONS_EMAIL } from '@/lib/businessConfig';
 
 export default function Reports() {
   const [data, setData] = useState(null);
@@ -91,7 +92,7 @@ export default function Reports() {
       const assetGrowth = totalAUM - prevAUM;
       const growthPct = prevAUM > 0 ? ((assetGrowth / prevAUM) * 100).toFixed(1) : 'N/A';
 
-      const reportBody = `VANTORIS MONTHLY REPORT — ${monthName}\n\n` +
+      const reportBody = `ATCHISON VILLAGE CREDIT UNION MONTHLY REPORT — ${monthName}\n\n` +
         `═══════════════════════════════════════════\n\n` +
         `TOTAL ASSETS UNDER MANAGEMENT\n` +
         `Current AUM: ${formatCurrency(totalAUM)}\n` +
@@ -110,11 +111,14 @@ export default function Reports() {
         `═══════════════════════════════════════════\n` +
         `Generated: ${now.toLocaleString()}\n`;
 
-      await base44.integrations.Core.SendEmail({
-        to: 'operations@vantoris.com',
-        subject: `Vantoris Monthly Report — ${monthName}`,
-        body: reportBody,
-      });
+      const emailed = Boolean(OPERATIONS_EMAIL);
+      if (emailed) {
+        await base44.integrations.Core.SendEmail({
+          to: OPERATIONS_EMAIL,
+          subject: `Atchison Village Monthly Report — ${monthName}`,
+          body: reportBody,
+        });
+      }
 
       const reportRows = [
         { Metric: 'Current AUM', Value: formatCurrency(totalAUM) },
@@ -132,8 +136,8 @@ export default function Reports() {
       ];
       exportToCsv(`vantoris_monthly_report_${monthName.replace(/\s/g, '_')}`, ['Metric', 'Value'], reportRows);
 
-      setReportResult({ monthName, txns: monthTxns.length, aum: totalAUM, growth: assetGrowth });
-      toast({ title: 'Report generated', description: `Monthly report for ${monthName} has been emailed and exported.` });
+      setReportResult({ monthName, txns: monthTxns.length, aum: totalAUM, growth: assetGrowth, emailed });
+      toast({ title: 'Report generated', description: emailed ? `Monthly report for ${monthName} was emailed and exported.` : `Monthly report for ${monthName} was exported. Configure a verified operations email to enable email delivery.` });
     } catch (e) {
       console.error(e);
       toast({ title: 'Report failed', description: e.message || 'Unable to generate report.', variant: 'destructive' });
@@ -165,7 +169,7 @@ export default function Reports() {
         <div className="vantoris-card p-4 mb-6 flex items-center gap-3 border-brass/30">
           <Mail size={18} className="text-brass flex-shrink-0" />
           <p className="text-[#AAB4C3] text-sm">
-            ✓ Monthly report for <span className="text-white font-medium">{reportResult.monthName}</span> generated and emailed to the admin team. {reportResult.txns} transactions this month, AUM growth of {formatCurrency(reportResult.growth)}.
+            ✓ Monthly report for <span className="text-white font-medium">{reportResult.monthName}</span> generated and exported{reportResult.emailed ? ' and emailed to the operations team' : ''}. {reportResult.txns} transactions this month, AUM growth of {formatCurrency(reportResult.growth)}.
           </p>
         </div>
       )}
