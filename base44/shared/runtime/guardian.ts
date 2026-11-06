@@ -35,16 +35,12 @@ export function createGuardian(registries) {
       // Check role condition
       if (policy.conditions?.role && request.context?.userRole !== policy.conditions.role) return false;
 
-      // Check actions — wildcard matches everything
-      if (policy.actions.includes('*')) return true;
-
-      // Check if any requested capability matches the policy actions
-      if (request.capabilities && request.capabilities.length) {
-        return request.capabilities.some(c => policy.actions.includes(c));
-      }
-
-      // No actions specified — matches everything (backward compat)
-      return policy.actions.length === 0;
+      // Empty and wildcard action lists are never grants. Every requested
+      // capability must be explicitly named by the policy.
+      if (!Array.isArray(policy.actions) || policy.actions.length === 0) return false;
+      if (policy.actions.includes('*')) return false;
+      if (!Array.isArray(request.capabilities) || request.capabilities.length === 0) return false;
+      return request.capabilities.every(capability => policy.actions.includes(capability));
     },
 
     async _audit(request, decision, policyName) {
