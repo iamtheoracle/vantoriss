@@ -3,13 +3,12 @@ import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { getDisplayFirstName } from '@/lib/displayName';
 import { useNavigate } from 'react-router-dom';
-import { Bell, ChevronRight, CreditCard, Eye, EyeOff, TrendingUp } from 'lucide-react';
+import { Bell, Eye, EyeOff, ShieldCheck, Sparkles, TrendingUp, Wallet, ArrowUpRight } from 'lucide-react';
 import PrimaryActions from '@/components/vantoris/home/PrimaryActions';
 import DashboardModules from '@/components/vantoris/home/DashboardModules';
+import VantorisLogo from '@/components/vantoris/brand/VantorisLogo';
+import { BRAND } from '@/lib/brand';
 
-// Home / Dashboard — Spec §4.
-// Shows the user's real financial and service state.
-// No fabricated activity in empty states.
 export default function Home() {
   const [user, setUser] = useState(null);
   const [accounts, setAccounts] = useState([]);
@@ -24,17 +23,19 @@ export default function Home() {
     (async () => {
       try {
         const me = await base44.auth.me();
-        const [a, c, p] = await Promise.all([
+        const [accountRows, cardRows, portfolioRows] = await Promise.all([
           base44.entities.Account.filter({ user_id: me.id }, '-created_date').catch(() => []),
           base44.entities.PaymentCard.filter({ user_id: me.id, status: 'active' }, '-created_date').catch(() => []),
           base44.entities.InvestmentPortfolio.filter({ user_id: me.id }, '-created_date').catch(() => []),
         ]);
         if (!cancelled) {
           setUser(me);
-          setAccounts(a);
-          setCards(c);
-          setPortfolios(p);
+          setAccounts(Array.isArray(accountRows) ? accountRows : []);
+          setCards(Array.isArray(cardRows) ? cardRows : []);
+          setPortfolios(Array.isArray(portfolioRows) ? portfolioRows : []);
         }
+      } catch (error) {
+        console.error('Member home could not load', error);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -42,76 +43,107 @@ export default function Home() {
     return () => { cancelled = true; };
   }, []);
 
-  const balance = useMemo(() => accounts.reduce((s, a) => s + (a.balance || 0), 0), [accounts]);
-  const wealth = useMemo(() => portfolios.reduce((s, p) => s + (p.total_value || 0), 0), [portfolios]);
+  const balance = useMemo(() => accounts.reduce((sum, account) => sum + Number(account.balance || 0), 0), [accounts]);
+  const wealth = useMemo(() => portfolios.reduce((sum, portfolio) => sum + Number(portfolio.total_value || 0), 0), [portfolios]);
   const firstName = getDisplayFirstName(user);
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-  const hasAccounts = accounts.length > 0;
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-2 border-brass/30 border-t-brass rounded-full animate-spin" /></div>;
+    return <div className="min-h-[70vh] flex items-center justify-center"><div className="w-8 h-8 border-2 border-[#C5A66A]/30 border-t-[#173D32] rounded-full animate-spin" /></div>;
   }
 
   return (
-    <div className="px-5 pt-6 pb-28 max-w-[430px] mx-auto">
-      {/* Header */}
-      <header className="flex items-start justify-between mb-6">
-        <div>
-          <p className="text-gray text-sm">{greeting}</p>
-          <h1 className="text-3xl font-bold mt-1 tracking-tight">{firstName}</h1>
-          <p className="text-gray text-sm mt-1">Your money. Your travel. Your next move.</p>
-        </div>
-        <button onClick={() => navigate('/messages')} aria-label="Notifications and messages" className="w-11 h-11 rounded-full bg-white border border-border flex items-center justify-center shadow-sm">
-          <Bell size={19} />
+    <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 pt-5 sm:pt-8 pb-28 space-y-6">
+      <header className="flex items-center justify-between gap-4">
+        <VantorisLogo size={34} variant="flat" theme="light" />
+        <button onClick={() => navigate('/messages')} aria-label="Notifications and messages" className="relative w-11 h-11 rounded-full bg-white border border-border flex items-center justify-center shadow-sm hover:border-[#C5A66A] transition-colors">
+          <Bell size={19} className="text-[#173D32]" />
         </button>
       </header>
 
-      {/* USD Account Card — real balance only */}
-      <section className="rounded-[28px] bg-white border border-border p-5 shadow-sm mb-5">
-        <div className="flex justify-between items-center">
-          <div>
-            <p className="text-xs uppercase tracking-[0.16em] text-gray">Available balance</p>
-            <p className="text-3xl font-semibold mt-1">{hidden ? '••••••' : formatCurrency(balance)}</p>
-          </div>
-          <button onClick={() => setHidden(v => !v)} aria-label={hidden ? 'Show balances' : 'Hide balances'} className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
-            {hidden ? <Eye size={18} /> : <EyeOff size={18} />}
-          </button>
+      <section className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+        <div>
+          <p className="text-sm text-gray">{greeting},</p>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground mt-1">Welcome home, {firstName}</h1>
+          <p className="text-sm text-gray mt-2">Your membership, money and next steps in one place.</p>
         </div>
-        {hasAccounts && (
-          <div className="mt-4 pt-4 border-t border-border/70 flex items-center justify-between text-sm">
-            <span className="text-gray">{accounts.length} account{accounts.length === 1 ? '' : 's'}</span>
-            <button onClick={() => navigate('/accounts')} className="font-semibold text-brass inline-flex items-center gap-1">Account details <ChevronRight size={15} /></button>
-          </div>
-        )}
-        {!hasAccounts && (
-          <p className="text-xs text-gray mt-4 pt-4 border-t border-border/70">No accounts yet. Open an account to get started.</p>
-        )}
+        <button onClick={() => navigate('/ava')} className="inline-flex items-center justify-center gap-2 rounded-full bg-[#173D32] text-white px-5 py-3 text-sm font-semibold shadow-sm hover:bg-[#102C25] transition-colors">
+          <Sparkles size={16} className="text-[#E5D2A8]" /> Ask AVA
+        </button>
       </section>
 
-      {/* Primary Actions — Send, Receive, Add funds, Activity */}
-      <div className="mb-6">
-        <PrimaryActions />
-      </div>
-
-      {/* Private Wealth — only if portfolios exist */}
-      {wealth > 0 && (
-        <section className="rounded-[28px] bg-[#0B2342] text-white p-5 shadow-xl mb-5">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-[0.16em] text-white/50">Private wealth</p>
-              <h2 className="text-xl font-semibold mt-1">Portfolio</h2>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <div className="lg:col-span-7 space-y-5 min-w-0">
+          <section className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#204F40] via-[#173D32] to-[#102C25] text-white p-5 sm:p-7 shadow-lg">
+            <div className="absolute -right-16 -top-20 w-64 h-64 rounded-full border border-[#C5A66A]/20" />
+            <div className="absolute -right-5 -top-9 w-44 h-44 rounded-full border border-[#C5A66A]/15" />
+            <div className="relative">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[11px] uppercase tracking-[.18em] text-white/65 font-semibold">Your money at a glance</p>
+                <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-[#E7D6B2] bg-white/10 rounded-full px-2.5 py-1.5"><ShieldCheck size={12} /> Member space</span>
+              </div>
+              <p className="text-sm text-white/70 mt-5">Total account balance</p>
+              <div className="flex items-center gap-3 mt-1">
+                <p className="text-3xl sm:text-4xl font-semibold tracking-tight tabular-nums">{hidden ? '••••••••' : formatCurrency(balance)}</p>
+                <button onClick={() => setHidden(value => !value)} aria-label={hidden ? 'Show balance' : 'Hide balance'} className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/15">
+                  {hidden ? <Eye size={17} /> : <EyeOff size={17} />}
+                </button>
+              </div>
+              <div className="mt-6 pt-4 border-t border-white/15 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-white/65 text-xs">{accounts.length} account{accounts.length === 1 ? '' : 's'} linked</p>
+                  <p className="font-semibold text-sm mt-1">{accounts.length ? 'Your accounts are ready to review' : 'Start with an account application'}</p>
+                </div>
+                <button onClick={() => navigate(accounts.length ? '/accounts' : '/register')} className="shrink-0 rounded-full bg-[#E5D2A8] text-[#173D32] px-4 py-2.5 text-xs font-bold inline-flex items-center gap-1.5">
+                  {accounts.length ? 'View accounts' : 'Get started'} <ArrowUpRight size={14} />
+                </button>
+              </div>
             </div>
-            <TrendingUp size={20} className="text-brass" />
-          </div>
-          <p className="text-3xl font-semibold mt-5">{hidden ? '••••••' : formatCurrency(wealth)}</p>
-          <p className="text-xs text-white/55 mt-1">Investment value across your portfolios</p>
-          <button onClick={() => navigate('/investment')} className="mt-5 text-sm font-semibold text-brass inline-flex items-center gap-1">View investments <ChevronRight size={15} /></button>
-        </section>
-      )}
+          </section>
 
-      {/* Personalized Modules — real state or truthful unavailable */}
-      <DashboardModules accounts={accounts} cards={cards} portfolios={portfolios} />
+          <section className="rounded-[24px] bg-white border border-border p-4 sm:p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-[10px] uppercase tracking-[.16em] text-[#8B7650] font-bold">Everyday banking</p>
+                <h2 className="font-bold text-foreground mt-1">Move with confidence</h2>
+              </div>
+              <Wallet size={19} className="text-[#C5A66A]" />
+            </div>
+            <PrimaryActions />
+          </section>
+
+          {wealth > 0 && (
+            <section className="rounded-[24px] bg-[#F7F4EC] border border-[#E5DDCA] p-5 sm:p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[.16em] text-[#8B7650] font-bold">Investments</p>
+                  <h2 className="text-lg font-bold text-[#173D32] mt-1">Your portfolio</h2>
+                </div>
+                <TrendingUp size={20} className="text-[#173D32]" />
+              </div>
+              <p className="text-3xl font-semibold text-[#173D32] mt-5 tabular-nums">{hidden ? '••••••••' : formatCurrency(wealth)}</p>
+              <p className="text-xs text-[#68766F] mt-1">Total value across your recorded portfolios</p>
+              <button onClick={() => navigate('/investment')} className="mt-4 text-sm font-semibold text-[#173D32] inline-flex items-center gap-1">View investments <ArrowUpRight size={15} /></button>
+            </section>
+          )}
+
+          <section className="rounded-[24px] border border-[#E5DDCA] bg-[#FBF9F3] p-4 sm:p-5">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#173D32]/10 flex items-center justify-center"><Sparkles size={18} className="text-[#173D32]" /></div>
+              <div className="flex-1">
+                <p className="font-semibold text-foreground">A little help from AVA</p>
+                <p className="text-xs text-gray mt-1 leading-relaxed">{BRAND.assistant.description}</p>
+                <button onClick={() => navigate('/ava')} className="text-xs font-bold text-[#173D32] mt-3">Start a conversation <ArrowUpRight size={13} className="inline ml-1" /></button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <aside className="lg:col-span-5 space-y-5 min-w-0">
+          <DashboardModules accounts={accounts} cards={cards} portfolios={portfolios} />
+        </aside>
+      </div>
     </div>
   );
 }
