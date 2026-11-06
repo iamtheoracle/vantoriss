@@ -184,8 +184,8 @@ export default function AumGrowth() {
             <AreaChart data={timeline} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="aumGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#071C38" stopOpacity={0.25} />
-                  <stop offset="100%" stopColor="#071C38" stopOpacity={0.02} />
+                  <stop offset="0%" stopColor="#173D32" stopOpacity={0.25} />
+                  <stop offset="100%" stopColor="#173D32" stopOpacity={0.02} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
@@ -194,9 +194,9 @@ export default function AumGrowth() {
               <Tooltip
                 formatter={(v) => [formatCurrency(v), 'AUM']}
                 contentStyle={{ borderRadius: 12, border: '1px solid #E2E8F0', boxShadow: '0 8px 28px rgba(7,28,56,0.08)', fontSize: 13 }}
-                labelStyle={{ fontWeight: 600, color: '#071C38' }}
+                labelStyle={{ fontWeight: 600, color: '#173D32' }}
               />
-              <Area type="monotone" dataKey="aum" stroke="#071C38" strokeWidth={2.5} fill="url(#aumGradient)" dot={{ fill: '#071C38', r: 3 }} activeDot={{ r: 5 }} />
+              <Area type="monotone" dataKey="aum" stroke="#173D32" strokeWidth={2.5} fill="url(#aumGradient)" dot={{ fill: '#173D32', r: 3 }} activeDot={{ r: 5 }} />
             </AreaChart>
           </ResponsiveContainer>
         )}
@@ -225,7 +225,7 @@ export default function AumGrowth() {
               <YAxis yAxisId="right" orientation="right" tickFormatter={formatAxisCurrency} tick={{ fontSize: 11, fill: '#64748B' }} axisLine={false} tickLine={false} width={60} />
               <Tooltip
                 contentStyle={{ borderRadius: 12, border: '1px solid #E2E8F0', boxShadow: '0 8px 28px rgba(7,28,56,0.08)', fontSize: 13 }}
-                labelStyle={{ fontWeight: 600, color: '#071C38' }}
+                labelStyle={{ fontWeight: 600, color: '#173D32' }}
               />
               <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
               <Bar yAxisId="left" dataKey="txnCount" name="Transaction Count" fill="#1F5EFF" radius={[4, 4, 0, 0]} />
@@ -254,7 +254,7 @@ export default function AumGrowth() {
               <Tooltip
                 formatter={(v) => formatCurrency(v)}
                 contentStyle={{ borderRadius: 12, border: '1px solid #E2E8F0', boxShadow: '0 8px 28px rgba(7,28,56,0.08)', fontSize: 13 }}
-                labelStyle={{ fontWeight: 600, color: '#071C38' }}
+                labelStyle={{ fontWeight: 600, color: '#173D32' }}
               />
               <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
               <Bar dataKey="inflow" name="Inflows" fill="#16A34A" radius={[4, 4, 0, 0]} />
