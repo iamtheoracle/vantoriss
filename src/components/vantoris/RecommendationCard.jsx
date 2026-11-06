@@ -135,7 +135,7 @@ export default function RecommendationCard({ recommendation, onApprove, onReject
             disabled={processing}
             className="flex-1 py-2.5 bg-mint text-white text-sm font-semibold rounded-lg hover:bg-mint/90 transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
           >
-            <ShieldCheck size={14} /> Approve
+            <ShieldCheck size={14} /> Approve recommendation
           </button>
           <button
             onClick={handleReject}
@@ -150,9 +150,13 @@ export default function RecommendationCard({ recommendation, onApprove, onReject
       {recommendation.status === 'approved' && recommendation.approver_id && (
         <div className="flex items-center gap-2 text-xs text-gray pt-2">
           <Clock size={12} />
-          Approved by {recommendation.approver_id}
+          Review decision recorded by {recommendation.approver_id}
           {recommendation.approval_date && ` on ${new Date(recommendation.approval_date).toLocaleDateString()}`}
         </div>
+      )}
+
+      {recommendation.status === 'approved' && (
+        <p className="text-[11px] leading-relaxed text-[#80683D] mt-2">Approval records the review decision only. Any financial or account operation remains a separate, authorized workflow.</p>
       )}
     </div>
   );
