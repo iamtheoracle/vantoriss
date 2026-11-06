@@ -61,7 +61,7 @@ export default function HeroBox() {
   function handleOrderComplete() {
     setCart([]);
     setActiveTab('orders');
-    toast({ title: 'Order placed', description: 'Your HeroBox order has been created.' });
+    toast({ title: 'Order placed', description: 'Your Community Support order has been created.' });
   }
 
   if (loading) return <div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin text-brass" /></div>;
