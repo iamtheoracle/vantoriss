@@ -28,7 +28,10 @@
         "application_rejected",
         "kyc_approved",
         "kyc_rejected",
-        "super_admin_exception_auth"
+        "super_admin_exception_auth",
+        "recommendation_created",
+        "workflow_approved",
+        "workflow_rejected"
       ],
       "description": "The type of administrative action performed"
     },
