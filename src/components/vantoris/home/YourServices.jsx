@@ -90,7 +90,7 @@ function HeroBoxCard({ navigate, transactions }) {
               <Package size={18} className="text-brass" />
             </div>
             <div>
-              <h3 className="text-foreground font-semibold text-sm">HeroBox</h3>
+              <h3 className="text-foreground font-semibold text-sm">Community Support</h3>
               <p className="text-gray text-[11px]">Care packages worldwide</p>
             </div>
           </div>
