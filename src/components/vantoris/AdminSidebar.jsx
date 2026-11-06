@@ -164,7 +164,7 @@ const DOMAIN_CONFIG = {
         label: 'Orders & Shipping',
         items: [
           { label: 'Orders', path: '/operations/herobox/orders', icon: Package },
-          { label: 'Heroes', path: '/operations/herobox/heroes', icon: Shield },
+          { label: 'Recipients', path: '/operations/herobox/heroes', icon: Shield },
           { label: 'Volunteers', path: '/operations/herobox/volunteers', icon: Users },
         ],
       },
