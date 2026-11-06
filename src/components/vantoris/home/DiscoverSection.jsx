@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Home, PiggyBank, Banknote, Crown, CalendarClock, Building2, CreditCard, Package, ChevronRight } from 'lucide-react';
+import { Shield, PiggyBank, Banknote, Crown, CalendarClock, Building2, CreditCard, Package, ChevronRight } from 'lucide-react';
 
 // Each discover item has `hideIf` — an array of service IDs from YourServices.
 // If the user has ANY of those services, the discover item is hidden.
