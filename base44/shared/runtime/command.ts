@@ -35,7 +35,8 @@ export function createCommand() {
         'kyc_officer', 'operations_manager', 'treasury_officer', 'it_administrator',
         'risk_officer', 'auditor', 'investment_officer', 'investment_manager',
       ];
-      const promptKey = operationsRoles.includes(request.userRole)
+      const authenticatedRole = request.context?.userRole || request.userRole;
+      const promptKey = operationsRoles.includes(authenticatedRole)
         ? 'operations_assistant'
         : 'default_assistant';
       const prompt = registries.prompt.resolve(promptKey);
