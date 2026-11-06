@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Users, Building2, CreditCard, Check, Clock, Landmark, ShieldCheck } from 'lucide-react';
+import { Users, Building2, CreditCard, Landmark, ShieldCheck } from 'lucide-react';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
