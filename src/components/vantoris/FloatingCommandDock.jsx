@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { hasOperationsAccess } from '@/lib/operationsAccess';
-import { logAuditEntry } from '@/lib/auditLogger';
-import { useToast } from '@/components/ui/use-toast';
 import VantorisMonogram from '@/components/vantoris/brand/VantorisMonogram';
 import {
-  Command, X, Sparkles, Lock, Check, Shield,
+  Command, X, Sparkles, Shield, CreditCard,
 } from 'lucide-react';
 
 // ============================================================
@@ -26,7 +23,7 @@ import {
 
 const EDGE_MARGIN = 16;      // min distance from viewport edge (px)
 const DRAG_THRESHOLD = 6;    // px movement before a press counts as a drag
-const STORAGE_KEY = 'vantoris.quickAction.pos';
+const STORAGE_KEY = 'avcu.quickAction.pos';
 const BOTTOM_NAV_RESERVE = 84; // keep clear of the bottom navigation
 
 function haptic(ms = 8) {
@@ -76,12 +73,7 @@ function defaultPos(size) {
 export default function FloatingCommandDock() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [expanded, setExpanded] = useState(false);
-  const [freezeOpen, setFreezeOpen] = useState(false);
-  const [accounts, setAccounts] = useState([]);
-  const [selectedAccount, setSelectedAccount] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
 
   // --- Responsive size ---
   const [size, setSize] = useState(getSize);
@@ -92,20 +84,7 @@ export default function FloatingCommandDock() {
   const dragRef = useRef({ active: false, startX: 0, startY: 0, origX: 0, origY: 0, moved: false });
   const buttonRef = useRef(null);
 
-  const isMember = user?.role === 'user';
 
-  useEffect(() => {
-    if (!user || !isMember) return;
-    let cancelled = false;
-    async function loadAccounts() {
-      try {
-        const accts = await base44.entities.Account.filter({ user_id: user.id });
-        if (!cancelled) setAccounts(accts);
-      } catch {}
-    }
-    loadAccounts();
-    return () => { cancelled = true; };
-  }, [user, isMember]);
 
   // Re-clamp on viewport resize / orientation change (also updates size)
   useEffect(() => {
@@ -129,10 +108,10 @@ export default function FloatingCommandDock() {
 
   const actions = [
     { id: 'assistant', label: 'AVA', icon: Sparkles, color: 'bg-navy/8 text-navy', onClick: () => navigate('/ava') },
-    { id: 'freeze', label: 'Freeze My Card', icon: Lock, color: 'bg-crimson/10 text-crimson', onClick: () => { setFreezeOpen(true); setExpanded(false); } },
+    { id: 'cards', label: 'Card Services', icon: CreditCard, color: 'bg-navy/8 text-navy', onClick: () => navigate('/cards') },
   ];
 
-  // Operations staff get Mission Control instead of Freeze Card
+  // Operations staff get Mission Control instead of member card services
   if (hasOperationsAccess(user?.role)) {
     actions[1] = { id: 'mission-control', label: 'Mission Control', icon: Shield, color: 'bg-navy text-white', onClick: () => navigate('/operations') };
   }
@@ -187,39 +166,7 @@ export default function FloatingCommandDock() {
     setDragging(false);
   }, []);
 
-  async function handleFreeze() {
-    if (!selectedAccount) return;
-    setSubmitting(true);
-    try {
-      const account = accounts.find(a => a.id === selectedAccount);
-      await base44.entities.Account.update(selectedAccount, { status: 'frozen' });
-      await base44.entities.Transaction.create({
-        account_id: selectedAccount,
-        type: 'adjustment',
-        amount: 0,
-        description: 'Card frozen by member',
-        balance_after: account.balance,
-      });
-      await base44.entities.Notification.create({
-        user_id: user.id,
-        title: 'Card Frozen',
-        message: `Your card for ${account.account_name} has been frozen. No new transactions will be processed.`,
-        type: 'warning',
-      });
-      await logAuditEntry({
-        action_type: 'card_frozen',
-        description: `Member froze card for account: ${account.account_name}`,
-        account_id: selectedAccount,
-        target_user_id: user.id,
-      });
-      toast({ title: 'Card Frozen', description: `${account.account_name} has been frozen. No new transactions will be processed.` });
-      setFreezeOpen(false);
-      setSelectedAccount(null);
-    } catch (e) {
-      toast({ title: 'Unable to Freeze Card', description: e.message || 'Please try again. If the problem continues, contact support.', variant: 'destructive' });
-    }
-    setSubmitting(false);
-  }
+
 
   if (!user) return null;
 
@@ -330,7 +277,7 @@ export default function FloatingCommandDock() {
           className="absolute rounded-full border border-brass/25 pointer-events-none"
           style={{ inset: Math.round(size * 0.11) }}
         />
-        {/* Vantoris V command mark — white against the dark center */}
+        {/* Atchison Village command mark — white against the dark center */}
         <VantorisMonogram
           size={Math.round(size * 0.54)}
           variant="flat"
@@ -339,82 +286,7 @@ export default function FloatingCommandDock() {
         />
       </motion.button>
 
-      {/* Freeze Card Dialog */}
-      <AnimatePresence>
-        {freezeOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-navy/20 backdrop-blur-sm flex items-end sm:items-center justify-center"
-            onClick={() => setFreezeOpen(false)}
-          >
-            <motion.div
-              initial={{ y: 40, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 40, opacity: 0 }}
-              onClick={e => e.stopPropagation()}
-              className="vantoris-glass-premium w-full sm:max-w-sm p-6 rounded-t-3xl sm:rounded-3xl safe-bottom"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-11 h-11 rounded-xl bg-crimson/10 flex items-center justify-center">
-                  <Lock size={20} className="text-crimson" />
-                </div>
-                <div>
-                  <h3 className="text-foreground font-bold text-base">Freeze My Card</h3>
-                  <p className="text-gray text-xs">Select an account to freeze its card immediately.</p>
-                </div>
-              </div>
 
-              {accounts.length === 0 ? (
-                <p className="text-gray text-sm py-4 text-center">No accounts available to freeze.</p>
-              ) : (
-                <>
-                  <div className="space-y-2 mb-4">
-                    {accounts.map(acct => (
-                      <button
-                        key={acct.id}
-                        onClick={() => setSelectedAccount(acct.id)}
-                        className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${
-                          selectedAccount === acct.id
-                            ? 'border-crimson/30 bg-crimson/5'
-                            : 'border-border bg-slate-50 hover:bg-slate-100'
-                        }`}
-                      >
-                        <div className="text-left">
-                          <p className="text-foreground font-medium text-sm">{acct.account_name}</p>
-                          <p className="text-gray text-xs font-mono">••••{acct.account_number?.slice(-4) || '----'}</p>
-                        </div>
-                        {selectedAccount === acct.id && <Check size={16} className="text-crimson" />}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => setFreezeOpen(false)}
-                      className="px-6 py-3 bg-slate-100 text-gray rounded-xl font-medium hover:bg-slate-200 transition-all"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleFreeze}
-                      disabled={!selectedAccount || submitting}
-                      className="flex-1 py-3 bg-crimson text-white font-semibold rounded-xl disabled:opacity-40 flex items-center justify-center gap-2"
-                    >
-                      {submitting ? (
-                        <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Freezing...</>
-                      ) : (
-                        <><Lock size={14} /> Freeze Card</>
-                      )}
-                    </button>
-                  </div>
-                </>
-              )}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </>
   );
 }
