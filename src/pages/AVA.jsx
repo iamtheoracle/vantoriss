@@ -34,7 +34,7 @@ export default function AVA({ mode = 'member' }) {
       .then(result => {
         const data = result?.data ?? result;
         if (active && Array.isArray(data?.messages) && data.messages.length) {
-          setMessages(data.messages);
+          setMessages(current => current.length === 1 ? data.messages : current);
         }
       })
       .catch(() => {
