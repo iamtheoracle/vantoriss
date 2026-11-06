@@ -6,7 +6,7 @@ import { Sparkles, ArrowRight, Send, FileText, Package, Wallet, Heart } from 'lu
 const EXAMPLES = [
   { label: 'Transfer money', icon: Send, route: '/move-money' },
   { label: 'View accounts', icon: Wallet, route: '/accounts' },
-  { label: 'Sponsor a Hero', icon: Package, route: '/herobox' },
+  { label: 'Support a Community Need', icon: Package, route: '/herobox' },
   { label: 'Send with Zelle', icon: Send, route: '/move-money?tab=zelle' },
   { label: 'View statements', icon: FileText, route: '/documents' },
   { label: 'Track my package', icon: Heart, route: '/herobox' },
