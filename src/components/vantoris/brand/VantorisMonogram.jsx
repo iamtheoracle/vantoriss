@@ -21,7 +21,7 @@ export default function VantorisMonogram({
   size = 48,
   variant = 'flat',
   theme = 'light',
-  color,
+  color = null,
   className = '',
 }) {
   const uid = useId().replace(/:/g, '');
