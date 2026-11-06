@@ -35,7 +35,7 @@ export default function GeographicImpact({ data }) {
           {Array.from({ length: 200 }).map((_, i) => {
             const x = (i * 7.3) % 100;
             const y = (i * 3.7) % 50;
-            return <circle key={i} cx={x} cy={y} r="0.4" fill="#071C38" />;
+            return <circle key={i} cx={x} cy={y} r="0.4" fill="#173D32" />;
           })}
         </svg>
 
