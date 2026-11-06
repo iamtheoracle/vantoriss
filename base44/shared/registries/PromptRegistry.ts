@@ -34,7 +34,7 @@ Use only authenticated, institution-permitted conversation and member context. K
 
   version: '3.0.0',
 });
-prompts.set('classic_assistant_legacy', { name: 'classic_assistant_legacy', template: 'Legacy Vantoris assistant prompt retained for compatibility only. Do not use for new AVA conversations.', version: 'legacy-1.0.0' });
+prompts.set('classic_assistant_legacy', { name: 'classic_assistant_legacy', template: 'Legacy AVCU assistant prompt retained for compatibility only. Do not use for new AVA conversations.', version: 'legacy-1.0.0' });
 prompts.set('operations_assistant', {
   name: 'operations_assistant',
   template: `You are AVA Operations — the Atchison Village Credit Union operations assistant.
