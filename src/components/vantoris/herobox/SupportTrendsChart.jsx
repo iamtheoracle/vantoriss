@@ -11,9 +11,9 @@ const CHART_TYPES = [
 const SERIES = [
   { key: 'requests', label: 'Support Requests', color: '#1F5EFF' },
   { key: 'completed', label: 'Completed Support', color: '#16A34A' },
-  { key: 'pending', label: 'Pending Support', color: '#C9A227' },
+  { key: 'pending', label: 'Pending Support', color: '#C5A66A' },
   { key: 'volunteer', label: 'Volunteer Activity', color: '#64748B' },
-  { key: 'sponsor', label: 'Sponsor Activity', color: '#071C38' },
+  { key: 'sponsor', label: 'Sponsor Activity', color: '#173D32' },
   { key: 'packages', label: 'Package Deliveries', color: '#DC2626' },
 ];
 
