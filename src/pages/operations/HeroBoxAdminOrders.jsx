@@ -42,7 +42,7 @@ export default function HeroBoxAdminOrders() {
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-brass" /></div>;
 
   return (
-    <OperationsPageLayout title="HeroBox Orders" description="Manage order fulfillment lifecycle" icon={Package}>
+    <OperationsPageLayout title="Community Support Orders" description="Manage order fulfillment lifecycle" icon={Package}>
       {orders.length === 0 ? (
         <div className="vantoris-glass p-12 text-center">
           <Package size={32} className="text-gray mx-auto mb-3" />
