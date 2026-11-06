@@ -29,7 +29,7 @@ export function createWorkflowService(base44) {
       if (existing?.length) return { run: existing[0], reused: true };
 
       const now = new Date().toISOString();
-      const status = definition.approvalRequired ? 'pending_approval' : 'prepared';
+      const status = 'prepared';
       const events = [{
         at: now,
         type: 'workflow_prepared',
@@ -45,7 +45,7 @@ export function createWorkflowService(base44) {
         requester_id: requesterId,
         subject_user_id: subjectUserId,
         idempotency_key: String(idempotencyKey),
-        current_step: definition.steps[0] || 'prepared',
+        current_step: definition.approvalRequired ? 'staff_review' : (definition.steps[0] || 'prepared'),
         payload_json: JSON.stringify(payload).slice(0, 20000),
         evidence_json: JSON.stringify(evidence).slice(0, 20000),
         approval_json: '',
