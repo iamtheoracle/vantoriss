@@ -82,6 +82,13 @@ const DOMAIN_CONFIG = {
         ],
       },
       {
+        label: 'AI & Intelligence',
+        items: [
+          { label: 'AVA Operations', path: '/operations/ava', icon: Bot },
+          { label: 'Assistant Recommendations', path: '/operations/recommendations', icon: Gavel },
+        ],
+      },
+      {
         label: 'Security',
         items: [
           { label: 'Security Dashboard', path: '/operations/security-dashboard', icon: ShieldAlert },
