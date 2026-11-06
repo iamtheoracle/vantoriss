@@ -46,7 +46,6 @@ const STATUS_FILTERS = [
 export default function RecommendationReview() {
   const [recommendations, setRecommendations] = useState([]);
   const [workspaces, setWorkspaces] = useState({});
-  const [members, setMembers] = useState({});
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('pending');
   const [selectedRec, setSelectedRec] = useState(null);
@@ -70,7 +69,6 @@ export default function RecommendationReview() {
     const wsMap = {};
     wsList.forEach(workspace => { wsMap[workspace.id] = workspace; });
     setWorkspaces(wsMap);
-    setMembers({});
   }, [activeFilter]);
 
   useEffect(() => {
@@ -157,7 +155,6 @@ export default function RecommendationReview() {
             <div className="space-y-3">
               {recommendations.map(rec => {
                 const ws = workspaces[rec.workspace_id];
-                const member = members[rec.user_id];
                 const isSelected = selectedRec?.id === rec.id;
                 return (
                   <button
