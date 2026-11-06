@@ -5,7 +5,7 @@ import StatusBadge from '@/components/vantoris/StatusBadge';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
 import InternalComments from '@/components/vantoris/InternalComments';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { CheckSquare, Square, Check, X, ShieldCheck, Mail } from 'lucide-react';
+import { CheckSquare, Square, Check, X, ShieldCheck } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
 import { sendTransactionEmail } from '@/lib/transactionEmails';
 import { useToast } from '@/components/ui/use-toast';
