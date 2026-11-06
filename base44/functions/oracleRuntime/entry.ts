@@ -63,6 +63,7 @@ export default async function(req) {
     // If the assistant produced a structured recommendation, persist it for staff approval.
     let workspaceId = null;
     let recommendationId = null;
+    let workflowRunId = null;
     let pendingApproval = false;
 
     try {
@@ -142,6 +143,35 @@ export default async function(req) {
         recommendationId = recommendation.id;
         pendingApproval = true;
 
+        // Persist a durable review record. This queues work for staff; it does not execute it.
+        try {
+          const prepared = await services.workflow.prepare({
+            workflowName: 'assistant_recommendation_review',
+            requesterId: user.id,
+            requesterRole: user.role,
+            subjectUserId: user.id,
+            idempotencyKey: `ava-recommendation:${recommendation.id}`,
+            payload: {
+              recommendationId: recommendation.id,
+              specialist: response.routing?.specialist || 'banking',
+              summary: rec.summary || 'Recommendation prepared for staff review.',
+              recommendedAction: rec.recommended_action || '',
+            },
+            evidence: {
+              supportingEvidence: rec.supporting_evidence || '',
+              confidence: rec.confidence_level || response.routing?.confidence || 'medium',
+              risks: rec.potential_risks || '',
+              applicablePolicies: rec.applicable_policies || '',
+            },
+          });
+          workflowRunId = prepared?.run?.id || null;
+        } catch (workflowError) {
+          logger.error('Workflow preparation failed; recommendation remains pending review', {
+            recommendationId: recommendation.id,
+            error: workflowError?.message || 'unknown',
+          });
+        }
+
         // Audit the recommendation creation
         await services.audit.log({
           actionType: 'recommendation_created',
@@ -170,6 +200,7 @@ export default async function(req) {
       routing: response.routing,
       workspaceId,
       recommendationId,
+      workflowRunId,
       pendingApproval,
       escalated: response.escalate || false,
     });
