@@ -145,7 +145,7 @@ export default function AccountDetail() {
 
   useEffect(() => {
     loadData().catch(e => { console.error(e); toast({ title: 'Account unavailable', description: e.message || 'Please try again.', variant: 'destructive' }); }).finally(() => setLoading(false));
-  }, [loadData]);
+  }, [loadData, toast]);
 
   useEffect(() => {
     setFilteredTransactions(transactions);
