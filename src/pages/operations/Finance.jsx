@@ -13,8 +13,8 @@ export default function Finance() {
     (async () => {
       try {
         const [txns, accts] = await Promise.all([
-          base44.entities.Transaction.list('-created_date', 200),
-          base44.entities.Account.list('-created_date', 100),
+          base44.entities.Transaction.list('-created_date', 500),
+          base44.entities.Account.list('-created_date', 500),
         ]);
         setTransactions(txns);
         setAccounts(accts);
@@ -25,7 +25,7 @@ export default function Finance() {
 
   if (loading) {
     return (
-      <OperationsPageLayout title="Finance Overview" description="Platform-wide financial activity" icon={DollarSign}>
+      <OperationsPageLayout title="Finance Overview" description="Platform-wide financial activity" icon={DollarSign} actions={null} breadcrumb="Atchison Village · Operations">
         <div className="flex items-center justify-center h-48">
           <div className="w-8 h-8 border-2 border-brass/30 border-t-brass rounded-full animate-spin" />
         </div>
@@ -46,7 +46,7 @@ export default function Finance() {
   ];
 
   return (
-    <OperationsPageLayout title="Finance Overview" description="Platform-wide financial activity" icon={DollarSign}>
+    <OperationsPageLayout title="Finance Overview" description="Platform-wide financial activity" icon={DollarSign} actions={null} breadcrumb="Atchison Village · Operations">
       <div className="grid grid-cols-4 gap-4 mb-6">
         {stats.map(s => {
           const Icon = s.icon;

@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { AlertCircle, Save } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
 
-const ACCOUNT_TYPES = ['Personal', 'Joint', 'Business', 'Organization'];
+import { ACCOUNT_TYPES } from '@/lib/accountTypes';
 
 export default function WithdrawalLimits() {
   const [limits, setLimits] = useState({});
@@ -40,6 +40,11 @@ export default function WithdrawalLimits() {
         action_type: 'account_status_changed',
         description: 'Updated withdrawal limits configuration',
         details: JSON.stringify(limits, null, 2),
+        account_id: null,
+        amount: null,
+        balance_before: null,
+        balance_after: null,
+        target_user_id: null,
       });
       loadLimits();
     } catch (e) { console.error(e); }

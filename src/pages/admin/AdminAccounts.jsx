@@ -12,6 +12,7 @@ import { useToast } from '@/components/ui/use-toast';
 export default function AdminAccounts() {
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [search, setSearch] = useState('');
   const [showTxn, setShowTxn] = useState(null);
   const [txnForm, setTxnForm] = useState({ type: 'deposit', amount: '', description: '', reference: '', transaction_date: '' });
@@ -31,9 +32,16 @@ export default function AdminAccounts() {
   useEffect(() => { loadAccounts(); }, []);
 
   async function loadAccounts() {
-    const accts = await base44.entities.Account.list('-created_date', 50);
-    setAccounts(accts);
-    setLoading(false);
+    setLoadError('');
+    try {
+      const accts = await base44.entities.Account.list('-created_date', 500);
+      setAccounts(accts || []);
+    } catch (error) {
+      setLoadError(error.message || 'The account register could not be loaded.');
+      toast({ title: 'Accounts unavailable', description: error.message || 'Please retry.', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function viewHistory(acct) {
@@ -41,7 +49,7 @@ export default function AdminAccounts() {
     setLoadingTxns(true);
     try {
       const [txns, logs] = await Promise.all([
-        base44.entities.Transaction.filter({ account_id: acct.id }, '-created_date', 200),
+        base44.entities.Transaction.filter({ account_id: acct.id }, '-created_date', 500),
         base44.entities.AuditLog.filter({ account_id: acct.id }, '-created_date', 50),
       ]);
       setTransactions(txns);
@@ -106,6 +114,7 @@ export default function AdminAccounts() {
         amount: txnForm.type === 'withdrawal' ? -Math.abs(amount) : amount,
         balance_before: showTxn.balance,
         balance_after: newBalance,
+        target_user_id: showTxn.user_id,
       });
 
       setShowTxn(null);
@@ -140,7 +149,7 @@ export default function AdminAccounts() {
       await base44.entities.Account.update(viewingHistory.id, { balance: newBalance });
 
       // Recalculate balance_after for all subsequent transactions
-      const allTxns = await base44.entities.Transaction.filter({ account_id: viewingHistory.id }, 'created_date', 200);
+      const allTxns = await base44.entities.Transaction.filter({ account_id: viewingHistory.id }, 'created_date', 500);
       let runningBalance = 0;
       for (const t of allTxns) {
         runningBalance += (t.amount || 0);
@@ -159,6 +168,7 @@ export default function AdminAccounts() {
         amount: txnForm.type === 'withdrawal' ? -Math.abs(amount) : amount,
         balance_before: viewingHistory.balance,
         balance_after: newBalance,
+        target_user_id: viewingHistory.user_id,
       });
 
       setEditingTxn(null);
@@ -189,7 +199,7 @@ export default function AdminAccounts() {
     if (!viewingHistory) return;
     setExporting(true);
     try {
-      const txns = transactions.length > 0 ? transactions : await base44.entities.Transaction.filter({ account_id: viewingHistory.id }, '-created_date', 200);
+      const txns = transactions.length > 0 ? transactions : await base44.entities.Transaction.filter({ account_id: viewingHistory.id }, '-created_date', 500);
       const headers = ['Date', 'Type', 'Description', 'Reference', 'Amount', 'Balance After'];
       const rows = txns.map(t => ({
         Date: (t.transaction_date || t.created_date).split('T')[0],
@@ -221,6 +231,9 @@ export default function AdminAccounts() {
         description: `Account ${newStatus === 'frozen' ? 'FROZEN' : 'UNFROZEN'}: ${account.account_name}`,
         details: `Account disabled for ${newStatus === 'frozen' ? 'trading and withdrawals' : 'all operations'}`,
         account_id: account.id,
+        amount: null,
+        balance_before: null,
+        balance_after: null,
         target_user_id: account.user_id,
       });
 
@@ -520,7 +533,7 @@ export default function AdminAccounts() {
             <DialogHeader>
               <DialogTitle className="text-white">Add Transaction</DialogTitle>
             </DialogHeader>
-            {showTxn && <TransactionForm txnForm={txnForm} setTxnForm={setTxnForm} submitting={submitting} onSubmit={handleAddTransaction} account={viewingHistory} />}
+            {showTxn && <TransactionForm txnForm={txnForm} setTxnForm={setTxnForm} submitting={submitting} onSubmit={handleAddTransaction} account={viewingHistory} isEdit={false} />}
           </DialogContent>
         </Dialog>
 
@@ -541,6 +554,7 @@ export default function AdminAccounts() {
     <div>
       <h1 className="text-2xl font-bold text-white mb-1">Accounts</h1>
       <p className="text-[#AAB4C3] text-sm mb-6">{accounts.length} total accounts</p>
+      {loadError && <div role="alert" className="mb-5 rounded-xl border border-crimson/20 bg-crimson/5 p-4 text-sm text-crimson"><p className="font-semibold">Account register unavailable</p><p className="mt-1 text-xs">{loadError}</p><button type="button" onClick={() => { setLoading(true); loadAccounts(); }} className="mt-3 rounded-lg bg-brass px-3 py-2 text-xs font-semibold text-[#102C25]">Retry loading accounts</button></div>}
 
       <div className="relative mb-6">
         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#AAB4C3]" />
@@ -637,7 +651,7 @@ export default function AdminAccounts() {
           <DialogHeader>
             <DialogTitle className="text-white">Add Transaction</DialogTitle>
           </DialogHeader>
-          {showTxn && <TransactionForm txnForm={txnForm} setTxnForm={setTxnForm} submitting={submitting} onSubmit={handleAddTransaction} account={showTxn} />}
+          {showTxn && <TransactionForm txnForm={txnForm} setTxnForm={setTxnForm} submitting={submitting} onSubmit={handleAddTransaction} account={showTxn} isEdit={false} />}
         </DialogContent>
       </Dialog>
 

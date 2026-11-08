@@ -15,7 +15,7 @@ export default function AccountAssignment() {
     (async () => {
       try {
         const [accts, usrs] = await Promise.all([
-          base44.entities.Account.list('-created_date', 100),
+          base44.entities.Account.list('-created_date', 500),
           base44.entities.User.list('-created_date', 100),
         ]);
         setAccounts(accts);
@@ -36,7 +36,7 @@ export default function AccountAssignment() {
   );
 
   return (
-    <OperationsPageLayout title="Account Assignment" description="View account-to-member mappings and assignments" icon={UserCheck}>
+    <OperationsPageLayout title="Account Assignment" description="View account-to-member mappings and assignments" icon={UserCheck} actions={null} breadcrumb="Atchison Village · Operations">
       {loading ? (
         <div className="flex items-center justify-center h-48">
           <div className="w-8 h-8 border-2 border-brass/30 border-t-brass rounded-full animate-spin" />

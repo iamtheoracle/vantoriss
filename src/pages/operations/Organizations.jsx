@@ -12,15 +12,15 @@ export default function Organizations() {
   useEffect(() => {
     (async () => {
       try {
-        const accts = await base44.entities.Account.list('-created_date', 100);
-        setAccounts(accts.filter(a => a.account_type === 'Business' || a.account_type === 'Organization'));
+        const accts = await base44.entities.Account.list('-created_date', 500);
+        setAccounts(accts.filter(a => a.account_type === 'Business'));
       } catch (e) { console.error(e); }
       setLoading(false);
     })();
   }, []);
 
   return (
-    <OperationsPageLayout title="Organizations" description="Manage institutional and business member accounts" icon={Building2}>
+    <OperationsPageLayout title="Organizations" description="Manage institutional and business member accounts" icon={Building2} actions={null} breadcrumb="Atchison Village · Operations">
       {loading ? (
         <div className="flex items-center justify-center h-48">
           <div className="w-8 h-8 border-2 border-brass/30 border-t-brass rounded-full animate-spin" />

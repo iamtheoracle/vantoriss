@@ -8,7 +8,9 @@
         "Checking",
         "Savings",
         "Money Market",
-        "CD"
+        "CD",
+        "Joint",
+        "Business"
       ],
       "description": "Account type this limit applies to"
     },

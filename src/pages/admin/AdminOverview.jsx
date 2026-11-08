@@ -1,7 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
-import { Users, FileText, ArrowUpRight, Wallet, Briefcase, Activity, Sparkles } from 'lucide-react';
+import { Users, FileText, ArrowUpRight, Wallet, Briefcase, Activity, Sparkles, AlertTriangle } from 'lucide-react';
+import { ResponsiveContainer, ComposedChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Bar, Line } from 'recharts';
+import { buildMonthlyReporting } from '@/lib/monthlyReporting';
+import { findLedgerDiscrepancies } from '@/lib/ledgerIntegrity';
+import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/lib/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
@@ -19,12 +24,16 @@ export default function AdminOverview() {
   const [stats, setStats] = useState({ members: 0, pendingApps: 0, pendingWithdrawals: 0, totalBalance: 0, accountCount: 0 });
   const [recentItems, setRecentItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [monthlyReport, setMonthlyReport] = useState([]);
+  const [monthlyReportError, setMonthlyReportError] = useState('');
+  const [integrityIssues, setIntegrityIssues] = useState([]);
+  const [integrityCheckedAt, setIntegrityCheckedAt] = useState(null);
+  const [integrityError, setIntegrityError] = useState('');
+  const notifiedIssueKeys = useRef(new Set());
+  const { toast } = useToast();
+  const { user: adminUser } = useAuth();
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     try {
       // Totals come from the server so they are not limited to the most recent page of records.
       const [users, apps, withdrawals, balanceAgg, pendingApps, pendingWithdrawals] = await Promise.all([
@@ -35,6 +44,17 @@ export default function AdminOverview() {
         base44.entities.Application.count({ application_status: 'pending' }),
         base44.entities.WithdrawalRequest.count({ status: 'pending' }),
       ]);
+      const [accountsResult, investmentResult] = await Promise.allSettled([
+        base44.entities.Account.list('-created_date', 500),
+        base44.entities.InvestmentTransaction.list('-created_date', 500),
+      ]);
+      const accounts = accountsResult.status === 'fulfilled' ? accountsResult.value : [];
+      const investmentTransactions = investmentResult.status === 'fulfilled' ? investmentResult.value : [];
+      const reportErrors = [];
+      if (accountsResult.status === 'rejected') reportErrors.push('Monthly account growth is unavailable.');
+      if (investmentResult.status === 'rejected') reportErrors.push('Investment volume is unavailable.');
+      setMonthlyReportError(reportErrors.join(' '));
+      setMonthlyReport(reportErrors.length ? [] : buildMonthlyReporting(accounts, investmentTransactions));
       const balanceRow = balanceAgg?.rows?.[0] || {};
       const totalBalance = balanceRow.sum_balance || 0;
       const memberCount = users.filter(u => u.role === 'user').length;
@@ -48,15 +68,71 @@ export default function AdminOverview() {
       const recent = [
         ...apps.filter(a => a.application_status === 'pending').map(a => ({ id: a.id, type: 'Application', name: a.full_name, detail: a.account_type, date: a.created_date, status: a.application_status })),
         ...withdrawals.filter(w => w.status === 'pending').map(w => ({ id: w.id, type: 'Withdrawal', name: `${formatCurrency(w.amount)}`, detail: w.method, date: w.created_date, status: w.status })),
-      ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
+      ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 10);
       setRecentItems(recent);
     } catch (e) { console.error(e); }
     setLoading(false);
-  }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  useEffect(() => {
+    let active = true;
+    let checking = false;
+    const seen = new Set();
+    try {
+      const stored = sessionStorage.getItem('avcu-integrity-alerts-v1:' + (adminUser?.id || 'unknown'));
+      if (stored) JSON.parse(stored).forEach(key => seen.add(key));
+    } catch (_) { /* Session storage is optional; monitoring still works in memory. */ }
+    notifiedIssueKeys.current = seen;
+
+    const checkIntegrity = async () => {
+      if (checking) return;
+      checking = true;
+      try {
+        const [accounts, transactions] = await Promise.all([
+          base44.entities.Account.list('-created_date', 500),
+          base44.entities.Transaction.list('-created_date', 500),
+        ]);
+        if (!active) return;
+        const findings = findLedgerDiscrepancies(accounts, transactions);
+        setIntegrityIssues(findings);
+        setIntegrityCheckedAt(new Date());
+        setIntegrityError('');
+        const newFindings = findings.filter(issue => !notifiedIssueKeys.current.has(issue.key));
+        newFindings.forEach(issue => notifiedIssueKeys.current.add(issue.key));
+        if (newFindings.length) {
+          try { sessionStorage.setItem('avcu-integrity-alerts-v1:' + (adminUser?.id || 'unknown'), JSON.stringify([...notifiedIssueKeys.current].slice(-500))); } catch (_) { /* Keep in-memory deduplication. */ }
+          const alertTitle = newFindings.length + ' account integrity alert' + (newFindings.length === 1 ? '' : 's');
+          const alertMessage = newFindings[0].kind + ': ' + newFindings[0].accountName + '. Review the integrity monitor.';
+          toast({ title: alertTitle, description: alertMessage, variant: 'destructive' });
+          if (adminUser?.id) {
+            base44.entities.Notification.create({
+              user_id: adminUser.id,
+              title: alertTitle,
+              message: alertMessage,
+              type: 'warning',
+              link: '/operations/data-integrity',
+            }).catch(error => console.error('Integrity notification could not be saved:', error));
+          }
+        }
+      } catch (error) {
+        if (active) setIntegrityError(error.message || 'Integrity check could not be completed.');
+      } finally {
+        checking = false;
+      }
+    };
+
+    checkIntegrity();
+    const interval = setInterval(checkIntegrity, 30000);
+    return () => { active = false; clearInterval(interval); };
+  }, [toast, adminUser?.id]);
 
   if (loading) {
     return (
-      <OperationsPageLayout title="Operations Overview" description="Protected staff workspace for member service, review queues and institution controls" icon={Briefcase} breadcrumb="Atchison Village · Operations">
+      <OperationsPageLayout title="Operations Overview" description="Protected staff workspace for member service, review queues and institution controls" icon={Briefcase} breadcrumb="Atchison Village · Operations" actions={null}>
         <VantorisLoading className="h-64" />
       </OperationsPageLayout>
     );
@@ -84,6 +160,67 @@ export default function AdminOverview() {
         </div>
       </section>
 
+      <section className="vantoris-glass-premium p-5 mb-6" aria-labelledby="monthly-report-heading">
+        <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+          <div>
+            <p className="text-[10px] uppercase tracking-[.16em] text-gray font-bold">12-month view</p>
+            <h3 id="monthly-report-heading" className="text-foreground font-semibold text-base mt-1">Account growth & investment volume</h3>
+            <p className="text-xs text-gray mt-1">New accounts opened each month and gross completed investment transaction activity.</p>
+          </div>
+          <span className="text-[11px] text-gray">Source: account and investment transaction records</span>
+        </div>
+        {monthlyReportError && <p role="alert" className="mb-2 text-xs text-crimson">{monthlyReportError} A failed source is not represented as zero.</p>}
+        <div className="h-[290px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart data={monthlyReport} margin={{ top: 8, right: 12, left: 4, bottom: 4 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+              <XAxis dataKey="label" tick={{ fontSize: 11 }} />
+              <YAxis yAxisId="accounts" allowDecimals={false} tick={{ fontSize: 11 }} />
+              <YAxis yAxisId="volume" orientation="right" tick={{ fontSize: 11 }} tickFormatter={value => formatCurrency(value)} />
+              <Tooltip formatter={(value, name) => [name === 'Investment volume' ? formatCurrency(value) : value, name]} />
+              <Legend />
+              <Bar yAxisId="volume" dataKey="investmentVolume" name="Investment volume" fill="#B08D57" radius={[5, 5, 0, 0]} />
+              <Line yAxisId="accounts" type="monotone" dataKey="newAccounts" name="New accounts" stroke="#173D32" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+        <p className="text-[11px] text-gray mt-2">Investment volume is gross completed transaction activity (absolute amounts); it is not portfolio value, profit or assets under management. Data is limited to the latest 500 records returned by each source.</p>
+      </section>
+
+      <section className="vantoris-glass-premium p-5 mb-6" aria-labelledby="integrity-monitor-heading">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <div className={integrityIssues.length ? 'w-10 h-10 rounded-xl flex items-center justify-center bg-crimson/10' : 'w-10 h-10 rounded-xl flex items-center justify-center bg-mint/10'}>
+              <AlertTriangle size={19} className={integrityIssues.length ? 'text-crimson' : 'text-mint'} />
+            </div>
+            <div>
+              <h3 id="integrity-monitor-heading" className="text-foreground font-semibold text-sm">Account integrity monitor</h3>
+              <p className="text-xs text-gray mt-1">
+                {integrityCheckedAt ? 'Last checked ' + integrityCheckedAt.toLocaleTimeString() : 'Checking account ledger…'}
+                {' · '}Refreshes every 30 seconds while this dashboard is open
+              </p>
+            </div>
+          </div>
+          <button type="button" onClick={() => window.location.assign('/operations/data-integrity')} className="text-xs font-semibold text-[#173D32] hover:underline">Open audit</button>
+        </div>
+        {integrityError && <p role="alert" className="mt-3 text-xs text-crimson">Monitoring error: {integrityError}</p>}
+        {!integrityError && integrityIssues.length === 0 && integrityCheckedAt && <p className="mt-3 text-sm text-mint">No discrepancies found in the records checked.</p>}
+        {integrityIssues.length > 0 && (
+          <div className="mt-4 space-y-2">
+            <p className="text-sm font-semibold text-crimson">{integrityIssues.length} discrepancy alert{integrityIssues.length === 1 ? '' : 's'} detected</p>
+            {integrityIssues.slice(0, 5).map(issue => (
+              <div key={issue.key} className="rounded-xl border border-crimson/15 bg-crimson/5 p-3">
+                <p className="text-xs font-semibold text-foreground">{issue.kind} · {issue.accountName}</p>
+                <p className="text-[11px] text-gray mt-1">{issue.detail}</p>
+                <p className="text-[11px] text-gray mt-1">Ledger: {formatCurrency(issue.expectedBalance)} · Recorded: {formatCurrency(issue.recordedBalance)}</p>
+              </div>
+            ))}
+            {integrityIssues.length > 5 && <p className="text-xs text-gray">Showing 5 of {integrityIssues.length}. Open the full audit for review.</p>}
+          </div>
+        )}
+        <p className="text-[10px] text-gray mt-3">Foreground monitoring only: checks up to 500 recent accounts and transactions while this dashboard is open. It does not change balances or ledger records and is not an always-on server alert.</p>
+      </section>
+
       {/* Today's Operational Summary */}
       <div className="mb-6">
         <TodaysOperationalSummary />
@@ -91,10 +228,10 @@ export default function AdminOverview() {
 
       {/* Critical Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-        <PremiumStatCard hero label="Assets Under Management" value={formatCurrency(stats.totalBalance)} sublabel={`Across ${stats.accountCount} account${stats.accountCount === 1 ? '' : 's'}`} icon={Wallet} accent="navy" onClick={() => navigate('/operations/finance')} />
-        <PremiumStatCard label="Total Members" value={stats.members} icon={Users} accent="blue" onClick={() => navigate('/operations/members')} />
-        <PremiumStatCard label="Pending Applications" value={stats.pendingApps} icon={FileText} accent="gold" onClick={() => navigate('/operations/applications')} />
-        <PremiumStatCard label="Pending Withdrawals" value={stats.pendingWithdrawals} icon={ArrowUpRight} accent="crimson" onClick={() => navigate('/operations/withdrawals')} />
+        <PremiumStatCard hero alert={null} alertIcon={null} label="Assets Under Management" value={formatCurrency(stats.totalBalance)} sublabel={`Across ${stats.accountCount} account${stats.accountCount === 1 ? '' : 's'}`} icon={Wallet} accent="navy" onClick={() => navigate('/operations/finance')} />
+        <PremiumStatCard label="Total Members" value={stats.members} sublabel="" alert={null} alertIcon={null} hero={false} icon={Users} accent="blue" onClick={() => navigate('/operations/members')} />
+        <PremiumStatCard label="Pending Applications" value={stats.pendingApps} sublabel="" alert={null} alertIcon={null} hero={false} icon={FileText} accent="gold" onClick={() => navigate('/operations/applications')} />
+        <PremiumStatCard label="Pending Withdrawals" value={stats.pendingWithdrawals} sublabel="" alert={null} alertIcon={null} hero={false} icon={ArrowUpRight} accent="crimson" onClick={() => navigate('/operations/withdrawals')} />
       </div>
 
       {/* Pending Approvals + High Priority + Live Activity */}

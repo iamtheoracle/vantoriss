@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { Search, Plus, Wallet, Download, StickyNote, UserPlus, Trash2, History } from 'lucide-react';
@@ -12,15 +12,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import InviteUserDialog from '@/components/vantoris/InviteUserDialog';
 
-const ACCOUNT_TYPES = ['Personal', 'Joint', 'Business', 'Organization'];
+import { ACCOUNT_TYPES } from '@/lib/accountTypes';
 
 export default function AdminMembers() {
   const [users, setUsers] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [search, setSearch] = useState('');
   const [showCreate, setShowCreate] = useState(null);
-  const [acctForm, setAcctForm] = useState({ account_type: 'Personal', account_name: '', opening_balance: '' });
+  const [acctForm, setAcctForm] = useState({ account_type: 'Checking', account_name: '', opening_balance: '' });
   const [creating, setCreating] = useState(false);
   const [notesMember, setNotesMember] = useState(null);
   const [notesText, setNotesText] = useState('');
@@ -32,19 +33,26 @@ export default function AdminMembers() {
   const [referrals, setReferrals] = useState([]);
   const { toast } = useToast();
 
-  useEffect(() => { loadData(); }, []);
+  const loadData = useCallback(async () => {
+    setLoadError('');
+    try {
+      const [u, a, refs] = await Promise.all([
+        base44.entities.User.list('-created_date', 500),
+        base44.entities.Account.list('-created_date', 500),
+        base44.entities.Referral.list('-created_date', 200),
+      ]);
+      setUsers(u || []);
+      setAccounts(a || []);
+      setReferrals(refs || []);
+    } catch (error) {
+      setLoadError(error.message || 'Member and account records could not be loaded.');
+      toast({ title: 'Member register unavailable', description: error.message || 'Please retry.', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
 
-  async function loadData() {
-    const [u, a, refs] = await Promise.all([
-      base44.entities.User.list('-created_date', 50),
-      base44.entities.Account.list('-created_date', 50),
-      base44.entities.Referral.list('-created_date', 200),
-    ]);
-    setUsers(u);
-    setAccounts(a);
-    setReferrals(refs);
-    setLoading(false);
-  }
+  useEffect(() => { loadData(); }, [loadData]);
 
   async function handleDeleteMember() {
     if (!deleteTarget) return;
@@ -61,6 +69,10 @@ export default function AdminMembers() {
         action_type: 'account_deleted',
         description: `Deleted member ${deleteTarget.full_name} (${deleteTarget.email})`,
         details: `Email: ${deleteTarget.email} | All accounts, transactions, and associated data permanently removed`,
+        account_id: null,
+        amount: null,
+        balance_before: null,
+        balance_after: null,
         target_user_id: deleteTarget.id,
       });
       setDeleteTarget(null);
@@ -128,7 +140,7 @@ export default function AdminMembers() {
         target_user_id: showCreate.id,
       });
       setShowCreate(null);
-      setAcctForm({ account_type: 'Personal', account_name: '', opening_balance: '' });
+      setAcctForm({ account_type: 'Checking', account_name: '', opening_balance: '' });
       loadData();
       toast({ title: 'Account created', description: `${acctForm.account_type} account created for ${showCreate.full_name}.` });
     } catch (e) {
@@ -191,6 +203,7 @@ export default function AdminMembers() {
     <div>
       <h1 className="text-2xl font-bold text-white mb-1">Members</h1>
       <p className="text-[#AAB4C3] text-sm mb-6">{members.length} registered members</p>
+      {loadError && <div role="alert" className="mb-5 rounded-xl border border-red-400/20 bg-red-400/5 p-4 text-sm text-red-300"><p className="font-semibold">Member and account records unavailable</p><p className="mt-1 text-xs">{loadError}</p><button type="button" onClick={() => { setLoading(true); loadData(); }} className="mt-3 rounded-lg bg-brass px-3 py-2 text-xs font-semibold text-[#102C25]">Retry loading members</button></div>}
 
       {/* Search + Actions */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
@@ -262,7 +275,7 @@ export default function AdminMembers() {
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => { setShowCreate(member); setAcctForm({ account_type: 'Personal', account_name: '', opening_balance: '' }); }}
+                        onClick={() => { setShowCreate(member); setAcctForm({ account_type: 'Checking', account_name: '', opening_balance: '' }); }}
                         className="flex items-center gap-1 px-3 py-1.5 bg-brass/15 text-brass rounded-lg text-xs font-medium hover:bg-brass/25 transition-all"
                       >
                         <Plus size={12} /> Add Account
@@ -326,7 +339,7 @@ export default function AdminMembers() {
               </div>
               <p className="text-[#AAB4C3] text-xs">Joined {new Date(member.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
               <div className="flex items-center gap-2">
-                <button onClick={() => { setShowCreate(member); setAcctForm({ account_type: 'Personal', account_name: '', opening_balance: '' }); }} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-brass/15 text-brass rounded-lg text-xs font-medium">
+                <button onClick={() => { setShowCreate(member); setAcctForm({ account_type: 'Checking', account_name: '', opening_balance: '' }); }} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-brass/15 text-brass rounded-lg text-xs font-medium">
                   <Plus size={12} /> Add Account
                 </button>
                 <button onClick={() => { setNotesMember(member); setNotesText(member.admin_notes || ''); }} className={`flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-medium ${member.admin_notes ? 'bg-brass/25 text-brass' : 'bg-[#242D38] text-[#AAB4C3]'}`}>
@@ -439,6 +452,10 @@ export default function AdminMembers() {
                       action_type: 'account_status_changed',
                       description: `Updated admin notes for ${notesMember.full_name}`,
                       details: notesText || 'Notes cleared',
+                      account_id: null,
+                      amount: null,
+                      balance_before: null,
+                      balance_after: null,
                       target_user_id: notesMember.id,
                     });
                     setNotesMember(null);
