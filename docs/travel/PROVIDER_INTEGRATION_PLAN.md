@@ -127,3 +127,54 @@ Amadeus Self-Service offers flight search, price confirmation, order creation an
 4. Add Cirium flight status lookup and event normalization; add aircraft position only if a separate licensed product is approved.
 5. Add the member trip record and notifications only after provider booking references and webhook/event contracts are stable.
 6. Complete payment-provider and supplier reconciliation, failure recovery and member-ownership tests before enabling any production booking.
+
+
+## Dual-mode requirement: live providers plus no-API operation
+
+The product must not become unusable when third-party credentials are absent. Implement two clearly distinguished modes.
+
+### Mode A — Live connected services
+
+When the corresponding backend adapter is configured and healthy, the member can use live supplier-backed search, availability, price revalidation, booking, cancellation and status capabilities that the supplier actually supports. Every response must carry its source, currency, retrieval time and supplier reference. A capability is enabled independently; a connected flight provider does not imply connected hotels, cars or flight status.
+
+### Mode B — Manual / no-API operation
+
+This mode must remain useful with zero third-party travel APIs:
+
+- Create a trip with destination, dates and member-authored notes.
+- Add, edit, reorder and remove itinerary entries for flights, stays, car hire, transfers, activities and meetings.
+- Record details the member manually receives from an airline, hotel, car-rental company or travel agent. Clearly label them as member-entered, not independently verified.
+- Keep a checklist, trip timeline, reminders and document references.
+- Export/print the itinerary in a portable format.
+- Open destination searches and directions in the user's chosen map or supplier website. External navigation must be labelled as leaving AVCU; it is not an in-app live integration.
+- Let the member contact support for human assistance and record the case reference.
+- Preserve the itinerary when a live provider is disconnected; do not delete member-authored data when a supplier goes offline.
+
+No-API mode must never fabricate fares, availability, schedules, booking references, flight status, provider confirmations, payment completion or refunds. A manually typed confirmation reference is a note, not a verified booking.
+
+### Persistence and privacy requirement
+
+The first UI increment includes a browser-local manual planner as a limited offline-capable fallback. It is explicitly device-local and does not sync. It must not store passport numbers, payment card data, bank credentials, or sensitive identity documents.
+
+Before offering cross-device persistence, create a dedicated TripPlan/TripItem data model with strict member ownership and server-side authorization. The current repository has existing entity access-control gaps; do not introduce a new member-owned entity without verified owner-scoped read/write rules and negative cross-member tests. A browser-local draft is not a substitute for secure server persistence.
+
+### Capability matrix
+
+| Capability | No third-party API | Live provider |
+|---|---|---|
+| Trip planning and itinerary | Member-created, local draft and export | Same, with verified supplier details attached |
+| Flight discovery | External airline/booking-site links and manual comparison | Duffel search and re-price, subject to market/access |
+| Flight purchase/ticketing | Member completes purchase with supplier; manually records details | Supplier order flow plus approved payment and ticketing reconciliation |
+| Hotel search | External supplier website and manual comparison | Booking.com Demand API or approved alternative |
+| Hotel booking | Member books externally; manual itinerary entry | Supplier reservation and confirmation flow |
+| Car hire | External supplier website and manual entry | Booking.com Demand API or approved alternative |
+| Flight status | Airline/airport public status pages; manually updated notes | Cirium status feed |
+| Directions | Open external map app/site | Google Routes API for in-app route data |
+| Cancellations/refunds | Contact supplier directly; track member-entered case/status | Supplier workflow plus payment reconciliation |
+| Support | Member messages/contact workflow | Same, with case status and provider diagnostics |
+
+The no-API experience is a genuine product mode, not a fake simulator. It must explain what the member can do directly and what still requires an airline, hotel, rental company, travel agent or staff member.
+
+### Supplier account onboarding
+
+The owner intends to pursue all shortlisted suppliers: Duffel, Booking.com Demand API, Cirium and Google Maps Platform (Routes). Keep provider setup independent. Access to one supplier must not block manual mode or the other providers. Store credentials only in the approved server-side secret manager; never request or commit keys in GitHub source, issue comments or chat. Production activation requires each provider's own contract, environment separation and release gates above.
