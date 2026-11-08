@@ -11,18 +11,17 @@ import {
   Radio,
   ShieldCheck,
 } from 'lucide-react';
-import { getProvider } from '@/lib/providers/registry';
+import { hasCapability } from '@/lib/providers/registry';
 
 const travelServices = [
-  { title: 'Flights', description: 'Compare one-way, return and multi-city journeys with clear fare conditions.', detail: 'Flight inventory and ticketing are not connected.', icon: Plane },
-  { title: 'Places to stay', description: 'Search accommodation by destination, dates, guests and room requirements.', detail: 'Accommodation inventory and reservations are not connected.', icon: BedDouble },
-  { title: 'Car hire', description: 'Compare vehicle options, pickup locations, rental terms and total costs.', detail: 'Car rental inventory and reservations are not connected.', icon: CarFront },
-  { title: 'Flight updates', description: 'Follow verified departure, arrival, gate and delay information.', detail: 'Live aviation status data is not connected.', icon: Radio },
+  { title: 'Flights', capability: 'flight_search', description: 'Compare one-way, return and multi-city journeys with clear fare conditions.', detail: 'Flight inventory and ticketing are not connected.', icon: Plane },
+  { title: 'Places to stay', capability: 'stay_search', description: 'Search accommodation by destination, dates, guests and room requirements.', detail: 'Accommodation inventory and reservations are not connected.', icon: BedDouble },
+  { title: 'Car hire', capability: 'car_search', description: 'Compare vehicle options, pickup locations, rental terms and total costs.', detail: 'Car rental inventory and reservations are not connected.', icon: CarFront },
+  { title: 'Flight updates', capability: 'flight_status', description: 'Follow verified departure, arrival, gate and delay information.', detail: 'Live aviation status data is not connected.', icon: Radio },
 ];
 
 export default function Travel() {
-  const travelProvider = getProvider('travel');
-  const isTravelConnected = Boolean(travelProvider?.connected);
+  const connectedCount = travelServices.filter(service => hasCapability('travel', service.capability)).length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -50,7 +49,7 @@ export default function Travel() {
             </p>
             <div className="mt-6 inline-flex items-center gap-2 rounded-xl border border-[#D9C49A]/40 bg-white/10 px-4 py-3 text-sm">
               <ShieldCheck size={17} className="text-[#E2C994]" />
-              <span>{isTravelConnected ? 'Travel provider connected' : 'Bookings are not yet enabled'}</span>
+              <span>{connectedCount} of {travelServices.length} travel services connected</span>
             </div>
           </div>
         </section>
@@ -67,6 +66,7 @@ export default function Travel() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {travelServices.map(service => {
               const Icon = service.icon;
+              const connected = hasCapability('travel', service.capability);
               return (
                 <article key={service.title} className="rounded-2xl border border-border bg-white p-5 shadow-sm">
                   <div className="flex items-start justify-between gap-4">
@@ -74,12 +74,14 @@ export default function Travel() {
                       <Icon size={20} className="text-[#173D32]" />
                     </div>
                     <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-600">
-                      {isTravelConnected ? 'Provider connected' : 'Not connected'}
+                      {connected ? 'Connected' : 'Not connected'}
                     </span>
                   </div>
                   <h4 className="mt-4 text-base font-semibold text-foreground">{service.title}</h4>
                   <p className="mt-1.5 text-sm leading-relaxed text-gray">{service.description}</p>
-                  <p className="mt-4 border-t border-border pt-3 text-xs text-gray">{service.detail}</p>
+                  <p className="mt-4 border-t border-border pt-3 text-xs text-gray">
+                    {connected ? 'Provider capability is enabled. Live results are subject to a verified request.' : service.detail}
+                  </p>
                 </article>
               );
             })}
