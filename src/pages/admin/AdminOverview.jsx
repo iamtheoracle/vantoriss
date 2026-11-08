@@ -74,7 +74,7 @@ export default function AdminOverview() {
     let checking = false;
     const seen = new Set();
     try {
-      const stored = sessionStorage.getItem('avcu-integrity-alerts-v1');
+      const stored = sessionStorage.getItem('avcu-integrity-alerts-v1:' + (adminUser?.id || 'unknown'));
       if (stored) JSON.parse(stored).forEach(key => seen.add(key));
     } catch (_) { /* Session storage is optional; monitoring still works in memory. */ }
     notifiedIssueKeys.current = seen;
@@ -95,7 +95,7 @@ export default function AdminOverview() {
         const newFindings = findings.filter(issue => !notifiedIssueKeys.current.has(issue.key));
         newFindings.forEach(issue => notifiedIssueKeys.current.add(issue.key));
         if (newFindings.length) {
-          try { sessionStorage.setItem('avcu-integrity-alerts-v1', JSON.stringify([...notifiedIssueKeys.current].slice(-500))); } catch (_) { /* Keep in-memory deduplication. */ }
+          try { sessionStorage.setItem('avcu-integrity-alerts-v1:' + (adminUser?.id || 'unknown'), JSON.stringify([...notifiedIssueKeys.current].slice(-500))); } catch (_) { /* Keep in-memory deduplication. */ }
           const alertTitle = newFindings.length + ' account integrity alert' + (newFindings.length === 1 ? '' : 's');
           const alertMessage = newFindings[0].kind + ': ' + newFindings[0].accountName + '. Review the integrity monitor.';
           toast({ title: alertTitle, description: alertMessage, variant: 'destructive' });
