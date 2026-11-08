@@ -40,6 +40,10 @@ export default function WithdrawalLimits() {
         action_type: 'account_status_changed',
         description: 'Updated withdrawal limits configuration',
         details: JSON.stringify(limits, null, 2),
+        account_id: null,
+        amount: null,
+        balance_before: null,
+        balance_after: null,
       });
       loadLimits();
     } catch (e) { console.error(e); }
