@@ -128,7 +128,7 @@ export default function AccountDetail() {
         return;
       }
       const [txns, pendingWds] = await Promise.all([
-        base44.entities.Transaction.filter({ account_id: id }, '-created_date', 50),
+        base44.entities.Transaction.filter({ account_id: id }, '-created_date', 500),
         base44.entities.WithdrawalRequest.filter({ account_id: id, status: 'pending' }),
       ]);
       setCurrentUser(user);
