@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   BedDouble, CarFront, ChevronLeft, FileText, MapPin, MessageCircle,
-  Plane, Radio, ShieldCheck, Plus, Trash2, ExternalLink, CalendarDays,
+  Plane, Radio, ShieldCheck, Plus, Trash2, ExternalLink, CalendarDays, Pencil, ArrowUp, ArrowDown,
 } from 'lucide-react';
 import { hasCapability } from '@/lib/providers/registry';
+import { useAuth } from '@/lib/AuthContext';
 
 const STORAGE_KEY = 'avcu-travel-planner-v1';
 const travelServices = [
@@ -23,16 +24,31 @@ export default function Travel() {
   const [itemDate, setItemDate] = useState('');
   const [itemNotes, setItemNotes] = useState('');
   const [saved, setSaved] = useState(false);
+  const [storageError, setStorageError] = useState('');
+  const [editingItemId, setEditingItemId] = useState(null);
+  const { user } = useAuth();
+  const storageKey = user?.id ? `${STORAGE_KEY}:${user.id}` : null;
   const connectedCount = travelServices.filter(service => hasCapability('travel', service.capability)).length;
 
   useEffect(() => {
+    setTrip(emptyTrip);
+    setSaved(false);
+    setStorageError('');
+    if (!storageKey) return;
     try {
-      const stored = window.localStorage.getItem(STORAGE_KEY);
-      if (stored) setTrip({ ...emptyTrip, ...JSON.parse(stored), items: JSON.parse(stored).items || [] });
+      const stored = window.localStorage.getItem(storageKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setTrip({
+          ...emptyTrip,
+          ...parsed,
+          items: Array.isArray(parsed.items) ? parsed.items : [],
+        });
+      }
     } catch {
-      setSaved(false);
+      setStorageError('The saved trip on this device could not be read. You can still create a new plan.');
     }
-  }, []);
+  }, [storageKey]);
 
   function updateTrip(field, value) {
     setTrip(current => ({ ...current, [field]: value }));
@@ -40,29 +56,68 @@ export default function Travel() {
   }
 
   function saveTrip() {
+    if (!storageKey) {
+      setSaved(false);
+      setStorageError('Your member profile is still loading. Try saving again in a moment.');
+      return;
+    }
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(trip));
+      window.localStorage.setItem(storageKey, JSON.stringify(trip));
       setSaved(true);
+      setStorageError('');
     } catch {
       setSaved(false);
+      setStorageError('This browser could not save the trip. Export a copy to keep your itinerary.');
     }
   }
 
   function addItem(event) {
     event.preventDefault();
     if (!itemTitle.trim()) return;
+    const itemDetails = { type: itemType, title: itemTitle.trim(), date: itemDate, notes: itemNotes.trim() };
     setTrip(current => ({
       ...current,
-      items: [...current.items, { id: crypto.randomUUID(), type: itemType, title: itemTitle.trim(), date: itemDate, notes: itemNotes.trim() }],
+      items: editingItemId
+        ? current.items.map(item => item.id === editingItemId ? { ...item, ...itemDetails } : item)
+        : [...current.items, { id: window.crypto?.randomUUID?.() || (Date.now() + '-' + Math.random().toString(36).slice(2)), ...itemDetails }],
     }));
     setItemTitle('');
     setItemDate('');
     setItemNotes('');
+    setEditingItemId(null);
+    setSaved(false);
+  }
+
+  function beginEditItem(item) {
+    setEditingItemId(item.id);
+    setItemType(item.type);
+    setItemTitle(item.title);
+    setItemDate(item.date || '');
+    setItemNotes(item.notes || '');
+  }
+
+  function cancelEditItem() {
+    setEditingItemId(null);
+    setItemTitle('');
+    setItemDate('');
+    setItemNotes('');
+  }
+
+  function moveItem(id, direction) {
+    setTrip(current => {
+      const index = current.items.findIndex(item => item.id === id);
+      const target = index + direction;
+      if (index < 0 || target < 0 || target >= current.items.length) return current;
+      const items = [...current.items];
+      [items[index], items[target]] = [items[target], items[index]];
+      return { ...current, items };
+    });
     setSaved(false);
   }
 
   function removeItem(id) {
     setTrip(current => ({ ...current, items: current.items.filter(item => item.id !== id) }));
+    if (editingItemId === id) cancelEditItem();
     setSaved(false);
   }
 
@@ -171,7 +226,7 @@ export default function Travel() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <label className="text-xs font-medium text-gray">Type
                 <select value={itemType} onChange={e => setItemType(e.target.value)} className="mt-1 w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-foreground">
-                  <option>Flight</option><option>Hotel</option><option>Car hire</option><option>Activity</option><option>Meeting</option><option>Other</option>
+                  <option>Flight</option><option>Hotel</option><option>Car hire</option><option>Transfer</option><option>Activity</option><option>Meeting</option><option>Other</option>
                 </select>
               </label>
               <label className="text-xs font-medium text-gray sm:col-span-2">Title or reference
@@ -186,15 +241,20 @@ export default function Travel() {
                 <input value={itemNotes} onChange={e => setItemNotes(e.target.value)} placeholder="Confirmation reference or reminder" className="mt-1 w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-foreground" />
               </label>
             </div>
-            <button type="submit" className="inline-flex items-center gap-2 rounded-lg bg-[#173D32] px-4 py-2.5 text-sm font-semibold text-white"><Plus size={16} /> Add to itinerary</button>
+            <div className="flex flex-wrap gap-2"><button type="submit" className="inline-flex items-center gap-2 rounded-lg bg-[#173D32] px-4 py-2.5 text-sm font-semibold text-white">{editingItemId ? <Pencil size={15} /> : <Plus size={16} />} {editingItemId ? "Save changes" : "Add to itinerary"}</button>{editingItemId && <button type="button" onClick={cancelEditItem} className="rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-foreground">Cancel edit</button>}</div>
           </form>
 
           <div className="space-y-2">
             <div className="flex items-center justify-between"><h4 className="text-sm font-semibold text-foreground">Itinerary ({trip.items.length})</h4><span className="text-xs text-gray">Manual entries</span></div>
-            {trip.items.length === 0 ? <p className="rounded-xl border border-dashed border-border p-4 text-sm text-gray">Your itinerary is empty. Add flights, stays, transport or activities above.</p> : trip.items.map(item => (
+            {trip.items.length === 0 ? <p className="rounded-xl border border-dashed border-border p-4 text-sm text-gray">Your itinerary is empty. Add flights, stays, transport or activities above.</p> : trip.items.map((item, index) => (
               <div key={item.id} className="flex items-start gap-3 rounded-xl border border-border p-3">
                 <div className="min-w-0 flex-1"><p className="text-xs font-semibold text-[#8B7650]">{item.type} · {item.date || 'Date not set'}</p><p className="mt-1 text-sm font-medium text-foreground">{item.title}</p>{item.notes && <p className="mt-1 text-xs text-gray">{item.notes}</p>}</div>
-                <button type="button" onClick={() => removeItem(item.id)} aria-label="Remove itinerary item" className="rounded-lg p-2 text-gray hover:bg-slate-100"><Trash2 size={16} /></button>
+                <div className="flex shrink-0 items-center gap-1">
+                  <button type="button" disabled={index === 0} onClick={() => moveItem(item.id, -1)} aria-label="Move itinerary item up" className="rounded-lg p-2 text-gray hover:bg-slate-100 disabled:opacity-30"><ArrowUp size={15} /></button>
+                  <button type="button" disabled={index === trip.items.length - 1} onClick={() => moveItem(item.id, 1)} aria-label="Move itinerary item down" className="rounded-lg p-2 text-gray hover:bg-slate-100 disabled:opacity-30"><ArrowDown size={15} /></button>
+                  <button type="button" onClick={() => beginEditItem(item)} aria-label="Edit itinerary item" className="rounded-lg p-2 text-gray hover:bg-slate-100"><Pencil size={15} /></button>
+                  <button type="button" onClick={() => removeItem(item.id)} aria-label="Remove itinerary item" className="rounded-lg p-2 text-gray hover:bg-slate-100"><Trash2 size={16} /></button>
+                </div>
               </div>
             ))}
           </div>
@@ -204,7 +264,8 @@ export default function Travel() {
             <button type="button" onClick={exportTrip} className="rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-foreground">Export itinerary</button>
             <a href={mapUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-foreground"><MapPin size={15} /> Open destination map <ExternalLink size={13} /></a>
           </div>
-          <p role="status" className="text-xs text-gray">{saved ? 'Trip saved in this browser on this device.' : 'Save stores this itinerary in this browser only. It does not sync to another device or create a supplier booking.'}</p>
+          {storageError && <p role="alert" className="text-xs text-crimson">{storageError}</p>}
+          <p role="status" className="text-xs text-gray">{saved ? 'Trip saved on this device for this signed-in member.' : 'Each member has a separate trip draft in this browser. It does not sync to another device or create a supplier booking.'}</p>
         </section>
 
         <section className="rounded-2xl border border-[#D9CBAF] bg-[#FBF9F3] p-5 md:p-6">
