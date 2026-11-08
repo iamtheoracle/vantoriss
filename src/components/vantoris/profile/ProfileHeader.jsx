@@ -56,11 +56,21 @@ export default function ProfileHeader({ user, application, profileCompletion, ba
           <div className="flex-1 min-w-0">
             <h1 className="text-foreground font-bold text-xl truncate tracking-tight">{getDisplayName(user)}</h1>
             <p className="text-gray text-sm truncate">{user.email}</p>
+            {user.member_number && (
+              <p className="text-gray/70 text-[11px] truncate mt-0.5">
+                {user.member_type === 'corporate' && user.corporate_name ? `${user.corporate_name} · ` : ''}Member {user.member_number}
+              </p>
+            )}
             <div className="flex items-center gap-1.5 mt-2 flex-wrap">
               <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${tier.color}`}>
                 <TierIcon size={10} strokeWidth={2.5} />
                 {bankingTier}
               </span>
+              {user.member_type === 'corporate' && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-navy/10 text-navy rounded-md text-[10px] font-bold uppercase tracking-wider">
+                  Corporate
+                </span>
+              )}
               {isVerified ? (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-mint/10 text-mint rounded-md text-[10px] font-bold uppercase tracking-wider">
                   <ShieldCheck size={10} strokeWidth={2.5} /> Verified

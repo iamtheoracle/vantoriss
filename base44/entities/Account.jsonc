@@ -20,7 +20,8 @@
         "Money Market",
         "CD",
         "Joint",
-        "Business"
+        "Business",
+        "Corporate Investment"
       ]
     },
     "account_name": {
@@ -41,6 +42,19 @@
     },
     "application_id": {
       "type": "string"
+    },
+    "ownership_type": {
+      "type": "string",
+      "enum": [
+        "individual",
+        "corporate"
+      ],
+      "default": "individual",
+      "description": "Whether the account is held personally or on behalf of a registered corporate entity"
+    },
+    "legal_entity_name": {
+      "type": "string",
+      "description": "Registered legal entity name when ownership_type is corporate"
     }
   },
   "required": [

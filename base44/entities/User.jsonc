@@ -44,6 +44,23 @@
     "referral_code": {
       "type": "string",
       "description": "Unique invite code for member referral tracking"
+    },
+    "member_number": {
+      "type": "string",
+      "description": "Institutional member number issued by AVCU, used to identify the member in transfers and statements"
+    },
+    "member_type": {
+      "type": "string",
+      "enum": [
+        "individual",
+        "corporate"
+      ],
+      "default": "individual",
+      "description": "Whether the membership is held by an individual or a corporate entity"
+    },
+    "corporate_name": {
+      "type": "string",
+      "description": "Registered legal entity name when member_type is corporate"
     }
   },
   "required": [

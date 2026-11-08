@@ -243,7 +243,13 @@ export default function AdminMembers() {
                       <div className="w-8 h-8 rounded-full bg-brass/15 flex items-center justify-center">
                         <span className="text-brass text-xs font-bold">{(member.full_name || 'U').charAt(0)}</span>
                       </div>
-                      <p className="text-white font-medium">{member.full_name || '—'}</p>
+                      <div>
+                        <p className="text-white font-medium">{member.full_name || '—'}</p>
+                        <p className="text-[#AAB4C3] text-[11px]">
+                          {member.member_number || 'No member number'}
+                          {member.member_type === 'corporate' ? ` · ${member.corporate_name || 'Corporate'}` : ''}
+                        </p>
+                      </div>
                     </div>
                   </td>
                   <td className="px-5 py-4 text-[#AAB4C3]">{member.email}</td>
@@ -315,6 +321,10 @@ export default function AdminMembers() {
                 <div className="flex-1">
                   <p className="text-white font-medium text-sm">{member.full_name || '—'}</p>
                   <p className="text-[#AAB4C3] text-xs">{member.email}</p>
+                  <p className="text-[#AAB4C3] text-[11px]">
+                    {member.member_number || 'No member number'}
+                    {member.member_type === 'corporate' ? ` · ${member.corporate_name || 'Corporate'}` : ''}
+                  </p>
                 </div>
               </div>
               {getReferrerName(member.id) && (
