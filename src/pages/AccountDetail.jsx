@@ -96,6 +96,7 @@ export default function AccountDetail() {
   const [account, setAccount] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [wStep, setWStep] = useState(1); // 1=details, 2=review, 3=pin
   const [wForm, setWForm] = useState({ amount: '', method: 'ACH Transfer', notes: '' });
@@ -112,20 +113,38 @@ export default function AccountDetail() {
   const [showHistoricalImport, setShowHistoricalImport] = useState(false);
 
   const loadData = useCallback(async () => {
-    const [user, acct, txns, pendingWds] = await Promise.all([
-      base44.auth.me(),
-      base44.entities.Account.get(id),
-      base44.entities.Transaction.filter({ account_id: id }, '-created_date', 50),
-      base44.entities.WithdrawalRequest.filter({ account_id: id, status: 'pending' }),
-    ]);
-    setCurrentUser(user);
-    setAccount(acct);
-    setTransactions(txns);
-    setPendingWithdrawals(pendingWds.reduce((sum, w) => sum + (w.amount || 0), 0));
+    setLoadError('');
+    try {
+      const user = await base44.auth.me();
+      const acct = await base44.entities.Account.get(id);
+      // This route is the member portal: never load transactions or withdrawal
+      // records until the account is confirmed to belong to the signed-in member.
+      if (!acct || acct.user_id !== user.id) {
+        setCurrentUser(user);
+        setAccount(null);
+        setTransactions([]);
+        setPendingWithdrawals(0);
+        setLoadError('This account is unavailable for the signed-in member profile.');
+        return;
+      }
+      const [txns, pendingWds] = await Promise.all([
+        base44.entities.Transaction.filter({ account_id: id }, '-created_date', 50),
+        base44.entities.WithdrawalRequest.filter({ account_id: id, status: 'pending' }),
+      ]);
+      setCurrentUser(user);
+      setAccount(acct);
+      setTransactions(txns || []);
+      setPendingWithdrawals((pendingWds || []).reduce((sum, w) => sum + (w.amount || 0), 0));
+    } catch (error) {
+      setAccount(null);
+      setTransactions([]);
+      setLoadError(error.message || 'We could not load this account. Please retry or contact member support.');
+      throw error;
+    }
   }, [id]);
 
   useEffect(() => {
-    loadData().catch(e => console.error(e)).finally(() => setLoading(false));
+    loadData().catch(e => { console.error(e); toast({ title: 'Account unavailable', description: e.message || 'Please try again.', variant: 'destructive' }); }).finally(() => setLoading(false));
   }, [loadData]);
 
   useEffect(() => {
@@ -421,10 +440,22 @@ export default function AccountDetail() {
     setShowStatement(false);
   }
 
-  if (loading || !account) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="w-8 h-8 border-2 border-brass/30 border-t-brass rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!account) {
+    return (
+      <div className="min-h-screen px-5 pt-16 max-w-[430px] mx-auto">
+        <div className="rounded-2xl border border-border bg-white p-6">
+          <h1 className="text-lg font-semibold text-foreground">Account unavailable</h1>
+          <p className="mt-2 text-sm text-gray">{loadError || 'We could not find this account for your member profile.'}</p>
+          <button type="button" onClick={() => navigate('/accounts')} className="mt-5 rounded-xl bg-[#173D32] px-4 py-2.5 text-sm font-semibold text-white">Back to accounts</button>
+        </div>
       </div>
     );
   }
