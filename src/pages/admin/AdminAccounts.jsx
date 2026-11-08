@@ -114,6 +114,7 @@ export default function AdminAccounts() {
         amount: txnForm.type === 'withdrawal' ? -Math.abs(amount) : amount,
         balance_before: showTxn.balance,
         balance_after: newBalance,
+        target_user_id: showTxn.user_id,
       });
 
       setShowTxn(null);
@@ -167,6 +168,7 @@ export default function AdminAccounts() {
         amount: txnForm.type === 'withdrawal' ? -Math.abs(amount) : amount,
         balance_before: viewingHistory.balance,
         balance_after: newBalance,
+        target_user_id: viewingHistory.user_id,
       });
 
       setEditingTxn(null);
@@ -229,6 +231,9 @@ export default function AdminAccounts() {
         description: `Account ${newStatus === 'frozen' ? 'FROZEN' : 'UNFROZEN'}: ${account.account_name}`,
         details: `Account disabled for ${newStatus === 'frozen' ? 'trading and withdrawals' : 'all operations'}`,
         account_id: account.id,
+        amount: null,
+        balance_before: null,
+        balance_after: null,
         target_user_id: account.user_id,
       });
 
@@ -528,7 +533,7 @@ export default function AdminAccounts() {
             <DialogHeader>
               <DialogTitle className="text-white">Add Transaction</DialogTitle>
             </DialogHeader>
-            {showTxn && <TransactionForm txnForm={txnForm} setTxnForm={setTxnForm} submitting={submitting} onSubmit={handleAddTransaction} account={viewingHistory} />}
+            {showTxn && <TransactionForm txnForm={txnForm} setTxnForm={setTxnForm} submitting={submitting} onSubmit={handleAddTransaction} account={viewingHistory} isEdit={false} />}
           </DialogContent>
         </Dialog>
 
@@ -646,7 +651,7 @@ export default function AdminAccounts() {
           <DialogHeader>
             <DialogTitle className="text-white">Add Transaction</DialogTitle>
           </DialogHeader>
-          {showTxn && <TransactionForm txnForm={txnForm} setTxnForm={setTxnForm} submitting={submitting} onSubmit={handleAddTransaction} account={showTxn} />}
+          {showTxn && <TransactionForm txnForm={txnForm} setTxnForm={setTxnForm} submitting={submitting} onSubmit={handleAddTransaction} account={showTxn} isEdit={false} />}
         </DialogContent>
       </Dialog>
 
