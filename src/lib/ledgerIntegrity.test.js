@@ -32,6 +32,17 @@ test('ledger monitor detects a transaction balance-chain mismatch', () => {
   assert.equal(issues[0].kind, 'Transaction balance mismatch');
 });
 
+test('ledger monitor treats positive withdrawal amounts as debits', () => {
+  const issues = findLedgerDiscrepancies(
+    [{ id: 'a1', balance: 80 }],
+    [
+      { id: 't1', account_id: 'a1', status: 'completed', type: 'opening_balance', amount: 100, balance_after: 100, created_date: '2026-11-01T10:00:00Z' },
+      { id: 't2', account_id: 'a1', status: 'completed', type: 'withdrawal', amount: 20, balance_after: 80, created_date: '2026-11-02T10:00:00Z' },
+    ],
+  );
+  assert.deepEqual(issues, []);
+});
+
 test('ledger monitor ignores pending and historical-import rows', () => {
   const issues = findLedgerDiscrepancies(
     [{ id: 'a1', balance: 100 }],
