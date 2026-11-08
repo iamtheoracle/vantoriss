@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import InviteUserDialog from '@/components/vantoris/InviteUserDialog';
 
-const ACCOUNT_TYPES = ['Personal', 'Joint', 'Business', 'Organization'];
+import { ACCOUNT_TYPES } from '@/lib/accountTypes';
 
 export default function AdminMembers() {
   const [users, setUsers] = useState([]);
@@ -20,7 +20,7 @@ export default function AdminMembers() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [showCreate, setShowCreate] = useState(null);
-  const [acctForm, setAcctForm] = useState({ account_type: 'Personal', account_name: '', opening_balance: '' });
+  const [acctForm, setAcctForm] = useState({ account_type: 'Checking', account_name: '', opening_balance: '' });
   const [creating, setCreating] = useState(false);
   const [notesMember, setNotesMember] = useState(null);
   const [notesText, setNotesText] = useState('');
@@ -36,8 +36,8 @@ export default function AdminMembers() {
 
   async function loadData() {
     const [u, a, refs] = await Promise.all([
-      base44.entities.User.list('-created_date', 50),
-      base44.entities.Account.list('-created_date', 50),
+      base44.entities.User.list('-created_date', 500),
+      base44.entities.Account.list('-created_date', 500),
       base44.entities.Referral.list('-created_date', 200),
     ]);
     setUsers(u);
@@ -128,7 +128,7 @@ export default function AdminMembers() {
         target_user_id: showCreate.id,
       });
       setShowCreate(null);
-      setAcctForm({ account_type: 'Personal', account_name: '', opening_balance: '' });
+      setAcctForm({ account_type: 'Checking', account_name: '', opening_balance: '' });
       loadData();
       toast({ title: 'Account created', description: `${acctForm.account_type} account created for ${showCreate.full_name}.` });
     } catch (e) {
@@ -262,7 +262,7 @@ export default function AdminMembers() {
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => { setShowCreate(member); setAcctForm({ account_type: 'Personal', account_name: '', opening_balance: '' }); }}
+                        onClick={() => { setShowCreate(member); setAcctForm({ account_type: 'Checking', account_name: '', opening_balance: '' }); }}
                         className="flex items-center gap-1 px-3 py-1.5 bg-brass/15 text-brass rounded-lg text-xs font-medium hover:bg-brass/25 transition-all"
                       >
                         <Plus size={12} /> Add Account
@@ -326,7 +326,7 @@ export default function AdminMembers() {
               </div>
               <p className="text-[#AAB4C3] text-xs">Joined {new Date(member.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
               <div className="flex items-center gap-2">
-                <button onClick={() => { setShowCreate(member); setAcctForm({ account_type: 'Personal', account_name: '', opening_balance: '' }); }} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-brass/15 text-brass rounded-lg text-xs font-medium">
+                <button onClick={() => { setShowCreate(member); setAcctForm({ account_type: 'Checking', account_name: '', opening_balance: '' }); }} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-brass/15 text-brass rounded-lg text-xs font-medium">
                   <Plus size={12} /> Add Account
                 </button>
                 <button onClick={() => { setNotesMember(member); setNotesText(member.admin_notes || ''); }} className={`flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-medium ${member.admin_notes ? 'bg-brass/25 text-brass' : 'bg-[#242D38] text-[#AAB4C3]'}`}>
