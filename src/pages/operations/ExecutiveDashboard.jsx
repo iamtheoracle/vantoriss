@@ -118,17 +118,41 @@ export default function ExecutiveDashboard() {
             <p className="text-gray text-xs mt-1">New accounts opened and completed investment transaction activity. Not a balance or return forecast.</p></div>
           <div className="flex rounded-xl border border-border bg-white p-1 gap-1" aria-label="Chart date range">
             {[6, 12, 24].map(months => <button key={months} type="button" onClick={() => setChartRange(months)} aria-pressed={chartRange === months}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${chartRange === months ? 'bg-navy text-white' : 'text-gray hover:bg-slate-50'}`}>{months}M</button>)}
+              className={chartRange === months ? "px-3 py-1.5 rounded-lg text-xs font-semibold bg-navy text-white" : "px-3 py-1.5 rounded-lg text-xs font-semibold text-gray hover:bg-slate-50"}>{months}M</button>)}
           </div>
         </div>
         <div className="h-[320px] w-full">
           {monthlySeries.length ? <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={monthlySeries.slice(-chartRange)} margin={{ top: 8, right: 12, bottom: 4, left: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#D9E0E8" vertical={false} />
-              <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#718096' }} axisLine={false} tickLine={false} />
-              <YAxis yAxisId="accounts" allowDecimals={false} tick={{ fontSize: 11, fill: '#718096' }} axisLine={false} tickLine={false} />
-              <YAxis yAxisId="volume" orientation="right" tick={{ fontSize: 10, fill: '#718096' }} axisLine={false} tickLine={false}
-                tickFormatter={value => value >= 1000000 ? '
+              <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#718096" }} axisLine={false} tickLine={false} />
+              <YAxis yAxisId="accounts" allowDecimals={false} tick={{ fontSize: 11, fill: "#718096" }} axisLine={false} tickLine={false} />
+              <YAxis yAxisId="volume" orientation="right" tick={{ fontSize: 10, fill: "#718096" }} axisLine={false} tickLine={false} tickFormatter={value => "$" + Number(value).toLocaleString()} />
+              <Tooltip formatter={(value, name) => name === "Investment volume" ? formatCurrency(value) : [value, name]} contentStyle={{ borderRadius: 12, border: "1px solid #E2E8F0", fontSize: 12 }} />
+              <Legend wrapperStyle={{ fontSize: 11 }} />
+              <Bar yAxisId="accounts" dataKey="accountOpenings" name="New accounts" fill="#173D32" radius={[5, 5, 0, 0]} maxBarSize={28} />
+              <Line yAxisId="volume" type="monotone" dataKey="investmentVolume" name="Investment volume" stroke="#B18B4C" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+            </ComposedChart>
+          </ResponsiveContainer> : <p className="text-sm text-gray text-center pt-20">No reporting data available for this period.</p>}
+        </div>
+        <p className="text-[10px] text-gray mt-2">Source: latest 200 account records and latest 500 investment transaction records returned by the data service. Older months may be incomplete if records exceed these limits.</p>
+      </section>
+
+      <section className="vantoris-glass-premium p-5 mb-6">
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div><h3 className="text-foreground font-semibold text-sm">Account integrity alerts</h3>
+            <p className="text-gray text-xs mt-1">Open balance discrepancies detected by the backend monitor.</p></div>
+          <span className={integrityAlerts.length ? "text-xs font-semibold rounded-full px-2.5 py-1 bg-red-100 text-red-700" : "text-xs font-semibold rounded-full px-2.5 py-1 bg-emerald-50 text-emerald-700"}>{integrityAlerts.length} open</span>
+        </div>
+        {integrityAlertError ? <p className="text-xs text-amber-700">{integrityAlertError}</p> :
+          integrityAlerts.length === 0 ? <p className="text-sm text-gray py-4">No open discrepancy alerts.</p> :
+          <div className="space-y-2">{integrityAlerts.map(alert => <div key={alert.id} className="rounded-xl border border-red-200 bg-red-50/70 p-3 flex items-start justify-between gap-3">
+            <div className="min-w-0"><p className="text-sm font-semibold text-red-900">{alert.title || "Balance discrepancy detected"}</p>
+              <p className="text-xs text-red-800 mt-1">{alert.details || "Account balance differs from the latest posted ledger balance."}</p>
+              <p className="text-[10px] text-red-700 mt-1">{alert.last_seen_at ? new Date(alert.last_seen_at).toLocaleString() : ""}</p></div>
+            <span className="text-xs font-bold text-red-800 whitespace-nowrap">{formatCurrency(alert.difference || 0)}</span>
+          </div>)}</div>}
+      </section>
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-6">
         <TreasuryPosition />
         <LiveBankingActivity />
