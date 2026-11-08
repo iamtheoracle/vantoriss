@@ -6,6 +6,7 @@ import { ResponsiveContainer, ComposedChart, CartesianGrid, XAxis, YAxis, Toolti
 import { buildMonthlyReporting } from '@/lib/monthlyReporting';
 import { findLedgerDiscrepancies } from '@/lib/ledgerIntegrity';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/lib/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import StatusBadge from '@/components/vantoris/StatusBadge';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
@@ -29,6 +30,7 @@ export default function AdminOverview() {
   const [integrityError, setIntegrityError] = useState('');
   const notifiedIssueKeys = useRef(new Set());
   const { toast } = useToast();
+  const { user: adminUser } = useAuth();
 
   const loadData = useCallback(async () => {
     try {
@@ -94,11 +96,18 @@ export default function AdminOverview() {
         newFindings.forEach(issue => notifiedIssueKeys.current.add(issue.key));
         if (newFindings.length) {
           try { sessionStorage.setItem('avcu-integrity-alerts-v1', JSON.stringify([...notifiedIssueKeys.current].slice(-500))); } catch (_) { /* Keep in-memory deduplication. */ }
-          toast({
-            title: newFindings.length + ' account integrity alert' + (newFindings.length === 1 ? '' : 's'),
-            description: newFindings[0].kind + ': ' + newFindings[0].accountName + '. Review the integrity monitor.',
-            variant: 'destructive',
-          });
+          const alertTitle = newFindings.length + ' account integrity alert' + (newFindings.length === 1 ? '' : 's');
+          const alertMessage = newFindings[0].kind + ': ' + newFindings[0].accountName + '. Review the integrity monitor.';
+          toast({ title: alertTitle, description: alertMessage, variant: 'destructive' });
+          if (adminUser?.id) {
+            base44.entities.Notification.create({
+              user_id: adminUser.id,
+              title: alertTitle,
+              message: alertMessage,
+              type: 'warning',
+              link: '/operations/data-integrity',
+            }).catch(error => console.error('Integrity notification could not be saved:', error));
+          }
         }
       } catch (error) {
         if (active) setIntegrityError(error.message || 'Integrity check could not be completed.');
@@ -110,7 +119,7 @@ export default function AdminOverview() {
     checkIntegrity();
     const interval = setInterval(checkIntegrity, 30000);
     return () => { active = false; clearInterval(interval); };
-  }, [toast]);
+  }, [toast, adminUser?.id]);
 
   if (loading) {
     return (
