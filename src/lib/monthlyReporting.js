@@ -2,9 +2,11 @@ const pad = value => String(value).padStart(2, '0');
 
 function monthKey(value) {
   if (!value) return null;
+  const dateOnly = typeof value === 'string' ? value.match(/^(\\d{4})-(\\d{2})/) : null;
+  if (dateOnly) return `${dateOnly[1]}-${dateOnly[2]}`;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return null;
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}`;
+  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}`;
 }
 
 export function buildMonthlyReporting(accounts = [], investmentTransactions = [], now = new Date()) {
