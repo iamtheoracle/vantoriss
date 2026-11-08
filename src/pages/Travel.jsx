@@ -1,47 +1,292 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, Plane } from 'lucide-react';
-import ProviderUnavailableCard from '@/components/vantoris/ProviderUnavailableCard';
+import {
+  BedDouble, CarFront, ChevronLeft, FileText, MapPin, MessageCircle,
+  Plane, Radio, ShieldCheck, Plus, Trash2, ExternalLink, CalendarDays, Pencil, ArrowUp, ArrowDown,
+} from 'lucide-react';
+import { hasCapability } from '@/lib/providers/registry';
+import { useAuth } from '@/lib/AuthContext';
 
-// Travel product — Spec §7.
-// Shows a truthful unavailable state until a travel provider is connected.
-// No fake flights, hotels, or flight tracking.
+const STORAGE_KEY = 'avcu-travel-planner-v1';
+const travelServices = [
+  { title: 'Flights', capability: 'flight_search', description: 'Compare one-way, return and multi-city journeys.', detail: 'Live fares and ticketing require a verified flight provider.', icon: Plane },
+  { title: 'Places to stay', capability: 'stay_search', description: 'Plan accommodation by destination, dates and guest needs.', detail: 'Live room availability and reservations require a verified provider.', icon: BedDouble },
+  { title: 'Car hire', capability: 'car_search', description: 'Plan pickup, return, vehicle class and rental requirements.', detail: 'Live vehicle availability and reservations require a verified provider.', icon: CarFront },
+  { title: 'Flight updates', capability: 'flight_status', description: 'Keep flight numbers and travel dates ready for status checks.', detail: 'Live operational updates require a verified aviation data source.', icon: Radio },
+];
+
+const emptyTrip = { destination: '', startDate: '', endDate: '', notes: '', items: [] };
+
 export default function Travel() {
+  const [trip, setTrip] = useState(emptyTrip);
+  const [itemType, setItemType] = useState('Flight');
+  const [itemTitle, setItemTitle] = useState('');
+  const [itemDate, setItemDate] = useState('');
+  const [itemNotes, setItemNotes] = useState('');
+  const [saved, setSaved] = useState(false);
+  const [storageError, setStorageError] = useState('');
+  const [editingItemId, setEditingItemId] = useState(null);
+  const { user } = useAuth();
+  const storageKey = user?.id ? `${STORAGE_KEY}:${user.id}` : null;
+  const connectedCount = travelServices.filter(service => hasCapability('travel', service.capability)).length;
+
+  useEffect(() => {
+    setTrip(emptyTrip);
+    setSaved(false);
+    setStorageError('');
+    if (!storageKey) return;
+    try {
+      const stored = window.localStorage.getItem(storageKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setTrip({
+          ...emptyTrip,
+          ...parsed,
+          items: Array.isArray(parsed.items) ? parsed.items : [],
+        });
+      }
+    } catch {
+      setStorageError('The saved trip on this device could not be read. You can still create a new plan.');
+    }
+  }, [storageKey]);
+
+  function updateTrip(field, value) {
+    setTrip(current => ({ ...current, [field]: value }));
+    setSaved(false);
+  }
+
+  function saveTrip() {
+    if (!storageKey) {
+      setSaved(false);
+      setStorageError('Your member profile is still loading. Try saving again in a moment.');
+      return;
+    }
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify(trip));
+      setSaved(true);
+      setStorageError('');
+    } catch {
+      setSaved(false);
+      setStorageError('This browser could not save the trip. Export a copy to keep your itinerary.');
+    }
+  }
+
+  function addItem(event) {
+    event.preventDefault();
+    if (!itemTitle.trim()) return;
+    const itemDetails = { type: itemType, title: itemTitle.trim(), date: itemDate, notes: itemNotes.trim() };
+    setTrip(current => ({
+      ...current,
+      items: editingItemId
+        ? current.items.map(item => item.id === editingItemId ? { ...item, ...itemDetails } : item)
+        : [...current.items, { id: window.crypto?.randomUUID?.() || (Date.now() + '-' + Math.random().toString(36).slice(2)), ...itemDetails }],
+    }));
+    setItemTitle('');
+    setItemDate('');
+    setItemNotes('');
+    setEditingItemId(null);
+    setSaved(false);
+  }
+
+  function beginEditItem(item) {
+    setEditingItemId(item.id);
+    setItemType(item.type);
+    setItemTitle(item.title);
+    setItemDate(item.date || '');
+    setItemNotes(item.notes || '');
+  }
+
+  function cancelEditItem() {
+    setEditingItemId(null);
+    setItemTitle('');
+    setItemDate('');
+    setItemNotes('');
+  }
+
+  function moveItem(id, direction) {
+    setTrip(current => {
+      const index = current.items.findIndex(item => item.id === id);
+      const target = index + direction;
+      if (index < 0 || target < 0 || target >= current.items.length) return current;
+      const items = [...current.items];
+      [items[index], items[target]] = [items[target], items[index]];
+      return { ...current, items };
+    });
+    setSaved(false);
+  }
+
+  function removeItem(id) {
+    setTrip(current => ({ ...current, items: current.items.filter(item => item.id !== id) }));
+    if (editingItemId === id) cancelEditItem();
+    setSaved(false);
+  }
+
+  function exportTrip() {
+    const lines = [
+      'AVCU TRAVEL PLAN',
+      `Destination: ${trip.destination || 'Not set'}`,
+      `Dates: ${trip.startDate || 'Not set'} to ${trip.endDate || 'Not set'}`,
+      `Notes: ${trip.notes || 'None'}`,
+      '',
+      ...trip.items.map(item => `[${item.type}] ${item.date || 'Date not set'} — ${item.title}${item.notes ? ` | ${item.notes}` : ''}`),
+    ];
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'avcu-travel-plan.txt';
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
+  const mapQuery = encodeURIComponent(trip.destination || 'destination');
+  const mapUrl = `https://www.google.com/maps/search/?api=1&query=${mapQuery}`;
+
   return (
     <div className="min-h-screen bg-background">
       <div className="vantoris-glass-header sticky top-0 z-10 px-5 py-4 safe-top">
-        <div className="flex items-center gap-3 max-w-[430px] mx-auto">
-          <Link to="/" className="p-1.5 -ml-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+        <div className="flex items-center gap-3 max-w-6xl mx-auto">
+          <Link to="/" aria-label="Back to home" className="p-1.5 -ml-1.5 rounded-lg hover:bg-slate-100 transition-colors">
             <ChevronLeft size={20} className="text-gray" />
           </Link>
           <h1 className="text-lg font-bold text-foreground">Travel</h1>
         </div>
       </div>
 
-      <div className="px-5 py-6 max-w-[430px] mx-auto">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-foreground mb-1">Your travel, connected.</h2>
-          <p className="text-sm text-gray">Flights, hotels, cars, and trips — all in one place.</p>
-        </div>
-
-        <ProviderUnavailableCard
-          providerName="Travel booking"
-          description="Flight, hotel, and car rental search will be available once a travel inventory provider is connected. No bookings will be simulated."
-          icon={Plane}
-        />
-
-        <div className="mt-4 space-y-3">
-          <div className="vantoris-card p-4">
-            <p className="font-semibold text-sm mb-1">What you'll be able to do</p>
-            <ul className="text-xs text-gray space-y-1.5 mt-2">
-              <li>• Search and book round-trip, one-way, and multi-city flights</li>
-              <li>• Find and reserve hotels, cars, and activities</li>
-              <li>• Track real flight status from aviation data sources</li>
-              <li>• Manage complete trip itineraries in one place</li>
-            </ul>
+      <main className="px-5 py-7 md:py-10 max-w-6xl mx-auto space-y-7">
+        <section className="relative overflow-hidden rounded-3xl bg-[#173D32] text-white p-6 md:p-9">
+          <div className="absolute -right-16 -top-24 w-72 h-72 rounded-full border border-white/10" />
+          <div className="absolute -right-5 -top-12 w-52 h-52 rounded-full border border-white/10" />
+          <div className="relative max-w-2xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[11px] font-semibold tracking-wide">
+              <MapPin size={13} /> TRAVEL WITH ATCHISON VILLAGE
+            </div>
+            <h2 className="mt-5 text-3xl md:text-4xl font-semibold leading-tight">Your next journey starts here.</h2>
+            <p className="mt-3 text-sm md:text-base leading-relaxed text-white/75 max-w-xl">
+              Plan your trip, organise your details and keep an itinerary even when live travel providers are unavailable.
+            </p>
+            <div className="mt-6 inline-flex items-center gap-2 rounded-xl border border-[#D9C49A]/40 bg-white/10 px-4 py-3 text-sm">
+              <ShieldCheck size={17} className="text-[#E2C994]" />
+              <span>{connectedCount} of {travelServices.length} live travel capabilities connected</span>
+            </div>
           </div>
-        </div>
-      </div>
+        </section>
+
+        <section aria-labelledby="travel-services-heading">
+          <div className="mb-4">
+            <p className="text-[11px] uppercase tracking-[0.18em] font-bold text-[#8B7650]">Travel services</p>
+            <h3 id="travel-services-heading" className="text-xl font-semibold text-foreground mt-1">Live services and manual alternatives</h3>
+            <p className="mt-1 text-sm text-gray">Manual planning works without supplier APIs. Live prices, inventory and confirmations do not.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {travelServices.map(service => {
+              const Icon = service.icon;
+              const connected = hasCapability('travel', service.capability);
+              return (
+                <article key={service.title} className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="w-11 h-11 rounded-xl bg-[#173D32]/10 flex items-center justify-center"><Icon size={20} className="text-[#173D32]" /></div>
+                    <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-600">{connected ? 'Live provider ready' : 'Manual mode available'}</span>
+                  </div>
+                  <h4 className="mt-4 text-base font-semibold text-foreground">{service.title}</h4>
+                  <p className="mt-1.5 text-sm leading-relaxed text-gray">{service.description}</p>
+                  <p className="mt-3 border-t border-border pt-3 text-xs text-gray">{connected ? 'Provider capability is enabled; each request must still be verified.' : service.detail}</p>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+
+        <section id="trip-planner" className="rounded-2xl border border-border bg-white p-5 md:p-6 space-y-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.18em] font-bold text-[#8B7650]">Works without supplier APIs</p>
+              <h3 className="mt-1 text-xl font-semibold text-foreground">My trip planner</h3>
+              <p className="mt-1 text-sm text-gray">Create a personal itinerary manually and keep it on this device.</p>
+            </div>
+            <CalendarDays className="text-[#8B7650]" size={22} />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <label className="text-xs font-medium text-gray">Destination
+              <input value={trip.destination} onChange={e => updateTrip('destination', e.target.value)} placeholder="City or destination" className="mt-1 w-full rounded-xl border border-border px-3 py-2.5 text-sm text-foreground" />
+            </label>
+            <label className="text-xs font-medium text-gray">Start date
+              <input type="date" value={trip.startDate} onChange={e => updateTrip('startDate', e.target.value)} className="mt-1 w-full rounded-xl border border-border px-3 py-2.5 text-sm text-foreground" />
+            </label>
+            <label className="text-xs font-medium text-gray">End date
+              <input type="date" value={trip.endDate} min={trip.startDate || undefined} onChange={e => updateTrip('endDate', e.target.value)} className="mt-1 w-full rounded-xl border border-border px-3 py-2.5 text-sm text-foreground" />
+            </label>
+          </div>
+          <label className="block text-xs font-medium text-gray">Trip notes
+            <textarea value={trip.notes} onChange={e => updateTrip('notes', e.target.value)} rows={2} placeholder="Purpose of trip, reminders and general notes (do not enter passport or payment details)" className="mt-1 w-full rounded-xl border border-border px-3 py-2.5 text-sm text-foreground" />
+          </label>
+
+          <form onSubmit={addItem} className="rounded-xl bg-[#FBF9F3] p-4 space-y-3">
+            <h4 className="text-sm font-semibold text-[#173D32]">Add an itinerary item</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <label className="text-xs font-medium text-gray">Type
+                <select value={itemType} onChange={e => setItemType(e.target.value)} className="mt-1 w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-foreground">
+                  <option>Flight</option><option>Hotel</option><option>Car hire</option><option>Transfer</option><option>Activity</option><option>Meeting</option><option>Other</option>
+                </select>
+              </label>
+              <label className="text-xs font-medium text-gray sm:col-span-2">Title or reference
+                <input value={itemTitle} onChange={e => setItemTitle(e.target.value)} required placeholder="e.g. Flight to Abuja, hotel check-in" className="mt-1 w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-foreground" />
+              </label>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label className="text-xs font-medium text-gray">Date
+                <input type="date" value={itemDate} onChange={e => setItemDate(e.target.value)} className="mt-1 w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-foreground" />
+              </label>
+              <label className="text-xs font-medium text-gray">Notes
+                <input value={itemNotes} onChange={e => setItemNotes(e.target.value)} placeholder="Confirmation reference or reminder" className="mt-1 w-full rounded-lg border border-border bg-white px-3 py-2.5 text-sm text-foreground" />
+              </label>
+            </div>
+            <div className="flex flex-wrap gap-2"><button type="submit" className="inline-flex items-center gap-2 rounded-lg bg-[#173D32] px-4 py-2.5 text-sm font-semibold text-white">{editingItemId ? <Pencil size={15} /> : <Plus size={16} />} {editingItemId ? "Save changes" : "Add to itinerary"}</button>{editingItemId && <button type="button" onClick={cancelEditItem} className="rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-foreground">Cancel edit</button>}</div>
+          </form>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between"><h4 className="text-sm font-semibold text-foreground">Itinerary ({trip.items.length})</h4><span className="text-xs text-gray">Manual entries</span></div>
+            {trip.items.length === 0 ? <p className="rounded-xl border border-dashed border-border p-4 text-sm text-gray">Your itinerary is empty. Add flights, stays, transport or activities above.</p> : trip.items.map((item, index) => (
+              <div key={item.id} className="flex items-start gap-3 rounded-xl border border-border p-3">
+                <div className="min-w-0 flex-1"><p className="text-xs font-semibold text-[#8B7650]">{item.type} · {item.date || 'Date not set'}</p><p className="mt-1 text-sm font-medium text-foreground">{item.title}</p>{item.notes && <p className="mt-1 text-xs text-gray">{item.notes}</p>}</div>
+                <div className="flex shrink-0 items-center gap-1">
+                  <button type="button" disabled={index === 0} onClick={() => moveItem(item.id, -1)} aria-label="Move itinerary item up" className="rounded-lg p-2 text-gray hover:bg-slate-100 disabled:opacity-30"><ArrowUp size={15} /></button>
+                  <button type="button" disabled={index === trip.items.length - 1} onClick={() => moveItem(item.id, 1)} aria-label="Move itinerary item down" className="rounded-lg p-2 text-gray hover:bg-slate-100 disabled:opacity-30"><ArrowDown size={15} /></button>
+                  <button type="button" onClick={() => beginEditItem(item)} aria-label="Edit itinerary item" className="rounded-lg p-2 text-gray hover:bg-slate-100"><Pencil size={15} /></button>
+                  <button type="button" onClick={() => removeItem(item.id)} aria-label="Remove itinerary item" className="rounded-lg p-2 text-gray hover:bg-slate-100"><Trash2 size={16} /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap gap-2 border-t border-border pt-4">
+            <button type="button" onClick={saveTrip} className="rounded-lg bg-[#173D32] px-4 py-2.5 text-sm font-semibold text-white">Save on this device</button>
+            <button type="button" onClick={exportTrip} className="rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-foreground">Export itinerary</button>
+            <a href={mapUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-foreground"><MapPin size={15} /> Open destination map <ExternalLink size={13} /></a>
+          </div>
+          {storageError && <p role="alert" className="text-xs text-crimson">{storageError}</p>}
+          <p role="status" className="text-xs text-gray">{saved ? 'Trip saved on this device for this signed-in member.' : 'Each member has a separate trip draft in this browser. It does not sync to another device or create a supplier booking.'}</p>
+        </section>
+
+        <section className="rounded-2xl border border-[#D9CBAF] bg-[#FBF9F3] p-5 md:p-6">
+          <div className="flex items-start gap-3">
+            <ShieldCheck size={20} className="mt-0.5 shrink-0 text-[#8B7650]" />
+            <div>
+              <h3 className="font-semibold text-[#173D32]">No false confirmations</h3>
+              <p className="mt-1 text-sm leading-relaxed text-[#68766F]">Manual entries are your own notes, not supplier bookings. Prices, availability, tickets, reservations, flight status, payments and refunds are only marked verified after a real provider or authorised operator confirms them.</p>
+            </div>
+          </div>
+        </section>
+
+        <section aria-labelledby="travel-help-heading" className="rounded-2xl border border-border bg-white p-5 md:p-6">
+          <h3 id="travel-help-heading" className="text-base font-semibold text-foreground">Member support</h3>
+          <p className="mt-1 text-sm text-gray">Ask the member team for help with a travel arrangement while live integrations are being completed.</p>
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Link to="/documents" className="flex items-center gap-3 rounded-xl border border-border p-3 hover:bg-slate-50 transition-colors"><FileText size={18} className="text-[#8B7650]" /><span className="flex-1 text-sm font-medium text-foreground">Member documents</span><span className="text-xs text-gray">Open</span></Link>
+            <Link to="/messages" className="flex items-center gap-3 rounded-xl border border-border p-3 hover:bg-slate-50 transition-colors"><MessageCircle size={18} className="text-[#8B7650]" /><span className="flex-1 text-sm font-medium text-foreground">Contact member support</span><span className="text-xs text-gray">Open</span></Link>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
