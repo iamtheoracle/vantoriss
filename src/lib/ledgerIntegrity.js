@@ -1,5 +1,12 @@
 const toCents = value => Math.round(Number(value) * 100);
 const isFiniteNumber = value => value !== null && value !== undefined && Number.isFinite(Number(value));
+const ledgerDelta = transaction => {
+  const amount = Number(transaction.amount);
+  if (transaction.type === 'withdrawal' || transaction.type === 'fee') return -Math.abs(amount);
+  if (transaction.type === 'transfer' && transaction.transfer_direction === 'out') return -Math.abs(amount);
+  if (transaction.type === 'transfer' && transaction.transfer_direction === 'in') return Math.abs(amount);
+  return amount;
+};
 
 export function findLedgerDiscrepancies(accounts = [], transactions = [], toleranceCents = 1) {
   const accountById = new Map(accounts.map(account => [account.id, account]));
@@ -31,7 +38,7 @@ export function findLedgerDiscrepancies(accounts = [], transactions = [], tolera
     for (let index = 1; index < rows.length; index += 1) {
       const previous = rows[index - 1];
       const current = rows[index];
-      const expected = toCents(previous.balance_after) + toCents(current.amount);
+      const expected = toCents(previous.balance_after) + toCents(ledgerDelta(current));
       const actual = toCents(current.balance_after);
       if (Math.abs(expected - actual) > toleranceCents) {
         issues.push({
