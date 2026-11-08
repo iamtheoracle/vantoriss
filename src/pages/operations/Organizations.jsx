@@ -13,7 +13,7 @@ export default function Organizations() {
     (async () => {
       try {
         const accts = await base44.entities.Account.list('-created_date', 100);
-        setAccounts(accts.filter(a => a.account_type === 'Business' || a.account_type === 'Organization'));
+        setAccounts(accts.filter(a => a.account_type === 'Business'));
       } catch (e) { console.error(e); }
       setLoading(false);
     })();
