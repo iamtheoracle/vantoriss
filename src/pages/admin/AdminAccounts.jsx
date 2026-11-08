@@ -321,8 +321,6 @@ export default function AdminAccounts() {
     </div>;
   }
 
-  {loadError && <div role="alert" className="mb-5 rounded-xl border border-crimson/20 bg-crimson/5 p-4 text-sm text-crimson"><p className="font-semibold">Account register unavailable</p><p className="mt-1 text-xs">{loadError}</p><button type="button" onClick={() => { setLoading(true); loadAccounts(); }} className="mt-3 rounded-lg bg-brass px-3 py-2 text-xs font-semibold text-[#102C25]">Retry loading accounts</button></div>}
-
   const filtered = accounts.filter(a =>
     (a.account_name || '').toLowerCase().includes(search.toLowerCase()) ||
     (a.account_number || '').toLowerCase().includes(search.toLowerCase())
@@ -551,6 +549,7 @@ export default function AdminAccounts() {
     <div>
       <h1 className="text-2xl font-bold text-white mb-1">Accounts</h1>
       <p className="text-[#AAB4C3] text-sm mb-6">{accounts.length} total accounts</p>
+      {loadError && <div role="alert" className="mb-5 rounded-xl border border-crimson/20 bg-crimson/5 p-4 text-sm text-crimson"><p className="font-semibold">Account register unavailable</p><p className="mt-1 text-xs">{loadError}</p><button type="button" onClick={() => { setLoading(true); loadAccounts(); }} className="mt-3 rounded-lg bg-brass px-3 py-2 text-xs font-semibold text-[#102C25]">Retry loading accounts</button></div>}
 
       <div className="relative mb-6">
         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#AAB4C3]" />
