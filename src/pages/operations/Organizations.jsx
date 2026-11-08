@@ -12,7 +12,7 @@ export default function Organizations() {
   useEffect(() => {
     (async () => {
       try {
-        const accts = await base44.entities.Account.list('-created_date', 100);
+        const accts = await base44.entities.Account.list('-created_date', 500);
         setAccounts(accts.filter(a => a.account_type === 'Business'));
       } catch (e) { console.error(e); }
       setLoading(false);
