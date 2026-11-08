@@ -123,7 +123,7 @@ export default function AdminOverview() {
 
   if (loading) {
     return (
-      <OperationsPageLayout title="Operations Overview" description="Protected staff workspace for member service, review queues and institution controls" icon={Briefcase} breadcrumb="Atchison Village · Operations">
+      <OperationsPageLayout title="Operations Overview" description="Protected staff workspace for member service, review queues and institution controls" icon={Briefcase} breadcrumb="Atchison Village · Operations" actions={null}>
         <VantorisLoading className="h-64" />
       </OperationsPageLayout>
     );
