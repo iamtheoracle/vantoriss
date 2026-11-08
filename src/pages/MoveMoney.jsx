@@ -4,13 +4,52 @@ import { formatCurrency } from '@/lib/formatCurrency';
 import { useToast } from '@/components/ui/use-toast';
 import { ArrowDownToLine, ArrowUpRight, Camera, Check, ChevronRight, CreditCard, QrCode, Search, Send, ShieldCheck, Wallet, X } from 'lucide-react';
 import { findZelleRecipient, maskZelleIdentifier, normalizeZelleIdentifier } from '@/lib/zelle';
+import { useNavigate } from 'react-router-dom';
 
 const maskAccount = (value = '') => { const d = String(value).replace(/\D/g, ''); return d.length >= 4 ? `•••• ${d.slice(-4)}` : '••••'; };
 
 export default function MoveMoney() {
   const [user, setUser] = useState(null), [accounts, setAccounts] = useState([]), [cards, setCards] = useState([]), [portfolios, setPortfolios] = useState([]), [loading, setLoading] = useState(true), [panel, setPanel] = useState(null);
+  const [accountsError, setAccountsError] = useState('');
+  const [cardsError, setCardsError] = useState('');
+  const [portfoliosError, setPortfoliosError] = useState('');
+  const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
-  useEffect(() => { let cancelled = false; (async () => { try { const me = await base44.auth.me(); const [a,c,p] = await Promise.all([base44.entities.Account.filter({ user_id: me.id }, '-created_date').catch(() => []), base44.entities.PaymentCard.filter({ user_id: me.id, status: 'active' }, '-created_date').catch(() => []), base44.entities.InvestmentPortfolio.filter({ user_id: me.id }, '-created_date').catch(() => [])]); if (!cancelled) { setUser(me); setAccounts(a); setCards(c); setPortfolios(p); } } catch (e) { if (!cancelled) toast({ title: 'Money unavailable', description: e.message || 'Please try again.', variant: 'destructive' }); } finally { if (!cancelled) setLoading(false); } })(); return () => { cancelled = true; }; }, [toast]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setAccountsError('');
+      setCardsError('');
+      setPortfoliosError('');
+      try {
+        const me = await base44.auth.me();
+        const results = await Promise.allSettled([
+          base44.entities.Account.filter({ user_id: me.id }, '-created_date'),
+          base44.entities.PaymentCard.filter({ user_id: me.id, status: 'active' }, '-created_date'),
+          base44.entities.InvestmentPortfolio.filter({ user_id: me.id }, '-created_date'),
+        ]);
+        if (cancelled) return;
+        setUser(me);
+        if (results[0].status === 'fulfilled') setAccounts(results[0].value || []);
+        else setAccountsError(results[0].reason?.message || 'Your account list could not be loaded.');
+        if (results[1].status === 'fulfilled') setCards(results[1].value || []);
+        else setCardsError(results[1].reason?.message || 'Your cards could not be loaded.');
+        if (results[2].status === 'fulfilled') setPortfolios(results[2].value || []);
+        else setPortfoliosError(results[2].reason?.message || 'Your investment portfolios could not be loaded.');
+      } catch (e) {
+        if (!cancelled) {
+          setAccountsError(e.message || 'Your accounts could not be loaded. Please sign in again or retry.');
+          toast({ title: 'Money unavailable', description: e.message || 'Please try again.', variant: 'destructive' });
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [toast, retryCount]);
   const totalBalance = useMemo(() => accounts.reduce((s,a) => s + (a.balance || 0), 0), [accounts]);
   const portfolioValue = useMemo(() => portfolios.reduce((s,p) => s + (p.total_value || 0), 0), [portfolios]);
   if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-2 border-brass/30 border-t-brass rounded-full animate-spin" /></div>;
@@ -18,8 +57,10 @@ export default function MoveMoney() {
     <header className="mb-6"><p className="text-gray text-sm">Everyday banking</p><h1 className="text-3xl font-bold mt-1">Money</h1><p className="text-gray text-sm mt-1">Accounts, payments and transfers in one place.</p></header>
     <section className="mb-6 rounded-[28px] bg-[#0B2342] text-white p-5 shadow-xl relative overflow-hidden"><div className="absolute -right-16 -top-16 w-40 h-40 rounded-full bg-brass/10"/><p className="text-white/55 text-xs uppercase tracking-[0.18em]">Total available</p><p className="text-4xl font-semibold mt-2">{formatCurrency(totalBalance)}</p><p className="text-white/55 text-xs mt-2">{accounts.length} account{accounts.length === 1 ? '' : 's'}</p>{portfolioValue > 0 && <div className="mt-5 pt-4 border-t border-white/10 flex justify-between"><span className="text-white/60 text-xs">Investment portfolio</span><span className="font-semibold">{formatCurrency(portfolioValue)}</span></div>}</section>
     <section className="grid grid-cols-4 gap-2 mb-7">{[['send','Send',Send],['request','Request',ArrowDownToLine],['add','Add money',ArrowUpRight],['qr','QR',QrCode]].map(([id,label,Icon]) => <button key={id} onClick={() => setPanel(id)} className="flex flex-col items-center gap-2 py-3 rounded-2xl bg-white border border-border shadow-sm"><span className="w-11 h-11 rounded-full bg-brass/10 text-brass flex items-center justify-center"><Icon size={19}/></span><span className="text-[11px] font-medium">{label}</span></button>)}</section>
-    <section className="mb-7"><div className="flex justify-between mb-3"><h2 className="font-semibold">Accounts</h2><span className="text-xs text-gray">{accounts.length}</span></div><div className="space-y-3">{accounts.map(a => <button key={a.id} onClick={() => setPanel({type:'account',account:a})} className="w-full text-left bg-white border border-border rounded-[24px] p-4 shadow-sm flex items-center gap-3"><span className="w-11 h-11 rounded-2xl bg-navy/5 text-navy flex items-center justify-center"><Wallet size={20}/></span><span className="flex-1 min-w-0"><span className="block font-semibold truncate">{a.account_name || a.account_type}</span><span className="block text-xs text-gray mt-0.5">{a.account_type} · {maskAccount(a.account_number)}</span></span><span className="text-right"><span className="block font-semibold">{formatCurrency(a.balance || 0)}</span><span className="text-[11px] text-mint">{a.status || 'active'}</span></span><ChevronRight size={17} className="text-gray/50"/></button>)}{accounts.length === 0 && <div className="rounded-[24px] border border-dashed border-border p-6 text-center text-sm text-gray">No accounts yet.</div>}</div></section>
+    <section className="mb-7"><div className="flex justify-between mb-3"><h2 className="font-semibold">Accounts</h2><span className="text-xs text-gray">{accounts.length}</span></div><div className="space-y-3">{accounts.map(a => <button key={a.id} onClick={() => navigate('/accounts/' + a.id)} className="w-full text-left bg-white border border-border rounded-[24px] p-4 shadow-sm flex items-center gap-3"><span className="w-11 h-11 rounded-2xl bg-navy/5 text-navy flex items-center justify-center"><Wallet size={20}/></span><span className="flex-1 min-w-0"><span className="block font-semibold truncate">{a.account_name || a.account_type}</span><span className="block text-xs text-gray mt-0.5">{a.account_type} · {maskAccount(a.account_number)}</span></span><span className="text-right"><span className="block font-semibold">{formatCurrency(a.balance || 0)}</span><span className="text-[11px] text-mint">{a.status || 'active'}</span></span><ChevronRight size={17} className="text-gray/50"/></button>)}{accountsError ? <div className="rounded-[24px] border border-crimson/20 bg-crimson/5 p-4 text-sm text-crimson"><p className="font-semibold">We couldn’t load your accounts</p><p className="mt-1 text-xs">{accountsError}</p><button type="button" onClick={() => setRetryCount(value => value + 1)} className="mt-3 rounded-lg bg-[#173D32] px-3 py-2 text-xs font-semibold text-white">Retry account loading</button></div> : accounts.length === 0 && <div className="rounded-[24px] border border-dashed border-border p-6 text-center text-sm text-gray">No account records were returned for your member profile. If an account was recently opened, refresh or contact member support.</div>}</div></section>
+    {cardsError && <p className="mb-4 rounded-xl border border-warning/20 bg-warning/5 p-3 text-xs text-gray">Cards could not be loaded: {cardsError}</p>}
     {cards.length > 0 && <section className="mb-7"><div className="flex justify-between mb-3"><h2 className="font-semibold">Cards</h2><span className="text-xs text-gray">{cards.length}</span></div><div className="space-y-3">{cards.map(card => <PaymentCard key={card.id} card={card}/>)}</div></section>}
+    {portfoliosError && <p className="mb-4 rounded-xl border border-warning/20 bg-warning/5 p-3 text-xs text-gray">Investment information could not be loaded: {portfoliosError}</p>}
     {portfolioValue > 0 && <section className="mb-7 rounded-[28px] bg-white border border-border p-5 shadow-sm"><p className="text-xs uppercase tracking-[0.16em] text-gray">Wealth</p><div className="flex justify-between items-center mt-1"><h2 className="text-xl font-semibold">Portfolio</h2><button onClick={() => window.location.assign('/investment')} className="text-brass text-sm font-semibold">Open</button></div><p className="text-3xl font-semibold mt-5">{formatCurrency(portfolioValue)}</p><p className="text-xs text-gray mt-1">Across your investment portfolios</p></section>}
     {panel && <MoneyPanel panel={panel} accounts={accounts} user={user} onClose={() => setPanel(null)}/>} 
   </div>;
