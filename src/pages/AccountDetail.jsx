@@ -222,7 +222,7 @@ export default function AccountDetail() {
       // Use getEffectiveTxnDate — respects transaction_date, then posting_date, then created_date
       // NEVER substitutes today's date for historical dates
       const allTxns = [...transactions].sort((a, b) =>
-        new Date(getEffectiveTxnDate(a)) - new Date(getEffectiveTxnDate(b))
+        new Date(getEffectiveTxnDate(a)).getTime() - new Date(getEffectiveTxnDate(b)).getTime()
       );
 
       const filtered = allTxns.filter(t => {
