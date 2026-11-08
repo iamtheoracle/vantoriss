@@ -2,38 +2,223 @@
   "name": "ZelleProfile",
   "type": "object",
   "properties": {
-    "user_id": { "type": "string" },
+    "user_id": {
+      "type": "string"
+    },
     "status": {
       "type": "string",
-      "enum": ["pending", "enrolled", "suspended", "closed"],
+      "enum": [
+        "pending",
+        "enrolled",
+        "suspended",
+        "closed"
+      ],
       "default": "pending"
     },
-    "display_name": { "type": "string" },
-    "zelle_email": { "type": "string" },
-    "zelle_phone": { "type": "string" },
-    "bank_name": { "type": "string" },
+    "display_name": {
+      "type": "string"
+    },
+    "zelle_email": {
+      "type": "string"
+    },
+    "zelle_phone": {
+      "type": "string"
+    },
+    "bank_name": {
+      "type": "string"
+    },
     "bank_account_last4": {
       "type": "string",
       "rls": {
-        "read": { "data.user_id": "{{user.id}}" },
-        "write": { "data.user_id": "{{user.id}}" }
+        "read": {
+          "$or": [
+            {
+              "data.user_id": "{{user.id}}"
+            },
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "super_administrator"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "operations_officer"
+              }
+            }
+          ]
+        },
+        "write": {
+          "$or": [
+            {
+              "data.user_id": "{{user.id}}"
+            },
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "super_administrator"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "operations_officer"
+              }
+            }
+          ]
+        }
       }
     },
     "eligible_account_id": {
       "type": "string",
       "rls": {
-        "read": { "data.user_id": "{{user.id}}" },
-        "write": { "data.user_id": "{{user.id}}" }
+        "read": {
+          "$or": [
+            {
+              "data.user_id": "{{user.id}}"
+            },
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "super_administrator"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "operations_officer"
+              }
+            }
+          ]
+        },
+        "write": {
+          "$or": [
+            {
+              "data.user_id": "{{user.id}}"
+            },
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "super_administrator"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "operations_officer"
+              }
+            }
+          ]
+        }
       }
     },
-    "enrolled_at": { "type": "string", "format": "date" },
-    "verified_at": { "type": "string", "format": "date" }
+    "enrolled_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "verified_at": {
+      "type": "string",
+      "format": "date"
+    }
   },
-  "required": ["user_id", "status", "display_name"],
+  "required": [
+    "user_id",
+    "status",
+    "display_name"
+  ],
   "rls": {
-    "create": { "data.user_id": "{{user.id}}" },
-    "read": { "data.status": "enrolled" },
-    "update": { "data.user_id": "{{user.id}}" },
-    "delete": { "data.user_id": "{{user.id}}" }
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_officer"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_officer"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_officer"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_administrator"
+          }
+        }
+      ]
+    }
   }
 }

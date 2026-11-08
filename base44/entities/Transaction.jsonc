@@ -5,6 +5,10 @@
     "account_id": {
       "type": "string"
     },
+    "user_id": {
+      "type": "string",
+      "description": "Denormalized owner of the account this entry belongs to \u2014 drives member-level read isolation"
+    },
     "type": {
       "type": "string",
       "enum": [
@@ -85,5 +89,86 @@
     "account_id",
     "type",
     "amount"
-  ]
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_officer"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_officer"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_officer"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_officer"
+          }
+        }
+      ]
+    }
+  }
 }
