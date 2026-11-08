@@ -16,6 +16,7 @@ export default function Home() {
   const [cards, setCards] = useState([]);
   const [portfolios, setPortfolios] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [accountLoadError, setAccountLoadError] = useState('');
   const [hidden, setHidden] = useState(false);
   const navigate = useNavigate();
 
@@ -25,7 +26,7 @@ export default function Home() {
       try {
         const me = await base44.auth.me();
         const [accountRows, cardRows, portfolioRows] = await Promise.all([
-          base44.entities.Account.filter({ user_id: me.id }, '-created_date').catch(() => []),
+          base44.entities.Account.filter({ user_id: me.id }, '-created_date', 500),
           base44.entities.PaymentCard.filter({ user_id: me.id }, '-created_date').catch(() => []),
           base44.entities.InvestmentPortfolio.filter({ user_id: me.id }, '-created_date').catch(() => []),
         ]);
@@ -37,6 +38,7 @@ export default function Home() {
         }
       } catch (error) {
         console.error('Member home could not load', error);
+        setAccountLoadError(error.message || 'Your account information could not be loaded.');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -124,6 +126,7 @@ export default function Home() {
               </div>
             </div>
           </section>
+          {accountLoadError && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">We could not load your account information. {accountLoadError} Please retry or contact member support.</div>}
 
           <section className="rounded-[24px] bg-white border border-[#E5DDCA] p-4 sm:p-5">
             <div className="flex items-center justify-between mb-4">

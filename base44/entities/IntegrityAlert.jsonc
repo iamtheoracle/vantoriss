@@ -1,0 +1,173 @@
+{
+  "name": "IntegrityAlert",
+  "type": "object",
+  "properties": {
+    "account_id": {
+      "type": "string"
+    },
+    "member_user_id": {
+      "type": "string"
+    },
+    "fingerprint": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "details": {
+      "type": "string"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "warning",
+        "high",
+        "critical"
+      ],
+      "default": "high"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "resolved"
+      ],
+      "default": "open"
+    },
+    "expected_balance": {
+      "type": "number"
+    },
+    "actual_balance": {
+      "type": "number"
+    },
+    "difference": {
+      "type": "number"
+    },
+    "source_event": {
+      "type": "string"
+    },
+    "first_seen_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_seen_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "resolved_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "account_id",
+    "fingerprint",
+    "title",
+    "status",
+    "difference"
+  ],
+  "rls": {
+    "create": false,
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_manager"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "compliance_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "executive"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "kyc_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "treasury_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "investment_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "investment_manager"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "auditor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "risk_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "it_administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "customer_support"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "herobox_manager"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "volunteer_manager"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "shipping_manager"
+          }
+        }
+      ]
+    },
+    "update": false,
+    "delete": false
+  }
+}

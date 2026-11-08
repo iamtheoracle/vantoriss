@@ -1,0 +1,34 @@
+{
+  "name": "reconcileAccountIntegrity",
+  "entry": "index.ts",
+  "automations": [
+    {
+      "name": "Check new or changed transactions",
+      "type": "entity",
+      "entity_name": "Transaction",
+      "event_types": [
+        "create",
+        "update"
+      ],
+      "is_active": true
+    },
+    {
+      "name": "Check updated account balances",
+      "type": "entity",
+      "entity_name": "Account",
+      "event_types": [
+        "update"
+      ],
+      "is_active": true
+    },
+    {
+      "name": "Scheduled account integrity sweep",
+      "type": "scheduled",
+      "schedule_mode": "recurring",
+      "schedule_type": "cron",
+      "cron_expression": "*/5 * * * *",
+      "is_active": true,
+      "description": "Reconcile account balances against the latest completed transaction every five minutes."
+    }
+  ]
+}

@@ -94,6 +94,7 @@ export default function AccountDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [account, setAccount] = useState(null);
+  const [loadError, setLoadError] = useState('');
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showWithdraw, setShowWithdraw] = useState(false);
@@ -112,20 +113,36 @@ export default function AccountDetail() {
   const [showHistoricalImport, setShowHistoricalImport] = useState(false);
 
   const loadData = useCallback(async () => {
-    const [user, acct, txns, pendingWds] = await Promise.all([
-      base44.auth.me(),
-      base44.entities.Account.get(id),
+    setLoadError('');
+    const user = await base44.auth.me();
+    setCurrentUser(user);
+
+    // Resolve the account through the authenticated member's owner-scoped query.
+    // Never trust a route parameter as proof that a member may read an account.
+    const ownedAccounts = await base44.entities.Account.filter({ user_id: user.id }, '-created_date', 500);
+    const acct = (Array.isArray(ownedAccounts) ? ownedAccounts : []).find(row => row.id === id);
+    if (!acct) {
+      setAccount(null);
+      setTransactions([]);
+      setPendingWithdrawals(0);
+      setLoadError('This account is unavailable to the signed-in member. Check that you are using the correct membership or contact support.');
+      return;
+    }
+
+    const [txns, pendingWds] = await Promise.all([
       base44.entities.Transaction.filter({ account_id: id }, '-created_date', 50),
       base44.entities.WithdrawalRequest.filter({ account_id: id, status: 'pending' }),
     ]);
-    setCurrentUser(user);
     setAccount(acct);
-    setTransactions(txns);
-    setPendingWithdrawals(pendingWds.reduce((sum, w) => sum + (w.amount || 0), 0));
+    setTransactions(Array.isArray(txns) ? txns : []);
+    setPendingWithdrawals((Array.isArray(pendingWds) ? pendingWds : []).reduce((sum, w) => sum + (w.amount || 0), 0));
   }, [id]);
 
   useEffect(() => {
-    loadData().catch(e => console.error(e)).finally(() => setLoading(false));
+    loadData().catch(e => {
+      console.error('Account detail could not load:', e);
+      setLoadError(e.message || 'Account details could not be loaded. Please try again.');
+    }).finally(() => setLoading(false));
   }, [loadData]);
 
   useEffect(() => {
@@ -421,10 +438,21 @@ export default function AccountDetail() {
     setShowStatement(false);
   }
 
-  if (loading || !account) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="w-8 h-8 border-2 border-brass/30 border-t-brass rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!account) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center px-6 text-center">
+        <ShieldCheck size={28} className="text-gray mb-3" />
+        <h2 className="text-lg font-semibold text-foreground">Account unavailable</h2>
+        <p role="alert" className="text-sm text-gray mt-2 max-w-md">{loadError || 'This account could not be found for your membership.'}</p>
+        <button onClick={() => navigate('/accounts')} className="mt-5 rounded-xl bg-[#173D32] px-5 py-3 text-sm font-semibold text-white">Back to accounts</button>
       </div>
     );
   }
