@@ -2,21 +2,126 @@
   "name": "PaymentCard",
   "type": "object",
   "properties": {
-    "user_id": { "type": "string" },
-    "account_id": { "type": "string" },
-    "card_type": { "type": "string", "enum": ["debit", "credit", "virtual"], "default": "debit" },
-    "cardholder_name": { "type": "string" },
-    "last4": { "type": "string" },
-    "status": { "type": "string", "enum": ["active", "frozen", "closed"], "default": "active" },
-    "network": { "type": "string" },
-    "expires_month": { "type": "number" },
-    "expires_year": { "type": "number" }
+    "user_id": {
+      "type": "string"
+    },
+    "account_id": {
+      "type": "string"
+    },
+    "card_type": {
+      "type": "string",
+      "enum": [
+        "debit",
+        "credit",
+        "virtual"
+      ],
+      "default": "debit"
+    },
+    "cardholder_name": {
+      "type": "string"
+    },
+    "last4": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "frozen",
+        "closed"
+      ],
+      "default": "active"
+    },
+    "network": {
+      "type": "string"
+    },
+    "expires_month": {
+      "type": "number"
+    },
+    "expires_year": {
+      "type": "number"
+    }
   },
-  "required": ["user_id", "card_type", "last4", "status"],
+  "required": [
+    "user_id",
+    "card_type",
+    "last4",
+    "status"
+  ],
   "rls": {
-    "create": { "data.user_id": "{{user.id}}" },
-    "read": { "data.user_id": "{{user.id}}" },
-    "update": { "data.user_id": "{{user.id}}" },
-    "delete": { "data.user_id": "{{user.id}}" }
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_officer"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_officer"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_officer"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_administrator"
+          }
+        }
+      ]
+    }
   }
 }
