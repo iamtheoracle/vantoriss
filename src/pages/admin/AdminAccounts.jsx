@@ -12,6 +12,7 @@ import { useToast } from '@/components/ui/use-toast';
 export default function AdminAccounts() {
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [search, setSearch] = useState('');
   const [showTxn, setShowTxn] = useState(null);
   const [txnForm, setTxnForm] = useState({ type: 'deposit', amount: '', description: '', reference: '', transaction_date: '' });
@@ -31,9 +32,16 @@ export default function AdminAccounts() {
   useEffect(() => { loadAccounts(); }, []);
 
   async function loadAccounts() {
-    const accts = await base44.entities.Account.list('-created_date', 500);
-    setAccounts(accts);
-    setLoading(false);
+    setLoadError('');
+    try {
+      const accts = await base44.entities.Account.list('-created_date', 500);
+      setAccounts(accts || []);
+    } catch (error) {
+      setLoadError(error.message || 'The account register could not be loaded.');
+      toast({ title: 'Accounts unavailable', description: error.message || 'Please retry.', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function viewHistory(acct) {
@@ -312,6 +320,8 @@ export default function AdminAccounts() {
       <div className="w-8 h-8 border-2 border-brass/30 border-t-brass rounded-full animate-spin" />
     </div>;
   }
+
+  {loadError && <div role="alert" className="mb-5 rounded-xl border border-crimson/20 bg-crimson/5 p-4 text-sm text-crimson"><p className="font-semibold">Account register unavailable</p><p className="mt-1 text-xs">{loadError}</p><button type="button" onClick={() => { setLoading(true); loadAccounts(); }} className="mt-3 rounded-lg bg-brass px-3 py-2 text-xs font-semibold text-[#102C25]">Retry loading accounts</button></div>}
 
   const filtered = accounts.filter(a =>
     (a.account_name || '').toLowerCase().includes(search.toLowerCase()) ||
