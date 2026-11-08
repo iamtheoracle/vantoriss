@@ -49,12 +49,45 @@ Deno.serve(async (req) => {
         return { skipped: true, reason: "non_numeric_balance" };
       }
 
-      const difference = Math.round((actual - expected) * 100) / 100;
+      const checks = [];
+      const accountDifference = Math.round((actual - expected) * 100) / 100;
+      if (Math.abs(accountDifference) > TOLERANCE) {
+        checks.push("Account balance " + actual.toFixed(2) +
+          " differs from the latest completed transaction balance_after " +
+          expected.toFixed(2) + " (difference " + accountDifference.toFixed(2) + ").");
+      }
+
+      const prior = (Array.isArray(transactions) ? transactions : []).slice(1).find(txn =>
+        !["pending", "failed", "reversed"].includes(txn.status || "completed") &&
+        txn.balance_after !== null && txn.balance_after !== undefined &&
+        Number.isFinite(Number(txn.balance_after))
+      );
+      let difference = accountDifference;
+      let expectedRecordedBalance = expected;
+      let actualRecordedBalance = actual;
+      if (prior && !["opening_balance", "transfer"].includes(latest.type) &&
+          Number.isFinite(Number(latest.amount))) {
+        const arithmeticExpected = Number(prior.balance_after) + Number(latest.amount);
+        const arithmeticDifference = Math.round((expected - arithmeticExpected) * 100) / 100;
+        if (Math.abs(arithmeticDifference) > TOLERANCE) {
+          checks.push("Transaction running-balance mismatch: previous posted balance " +
+            Number(prior.balance_after).toFixed(2) + " plus transaction amount " +
+            Number(latest.amount).toFixed(2) + " should be " +
+            arithmeticExpected.toFixed(2) + ", but the transaction records " +
+            expected.toFixed(2) + ".");
+          if (Math.abs(accountDifference) <= TOLERANCE) {
+            difference = arithmeticDifference;
+            expectedRecordedBalance = arithmeticExpected;
+            actualRecordedBalance = expected;
+          }
+        }
+      }
+
       const openAlerts = await service.entities.IntegrityAlert.filter(
         { account_id: accountId, status: "open" }, "-created_date", 10
       );
 
-      if (Math.abs(difference) <= TOLERANCE) {
+      if (checks.length === 0) {
         for (const alert of (openAlerts || [])) {
           await service.entities.IntegrityAlert.update(alert.id, {
             status: "resolved",
@@ -65,15 +98,13 @@ Deno.serve(async (req) => {
         return { account_id: accountId, status: "balanced" };
       }
 
-      const fingerprint = accountId + ":account-vs-latest-posted-balance";
-      const details = "Current account balance " + actual.toFixed(2) +
-        " differs from the latest completed transaction balance_after " +
-        expected.toFixed(2) + ". Difference: " + difference.toFixed(2) + ".";
+      const fingerprint = accountId + ":account-ledger-integrity";
+      const details = checks.join(" ");
       const existing = (openAlerts || []).find(alert => alert.fingerprint === fingerprint);
       if (existing) {
         await service.entities.IntegrityAlert.update(existing.id, {
-          actual_balance: actual,
-          expected_balance: expected,
+          actual_balance: actualRecordedBalance,
+          expected_balance: expectedRecordedBalance,
           difference,
           details,
           last_seen_at: now.toISOString(),
@@ -91,8 +122,8 @@ Deno.serve(async (req) => {
         details,
         severity: "high",
         status: "open",
-        expected_balance: expected,
-        actual_balance: actual,
+        expected_balance: expectedRecordedBalance,
+        actual_balance: actualRecordedBalance,
         difference,
         source_event: sourceEvent,
         first_seen_at: now.toISOString(),
