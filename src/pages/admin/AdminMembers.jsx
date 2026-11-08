@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { Search, Plus, Wallet, Download, StickyNote, UserPlus, Trash2, History } from 'lucide-react';
@@ -18,6 +18,7 @@ export default function AdminMembers() {
   const [users, setUsers] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [search, setSearch] = useState('');
   const [showCreate, setShowCreate] = useState(null);
   const [acctForm, setAcctForm] = useState({ account_type: 'Checking', account_name: '', opening_balance: '' });
@@ -32,19 +33,26 @@ export default function AdminMembers() {
   const [referrals, setReferrals] = useState([]);
   const { toast } = useToast();
 
-  useEffect(() => { loadData(); }, []);
+  const loadData = useCallback(async () => {
+    setLoadError('');
+    try {
+      const [u, a, refs] = await Promise.all([
+        base44.entities.User.list('-created_date', 500),
+        base44.entities.Account.list('-created_date', 500),
+        base44.entities.Referral.list('-created_date', 200),
+      ]);
+      setUsers(u || []);
+      setAccounts(a || []);
+      setReferrals(refs || []);
+    } catch (error) {
+      setLoadError(error.message || 'Member and account records could not be loaded.');
+      toast({ title: 'Member register unavailable', description: error.message || 'Please retry.', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
 
-  async function loadData() {
-    const [u, a, refs] = await Promise.all([
-      base44.entities.User.list('-created_date', 500),
-      base44.entities.Account.list('-created_date', 500),
-      base44.entities.Referral.list('-created_date', 200),
-    ]);
-    setUsers(u);
-    setAccounts(a);
-    setReferrals(refs);
-    setLoading(false);
-  }
+  useEffect(() => { loadData(); }, [loadData]);
 
   async function handleDeleteMember() {
     if (!deleteTarget) return;
@@ -195,6 +203,7 @@ export default function AdminMembers() {
     <div>
       <h1 className="text-2xl font-bold text-white mb-1">Members</h1>
       <p className="text-[#AAB4C3] text-sm mb-6">{members.length} registered members</p>
+      {loadError && <div role="alert" className="mb-5 rounded-xl border border-red-400/20 bg-red-400/5 p-4 text-sm text-red-300"><p className="font-semibold">Member and account records unavailable</p><p className="mt-1 text-xs">{loadError}</p><button type="button" onClick={() => { setLoading(true); loadData(); }} className="mt-3 rounded-lg bg-brass px-3 py-2 text-xs font-semibold text-[#102C25]">Retry loading members</button></div>}
 
       {/* Search + Actions */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
