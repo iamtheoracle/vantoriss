@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { Users, FileText, ArrowUpRight, Wallet, Briefcase, Activity, Sparkles, AlertTriangle } from 'lucide-react';
@@ -30,11 +30,7 @@ export default function AdminOverview() {
   const notifiedIssueKeys = useRef(new Set());
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     try {
       // Totals come from the server so they are not limited to the most recent page of records.
       const [users, apps, withdrawals, balanceAgg, pendingApps, pendingWithdrawals, accounts, investmentTransactions] = await Promise.all([
@@ -65,7 +61,11 @@ export default function AdminOverview() {
       setRecentItems(recent);
     } catch (e) { console.error(e); }
     setLoading(false);
-  }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   useEffect(() => {
     let active = true;
