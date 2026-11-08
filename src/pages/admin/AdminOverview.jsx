@@ -54,7 +54,10 @@ export default function AdminOverview() {
       if (accountsResult.status === 'rejected') reportErrors.push('Monthly account growth is unavailable.');
       if (investmentResult.status === 'rejected') reportErrors.push('Investment volume is unavailable.');
       setMonthlyReportError(reportErrors.join(' '));
-      setMonthlyReport(buildMonthlyReporting(accounts, investmentTransactions));
+      const report = buildMonthlyReporting(accounts, investmentTransactions);
+      if (accountsResult.status === 'rejected') report.forEach(row => { row.newAccounts = null; });
+      if (investmentResult.status === 'rejected') report.forEach(row => { row.investmentVolume = null; });
+      setMonthlyReport(report);
       const balanceRow = balanceAgg?.rows?.[0] || {};
       const totalBalance = balanceRow.sum_balance || 0;
       const memberCount = users.filter(u => u.role === 'user').length;
