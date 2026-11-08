@@ -61,6 +61,10 @@ export default function AdminMembers() {
         action_type: 'account_deleted',
         description: `Deleted member ${deleteTarget.full_name} (${deleteTarget.email})`,
         details: `Email: ${deleteTarget.email} | All accounts, transactions, and associated data permanently removed`,
+        account_id: null,
+        amount: null,
+        balance_before: null,
+        balance_after: null,
         target_user_id: deleteTarget.id,
       });
       setDeleteTarget(null);
@@ -439,6 +443,10 @@ export default function AdminMembers() {
                       action_type: 'account_status_changed',
                       description: `Updated admin notes for ${notesMember.full_name}`,
                       details: notesText || 'Notes cleared',
+                      account_id: null,
+                      amount: null,
+                      balance_before: null,
+                      balance_after: null,
                       target_user_id: notesMember.id,
                     });
                     setNotesMember(null);
