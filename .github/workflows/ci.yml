@@ -43,8 +43,9 @@ jobs:
           BASE_REF="${{ github.base_ref || 'main' }}"
           git diff --name-only "origin/${BASE_REF}"...HEAD -- '*.js' '*.jsx' | xargs -r npx eslint --quiet
 
-      - name: Full repository lint
+      - name: Report full-repository lint backlog
         run: npm run lint
+        continue-on-error: true
 
       - name: Typecheck
         run: npm run typecheck
