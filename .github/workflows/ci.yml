@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+      - feat/atchison-village-unified-rebrand
 
 permissions:
   contents: read
@@ -36,7 +37,7 @@ jobs:
         continue-on-error: true
 
       - name: Lint changed JavaScript and JSX files
-        run: git diff --name-only origin/main...HEAD -- '*.js' '*.jsx' | xargs -r npx eslint --quiet
+        run: git diff --name-only origin/feat/atchison-village-unified-rebrand...HEAD -- '*.js' '*.jsx' | xargs -r npx eslint --quiet
 
       - name: Report existing full-repository lint backlog
         run: npm run lint
