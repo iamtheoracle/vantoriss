@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { AlertCircle, Save } from 'lucide-react';
 import { logAuditEntry } from '@/lib/auditLogger';
 
-const ACCOUNT_TYPES = ['Personal', 'Joint', 'Business', 'Organization'];
+import { ACCOUNT_TYPES } from '@/lib/accountTypes';
 
 export default function WithdrawalLimits() {
   const [limits, setLimits] = useState({});
