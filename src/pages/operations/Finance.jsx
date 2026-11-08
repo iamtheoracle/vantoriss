@@ -46,7 +46,7 @@ export default function Finance() {
   ];
 
   return (
-    <OperationsPageLayout title="Finance Overview" description="Platform-wide financial activity" icon={DollarSign}>
+    <OperationsPageLayout title="Finance Overview" description="Platform-wide financial activity" icon={DollarSign} actions={null} breadcrumb="Atchison Village · Operations">
       <div className="grid grid-cols-4 gap-4 mb-6">
         {stats.map(s => {
           const Icon = s.icon;
