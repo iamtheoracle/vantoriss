@@ -25,6 +25,7 @@ export default function AdminOverview() {
   const [recentItems, setRecentItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [monthlyReport, setMonthlyReport] = useState([]);
+  const [monthlyReportError, setMonthlyReportError] = useState('');
   const [integrityIssues, setIntegrityIssues] = useState([]);
   const [integrityCheckedAt, setIntegrityCheckedAt] = useState(null);
   const [integrityError, setIntegrityError] = useState('');
@@ -35,16 +36,24 @@ export default function AdminOverview() {
   const loadData = useCallback(async () => {
     try {
       // Totals come from the server so they are not limited to the most recent page of records.
-      const [users, apps, withdrawals, balanceAgg, pendingApps, pendingWithdrawals, accounts, investmentTransactions] = await Promise.all([
+      const [users, apps, withdrawals, balanceAgg, pendingApps, pendingWithdrawals] = await Promise.all([
         base44.entities.User.list('-created_date', 500),
         base44.entities.Application.list('-created_date', 50),
         base44.entities.WithdrawalRequest.list('-created_date', 50),
         base44.entities.Account.aggregate({ sum: ['balance'] }),
         base44.entities.Application.count({ application_status: 'pending' }),
         base44.entities.WithdrawalRequest.count({ status: 'pending' }),
-        base44.entities.Account.list('-created_date', 500),
-        base44.entities.InvestmentTransaction.list('-created_date', 500).catch(() => []),
       ]);
+      const [accountsResult, investmentResult] = await Promise.allSettled([
+        base44.entities.Account.list('-created_date', 500),
+        base44.entities.InvestmentTransaction.list('-created_date', 500),
+      ]);
+      const accounts = accountsResult.status === 'fulfilled' ? accountsResult.value : [];
+      const investmentTransactions = investmentResult.status === 'fulfilled' ? investmentResult.value : [];
+      const reportErrors = [];
+      if (accountsResult.status === 'rejected') reportErrors.push('Monthly account growth is unavailable.');
+      if (investmentResult.status === 'rejected') reportErrors.push('Investment volume is unavailable.');
+      setMonthlyReportError(reportErrors.join(' '));
       setMonthlyReport(buildMonthlyReporting(accounts, investmentTransactions));
       const balanceRow = balanceAgg?.rows?.[0] || {};
       const totalBalance = balanceRow.sum_balance || 0;
@@ -160,6 +169,7 @@ export default function AdminOverview() {
           </div>
           <span className="text-[11px] text-gray">Source: account and investment transaction records</span>
         </div>
+        {monthlyReportError && <p role="alert" className="mb-2 text-xs text-crimson">{monthlyReportError} A failed source is not represented as zero.</p>}
         <div className="h-[290px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={monthlyReport} margin={{ top: 8, right: 12, left: 4, bottom: 4 }}>
