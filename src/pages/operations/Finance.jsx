@@ -13,8 +13,8 @@ export default function Finance() {
     (async () => {
       try {
         const [txns, accts] = await Promise.all([
-          base44.entities.Transaction.list('-created_date', 200),
-          base44.entities.Account.list('-created_date', 100),
+          base44.entities.Transaction.list('-created_date', 500),
+          base44.entities.Account.list('-created_date', 500),
         ]);
         setTransactions(txns);
         setAccounts(accts);
