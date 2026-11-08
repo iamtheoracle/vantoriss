@@ -51,15 +51,19 @@ jobs:
         run: npm run typecheck
 
       - name: Unit tests
+        if: always()
         run: npm test
 
       - name: Production build
+        if: always()
         run: npm run build
 
       - name: Set up Deno
+        if: always()
         uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
 
       - name: Test Guardian and workflow registry
+        if: always()
         run: deno test --no-check base44/shared/runtime/guardian.test.ts base44/shared/registries/WorkflowRegistry.test.ts
