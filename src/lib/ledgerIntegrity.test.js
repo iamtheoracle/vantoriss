@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildMonthlyReporting } from './monthlyReporting.js';
 import { findLedgerDiscrepancies } from './ledgerIntegrity.js';
+import { ACCOUNT_TYPES } from './accountTypes.js';
 
 test('monthly reporting counts new accounts and completed investment volume by month', () => {
   const now = new Date('2026-11-09T12:00:00Z');
@@ -52,4 +53,8 @@ test('ledger monitor ignores pending and historical-import rows', () => {
     ],
   );
   assert.deepEqual(issues, []);
+});
+
+test('member account choices match the account schema product types', () => {
+  assert.deepEqual(ACCOUNT_TYPES, ['Checking', 'Savings', 'Money Market', 'CD', 'Joint', 'Business']);
 });
