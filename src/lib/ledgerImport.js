@@ -39,6 +39,7 @@ export async function importLedger({ account, records, summary, file, institutio
 
   const payload = records.map((record) => ({
     account_id: account.id,
+    user_id: account.user_id,
     type: record.type,
     amount: record.amount,
     description: record.description,

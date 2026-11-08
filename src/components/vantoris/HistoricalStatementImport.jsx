@@ -257,6 +257,7 @@ export default function HistoricalStatementImport({ open, onClose, accountId, ac
       // Does NOT modify account.balance
       const txnRecords = validTxns.map(t => ({
         account_id: accountId,
+        user_id: account?.user_id || me.id,
         type: t.type,
         amount: t.amount,
         description: t.description,

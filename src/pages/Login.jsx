@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import AuthLayout from "@/components/AuthLayout";
+import { useAuth } from "@/lib/AuthContext";
 import SplashScreen from "@/components/auth/SplashScreen";
 import OnboardingCarousel from "@/components/auth/OnboardingCarousel";
 import { Loader2, Lock, User } from "lucide-react";
@@ -14,6 +15,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { checkUserAuth } = useAuth();
 
   useEffect(() => {
     const saved = localStorage.getItem("vantoris_user_id");
@@ -40,7 +42,29 @@ export default function Login() {
     try {
       if (rememberId) localStorage.setItem("vantoris_user_id", userId);
       else localStorage.removeItem("vantoris_user_id");
-      await base44.auth.loginViaEmailPassword(userId, password);
+      const result = await base44.auth.loginViaEmailPassword(userId, password);
+
+      if (result?.mfa_required) {
+        setError("Two-step verification is required for this account. Please contact member support to complete verification.");
+        return;
+      }
+
+      // The provider only knows about the new session once it re-reads it, so
+      // refresh shared auth state before navigating — otherwise protected pages
+      // still see the previous (signed-out) state and bounce back to sign-in.
+      await checkUserAuth();
+
+      if (!(await base44.auth.isAuthenticated())) {
+        setError("We could not confirm your session. Please sign in again.");
+        return;
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const requested = params.get("returnTo");
+      const destination =
+        requested && requested.startsWith("/") && !requested.startsWith("//")
+          ? requested
+          : "/";
 
       // Authentication establishes the session; it does not decide which
       // Vantoris experience the user is allowed to access. All authenticated
@@ -49,13 +73,13 @@ export default function Login() {
       // existing OperationsRoute authorization boundary and Mission Control.
       // This keeps member banking and the Operations OS as separate
       // experiences without requiring separate credentials or accounts.
-      navigate("/", { replace: true });
+      navigate(destination, { replace: true });
     } catch (err) {
       const status = err?.response?.status || err?.status;
       if (status === 404) {
         setError("Sign-in is temporarily unavailable. Please refresh the page and try again.");
       } else if (status === 400 || status === 401) {
-        setError("Your User ID or password is incorrect.");
+        setError("Your email or password is incorrect.");
       } else if (typeof navigator !== 'undefined' && navigator.onLine === false) {
         setError("Unable to connect. Please check your internet connection and try again.");
       } else if (err?.message?.includes('Network') || err?.code === 'ERR_NETWORK') {
@@ -101,7 +125,7 @@ export default function Login() {
       )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold uppercase tracking-wider text-gray">User ID</label>
+          <label className="text-xs font-semibold uppercase tracking-wider text-gray">Email Address</label>
           <div className="relative">
             <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray" />
             <input
@@ -136,7 +160,7 @@ export default function Login() {
             onChange={(e) => setRememberId(e.target.checked)}
             className="w-4 h-4 rounded border-slate-300 text-navy focus:ring-navy/20"
           />
-          <span className="text-sm text-gray">Remember User ID</span>
+          <span className="text-sm text-gray">Remember my email</span>
         </label>
         <button
           type="submit"

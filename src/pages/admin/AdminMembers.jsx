@@ -96,6 +96,7 @@ export default function AdminMembers() {
       if (balance > 0) {
         await base44.entities.Transaction.create({
           account_id: account.id,
+          user_id: showCreate.id,
           type: 'opening_balance',
           amount: balance,
           description: 'Opening Balance',

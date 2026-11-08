@@ -102,6 +102,7 @@ export default function AdminApplications() {
         });
         await base44.entities.Transaction.create({
           account_id: account.id,
+          user_id: app.user_id,
           type: 'opening_balance',
           amount: 0,
           description: 'Opening Balance',

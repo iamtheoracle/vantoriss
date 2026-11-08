@@ -71,6 +71,7 @@ export default function BulkTransactionImport() {
         .map(r => ({ row: r.row, reason: r.issues.join('; ') }));
       const payload = validRows.map(r => ({
         account_id: byNumber.get(String(r.account_number).trim()).id,
+        user_id: byNumber.get(String(r.account_number).trim()).user_id,
         type: r.type,
         amount: Number(r.amount),
         description: r.description || '',

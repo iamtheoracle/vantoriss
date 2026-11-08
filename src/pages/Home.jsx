@@ -72,7 +72,7 @@ export default function Home() {
         <div className="flex justify-between items-center">
           <div>
             <p className="text-xs uppercase tracking-[0.16em] text-gray">Available balance</p>
-            <p className="text-3xl font-semibold mt-1">{hidden ? '••••••' : formatCurrency(balance)}</p>
+            <p className="text-2xl font-semibold mt-1">{hidden ? '••••••' : formatCurrency(balance)}</p>
           </div>
           <button onClick={() => setHidden(v => !v)} aria-label={hidden ? 'Show balances' : 'Hide balances'} className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
             {hidden ? <Eye size={18} /> : <EyeOff size={18} />}

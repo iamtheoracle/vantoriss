@@ -65,6 +65,7 @@ export default function AdminAccounts() {
 
       const txnData = {
         account_id: showTxn.id,
+        user_id: showTxn.user_id,
         type: txnForm.type,
         amount: txnForm.type === 'withdrawal' ? -Math.abs(amount) : amount,
         description: txnForm.description,
@@ -284,6 +285,7 @@ export default function AdminAccounts() {
 
         const txnData = {
           account_id: account.id,
+          user_id: account.user_id,
           type: parts[typeIdx],
           amount: parseFloat(parts[amountIdx]),
           description: descIdx >= 0 ? parts[descIdx] || '' : '',
