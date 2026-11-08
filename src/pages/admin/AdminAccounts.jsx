@@ -189,7 +189,7 @@ export default function AdminAccounts() {
     if (!viewingHistory) return;
     setExporting(true);
     try {
-      const txns = transactions.length > 0 ? transactions : await base44.entities.Transaction.filter({ account_id: viewingHistory.id }, '-created_date', 200);
+      const txns = transactions.length > 0 ? transactions : await base44.entities.Transaction.filter({ account_id: viewingHistory.id }, '-created_date', 500);
       const headers = ['Date', 'Type', 'Description', 'Reference', 'Amount', 'Balance After'];
       const rows = txns.map(t => ({
         Date: (t.transaction_date || t.created_date).split('T')[0],
