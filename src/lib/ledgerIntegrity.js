@@ -31,7 +31,7 @@ export function findLedgerDiscrepancies(accounts = [], transactions = [], tolera
 
   for (const account of accounts) {
     const rows = (grouped.get(account.id) || []).sort((a, b) => {
-      const dateDiff = new Date(a.created_date || a.transaction_date || 0) - new Date(b.created_date || b.transaction_date || 0);
+      const dateDiff = new Date(a.created_date || a.transaction_date || 0).getTime() - new Date(b.created_date || b.transaction_date || 0).getTime();
       return dateDiff || String(a.id).localeCompare(String(b.id));
     });
 
