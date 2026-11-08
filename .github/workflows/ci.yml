@@ -39,7 +39,9 @@ jobs:
         continue-on-error: true
 
       - name: Lint changed JavaScript and JSX files
-        run: git diff --name-only "origin/${{ github.base_ref }}"...HEAD -- '*.js' '*.jsx' | xargs -r npx eslint --quiet
+        run: |
+          BASE_REF="${{ github.base_ref || 'main' }}"
+          git diff --name-only "origin/${BASE_REF}"...HEAD -- '*.js' '*.jsx' | xargs -r npx eslint --quiet
 
       - name: Full repository lint
         run: npm run lint
