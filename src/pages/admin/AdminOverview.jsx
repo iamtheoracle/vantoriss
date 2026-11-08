@@ -59,7 +59,7 @@ export default function AdminOverview() {
       const recent = [
         ...apps.filter(a => a.application_status === 'pending').map(a => ({ id: a.id, type: 'Application', name: a.full_name, detail: a.account_type, date: a.created_date, status: a.application_status })),
         ...withdrawals.filter(w => w.status === 'pending').map(w => ({ id: w.id, type: 'Withdrawal', name: `${formatCurrency(w.amount)}`, detail: w.method, date: w.created_date, status: w.status })),
-      ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
+      ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 10);
       setRecentItems(recent);
     } catch (e) { console.error(e); }
     setLoading(false);
@@ -218,10 +218,10 @@ export default function AdminOverview() {
 
       {/* Critical Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-        <PremiumStatCard hero label="Assets Under Management" value={formatCurrency(stats.totalBalance)} sublabel={`Across ${stats.accountCount} account${stats.accountCount === 1 ? '' : 's'}`} icon={Wallet} accent="navy" onClick={() => navigate('/operations/finance')} />
-        <PremiumStatCard label="Total Members" value={stats.members} icon={Users} accent="blue" onClick={() => navigate('/operations/members')} />
-        <PremiumStatCard label="Pending Applications" value={stats.pendingApps} icon={FileText} accent="gold" onClick={() => navigate('/operations/applications')} />
-        <PremiumStatCard label="Pending Withdrawals" value={stats.pendingWithdrawals} icon={ArrowUpRight} accent="crimson" onClick={() => navigate('/operations/withdrawals')} />
+        <PremiumStatCard hero alert={null} alertIcon={null} label="Assets Under Management" value={formatCurrency(stats.totalBalance)} sublabel={`Across ${stats.accountCount} account${stats.accountCount === 1 ? '' : 's'}`} icon={Wallet} accent="navy" onClick={() => navigate('/operations/finance')} />
+        <PremiumStatCard label="Total Members" value={stats.members} sublabel="" alert={null} alertIcon={null} hero={false} icon={Users} accent="blue" onClick={() => navigate('/operations/members')} />
+        <PremiumStatCard label="Pending Applications" value={stats.pendingApps} sublabel="" alert={null} alertIcon={null} hero={false} icon={FileText} accent="gold" onClick={() => navigate('/operations/applications')} />
+        <PremiumStatCard label="Pending Withdrawals" value={stats.pendingWithdrawals} sublabel="" alert={null} alertIcon={null} hero={false} icon={ArrowUpRight} accent="crimson" onClick={() => navigate('/operations/withdrawals')} />
       </div>
 
       {/* Pending Approvals + High Priority + Live Activity */}
