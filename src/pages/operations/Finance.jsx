@@ -25,7 +25,7 @@ export default function Finance() {
 
   if (loading) {
     return (
-      <OperationsPageLayout title="Finance Overview" description="Platform-wide financial activity" icon={DollarSign}>
+      <OperationsPageLayout title="Finance Overview" description="Platform-wide financial activity" icon={DollarSign} actions={null} breadcrumb="Atchison Village · Operations">
         <div className="flex items-center justify-center h-48">
           <div className="w-8 h-8 border-2 border-brass/30 border-t-brass rounded-full animate-spin" />
         </div>
