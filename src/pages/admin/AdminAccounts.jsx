@@ -31,7 +31,7 @@ export default function AdminAccounts() {
   useEffect(() => { loadAccounts(); }, []);
 
   async function loadAccounts() {
-    const accts = await base44.entities.Account.list('-created_date', 50);
+    const accts = await base44.entities.Account.list('-created_date', 500);
     setAccounts(accts);
     setLoading(false);
   }
@@ -41,7 +41,7 @@ export default function AdminAccounts() {
     setLoadingTxns(true);
     try {
       const [txns, logs] = await Promise.all([
-        base44.entities.Transaction.filter({ account_id: acct.id }, '-created_date', 200),
+        base44.entities.Transaction.filter({ account_id: acct.id }, '-created_date', 500),
         base44.entities.AuditLog.filter({ account_id: acct.id }, '-created_date', 50),
       ]);
       setTransactions(txns);
@@ -140,7 +140,7 @@ export default function AdminAccounts() {
       await base44.entities.Account.update(viewingHistory.id, { balance: newBalance });
 
       // Recalculate balance_after for all subsequent transactions
-      const allTxns = await base44.entities.Transaction.filter({ account_id: viewingHistory.id }, 'created_date', 200);
+      const allTxns = await base44.entities.Transaction.filter({ account_id: viewingHistory.id }, 'created_date', 500);
       let runningBalance = 0;
       for (const t of allTxns) {
         runningBalance += (t.amount || 0);
