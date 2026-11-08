@@ -118,7 +118,7 @@ export default function ExecutiveDashboard() {
             <p className="text-gray text-xs mt-1">New accounts opened and completed investment transaction activity. Not a balance or return forecast.</p></div>
           <div className="flex rounded-xl border border-border bg-white p-1 gap-1" aria-label="Chart date range">
             {[6, 12, 24].map(months => <button key={months} type="button" onClick={() => setChartRange(months)} aria-pressed={chartRange === months}
-              className={\`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors \${chartRange === months ? 'bg-navy text-white' : 'text-gray hover:bg-slate-50'}\`}>{months}M</button>)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${chartRange === months ? 'bg-navy text-white' : 'text-gray hover:bg-slate-50'}`}>{months}M</button>)}
           </div>
         </div>
         <div className="h-[320px] w-full">
