@@ -44,6 +44,7 @@ export default function WithdrawalLimits() {
         amount: null,
         balance_before: null,
         balance_after: null,
+        target_user_id: null,
       });
       loadLimits();
     } catch (e) { console.error(e); }
