@@ -87,3 +87,43 @@ A capability can be marked connected only after all applicable checks pass:
 10. Production approval and a rollback plan are recorded.
 
 Until these gates pass, the provider registry must remain disconnected and the member UI must not offer a live search, booking, payment or tracking action.
+
+
+## Evidence-based provider shortlist (November 2026)
+
+These are recommended candidates, not connected suppliers. Commercial approval, market coverage and production credentials still need to be confirmed.
+
+### Flights — Duffel as the first candidate
+
+Duffel documents a flight offer-request/search flow and order creation/management. Offers expire and should be re-fetched before booking; the current offer response may change, including total price and included services. Duffel orders expose available post-booking actions such as cancellation or changes when supported by the airline/order. See [Duffel flight concepts](https://duffel.com/docs/api/overview/flights-key-concepts), [offer revalidation](https://duffel.com/docs/api/offers) and [orders](https://duffel.com/docs/api/orders).
+
+Do not treat a successful order API response as proof that AVCU's payment has settled. Confirm the payment model, eligible markets, supported airlines, ticketing responsibility, cancellation/refund coverage and account access with Duffel before enabling production checkout.
+
+### Accommodation and car hire — Booking.com Demand API
+
+Booking.com Demand API is the preferred candidate to evaluate for both accommodation and rental cars. Its documentation describes accommodation search, availability, property details, supported bookings and post-booking/reporting flows. Demand API v3.2/v3.3 documents car search, availability, terms, order preview/create and post-booking order details. It requires partner access and affiliate authentication. See [Demand API overview](https://developers.booking.com/demand/docs/getting-started/overview), [accommodation API](https://developers.booking.com/demand/docs/accommodations/about-accommodation), [car rental API](https://developers.booking.com/demand/docs/cars/overview) and [v3.3 API reference](https://developers.booking.com/demand/docs/open-api/3.3/demand-api).
+
+The current Booking.com Demand API overview lists flights as coming soon, so it must not be selected as the flight inventory provider today. Partner access and the precise supported booking flows must be confirmed for AVCU's business model and operating markets.
+
+Duffel Stays is a viable alternative for accommodation if access is granted. Its documented flow includes search, retrieving room rates, requesting a final quote and creating a booking. See [Duffel Stays getting started](https://duffel.com/docs/guides/getting-started-with-stays). Evaluate total cost, inventory coverage, support, payment terms and post-booking capability against Booking.com before committing.
+
+### Flight status — Cirium
+
+Cirium is the first candidate for operational flight status. Its Flight Status API documents scheduled, estimated and actual departure/arrival times, delays, cancellations, gates, terminals and baggage information. Flight tracking/position is a separate capability and must be licensed and integrated separately. Some airport/route APIs require a contract plan. See [Cirium Flight Status](https://developer.cirium.com/apis/flightstats-apis/flight-status) and [Cirium API catalogue](https://developer.flightstats.com/).
+
+### Ground directions — Google Maps Routes API
+
+Use Google Routes only for ground directions, distance and travel-time estimates between locations. It is not an airline inventory or live aircraft-tracking provider. See [Google Routes API](https://developers.google.com/maps/documentation/routes).
+
+### Why Amadeus is not the default flight-booking choice
+
+Amadeus Self-Service offers flight search, price confirmation, order creation and order management, but its own FAQ says production ticket issuance requires an airline consolidator contract (or the relevant accreditation), with post-ticketing changes and refunds handled offline by the consolidator. The Self-Service dataset also excludes several major airlines and low-cost carriers. This may be useful as an additional search source or where a suitable consolidator relationship is secured, but it is not the simplest default for a fully managed booking lifecycle. See [Amadeus Self-Service API FAQ](https://admin.developers.amadeus.com/self-service/apis-docs/guides/developer-guides/faq/) and [flight API tutorials](https://admin.developers.amadeus.com/self-service/apis-docs/guides/developer-guides/resources/).
+
+## Proposed integration order
+
+1. Confirm supplier commercial eligibility, production access and markets for Duffel, Booking.com Demand API and Cirium.
+2. Implement Duffel flight search, offer revalidation and order retrieval in sandbox; keep payment and ticketing status separate.
+3. Implement Booking.com accommodation and car search/availability/terms/order flows in sandbox.
+4. Add Cirium flight status lookup and event normalization; add aircraft position only if a separate licensed product is approved.
+5. Add the member trip record and notifications only after provider booking references and webhook/event contracts are stable.
+6. Complete payment-provider and supplier reconciliation, failure recovery and member-ownership tests before enabling any production booking.
