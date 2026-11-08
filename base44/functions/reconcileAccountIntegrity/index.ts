@@ -32,13 +32,15 @@ Deno.serve(async (req) => {
 
       // An account write can arrive just before its matching transaction record.
       // Give that pair a short grace period; the five-minute sweep is the backstop.
-      if (sourceEvent === "Account.update") {
-        const accountUpdated = new Date(account.updated_date || eventData?.updated_date || 0).getTime();
-        const latestTxnCreated = new Date(latest.created_date || 0).getTime();
-        if (accountUpdated && accountUpdated > latestTxnCreated &&
-            Date.now() - accountUpdated < ACCOUNT_UPDATE_GRACE_MS) {
-          return { skipped: true, reason: "account_update_grace_period" };
-        }
+      const accountUpdated = new Date(account.updated_date || eventData?.updated_date || 0).getTime();
+      const latestTxnCreated = new Date(latest.created_date || 0).getTime();
+      if (sourceEvent === "Account.update" && accountUpdated > latestTxnCreated &&
+          Date.now() - accountUpdated < ACCOUNT_UPDATE_GRACE_MS) {
+        return { skipped: true, reason: "account_update_grace_period" };
+      }
+      if (sourceEvent.startsWith("Transaction.") && latestTxnCreated > accountUpdated &&
+          Date.now() - latestTxnCreated < ACCOUNT_UPDATE_GRACE_MS) {
+        return { skipped: true, reason: "transaction_update_grace_period" };
       }
 
       const actual = Number(account.balance);
