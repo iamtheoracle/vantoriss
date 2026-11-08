@@ -27,9 +27,9 @@ export default function MoveMoney() {
       try {
         const me = await base44.auth.me();
         const results = await Promise.allSettled([
-          base44.entities.Account.filter({ user_id: me.id }, '-created_date'),
-          base44.entities.PaymentCard.filter({ user_id: me.id, status: 'active' }, '-created_date'),
-          base44.entities.InvestmentPortfolio.filter({ user_id: me.id }, '-created_date'),
+          base44.entities.Account.filter({ user_id: me.id }, '-created_date', 500),
+          base44.entities.PaymentCard.filter({ user_id: me.id, status: 'active' }, '-created_date', 500),
+          base44.entities.InvestmentPortfolio.filter({ user_id: me.id }, '-created_date', 500),
         ]);
         if (cancelled) return;
         setUser(me);
