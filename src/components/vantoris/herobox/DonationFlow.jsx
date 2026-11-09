@@ -64,7 +64,14 @@ export default function DonationFlow({ onClose, onOrderComplete }) {
         };
         const matchingCategories = categoryMap[category.id] || [];
         if (matchingCategories.length > 0) {
-          filtered = donorVisible.filter((c) => matchingCategories.includes(c.category));
+          filtered = donorVisible.filter((c) => {
+            const text = [c.case_title, c.recipient_name, c.recipient_type, c.stated_need, c.location].join(' ').toLowerCase();
+            if (category.id === 'refugees') return matchingCategories.includes(c.category) && /refugee|displaced|asylum|internally displaced/.test(text);
+            if (category.id === 'elderly') return /elderly|older people|senior|retirement|care home|aged/.test(text);
+            if (category.id === 'disability') return /disabilit|wheelchair|mobility|accessible/.test(text);
+            if (category.id === 'conflict') return matchingCategories.includes(c.category) && /conflict|war zone|war-affected|civilian|displaced|emergency/.test(text);
+            return matchingCategories.includes(c.category);
+          });
         }
       }
 
