@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import AuthLayout from "@/components/AuthLayout";
 import { useAuth } from "@/lib/AuthContext";
+import { hasOperationsAccess } from "@/lib/operationsAccess";
 import SplashScreen from "@/components/auth/SplashScreen";
 import OnboardingCarousel from "@/components/auth/OnboardingCarousel";
 import { Loader2, Lock, User } from "lucide-react";
@@ -59,12 +60,16 @@ export default function Login() {
         return;
       }
 
+      // Staff land on their authorized workspace; members land on their dashboard.
+      const me = await base44.auth.me().catch(() => null);
+      const home = hasOperationsAccess(me?.role) ? "/operations" : "/";
+
       const params = new URLSearchParams(window.location.search);
       const requested = params.get("returnTo");
       const destination =
         requested && requested.startsWith("/") && !requested.startsWith("//")
           ? requested
-          : "/";
+          : home;
 
       // Authentication establishes the session; it does not decide which
       // Vantoris experience the user is allowed to access. All authenticated

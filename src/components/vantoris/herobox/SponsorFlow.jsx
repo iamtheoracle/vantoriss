@@ -47,20 +47,8 @@ export default function SponsorFlow({ open, onClose, accounts, profile, onSucces
         payment_account_id: selectedAccountId,
       });
 
-      await base44.entities.Transaction.create({
-        account_id: selectedAccountId,
-        type: 'withdrawal',
-        amount: selectedPackage.amount,
-        description: `HeroBox: ${selectedPackage.name}`,
-        reference: `HB-${Date.now()}`,
-      });
-
-      const account = accounts.find(a => a.id === selectedAccountId);
-      if (account) {
-        await base44.entities.Account.update(selectedAccountId, {
-          balance: (account.balance || 0) - selectedPackage.amount,
-        });
-      }
+      // Money movement is posted by an authorized officer after review — the
+      // member's request is recorded above, the ledger is never written here.
 
       await base44.entities.HeroBoxActivity.create({
         user_id: me.id,

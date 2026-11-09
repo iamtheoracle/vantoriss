@@ -35,30 +35,37 @@ function getMonthKey(date) {
 export default function ExecutiveReports() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [period, setPeriod] = useState(12);
 
   useEffect(() => {
     let mounted = true;
     async function load() {
       try {
-        const [accounts, transactions, users, apps] = await Promise.all([
+        const [accounts, transactions, users, apps, invTxns] = await Promise.all([
           base44.entities.Account.list('-created_date', 300),
           base44.entities.Transaction.list('-created_date', 500),
           base44.entities.User.list('-created_date', 300),
           base44.entities.Application.list('-created_date', 100),
+          base44.entities.InvestmentTransaction.list('-created_date', 500).catch(() => []),
         ]);
         if (!mounted) return;
 
-        // Build 12-month window
+        // Build the selected reporting window
         const now = new Date();
         const months = [];
-        for (let i = 11; i >= 0; i--) {
+        for (let i = period - 1; i >= 0; i--) {
           const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
           months.push({ key: getMonthKey(d), label: getMonthLabel(d), date: d });
         }
 
         // AUM growth: cumulative net position per month
         // Sort transactions chronologically, compute running balance by month
-        const sortedTxns = [...transactions].sort((a, b) =>
+        // Only ledger rows attached to a real account count as banking activity;
+        // quarantined rows awaiting ownership review are excluded.
+        const accountIds = new Set(accounts.map(a => a.id));
+        const ledger = transactions.filter(t => accountIds.has(t.account_id));
+
+        const sortedTxns = [...ledger].sort((a, b) =>
           new Date(a.transaction_date || a.created_date) - new Date(b.transaction_date || b.created_date)
         );
 
@@ -124,8 +131,12 @@ export default function ExecutiveReports() {
         });
 
         const totalAum = accounts.reduce((s, a) => s + (a.balance || 0), 0);
-        const totalDeposits = transactions.filter(t => t.type === 'deposit' || t.type === 'opening_balance').reduce((s, t) => s + Math.abs(t.amount || 0), 0);
-        const totalWithdrawals = transactions.filter(t => t.type === 'withdrawal').reduce((s, t) => s + Math.abs(t.amount || 0), 0);
+        const totalDeposits = ledger.filter(t => t.type === 'deposit' || t.type === 'opening_balance').reduce((s, t) => s + Math.abs(t.amount || 0), 0);
+        const totalWithdrawals = ledger.filter(t => t.type === 'withdrawal').reduce((s, t) => s + Math.abs(t.amount || 0), 0);
+        // Investment volume is reported separately from banking balances.
+        const investmentVolume = (invTxns || [])
+          .filter(t => ['buy', 'sell', 'deposit', 'withdrawal'].includes(t.type) && t.status !== 'failed')
+          .reduce((s, t) => s + Math.abs(t.amount || 0), 0);
         const memberCount = users.filter(u => u.role === 'user').length;
         const pendingApps = apps.filter(a => a.application_status === 'pending').length;
 
@@ -141,9 +152,11 @@ export default function ExecutiveReports() {
           totalAum,
           totalDeposits,
           totalWithdrawals,
+          investmentVolume,
+          period,
           memberCount,
           pendingApps,
-          totalTxns: transactions.length,
+          totalTxns: ledger.length,
           activeAccounts: accounts.filter(a => a.status === 'active').length,
           aumChange,
           txnChange,
@@ -153,7 +166,7 @@ export default function ExecutiveReports() {
     }
     load();
     return () => { mounted = false; };
-  }, []);
+  }, [period]);
 
   function handleExportCsv() {
     if (!data) return;
@@ -194,10 +207,25 @@ export default function ExecutiveReports() {
       icon={TrendingUp}
       breadcrumb="Executive Workspace"
       actions={
-        <button onClick={handleExportCsv} className="flex items-center gap-2 px-4 py-2 bg-white/[0.04] hover:bg-white/[0.08] text-white text-sm rounded-xl border border-white/[0.06] hover:border-brass/20 transition-all">
-          <Download size={15} className="text-brass" />
-          Export Report
-        </button>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 bg-white/[0.04] rounded-xl border border-white/[0.06] p-1">
+            {[6, 12, 24].map(p => (
+              <button
+                key={p}
+                onClick={() => setPeriod(p)}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                  period === p ? 'bg-brass/20 text-brass' : 'text-[#AAB4C3] hover:text-white'
+                }`}
+              >
+                {p}M
+              </button>
+            ))}
+          </div>
+          <button onClick={handleExportCsv} className="flex items-center gap-2 px-4 py-2 bg-white/[0.04] hover:bg-white/[0.08] text-white text-sm rounded-xl border border-white/[0.06] hover:border-brass/20 transition-all">
+            <Download size={15} className="text-brass" />
+            Export Report
+          </button>
+        </div>
       }
     >
       {/* Summary KPIs */}
@@ -206,6 +234,7 @@ export default function ExecutiveReports() {
         <PremiumStatCard label="Total Transaction Volume" value={formatCurrency(data.totalDeposits + data.totalWithdrawals)} sublabel={`${data.totalTxns} total transactions`} icon={Activity} accent="champagne" />
         <PremiumStatCard label="Total Members" value={data.memberCount} sublabel={`${data.activeAccounts} active accounts`} icon={Users} accent="blue" />
         <PremiumStatCard label="Net Inflows" value={formatCurrency(data.totalDeposits - data.totalWithdrawals)} sublabel={`${formatCurrency(data.totalDeposits)} in · ${formatCurrency(data.totalWithdrawals)} out`} icon={ArrowDownToLine} accent="mint" />
+        <PremiumStatCard label="Investment Volume" value={formatCurrency(data.investmentVolume)} sublabel="Traded volume — separate from banking balances" icon={TrendingUp} accent="champagne" />
       </div>
 
       {/* AUM Growth Chart — Hero */}
@@ -216,7 +245,7 @@ export default function ExecutiveReports() {
             <h3 className="text-white font-semibold text-sm">AUM Growth Trend</h3>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-[#AAB4C3] text-xs">12-Month View</span>
+            <span className="text-[#AAB4C3] text-xs">{data.period}-Month View</span>
             <span className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border ${
               aumChange >= 0 ? 'bg-mint/10 text-mint border-mint/20' : 'bg-crimson/10 text-red-400 border-crimson/20'
             }`}>
