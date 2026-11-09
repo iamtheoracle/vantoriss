@@ -89,10 +89,10 @@ export default function HeroBox() {
           <div className="w-11 h-11 rounded-2xl bg-brass/10 border border-brass/15 flex items-center justify-center"><Heart size={22} className="text-brass" /></div>
           <div><h1 className="text-xl font-bold text-foreground">HeroBox</h1><p className="text-xs text-gray">Care, essentials and connection in one place.</p></div>
         </div>
-        <button onClick={() => setShowCheckout(true)} aria-label="Open cart" className="relative w-11 h-11 rounded-xl bg-navy flex items-center justify-center text-white">
+        {cartCount > 0 && <button onClick={() => setShowCheckout(true)} aria-label="Open cart" className="relative w-11 h-11 rounded-xl bg-navy flex items-center justify-center text-white">
           <ShoppingCart size={19} />
-          {cartCount > 0 && <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-brass text-white text-[10px] font-bold flex items-center justify-center">{cartCount}</span>}
-        </button>
+          <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-brass text-white text-[10px] font-bold flex items-center justify-center">{cartCount}</span>
+        </button>}
       </div>
 
       <section className="relative overflow-hidden rounded-3xl bg-[#14243b] p-5 sm:p-6 mb-4 text-white">
