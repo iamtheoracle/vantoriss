@@ -171,7 +171,7 @@ export default function DonationFlow({ onClose, onOrderComplete }) {
           <div className="space-y-3">
             <div className="flex items-center gap-2 mb-2">
               <Heart size={16} className="text-brass" />
-              <p className="text-sm font-semibold text-foreground">Verified Cases</p>
+              <p className="text-sm font-semibold text-foreground">Approved cases</p>
             </div>
             {loading ? (
               <div className="flex justify-center py-8"><Loader2 className="animate-spin text-brass" /></div>
@@ -271,7 +271,7 @@ export default function DonationFlow({ onClose, onOrderComplete }) {
                 disabled={submitting || !amount}
                 className="flex-1 py-3 rounded-xl bg-brass text-white text-sm font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {submitting ? <Loader2 size={16} className="animate-spin" /> : <>Donate {amount ? formatCurrency(parseFloat(amount)) : ''}</>}
+                {submitting ? <Loader2 size={16} className="animate-spin" /> : <>Record pledge {amount ? formatCurrency(parseFloat(amount)) : ''}</>}
               </button>
             </div>
           </div>
