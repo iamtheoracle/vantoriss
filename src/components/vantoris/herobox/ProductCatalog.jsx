@@ -5,7 +5,7 @@ import { formatCurrency } from '@/lib/formatCurrency';
 import { HEROBOX_PACKAGES, buildPackage, isProductAvailableForDestination } from '@/lib/heroboxPackages';
 import PackageShowcase from '@/components/vantoris/herobox/PackageShowcase';
 
-const SERVICE_CATEGORIES = ['airtime_data', 'subscriptions', 'internet_access', 'wifi_devices'];
+const SERVICE_CATEGORIES = ['phones', 'mobile_tech', 'accessories', 'airtime_data', 'subscriptions', 'internet_access', 'wifi_devices'];
 const CATEGORY_META = {
   essential: { label: 'Essentials', icon: Heart },
   comfort: { label: 'Comfort', icon: Home },
