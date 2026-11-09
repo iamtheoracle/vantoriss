@@ -20,7 +20,7 @@ export const HEROBOX_PACKAGES = [
     name: 'HEARTH',
     purpose: 'Everyday essential support',
     description: 'Staple food, basic necessities, and simple personal-care items.',
-    categories: ['essential', 'snack_food'],
+    categories: ['essential', 'snack_food', 'groceries', 'home_essentials'],
     color: 'bg-mint/10 text-mint',
     accent: 'mint',
     minItems: 3,
@@ -31,7 +31,7 @@ export const HEROBOX_PACKAGES = [
     name: 'HAVEN',
     purpose: 'Essential support plus comfort',
     description: 'Food, personal care, comfort items, and household essentials.',
-    categories: ['essential', 'comfort', 'snack_food'],
+    categories: ['essential', 'comfort', 'snack_food', 'groceries', 'home_essentials'],
     color: 'bg-champagne/10 text-champagne',
     accent: 'champagne',
     minItems: 4,
@@ -42,7 +42,7 @@ export const HEROBOX_PACKAGES = [
     name: 'VITALIS',
     purpose: 'Health, hygiene and personal-care support',
     description: 'Hygiene, personal care, wellness-related everyday supplies, and approved health-support products.',
-    categories: ['body_care', 'comfort', 'essential'],
+    categories: ['body_care', 'health_essentials', 'comfort', 'essential'],
     color: 'bg-brass/10 text-brass',
     accent: 'brass',
     minItems: 3,
@@ -53,7 +53,7 @@ export const HEROBOX_PACKAGES = [
     name: 'PROVISION',
     purpose: 'Substantial food and household provision',
     description: 'Staple food, groceries, snacks, drinks, and household provisions.',
-    categories: ['snack_food', 'essential'],
+    categories: ['snack_food', 'groceries', 'essential', 'home_essentials'],
     color: 'bg-navy/10 text-navy',
     accent: 'navy',
     minItems: 5,
@@ -64,7 +64,7 @@ export const HEROBOX_PACKAGES = [
     name: 'SIGNAL',
     purpose: 'Communication support',
     description: 'Mobile phones, phone accessories, airtime, mobile data, and communication subscriptions where available.',
-    categories: ['mobile_tech', 'airtime_data', 'subscriptions'],
+    categories: ['mobile_tech', 'phones', 'accessories', 'airtime_data', 'subscriptions', 'internet_access', 'wifi_devices'],
     color: 'bg-champagne/10 text-champagne',
     accent: 'champagne',
     minItems: 1,
@@ -75,7 +75,7 @@ export const HEROBOX_PACKAGES = [
     name: 'SOLACE',
     purpose: 'Broad personal care and comfort',
     description: 'Food, personal care, hygiene, comfort, and household essentials.',
-    categories: ['comfort', 'body_care', 'snack_food', 'essential'],
+    categories: ['comfort', 'body_care', 'snack_food', 'essential', 'home_essentials'],
     color: 'bg-brass/10 text-brass',
     accent: 'brass',
     minItems: 5,
@@ -102,6 +102,50 @@ export const HEROBOX_PACKAGES = [
     accent: 'brass',
     minItems: 8,
     maxItems: 25,
+  },
+  {
+    id: 'connect',
+    name: 'CONNECT',
+    purpose: 'Digital access and connectivity',
+    description: 'Phones, airtime, mobile data, Wi-Fi devices and internet plans.',
+    categories: ['phones', 'mobile_tech', 'accessories', 'airtime_data', 'subscriptions', 'internet_access', 'wifi_devices'],
+    color: 'bg-sky-100 text-sky-800',
+    accent: 'sky',
+    minItems: 1,
+    maxItems: 8,
+  },
+  {
+    id: 'family',
+    name: 'FAMILY',
+    purpose: 'Family and children essentials',
+    description: 'Food, baby care, school supplies and practical household basics.',
+    categories: ['groceries', 'snack_food', 'baby_care', 'school_supplies', 'home_essentials', 'clothing'],
+    color: 'bg-rose-100 text-rose-800',
+    accent: 'rose',
+    minItems: 3,
+    maxItems: 12,
+  },
+  {
+    id: 'eldercare',
+    name: 'ELDERCARE',
+    purpose: 'Support for older people',
+    description: 'Everyday personal care, comfort, food and approved mobility-support products.',
+    categories: ['elder_care', 'body_care', 'health_essentials', 'comfort', 'groceries', 'mobility_support'],
+    color: 'bg-violet-100 text-violet-800',
+    accent: 'violet',
+    minItems: 3,
+    maxItems: 12,
+  },
+  {
+    id: 'resettlement',
+    name: 'RESETTLEMENT',
+    purpose: 'A fresh start at home',
+    description: 'Household basics, clothing, food and practical supplies for families rebuilding daily life.',
+    categories: ['home_essentials', 'essential', 'groceries', 'clothing', 'comfort'],
+    color: 'bg-amber-100 text-amber-800',
+    accent: 'amber',
+    minItems: 4,
+    maxItems: 15,
   },
 ];
 
@@ -133,7 +177,11 @@ export function buildPackage(pkgDef, products, options = {}) {
     );
   }
 
-  // Sort by price ascending to maximize items within budget
+  // Keep a package in one currency. Never add unlike currency amounts together.
+  const currency = options.currency || eligible[0]?.currency || 'USD';
+  eligible = eligible.filter(product => (product.currency || 'USD') === currency);
+
+  // Sort only after the currency has been normalized.
   eligible.sort((a, b) => (a.price || 0) - (b.price || 0));
 
   let selected = [];
@@ -154,12 +202,16 @@ export function buildPackage(pkgDef, products, options = {}) {
       discount: product.discount || 0,
       quantity: 1,
       source: product.source || '',
+      currency: product.currency || 'USD',
+      item_type: product.item_type || 'physical',
       freshness_status: product.freshness_status || 'current',
     });
     subtotal += unitPrice;
   }
 
   const available = selected.length >= pkgDef.minItems;
+  // Delivery is quoted by a fulfilment provider later; do not invent a flat fee.
+  const shippingCost = 0;
 
   return {
     packageId: pkgDef.id,
@@ -168,11 +220,12 @@ export function buildPackage(pkgDef, products, options = {}) {
     description: pkgDef.description,
     color: pkgDef.color,
     accent: pkgDef.accent,
+    currency,
     items: selected,
     itemCount: selected.length,
     subtotal,
-    shippingCost: available ? 15 : 0,
-    total: available ? subtotal + 15 : 0,
+    shippingCost,
+    total: available ? subtotal + shippingCost : 0,
     available,
     unavailableReason: !available ? 'Insufficient products in catalog for this package' : null,
     pricingTimestamp: new Date().toISOString(),
@@ -231,6 +284,8 @@ export function createOrderSnapshot(cartItems, packageData = null) {
       discount: item.discount || 0,
       quantity: item.quantity,
       source: item.source || '',
+      currency: item.currency || 'USD',
+      item_type: item.item_type || 'physical',
       freshness_status: item.freshness_status || 'current',
     })),
   };
