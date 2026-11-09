@@ -113,8 +113,8 @@ export default function ProductCatalog({ cart, onAddToCart, onRemoveFromCart, vi
               {product.source && <p className="text-[9px] text-gray mt-1">Provider: {product.source}</p>}
               <div className="mt-auto pt-2">
                 <div className="flex items-baseline gap-1.5 flex-wrap">
-                  <span className="text-sm font-extrabold text-foreground">{formatCurrency(price)}</span>
-                  {product.discount > 0 && <span className="text-[10px] text-gray line-through">{formatCurrency(product.price)}</span>}
+                  <span className="text-sm font-extrabold text-foreground">{formatCurrency(price, product.currency || 'USD')}</span>
+                  {product.discount > 0 && <span className="text-[10px] text-gray line-through">{formatCurrency(product.price, product.currency || 'USD')}</span>}
                 </div>
                 {product.retrieved_at && <p className="text-[9px] text-gray mt-0.5">Price checked {new Date(product.retrieved_at).toLocaleDateString()}</p>}
                 {unavailable ? <p className="text-[10px] text-amber-700 mt-1">{stale ? 'Price needs refreshing' : product.availability === 'requires_config' ? 'Provider setup required' : 'Currently unavailable'}</p> : qty > 0 ? (
