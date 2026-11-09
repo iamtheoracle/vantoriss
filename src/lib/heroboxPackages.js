@@ -206,7 +206,8 @@ export function buildPackage(pkgDef, products, options = {}) {
   }
 
   const available = selected.length >= pkgDef.minItems;
-  const shippingCost = available && selected.some(item => item.item_type !== 'digital_service') ? 15 : 0;
+  const digitalCategories = ['airtime_data', 'subscriptions', 'internet_access', 'wifi_devices'];
+  const shippingCost = available && selected.some(item => item.item_type !== 'digital_service' && !digitalCategories.includes(item.category)) ? 15 : 0;
 
   return {
     packageId: pkgDef.id,
