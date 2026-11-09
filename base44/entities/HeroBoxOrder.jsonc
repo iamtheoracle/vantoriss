@@ -10,24 +10,20 @@
       "type": "string"
     },
     "recipient_branch": {
-      "type": "string",
-      "description": "Military branch or organization (if applicable)"
+      "type": "string"
     },
     "destination": {
-      "type": "string",
-      "description": "Destination country/region/address"
+      "type": "string"
     },
     "destination_address": {
-      "type": "string",
-      "description": "Full shipping address"
+      "type": "string"
     },
     "items": {
       "type": "string",
-      "description": "JSON-serialized array of order items: [{product_id, name, category, price, quantity}]"
+      "description": "JSON-serialized order items"
     },
     "package_id": {
-      "type": "string",
-      "description": "Predefined package reference if this order includes a staged package"
+      "type": "string"
     },
     "subtotal": {
       "type": "number",
@@ -35,8 +31,7 @@
     },
     "discount": {
       "type": "number",
-      "default": 0,
-      "description": "Total discount amount in USD"
+      "default": 0
     },
     "shipping_cost": {
       "type": "number",
@@ -44,13 +39,11 @@
     },
     "service_costs": {
       "type": "number",
-      "default": 0,
-      "description": "Airtime/data/subscription service costs"
+      "default": 0
     },
     "total": {
       "type": "number",
-      "default": 0,
-      "description": "Final customer total after discount + shipping + services"
+      "default": 0
     },
     "status": {
       "type": "string",
@@ -80,8 +73,7 @@
       "default": "pending"
     },
     "payment_account_id": {
-      "type": "string",
-      "description": "Vantoris account used for payment"
+      "type": "string"
     },
     "tracking_number": {
       "type": "string"
@@ -106,5 +98,102 @@
     "user_id",
     "recipient_name",
     "destination"
-  ]
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_manager"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "treasury_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "compliance_officer"
+          }
+        }
+      ]
+    },
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_manager"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "treasury_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "compliance_officer"
+          }
+        }
+      ]
+    },
+    "delete": false
+  }
 }
