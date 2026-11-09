@@ -14,12 +14,14 @@ export default function CheckoutFlow({ cart, onClose, onOrderComplete, packageDa
   const [completedOrder, setCompletedOrder] = useState(null);
   const { toast } = useToast();
 
+  const currency = cart[0]?.currency || 'USD';
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discount = cart.reduce((sum, item) => sum + (item.discount > 0 ? item.price * item.discount / 100 * item.quantity : 0), 0);
   const isDigitalService = item => item.item_type === 'digital_service' || ['airtime_data', 'subscriptions', 'internet_access', 'wifi_devices'].includes(item.category);
   const physicalSubtotal = cart.reduce((sum, item) => sum + (isDigitalService(item) ? 0 : item.price * item.quantity * (1 - (item.discount || 0) / 100)), 0);
   const serviceCosts = cart.reduce((sum, item) => sum + (isDigitalService(item) ? item.price * item.quantity * (1 - (item.discount || 0) / 100) : 0), 0);
-  const shippingCost = physicalSubtotal > 0 ? 15 : 0;
+  // A live delivery quote is not available until a fulfilment provider is connected.
+  const shippingCost = 0;
   const total = subtotal - discount + shippingCost;
 
   async function handleSubmit() {
@@ -44,6 +46,7 @@ export default function CheckoutFlow({ cart, onClose, onOrderComplete, packageDa
         discount,
         shipping_cost: shippingCost,
         service_costs: serviceCosts,
+        currency,
         total,
         status: 'payment_pending',
         payment_status: 'pending',
@@ -153,7 +156,7 @@ export default function CheckoutFlow({ cart, onClose, onOrderComplete, packageDa
                     <p className="text-sm font-medium text-foreground">{item.name}</p>
                     <p className="text-xs text-gray">Qty: {item.quantity}{item.item_type === 'digital_service' ? ' · Digital service' : ''}</p>
                   </div>
-                  <p className="text-sm font-semibold text-foreground">{formatCurrency(price * item.quantity)}</p>
+                  <p className="text-sm font-semibold text-foreground">{formatCurrency(price * item.quantity, currency)}</p>
                 </div>
               );
             })}
@@ -170,22 +173,23 @@ export default function CheckoutFlow({ cart, onClose, onOrderComplete, packageDa
             <div className="vantoris-glass-flat p-4 space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-gray">Items ({cart.reduce((s, c) => s + c.quantity, 0)})</span>
-                <span className="text-foreground font-medium">{formatCurrency(subtotal)}</span>
+                <span className="text-foreground font-medium">{formatCurrency(subtotal, currency)}</span>
               </div>
               {discount > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-mint">Discount</span>
-                  <span className="text-mint font-medium">-{formatCurrency(discount)}</span>
+                  <span className="text-mint font-medium">-{formatCurrency(discount, currency)}</span>
                 </div>
               )}
-              {serviceCosts > 0 && <p className="text-[10px] text-gray">Includes {formatCurrency(serviceCosts)} in digital services.</p>}
+              {serviceCosts > 0 && <p className="text-[10px] text-gray">Includes {formatCurrency(serviceCosts, currency)} in digital services.</p>}
+              <p className="text-[10px] text-gray">Delivery availability, fee and estimated arrival must be confirmed by a fulfilment provider. No delivery charge is included yet.</p>
               <div className="flex justify-between text-sm">
-                <span className="text-gray">Shipping{physicalSubtotal === 0 ? ' · Digital only' : ''}</span>
-                <span className="text-foreground font-medium">{formatCurrency(shippingCost)}</span>
+                <span className="text-gray">Delivery</span>
+                <span className="text-[10px] text-amber-700 font-medium">Quote required</span>
               </div>
               <div className="border-t border-slate-200 pt-2 flex justify-between">
                 <span className="text-foreground font-semibold">Total</span>
-                <span className="text-foreground font-bold text-lg">{formatCurrency(total)}</span>
+                <span className="text-foreground font-bold text-lg">{formatCurrency(total, currency)}</span>
               </div>
             </div>
             <div className="vantoris-glass-flat p-3">
