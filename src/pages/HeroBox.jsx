@@ -6,6 +6,7 @@ import ProductCatalog from '@/components/vantoris/herobox/ProductCatalog';
 import CheckoutFlow from '@/components/vantoris/herobox/CheckoutFlow';
 import OrderHistory from '@/components/vantoris/herobox/OrderHistory';
 import DonationFlow from '@/components/vantoris/herobox/DonationFlow';
+import DiscoverFeed from '@/components/vantoris/herobox/DiscoverFeed';
 
 const TABS = [
   { id: 'packages', label: 'Packages', icon: Package },
@@ -125,7 +126,8 @@ export default function HeroBox() {
       {activeTab === 'orders' && <OrderHistory />}
       {activeTab === 'donate' && <div>
         <div className="rounded-2xl bg-[#14243b] p-5 mb-4 text-white"><Heart size={23} className="text-[#e4c88b] mb-3" /><h3 className="text-lg font-bold mb-1">Give with purpose.</h3><p className="text-white/70 text-xs leading-relaxed">Explore verified needs involving service members, children, older people, refugees, displaced families and communities affected by conflict or disasters. Follow the evidence and see reported impact.</p></div>
-        <button onClick={() => setShowDonation(true)} className="w-full py-3.5 rounded-xl bg-brass text-white font-semibold flex items-center justify-center gap-2"><Heart size={17} /> Explore verified causes</button>
+        <button onClick={() => setShowDonation(true)} className="w-full py-3.5 rounded-xl bg-brass text-white font-semibold flex items-center justify-center gap-2 mb-5"><Heart size={17} /> Support a verified cause</button>
+        <DiscoverFeed onShop={() => setActiveTab('shop')} onDonate={() => setShowDonation(true)} />
       </div>}
 
       {cartCount > 0 && <div className="fixed bottom-20 left-4 right-4 max-w-2xl mx-auto z-40"><button onClick={() => setShowCheckout(true)} className="w-full py-3.5 rounded-2xl bg-navy text-white font-semibold shadow-xl flex items-center justify-center gap-2"><ShoppingCart size={17} /> View cart · {cartCount} item{cartCount !== 1 ? 's' : ''}</button></div>}
