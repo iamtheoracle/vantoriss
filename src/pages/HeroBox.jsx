@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Heart, ShoppingBag, Package, Loader2, ShoppingCart, Wifi, Smartphone, Gift, ClipboardList, Sparkles, ArrowRight } from 'lucide-react';
+import { Heart, ShoppingBag, Package, Loader2, ShoppingCart, Wifi, Smartphone, Gift, ClipboardList, Sparkles, ArrowRight, Tag } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import ProductCatalog from '@/components/vantoris/herobox/ProductCatalog';
 import CheckoutFlow from '@/components/vantoris/herobox/CheckoutFlow';
@@ -11,6 +11,7 @@ import DiscoverFeed from '@/components/vantoris/herobox/DiscoverFeed';
 const TABS = [
   { id: 'packages', label: 'Packages', icon: Package },
   { id: 'shop', label: 'Shop', icon: ShoppingBag },
+  { id: 'deals', label: 'Offers', icon: Tag },
   { id: 'connectivity', label: 'Phones & Internet', icon: Wifi },
   { id: 'donate', label: 'Donate', icon: Heart },
   { id: 'orders', label: 'Orders', icon: ClipboardList },
@@ -122,6 +123,7 @@ export default function HeroBox() {
 
       {activeTab === 'packages' && <ProductCatalog cart={cart} onAddToCart={handleAddToCart} onRemoveFromCart={handleRemoveFromCart} view="packages" />}
       {activeTab === 'shop' && <ProductCatalog cart={cart} onAddToCart={handleAddToCart} onRemoveFromCart={handleRemoveFromCart} view="shop" />}
+      {activeTab === 'deals' && <ProductCatalog cart={cart} onAddToCart={handleAddToCart} onRemoveFromCart={handleRemoveFromCart} view="deals" />}
       {activeTab === 'connectivity' && <ProductCatalog cart={cart} onAddToCart={handleAddToCart} onRemoveFromCart={handleRemoveFromCart} view="services" />}
       {activeTab === 'orders' && <OrderHistory />}
       {activeTab === 'donate' && <div>
