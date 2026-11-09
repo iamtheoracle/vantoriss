@@ -10,20 +10,24 @@
       "type": "string"
     },
     "recipient_branch": {
-      "type": "string"
+      "type": "string",
+      "description": "Military branch or organization (if applicable)"
     },
     "destination": {
-      "type": "string"
+      "type": "string",
+      "description": "Destination country/region/address"
     },
     "destination_address": {
-      "type": "string"
+      "type": "string",
+      "description": "Full shipping address"
     },
     "items": {
       "type": "string",
-      "description": "JSON-serialized order items"
+      "description": "JSON-serialized array of order items: [{product_id, name, category, price, quantity}]"
     },
     "package_id": {
-      "type": "string"
+      "type": "string",
+      "description": "Predefined package reference if this order includes a staged package"
     },
     "subtotal": {
       "type": "number",
@@ -31,7 +35,8 @@
     },
     "discount": {
       "type": "number",
-      "default": 0
+      "default": 0,
+      "description": "Total discount amount in USD"
     },
     "shipping_cost": {
       "type": "number",
@@ -39,11 +44,13 @@
     },
     "service_costs": {
       "type": "number",
-      "default": 0
+      "default": 0,
+      "description": "Airtime/data/subscription service costs"
     },
     "total": {
       "type": "number",
-      "default": 0
+      "default": 0,
+      "description": "Final customer total after discount + shipping + services"
     },
     "status": {
       "type": "string",
@@ -73,7 +80,8 @@
       "default": "pending"
     },
     "payment_account_id": {
-      "type": "string"
+      "type": "string",
+      "description": "Vantoris account used for payment"
     },
     "tracking_number": {
       "type": "string"
