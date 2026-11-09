@@ -38,8 +38,7 @@
       "default": "USD"
     },
     "destination": {
-      "type": "string",
-      "description": "Destination country/region this product is available for (empty = global)"
+      "type": "string"
     },
     "availability": {
       "type": "string",
@@ -52,21 +51,17 @@
       "default": "available"
     },
     "source": {
-      "type": "string",
-      "description": "Partner/source name for this product"
+      "type": "string"
     },
     "source_product_id": {
-      "type": "string",
-      "description": "External product ID from partner catalog"
+      "type": "string"
     },
     "package_id": {
-      "type": "string",
-      "description": "If this product belongs to a predefined package, the package reference"
+      "type": "string"
     },
     "discount": {
       "type": "number",
-      "default": 0,
-      "description": "Discount percentage (0-100)"
+      "default": 0
     },
     "shipping_required": {
       "type": "boolean",
@@ -79,17 +74,14 @@
         "stale",
         "expired"
       ],
-      "default": "fresh",
-      "description": "Catalog data freshness \u2014 stale items cannot be purchased"
+      "default": "fresh"
     },
     "retrieved_at": {
       "type": "string",
-      "format": "date-time",
-      "description": "When the catalog data was last retrieved from source"
+      "format": "date-time"
     },
     "specifications": {
-      "type": "string",
-      "description": "JSON-serialized product specifications (storage, condition, model, etc.)"
+      "type": "string"
     },
     "status": {
       "type": "string",
@@ -104,5 +96,161 @@
     "name",
     "category",
     "price"
-  ]
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.status": "active"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_manager"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "treasury_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "compliance_officer"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_manager"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "treasury_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "compliance_officer"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_manager"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "treasury_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "compliance_officer"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_administrator"
+          }
+        }
+      ]
+    }
+  }
 }
