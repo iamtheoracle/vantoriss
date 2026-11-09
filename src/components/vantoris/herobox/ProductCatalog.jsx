@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Plus, Minus, ShoppingCart, Loader2, AlertCircle, Search, Wifi, Smartphone, Utensils, Heart, Home, Baby, Gift, BookOpen, ShieldCheck, Clock3, Tag } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, Loader2, Search, Wifi, Smartphone, Utensils, Heart, Home, Baby, Gift, BookOpen, ShieldCheck, Tag } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { HEROBOX_PACKAGES, buildPackage, isProductAvailableForDestination } from '@/lib/heroboxPackages';
 import PackageShowcase from '@/components/vantoris/herobox/PackageShowcase';
@@ -47,8 +47,10 @@ export default function ProductCatalog({ cart, onAddToCart, onRemoveFromCart, vi
 
   useEffect(() => { loadData().finally(() => setLoading(false)); }, [loadData]);
 
-  const isService = p => SERVICE_CATEGORIES.includes(p.category) || p.item_type === 'digital_service';
-  const visibleProducts = useMemo(() => products.filter(p => view === 'services' ? isService(p) : view === 'shop' ? !isService(p) : true), [products, view]);
+  const visibleProducts = useMemo(() => products.filter(p => {
+    const service = SERVICE_CATEGORIES.includes(p.category) || p.item_type === 'digital_service';
+    return view === 'services' ? service : view === 'shop' ? !service : true;
+  }), [products, view]);
   const categories = [...new Set(visibleProducts.map(p => p.category))];
   const filtered = visibleProducts.filter(p => {
     if (destination && !isProductAvailableForDestination(p, destination)) return false;
