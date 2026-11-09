@@ -100,6 +100,23 @@
     },
     "order_notes": {
       "type": "string"
+    },
+    "order_type": {
+      "type": "string",
+      "enum": [
+        "purchase",
+        "donation",
+        "package"
+      ],
+      "default": "purchase"
+    },
+    "humanitarian_case_id": {
+      "type": "string",
+      "description": "HumanitarianCase ID linked to a donation pledge; does not imply payment or case funding."
+    },
+    "donation_category": {
+      "type": "string",
+      "description": "Selected HeroBox humanitarian donation category."
     }
   },
   "required": [
