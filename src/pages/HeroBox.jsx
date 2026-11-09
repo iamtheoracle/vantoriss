@@ -19,7 +19,7 @@ const TABS = [
 
 const QUICK_LINKS = [
   { icon: Package, label: 'Care packages', detail: 'Ready-made support', tab: 'packages' },
-  { icon: Smartphone, label: 'Phones', detail: 'Devices & accessories', tab: 'shop' },
+  { icon: Smartphone, label: 'Phones', detail: 'Devices & accessories', tab: 'connectivity' },
   { icon: Wifi, label: 'Internet & data', detail: 'Stay connected', tab: 'connectivity' },
   { icon: Gift, label: 'Gifts', detail: 'Send something thoughtful', tab: 'shop' },
 ];
