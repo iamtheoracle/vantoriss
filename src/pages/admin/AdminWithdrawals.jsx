@@ -14,7 +14,7 @@ import { sendTransactionEmail } from '@/lib/transactionEmails';
 import { useToast } from '@/components/ui/use-toast';
 import { Link } from 'react-router-dom';
 
-const STATUS_FILTERS = ['all', 'pending', 'paid', 'rejected'];
+const STATUS_FILTERS = ['all', 'pending', 'processing', 'paid', 'rejected'];
 const METHOD_FILTERS = ['All Methods', 'ACH Transfer', 'Domestic Wire', 'International Wire', 'External Transfer', 'Check by Mail', "Cashier's Check"];
 const BULK_ACTIONS = [
   { id: 'pay', label: 'Approve', icon: Check, color: 'bg-mint text-white hover:bg-mint/90' },
@@ -121,30 +121,31 @@ export default function AdminWithdrawals() {
     setSelectedIds(filteredWithdrawals.filter(w => w.status === 'pending').map(w => w.id));
   }
 
-  async function payOne(wd, notes, startingBalance) {
+  async function payOne(wd, notes) {
     const account = getAccount(wd.account_id);
-    const currentBalance = startingBalance !== undefined ? startingBalance : (account?.balance || 0);
-    const newBalance = currentBalance - Math.abs(wd.amount);
-    await base44.entities.Transaction.create({
-      account_id: wd.account_id, type: 'withdrawal', amount: -Math.abs(wd.amount),
-      description: `Withdrawal - ${wd.method}`, reference: `WD-${wd.id.slice(-6)}`,
-      balance_after: newBalance, created_by_admin: true,
+    const response = await base44.functions.invoke('finalizeWithdrawal', {
+      withdrawal_request_id: wd.id,
+      admin_notes: notes || '',
     });
-    await base44.entities.Account.update(wd.account_id, { balance: newBalance });
-    await base44.entities.WithdrawalRequest.update(wd.id, { status: 'paid', admin_notes: notes });
-    await base44.entities.Notification.create({
-      user_id: wd.user_id, title: 'Withdrawal Processed',
-      message: `Your withdrawal of ${formatCurrency(Math.abs(wd.amount))} via ${wd.method} has been processed.`,
-      type: 'success',
-    });
-    await sendTransactionEmail({ user_id: wd.user_id, account, type: 'withdrawal', amount: Math.abs(wd.amount), description: `Withdrawal - ${wd.method}`, newBalance });
-    await logAuditEntry({
-      action_type: 'withdrawal_processed',
-      description: `Withdrawal processed: ${formatCurrency(Math.abs(wd.amount))} via ${wd.method}`,
-      details: `Request ID: ${wd.id}, Notes: ${notes || 'None'}`,
-      account_id: wd.account_id, amount: -Math.abs(wd.amount),
-      balance_before: currentBalance, balance_after: newBalance, target_user_id: wd.user_id,
-    });
+    const result = response.data || response;
+    if (!result.success) throw new Error(result.error || 'Withdrawal finalization failed.');
+
+    // Email delivery is secondary; it must never turn a successfully posted withdrawal into a reported payment failure.
+    if (!result.already_processed) {
+      try {
+        await sendTransactionEmail({
+          user_id: wd.user_id,
+          account,
+          type: 'withdrawal',
+          amount: Math.abs(wd.amount),
+          description: `Withdrawal - ${wd.method}`,
+          newBalance: result.balance_after,
+        });
+      } catch (emailError) {
+        console.error('Withdrawal posted, but confirmation email failed:', emailError);
+      }
+    }
+    return result;
   }
 
   async function rejectOne(wd, notes) {
@@ -200,10 +201,8 @@ export default function AdminWithdrawals() {
       if (!wd) continue;
       try {
         if (isPay) {
-          const acct = getAccount(wd.account_id);
-          const baseBalance = balanceMap[wd.account_id] !== undefined ? balanceMap[wd.account_id] : (acct?.balance || 0);
-          await payOne(wd, bulkNotes || 'Bulk approved', baseBalance);
-          balanceMap[wd.account_id] = baseBalance - Math.abs(wd.amount);
+          // The backend reads the latest balance for every item; no client-side balance snapshots are trusted.
+          await payOne(wd, bulkNotes || 'Bulk approved');
         } else if (isReject) {
           await rejectOne(wd, bulkNotes || 'Bulk rejected');
         } else {
