@@ -14,16 +14,12 @@ export default function CheckoutFlow({ cart, onClose, onOrderComplete, packageDa
   const [completedOrder, setCompletedOrder] = useState(null);
   const { toast } = useToast();
 
-  const subtotal = cart.reduce((s, item) => {
-    const price = item.discount > 0 ? item.price * (1 - item.discount / 100) : item.price;
-    return s + price * item.quantity;
-  }, 0);
-  const discount = cart.reduce((s, item) => {
-    if (item.discount > 0) return s + (item.price * item.discount / 100) * item.quantity;
-    return s;
-  }, 0);
-  const shippingCost = subtotal > 0 ? 15 : 0;
-  const total = subtotal + shippingCost;
+  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const discount = cart.reduce((sum, item) => sum + (item.discount > 0 ? item.price * item.discount / 100 * item.quantity : 0), 0);
+  const physicalSubtotal = cart.reduce((sum, item) => sum + (item.item_type === 'digital_service' ? 0 : item.price * item.quantity * (1 - (item.discount || 0) / 100)), 0);
+  const serviceCosts = cart.reduce((sum, item) => sum + (item.item_type === 'digital_service' ? item.price * item.quantity * (1 - (item.discount || 0) / 100) : 0), 0);
+  const shippingCost = physicalSubtotal > 0 ? 15 : 0;
+  const total = subtotal - discount + shippingCost;
 
   async function handleSubmit() {
     if (!recipientName || !destination) {
@@ -46,6 +42,7 @@ export default function CheckoutFlow({ cart, onClose, onOrderComplete, packageDa
         subtotal,
         discount,
         shipping_cost: shippingCost,
+        service_costs: serviceCosts,
         total,
         status: 'payment_pending',
         payment_status: 'pending',
@@ -82,7 +79,7 @@ export default function CheckoutFlow({ cart, onClose, onOrderComplete, packageDa
           <h3 className="text-lg font-bold text-foreground text-center mb-2">Order Created</h3>
           <p className="text-xs text-gray text-center mb-1">Your order has been created and is awaiting payment.</p>
           <p className="text-xs text-gray text-center mb-4">Reference: VAN-{completedOrder.id.slice(-8).toUpperCase()}</p>
-          <p className="text-xs text-gray text-center mb-6">Status: Payment Pending — your order will be processed once payment is confirmed.</p>
+          <p className="text-xs text-gray text-center mb-6">Status: Payment Pending. This creates an order record only; no payment has been collected. Fulfilment begins only after an approved payment method confirms payment.</p>
           <button onClick={() => { onOrderComplete(); onClose(); }} className="w-full py-3 rounded-xl bg-navy text-white text-sm font-semibold">Done</button>
         </div>
       </div>
@@ -148,12 +145,12 @@ export default function CheckoutFlow({ cart, onClose, onOrderComplete, packageDa
               <p className="text-sm font-semibold text-foreground">Review Items</p>
             </div>
             {cart.map((item) => {
-              const price = item.discount > 0 ? item.price * (1 - item.discount / 100) : item.price;
+              const price = item.price * (1 - (item.discount || 0) / 100);
               return (
                 <div key={item.product_id} className="flex items-center justify-between py-2 border-b border-slate-100">
                   <div>
                     <p className="text-sm font-medium text-foreground">{item.name}</p>
-                    <p className="text-xs text-gray">Qty: {item.quantity}</p>
+                    <p className="text-xs text-gray">Qty: {item.quantity}{item.item_type === 'digital_service' ? ' · Digital service' : ''}</p>
                   </div>
                   <p className="text-sm font-semibold text-foreground">{formatCurrency(price * item.quantity)}</p>
                 </div>
@@ -180,8 +177,9 @@ export default function CheckoutFlow({ cart, onClose, onOrderComplete, packageDa
                   <span className="text-mint font-medium">-{formatCurrency(discount)}</span>
                 </div>
               )}
+              {serviceCosts > 0 && <div className="flex justify-between text-sm"><span className="text-gray">Digital services</span><span className="text-foreground font-medium">{formatCurrency(serviceCosts)}</span></div>}
               <div className="flex justify-between text-sm">
-                <span className="text-gray">Shipping</span>
+                <span className="text-gray">Shipping{physicalSubtotal === 0 ? ' · Digital only' : ''}</span>
                 <span className="text-foreground font-medium">{formatCurrency(shippingCost)}</span>
               </div>
               <div className="border-t border-slate-200 pt-2 flex justify-between">
