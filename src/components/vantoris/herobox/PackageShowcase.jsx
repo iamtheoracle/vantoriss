@@ -33,11 +33,11 @@ export default function PackageShowcase({ packages, cart, onAddToCart }) {
         <article key={pkg.packageId} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="min-w-0"><span className={`inline-flex px-2.5 py-1 rounded-full text-[9px] font-extrabold tracking-wider mb-2 ${pkg.color}`}>{pkg.name}</span><h3 className="text-sm font-bold text-foreground">{pkg.purpose}</h3><p className="text-[11px] text-gray mt-1 leading-relaxed">{PACKAGE_DETAILS[pkg.packageId] || pkg.description}</p></div>
-            <div className="text-right shrink-0">{pkg.available ? <><p className="text-base font-extrabold text-foreground">{formatCurrency(pkg.total)}</p><p className="text-[10px] text-gray">{pkg.itemCount} items</p></> : <span className="text-[10px] text-amber-700 font-semibold">Not yet available</span>}</div>
+            <div className="text-right shrink-0">{pkg.available ? <><p className="text-base font-extrabold text-foreground">{formatCurrency(pkg.total, pkg.currency || 'USD')}</p><p className="text-[10px] text-gray">{pkg.itemCount} items</p></> : <span className="text-[10px] text-amber-700 font-semibold">Not yet available</span>}</div>
           </div>
           {pkg.available ? <>
             <div className="rounded-xl bg-slate-50 p-3 mb-3 space-y-2">
-              {pkg.items.slice(0, 5).map((item, idx) => <div key={item.product_id || idx} className="flex items-center justify-between gap-2 text-[11px]"><span className="text-gray truncate">{item.name}</span><span className="font-semibold text-foreground shrink-0">{formatCurrency(item.price)}</span></div>)}
+              {pkg.items.slice(0, 5).map((item, idx) => <div key={item.product_id || idx} className="flex items-center justify-between gap-2 text-[11px]"><span className="text-gray truncate">{item.name}</span><span className="font-semibold text-foreground shrink-0">{formatCurrency(item.price, item.currency || pkg.currency || 'USD')}</span></div>)}
               {pkg.items.length > 5 && <p className="text-[10px] text-gray">Plus {pkg.items.length - 5} more items</p>}
             </div>
             <button onClick={() => pkg.items.forEach(item => onAddToCart({ id: item.product_id, ...item, price: item.original_price || item.price }))} className="w-full py-3 rounded-xl bg-navy text-white text-xs font-bold flex items-center justify-center gap-2"><ShoppingCart size={14} /> Add package to cart <ArrowRight size={14} /></button>
