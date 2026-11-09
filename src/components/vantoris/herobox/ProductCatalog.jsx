@@ -49,7 +49,10 @@ export default function ProductCatalog({ cart, onAddToCart, onRemoveFromCart, vi
 
   const visibleProducts = useMemo(() => products.filter(p => {
     const service = SERVICE_CATEGORIES.includes(p.category) || p.item_type === 'digital_service';
-    return view === 'services' ? service : view === 'shop' ? !service : true;
+    if (view === 'services') return service;
+    if (view === 'deals') return p.is_deal === true || Number(p.discount) > 0;
+    if (view === 'shop') return !service;
+    return true;
   }), [products, view]);
   const categories = [...new Set(visibleProducts.map(p => p.category))];
   const filtered = visibleProducts.filter(p => {
@@ -66,8 +69,8 @@ export default function ProductCatalog({ cart, onAddToCart, onRemoveFromCart, vi
   if (loading) return <div className="flex justify-center py-12"><Loader2 className="animate-spin text-brass" /></div>;
   if (view === 'packages') return <PackageShowcase packages={packages} cart={cart} onAddToCart={onAddToCart} onRemoveFromCart={onRemoveFromCart} />;
 
-  const heading = view === 'services' ? 'Stay connected' : 'Find what you need';
-  const subheading = view === 'services' ? 'Phones, airtime, mobile data, Wi-Fi devices and internet plans.' : 'Everyday essentials, food, personal care, home, technology and thoughtful gifts.';
+  const heading = view === 'services' ? 'Stay connected' : view === 'deals' ? 'Offers worth exploring' : 'Find what you need';
+  const subheading = view === 'services' ? 'Phones, airtime, mobile data, Wi-Fi devices and internet plans.' : view === 'deals' ? 'Current discounts and promotions from configured catalogue providers.' : 'Everyday essentials, food, personal care, home, technology and thoughtful gifts.';
   const EmptyIcon = view === 'services' ? Wifi : ShoppingBag;
 
   return (
@@ -75,7 +78,7 @@ export default function ProductCatalog({ cart, onAddToCart, onRemoveFromCart, vi
       <div className="mb-4"><h2 className="text-lg font-bold text-foreground">{heading}</h2><p className="text-xs text-gray mt-1">{subheading}</p></div>
       <div className="relative mb-3">
         <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray" />
-        <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder={view === 'services' ? 'Search phones, data or internet...' : 'Search products and essentials...'} className="w-full rounded-2xl border border-slate-200 bg-white pl-10 pr-4 py-3 text-sm shadow-sm focus:border-brass/50 focus:outline-none" />
+        <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder={view === 'services' ? 'Search phones, data or internet...' : view === 'deals' ? 'Search offers...' : 'Search products and essentials...'} className="w-full rounded-2xl border border-slate-200 bg-white pl-10 pr-4 py-3 text-sm shadow-sm focus:border-brass/50 focus:outline-none" />
       </div>
       <input value={destination} onChange={e => setDestination(e.target.value)} placeholder="Delivery or service destination" className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs mb-3 focus:border-brass/50 focus:outline-none" />
 
@@ -87,7 +90,7 @@ export default function ProductCatalog({ cart, onAddToCart, onRemoveFromCart, vi
       {filtered.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
           <span className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3"><EmptyIcon size={22} className="text-gray" /></span>
-          <p className="text-sm font-semibold text-foreground">{visibleProducts.length ? 'No matches found' : view === 'services' ? 'Connectivity catalogue is being prepared' : 'The product catalogue is being prepared'}</p>
+          <p className="text-sm font-semibold text-foreground">{visibleProducts.length ? 'No matches found' : view === 'services' ? 'Connectivity catalogue is being prepared' : view === 'deals' ? 'No current offers are available' : 'The product catalogue is being prepared'}</p>
           <p className="text-xs text-gray mt-1 leading-relaxed">{visibleProducts.length ? 'Try another search or category.' : 'Only products and services with a configured provider, current price and confirmed availability will appear here. We will not display invented listings.'}</p>
         </div>
       ) : (
@@ -101,7 +104,7 @@ export default function ProductCatalog({ cart, onAddToCart, onRemoveFromCart, vi
             return <article key={product.id} className="rounded-2xl border border-slate-100 bg-white p-2.5 shadow-sm flex flex-col min-w-0">
               <div className="relative rounded-xl bg-slate-50 overflow-hidden aspect-[4/3] mb-2">
                 {product.image_url ? <img src={product.image_url} alt={product.name} loading="lazy" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Tag size={24} className="text-slate-300" /></div>}
-                {product.discount > 0 && <span className="absolute top-2 left-2 rounded-full bg-rose-600 text-white px-2 py-1 text-[9px] font-bold">{product.discount}% off</span>}
+                {(product.is_deal || product.discount > 0) && <span className="absolute top-2 left-2 rounded-full bg-rose-600 text-white px-2 py-1 text-[9px] font-bold">{product.deal_label || (product.discount > 0 ? `${product.discount}% off` : 'Offer')}</span>}
                 {product.is_featured && <span className="absolute top-2 right-2 rounded-full bg-[#14243b] text-white px-2 py-1 text-[9px] font-semibold">Featured</span>}
               </div>
               <p className="text-[10px] text-gray capitalize mb-1">{meta.label}</p>
