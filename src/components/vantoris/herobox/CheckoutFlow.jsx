@@ -177,7 +177,7 @@ export default function CheckoutFlow({ cart, onClose, onOrderComplete, packageDa
                   <span className="text-mint font-medium">-{formatCurrency(discount)}</span>
                 </div>
               )}
-              {serviceCosts > 0 && <div className="flex justify-between text-sm"><span className="text-gray">Digital services</span><span className="text-foreground font-medium">{formatCurrency(serviceCosts)}</span></div>}
+              {serviceCosts > 0 && <p className="text-[10px] text-gray">Includes {formatCurrency(serviceCosts)} in digital services.</p>}
               <div className="flex justify-between text-sm">
                 <span className="text-gray">Shipping{physicalSubtotal === 0 ? ' · Digital only' : ''}</span>
                 <span className="text-foreground font-medium">{formatCurrency(shippingCost)}</span>
