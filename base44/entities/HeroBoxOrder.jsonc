@@ -117,6 +117,11 @@
     "donation_category": {
       "type": "string",
       "description": "Selected HeroBox humanitarian donation category."
+    },
+    "currency": {
+      "type": "string",
+      "default": "USD",
+      "description": "ISO 4217 currency code used for this order."
     }
   },
   "required": [
