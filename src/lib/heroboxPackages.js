@@ -33,7 +33,8 @@ export function buildPackage(pkgDef, products, options = {}) {
     subtotal += unitPrice;
   }
   const available = selected.length >= pkgDef.minItems;
-  return { packageId: pkgDef.id, name: pkgDef.name, purpose: pkgDef.purpose, description: pkgDef.description, color: pkgDef.color, items: selected, itemCount: selected.length, subtotal, shippingCost: 0, total: available ? subtotal : 0, available, unavailableReason: !available ? 'Not enough current catalogue products are available for this package.' : null, pricingTimestamp: new Date().toISOString() };
+  const shippingCost = available && selected.some(item => item.item_type !== 'digital_service') ? 15 : 0;
+  return { packageId: pkgDef.id, name: pkgDef.name, purpose: pkgDef.purpose, description: pkgDef.description, color: pkgDef.color, items: selected, itemCount: selected.length, subtotal, shippingCost, total: available ? subtotal + shippingCost : 0, available, unavailableReason: !available ? 'Not enough current catalogue products are available for this package.' : null, pricingTimestamp: new Date().toISOString() };
 }
 
 export function buildAllPackages(products, options = {}) { return HEROBOX_PACKAGES.map(def => buildPackage(def, products, options)); }
