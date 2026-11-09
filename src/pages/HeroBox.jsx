@@ -53,6 +53,11 @@ export default function HeroBox() {
 
   function handleAddToCart(product) {
     setCart(prev => {
+      const currency = product.currency || 'USD';
+      if (prev.length > 0 && prev.some(item => (item.currency || 'USD') !== currency)) {
+        toast({ title: 'Keep one currency per cart', description: 'Please finish this cart before adding items priced in another currency.', variant: 'destructive' });
+        return prev;
+      }
       const existing = prev.find(c => c.product_id === product.id);
       if (existing) return prev.map(c => c.product_id === product.id ? { ...c, quantity: c.quantity + 1 } : c);
       return [...prev, {
