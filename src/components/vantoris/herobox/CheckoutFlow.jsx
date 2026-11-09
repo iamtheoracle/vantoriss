@@ -18,7 +18,6 @@ export default function CheckoutFlow({ cart, onClose, onOrderComplete, packageDa
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discount = cart.reduce((sum, item) => sum + (item.discount > 0 ? item.price * item.discount / 100 * item.quantity : 0), 0);
   const isDigitalService = item => item.item_type === 'digital_service' || ['airtime_data', 'subscriptions', 'internet_access', 'wifi_devices'].includes(item.category);
-  const physicalSubtotal = cart.reduce((sum, item) => sum + (isDigitalService(item) ? 0 : item.price * item.quantity * (1 - (item.discount || 0) / 100)), 0);
   const serviceCosts = cart.reduce((sum, item) => sum + (isDigitalService(item) ? item.price * item.quantity * (1 - (item.discount || 0) / 100) : 0), 0);
   // A live delivery quote is not available until a fulfilment provider is connected.
   const shippingCost = 0;
