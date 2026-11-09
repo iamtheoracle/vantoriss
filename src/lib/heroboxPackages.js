@@ -177,7 +177,11 @@ export function buildPackage(pkgDef, products, options = {}) {
     );
   }
 
-  // Sort by price ascending to maximize items within budget
+  // Keep a package in one currency. Never add unlike currency amounts together.
+  const currency = options.currency || eligible[0]?.currency || 'USD';
+  eligible = eligible.filter(product => (product.currency || 'USD') === currency);
+
+  // Sort only after the currency has been normalized.
   eligible.sort((a, b) => (a.price || 0) - (b.price || 0));
 
   let selected = [];
@@ -206,8 +210,8 @@ export function buildPackage(pkgDef, products, options = {}) {
   }
 
   const available = selected.length >= pkgDef.minItems;
-  const digitalCategories = ['airtime_data', 'subscriptions', 'internet_access', 'wifi_devices'];
-  const shippingCost = available && selected.some(item => item.item_type !== 'digital_service' && !digitalCategories.includes(item.category)) ? 15 : 0;
+  // Delivery is quoted by a fulfilment provider later; do not invent a flat fee.
+  const shippingCost = 0;
 
   return {
     packageId: pkgDef.id,
@@ -216,6 +220,7 @@ export function buildPackage(pkgDef, products, options = {}) {
     description: pkgDef.description,
     color: pkgDef.color,
     accent: pkgDef.accent,
+    currency,
     items: selected,
     itemCount: selected.length,
     subtotal,
