@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShoppingCart, Package as PackageIcon, AlertCircle, Check, ArrowRight, Wifi, Heart, ShieldCheck } from 'lucide-react';
+import { ShoppingCart, Package as PackageIcon, AlertCircle, ArrowRight, Wifi, Heart, ShieldCheck } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatCurrency';
 
 const PACKAGE_DETAILS = {
