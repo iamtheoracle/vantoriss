@@ -1,17 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Send, Loader2, Sparkles, ChevronLeft, Clock, Crown } from 'lucide-react';
+import { Send, Loader2, Sparkles, ChevronLeft, Crown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ShieldLogo from '@/components/vantoris/ShieldLogo';
 import { isSuperAdmin } from '@/lib/operationsAccess';
 
 /**
- * VantorisAssistant — the single customer-facing AI assistant.
- *
- * Uses the Vantoris Assistant agent via the Base44 agents SDK.
- * Internally, the agent coordinates through Vantoris Command with 16
- * specialist divisions. The frontend owns no business logic — it renders
- * messages and streams the agent's responses.
+ * Vantoris Advisor — the customer-facing institutional assistant.
+ * The assistant coordinates through Vantoris Intelligence and its
+ * separately governed specialist capabilities.
  */
 export default function VantorisAssistant() {
   const [messages, setMessages] = useState([]);
@@ -31,7 +28,6 @@ export default function VantorisAssistant() {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
-  // Load or create a conversation with the vantoris_assistant agent
   useEffect(() => {
     async function loadConversation() {
       try {
@@ -41,13 +37,12 @@ export default function VantorisAssistant() {
           setMessages(convs[0].messages || []);
         }
       } catch (e) {
-        // Conversations will be created on first message
+        // Conversations will be created on first message.
       }
     }
     loadConversation();
   }, []);
 
-  // Subscribe to conversation updates
   useEffect(() => {
     if (!conversation) return;
     const unsubscribe = base44.agents.subscribeToConversation(conversation.id, (data) => {
@@ -71,7 +66,7 @@ export default function VantorisAssistant() {
       if (!conv) {
         conv = await base44.agents.createConversation({
           agent_name: 'vantoris_assistant',
-          metadata: { name: 'Vantoris Assistant', description: 'Member assistance session' },
+          metadata: { name: 'Vantoris Advisor', description: 'Member assistance session' },
         });
         setConversation(conv);
       }
@@ -100,14 +95,14 @@ export default function VantorisAssistant() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-lg font-bold text-foreground">Vantoris Assistant</h1>
+                <h1 className="text-lg font-bold text-foreground">Vantoris Advisor</h1>
                 {isSuperAdmin(user) && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-navy/10 text-navy text-[10px] font-bold uppercase tracking-wider rounded-full">
-                    <Crown size={10} /> Ultimate Command
+                    <Crown size={10} /> Super Administrator
                   </span>
                 )}
               </div>
-              <p className="text-xs text-gray">{isSuperAdmin(user) ? 'Authorized for all operator capabilities' : 'AI Financial Guide'}</p>
+              <p className="text-xs text-gray">Institutional assistance</p>
             </div>
           </div>
         </div>
@@ -115,9 +110,7 @@ export default function VantorisAssistant() {
 
       {error && (
         <div className="px-5 py-2 max-w-3xl mx-auto w-full">
-          <div className="bg-crimson/8 border border-crimson/15 rounded-lg px-3 py-2 text-xs text-crimson">
-            {error}
-          </div>
+          <div className="bg-crimson/8 border border-crimson/15 rounded-lg px-3 py-2 text-xs text-crimson">{error}</div>
         </div>
       )}
 
@@ -125,7 +118,7 @@ export default function VantorisAssistant() {
         <div className="px-5 py-2 max-w-3xl mx-auto w-full">
           <div className="flex items-center gap-2 text-xs text-gray">
             <Sparkles size={12} />
-            <span>Vantoris Command processing...</span>
+            <span>Vantoris Intelligence processing...</span>
           </div>
         </div>
       )}
@@ -138,16 +131,12 @@ export default function VantorisAssistant() {
                 <Sparkles size={28} className="text-navy" />
               </div>
               <h2 className="text-lg font-semibold text-foreground mb-1">How can I help?</h2>
-              <p className="text-sm text-gray">Ask me anything about your accounts, transactions, investments, HeroBox, or platform features.</p>
+              <p className="text-sm text-gray">Ask about your accounts, transactions, investments, HeroBox, or Vantoris services.</p>
             </div>
           )}
           {messages.map((msg, i) => (
             <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                msg.role === 'user'
-                  ? 'vantoris-chat-bubble-out rounded-br-md'
-                  : 'vantoris-chat-bubble-in rounded-bl-md'
-              }`}>
+              <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${msg.role === 'user' ? 'vantoris-chat-bubble-out rounded-br-md' : 'vantoris-chat-bubble-in rounded-bl-md'}`}>
                 <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                 {msg.created_date && (
                   <p className="text-[10px] text-gray/50 mt-1">
@@ -183,18 +172,18 @@ export default function VantorisAssistant() {
               el.style.height = 'auto';
               el.style.height = Math.min(el.scrollHeight, 120) + 'px';
             }}
-            placeholder="Message Vantoris Assistant…"
+            placeholder="Message Vantoris Advisor…"
             disabled={loading}
             rows={1}
-            aria-label="Command input"
+            aria-label="Message Vantoris Advisor"
             className="flex-1 bg-white border border-border rounded-2xl px-4 py-2.5 text-sm leading-relaxed focus:border-brass/50 focus:outline-none disabled:opacity-50 selectable-content resize-none overflow-y-auto"
             style={{ maxHeight: '120px' }}
           />
           <button
             onClick={handleSend}
             disabled={loading || !input.trim()}
-            aria-label="Send command"
-            title="Send command"
+            aria-label="Send message"
+            title="Send message"
             className="w-10 h-10 rounded-full bg-navy text-white flex items-center justify-center disabled:opacity-30 hover:bg-navy/90 transition-colors flex-shrink-0"
           >
             {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
