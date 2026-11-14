@@ -11,8 +11,10 @@ export default async function(req) {
     const body = await req.json().catch(() => ({}));
     const { message, context, action = 'process' } = body;
 
+    // Boot the runtime (cached after first call)
     const { services, runtime, stages: bootStages } = await boot(base44);
 
+    // Health check endpoint
     if (action === 'health') {
       const health = await services.health.runAll();
       return Response.json({ status: 'ok', health, stages: bootStages || [] });
@@ -22,8 +24,8 @@ export default async function(req) {
       return Response.json({ error: 'Message is required' }, { status: 400 });
     }
 
-    // Vantoris Intelligence coordinates Guardian, Nexus, specialist capabilities,
-    // platform services, Spark reasoning and Orbit deferred work.
+    // Build the AI request through the Vantoris Intelligence pipeline:
+    // User → Bud → Vantoris Intelligence → Guardian → Nexus → Capability Registry → Platform Services / Spark / Orbit → Vantoris Intelligence → Bud
     const request = {
       id: crypto.randomUUID(),
       userId: user.id,
@@ -41,16 +43,23 @@ export default async function(req) {
 
     const response = await runtime.vantorisIntelligence.process(request);
 
+    // Persist conversation via ConversationService (not owned by Bud)
     const thread = await services.conversation.getOrCreateThread(user.id, 'AI Assistant');
     await services.conversation.addMessage(thread.id, user.id, 'user', message);
     await services.conversation.addMessage(thread.id, user.id, 'assistant', response.content);
+
+    // Record metrics via MetricsService
     await services.metrics.increment('ai_requests', 1, { userId: user.id });
 
+    // === Case Workspace & Recommendation Persistence ===
+    // Each member interaction creates/updates a shared case workspace.
+    // If the assistant produced a structured recommendation, persist it for staff approval.
     let workspaceId = null;
     let recommendationId = null;
     let pendingApproval = false;
 
     try {
+      // Find or create the case workspace for this member
       const existingWorkspaces = await base44.asServiceRole.entities.CaseWorkspace.filter({
         user_id: user.id,
         status: { $in: ['open', 'pending_review'] },
@@ -59,9 +68,12 @@ export default async function(req) {
       let workspace;
       if (existingWorkspaces.length > 0) {
         workspace = existingWorkspaces[0];
+        // Update with latest specialist if routed
         const specialists = workspace.specialists || [];
         const newSpecialist = response.routing?.specialist;
-        if (newSpecialist && !specialists.includes(newSpecialist)) specialists.push(newSpecialist);
+        if (newSpecialist && !specialists.includes(newSpecialist)) {
+          specialists.push(newSpecialist);
+        }
         const timeline = workspace.timeline ? JSON.parse(workspace.timeline) : [];
         timeline.push({
           timestamp: new Date().toISOString(),
@@ -96,9 +108,11 @@ export default async function(req) {
       }
       workspaceId = workspace.id;
 
+      // Persist structured recommendation if one was produced
       if (response.recommendation) {
         const rec = response.recommendation;
         const isEscalation = rec.is_escalation || response.escalate || false;
+
         const recommendation = await base44.asServiceRole.entities.AssistantRecommendation.create({
           workspace_id: workspace.id,
           user_id: user.id,
@@ -121,6 +135,7 @@ export default async function(req) {
         recommendationId = recommendation.id;
         pendingApproval = true;
 
+        // Audit the recommendation creation
         await services.audit.log({
           actionType: 'recommendation_created',
           description: `Assistant recommendation created by ${response.routing?.specialist || 'banking'} specialist`,
@@ -136,6 +151,7 @@ export default async function(req) {
       }
     } catch (persistError) {
       logger.error('Case workspace persistence failed', { error: persistError.message });
+      // Don't fail the request — the member still gets their response
     }
 
     return Response.json({
