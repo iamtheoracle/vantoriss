@@ -27,7 +27,7 @@ import { createGuardian } from './guardian.ts';
 import { createNexus } from './nexus.ts';
 import { createSpark } from './spark.ts';
 import { createOrbit } from './orbit.ts';
-import { createOracle } from './oracle.ts';
+import { createVantorisIntelligence } from './intelligence.ts';
 
 let cachedRuntime = null;
 
@@ -39,17 +39,14 @@ export async function boot(base44) {
   const services = {};
   const runtime = {};
 
-  // Stage 1: BootLoader
   await runStage(stages, 'BootLoader', async () => {
     logger.info('BootLoader initializing');
   });
 
-  // Stage 2: Kernel Boot
   await runStage(stages, 'KernelBoot', async () => {
     logger.info('Kernel booting');
   });
 
-  // Stage 3: Registry Boot
   await runStage(stages, 'RegistryBoot', async () => {
     registries.ai = AIRegistry;
     registries.capability = CapabilityRegistry;
@@ -63,7 +60,6 @@ export async function boot(base44) {
     logger.info('Registries initialized', { count: Object.keys(registries).length });
   });
 
-  // Stage 4: Platform Services Boot
   await runStage(stages, 'PlatformServicesBoot', async () => {
     services.memory = createMemoryService(base44);
     services.conversation = createConversationService(base44);
@@ -82,24 +78,23 @@ export async function boot(base44) {
     logger.info('Platform services initialized', { count: Object.keys(services).length });
   });
 
-  // Stage 5: AI Runtime Boot
   await runStage(stages, 'AIRuntimeBoot', async () => {
     runtime.guardian = createGuardian(registries);
     runtime.nexus = createNexus();
     runtime.spark = createSpark();
     runtime.orbit = createOrbit(base44);
-    runtime.oracle = createOracle(services, registries, runtime.guardian, runtime.nexus, runtime.spark, runtime.orbit);
-    logger.info('AI runtime initialized');
+    runtime.vantorisIntelligence = createVantorisIntelligence(
+      services, registries, runtime.guardian, runtime.nexus, runtime.spark, runtime.orbit,
+    );
+    logger.info('Vantoris Intelligence runtime initialized');
   });
 
-  // Stage 6: Application Boot
   await runStage(stages, 'ApplicationBoot', async () => {
     for (const [name] of Object.entries(services)) {
       registries.service.register({ name, enabled: true });
     }
   });
 
-  // Stage 7: Health Checks
   await runStage(stages, 'HealthChecks', async () => {
     services.health.register('database', async () => {
       try {
