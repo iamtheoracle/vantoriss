@@ -13,10 +13,14 @@ export function createSpark() {
       const promptTemplate = orchestration.prompt?.template || 'You are a helpful assistant.';
       const routing = orchestration.routing;
       const isActionImpacting = routing?.isActionImpacting || false;
+
+      // Build context from platform services (Spark does NOT own these)
       const memory = orchestration.context?.memory;
       const history = orchestration.context?.history || [];
+
       const systemPrompt = this._buildSystemPrompt(promptTemplate, memory, history);
 
+      // If action-impacting, request structured recommendation output
       let responseSchema = null;
       let fullPrompt = `${systemPrompt}\n\nMember: ${request.message}`;
 
@@ -63,8 +67,10 @@ export function createSpark() {
           payload: { requestId: request.id, model, structured: isActionImpacting },
         });
 
+        // Handle structured recommendation response
         let content = '';
         let recommendation = null;
+
         if (typeof result === 'object' && result !== null) {
           content = result.response || result.content || JSON.stringify(result);
           recommendation = result.recommendation || null;
@@ -90,7 +96,9 @@ export function createSpark() {
 
     _buildSystemPrompt(template, memory, history) {
       let prompt = template;
-      if (memory) prompt += `\n\nUser preferences: ${JSON.stringify(memory)}`;
+      if (memory) {
+        prompt += `\n\nUser preferences: ${JSON.stringify(memory)}`;
+      }
       if (history && history.length > 0) {
         const recent = history.slice(-5).map(h => `${h.sender}: ${h.body}`).join('\n');
         prompt += `\n\nRecent conversation:\n${recent}`;
