@@ -444,3 +444,46 @@ The detailed source inventory and CI evidence are recorded in [docs/SOURCE_IDENT
 - The VPI source remains hosted on a branch inside the X Money repository. Independent VPI repository/application ownership is not verified.
 - X Money `main` still reports its full source tree missing. No VPI code is to be used to fill that gap.
 - No production database migration, member-data import, merge or deployment occurred. Successful disposable PostgreSQL CI does not prove live banking or production readiness.
+
+
+## Execution update — adjacent platform foundations reconciled (15 November 2026)
+
+### Oracle Control — separate Oracle Arc control plane, not Vantoris Base
+
+A fresh inspection found an implementation branch in `iamtheoracle/oracle-control`:
+
+- Branch: `implementation/security-control-foundation`
+- Commit: `a582da17bedbde0c0082ec1bf82f31ddebf961c9`
+- 34 tracked tree entries.
+- Includes two PostgreSQL migrations, shared DB/auth/TOTP functions, login/logout/session endpoints, operator creation script, UI, and authentication/migration/TOTP tests.
+- Its architecture explicitly states that it has its own deployment, database, secrets, session authority, operator enrollment and recovery procedure, and that no cross-application trust is implied.
+- Exact-head CI passed: [run 38228079916](https://github.com/iamtheoracle/oracle-control/actions/runs/38228079916), including Node syntax checks, PostgreSQL migrations, tests and migration rerun.
+- Default `main` contains only README; the implementation is on the separate branch.
+
+**Boundary:** this is Oracle Arc's restricted administrative control plane, not an identified Vantoris Base implementation. It must remain independently deployed and governed unless the founder explicitly approves a specific, scoped integration. Do not transplant its authentication, database or operator authority into Base or institutional applications by assumption.
+
+### Oracle Investment Platform — separate financial platform
+
+A separate branch exists in `iamtheoracle/oracle-investment-platform`:
+
+- Branch: `implementation/ledger-foundation`
+- Commit: `1d0b7cd15e360c295a95f519583df775328d065d`
+- 29 tracked tree entries.
+- Includes separate finance authentication endpoints, PostgreSQL migrations, financial ledger, investor profile, statements, valuations, reconciliation, approvals and audit foundation.
+- Its architecture explicitly requires its own URL, authentication/session authority, database, secrets, administration, deployment and audit trail, and says it is not a module of The Arc Space or Oracle Control.
+- Exact-head CI passed: [run 38228061911](https://github.com/iamtheoracle/oracle-investment-platform/actions/runs/38228061911), including PostgreSQL migrations, tests and migration rerun.
+- Default `main` contains only README; implementation is on the separate branch.
+
+**Boundary:** this is a separate investment platform, not Vantoris Base and not an institutional ledger for Ashcombe, VPI, X Money or AVCU. Do not merge or reuse its accounts, investor records, permissions or financial authority without explicit approval.
+
+### Base reconciliation consequence
+
+The repositories above demonstrate that useful independent foundations exist, but neither identifies the authoritative Vantoris Base. Base discovery remains open. The existing Institutional Link / Group HQ app is still the known Base44 application and its sandbox access remains blocked pending restored workspace integration credits. The next Base step is still to recover that application's access and map its actual existing services, while preserving the independent systems listed above.
+
+### Current VPI CI recheck
+
+The updated VPI source-boundary document at commit `6459c1c3064bbce1222597f8d2ea080c2f6700c9` triggered fresh workflows:
+- Recovery build check: [run 43670364151](https://github.com/iamtheoracle/vantoris-x-money/actions/runs/43670364151).
+- PostgreSQL ledger: [run 43670364153](https://github.com/iamtheoracle/vantoris-x-money/actions/runs/43670364153).
+
+Both were still in progress at the last inspection. The prior exact-head pair on commit `b62b2b53d9b2f83242c66ba7f19a46ea2390c447` had passed. Do not claim the newer commit passed until these two runs complete.
