@@ -27,6 +27,8 @@
 .vi-nav { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 5px 19px; }
 .vi-nav a { color: #4b4b45; font-size: 11px; letter-spacing: .035em; padding: 8px 0; border-bottom: 1px solid transparent; transition: color .2s, border-color .2s; }
 .vi-nav a:hover, .vi-nav a[aria-current="page"] { color: var(--vi-ink); border-color: var(--vi-brass); }
+.vi-portal-link { display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; min-height: 38px; padding: 0 14px; border: 1px solid var(--vi-brass); color: var(--vi-ink); font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; transition: background .2s, color .2s; }
+.vi-portal-link:hover { background: var(--vi-ink); color: var(--vi-ivory); }
 .vi-menu-button { display: none; border: 1px solid var(--vi-line); background: transparent; color: var(--vi-ink); padding: 10px 13px; border-radius: 2px; }
 .vi-hero { min-height: 650px; display: grid; align-items: end; position: relative; overflow: hidden; background: var(--vi-ink); color: white; }
 .vi-hero-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 46%; opacity: .62; }
@@ -110,6 +112,7 @@
   .vi-header-inner { min-height: 76px; }
   .vi-menu-button { display: inline-flex; align-items: center; gap: 8px; }
   .vi-nav { display: none; }
+  .vi-portal-link { display: none; }
   .vi-mobile-menu { display: grid; position: absolute; top: 100%; left: 0; right: 0; padding: 18px 22px 24px; background: var(--vi-paper); border-bottom: 1px solid var(--vi-line); box-shadow: 0 18px 30px rgba(11,27,43,.08); grid-template-columns: repeat(2, 1fr); gap: 4px 20px; }
   .vi-mobile-menu a { padding: 11px 0; border-bottom: 1px solid var(--vi-line); color: var(--vi-ink-soft); font-size: 11px; }
   .vi-hero { min-height: 600px; }
