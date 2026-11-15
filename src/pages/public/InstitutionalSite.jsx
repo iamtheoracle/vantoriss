@@ -218,6 +218,7 @@ function SiteHeader() {
               <NavLink key={to} to={to} end={to === '/'}>{label}</NavLink>
             ))}
           </nav>
+          <Link className="vi-portal-link" to="/login">Secure portal sign in</Link>
           <button className="vi-menu-button" type="button" aria-expanded={open} aria-controls="vi-mobile-navigation" onClick={() => setOpen(v => !v)}>
             {open ? <X size={16} /> : <Menu size={16} />}
             <span>{open ? 'Close' : 'Menu'}</span>
@@ -227,6 +228,7 @@ function SiteHeader() {
               {navigation.map(([label, to]) => (
                 <NavLink key={to} to={to} end={to === '/'} onClick={() => setOpen(false)}>{label}</NavLink>
               ))}
+              <Link to="/login" onClick={() => setOpen(false)}>Secure portal sign in</Link>
             </nav>
           )}
         </div>
@@ -271,6 +273,7 @@ function SiteFooter() {
               <li><Link to="/news">News</Link></li>
               <li><Link to="/contact">Contact</Link></li>
               <li><Link to="/legal">Legal & Disclosures</Link></li>
+              <li><Link to="/login">Secure portal sign in</Link></li>
             </ul>
           </div>
         </div>
