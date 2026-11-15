@@ -5,9 +5,10 @@ All four photographs below were verified on their Unsplash source pages as avail
 | Website use | Photographer | Subject / location | Source page | Caption boundary |
 |---|---|---|---|---|
 | Corporate hero | Samuel Isaacs | Blavatnik School of Government, Oxford | https://unsplash.com/photos/modern-curved-glass-building-next-to-a-traditional-stone-building-OYx9_jS6xMs | Architectural reference; not a Vantoris property. |
-| Research section | Zoshua Colah | Suzzallo Library, University of Washington, Seattle | https://unsplash.com/photos/a-beautiful-classic-library-interior-with-people-inside-bFwfcYdAUxk | Independent library and research institution. |
+| Research section | camera obscura | A close-up of an old, open ledger with handwritten notes | https://unsplash.com/photos/a-close-up-of-an-old-open-ledger-with-handwritten-notes-rvVhr2LngP4 | Editorial image only; not a Vantoris archival record. |
 | Heritage section | Tanya Barrow | British Museum Reading Room, London | https://unsplash.com/photos/interior-of-a-grand-library-with-arched-windows-and-bookshelves-jwi366tgFB8 | Editorial reference; not a Vantoris archive holding. |
 | Collection detail | Ahmet Yüksek | Library bookshelves | https://unsplash.com/photos/tall-bookshelves-filled-with-old-books-in-a-library-6vBqpVyYHX0 | Editorial collection detail; not evidence of a specific event. |
+| Manuscript / publication detail | Magic Fan | Open ledger with handwritten entries and a quill pen | https://unsplash.com/photos/an-open-ledger-with-handwritten-entries-and-a-quill-pen-OYTtXiDH8sk | Editorial reference image only; not a verified manuscript holding. |
 
 ## Implementation
 
