@@ -443,6 +443,7 @@ function EditorialPage({ page }) {
           {page.eyebrow === 'Heritage & archive' && <ImageFigure media={institutionalMedia.readingRoom} />}
           {page.eyebrow === 'Research & intelligence' && <ImageFigure media={institutionalMedia.library} />}
           {page.eyebrow === 'History & continuity' && <ImageFigure media={institutionalMedia.collection} />}
+          {page.eyebrow === 'Spirituality & philosophy' && <ImageFigure media={institutionalMedia.manuscript} />}
           {page.eyebrow === 'T Market' && <div className="vi-note"><strong>Founder decision recorded</strong>The T Market business model is unresolved. This page remains informational and does not create listings, checkout, payment or transaction functionality.</div>}
         </div>
         <aside className="vi-editorial-aside">
