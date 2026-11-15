@@ -520,3 +520,8 @@ The upstream-only files include 17 agent definitions, Base44 config, 3 connector
 The recovery branch's README calls it X Money, but its migrations/docs/tests and workflow contain AVCU-specific payment architecture, while its HTML metadata uses Vantoris/PIP wording and its package remains generic Base44. The branch therefore remains mixed/unresolved and must not be merged into X Money main or transplanted into VPI/AVCU without file-level provenance review.
 
 Created the path-level manifest: [docs/UPSTREAM_RECOVERY_DIFF.md](https://github.com/iamtheoracle/vantoris-x-money/blob/work/xmoney-independent-runtime/docs/UPSTREAM_RECOVERY_DIFF.md). No source files were moved or deleted. This finding expands the Base inventory work: inspect the upstream shared services before designing replacements, but do not assume those legacy services are Base or operational.
+
+
+## Base legacy-service audit added
+
+Committed [docs/BASE_LEGACY_SERVICE_AUDIT.md](https://github.com/iamtheoracle/vantoriss/blob/feat/vantoris-institutional-world/docs/BASE_LEGACY_SERVICE_AUDIT.md) at commit `f8c49d0678a57e2a8b35f84b07b4d1f3ffddb7f0`. Direct inspection of original upstream services confirms that several are Base44 wrappers or process-local Maps, not durable platform infrastructure. SessionService and WorkflowRegistry are in-memory; IdentityService/MemoryService/NotificationService delegate to Base44; AuditService does not prove append-only DB audit; CapabilityRegistry has empty permission arrays. These files are source material for functional parity and migration planning, not evidence that Vantoris Base exists or is operational.
