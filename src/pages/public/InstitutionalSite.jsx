@@ -336,7 +336,7 @@ function HomePage() {
 
       <section className="vi-section">
         <div className="vi-shell vi-media-split">
-          <ImageFigure media={institutionalMedia.library} />
+          <ImageFigure media={institutionalMedia.ledger} />
           <div className="vi-media-copy">
             <div className="vi-kicker">Research & intelligence</div>
             <h2>Knowledge with provenance.</h2>
