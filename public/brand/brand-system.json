@@ -26,7 +26,10 @@
     "appIcon": "/brand/vantoris-app-icon.svg",
     "letterhead": "/brand/vantoris-letterhead.svg",
     "presentationCover": "/brand/vantoris-presentation-cover.svg",
-    "socialCard": "/brand/vantoris-social-card.svg"
+    "socialCard": "/brand/vantoris-social-card.svg",
+    "wordmarkMonochrome": "/brand/vantoris-wordmark-monochrome.svg",
+    "staffPortal": "/brand/vantoris-staff-portal.svg",
+    "clientPortal": "/brand/vantoris-client-portal.svg"
   },
   "principles": [
     "Use the group wordmark for Vantoris Private Institution Group public identity.",
