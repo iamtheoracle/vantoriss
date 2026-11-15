@@ -525,3 +525,40 @@ Created the path-level manifest: [docs/UPSTREAM_RECOVERY_DIFF.md](https://github
 ## Base legacy-service audit added
 
 Committed [docs/BASE_LEGACY_SERVICE_AUDIT.md](https://github.com/iamtheoracle/vantoriss/blob/feat/vantoris-institutional-world/docs/BASE_LEGACY_SERVICE_AUDIT.md) at commit `f8c49d0678a57e2a8b35f84b07b4d1f3ffddb7f0`. Direct inspection of original upstream services confirms that several are Base44 wrappers or process-local Maps, not durable platform infrastructure. SessionService and WorkflowRegistry are in-memory; IdentityService/MemoryService/NotificationService delegate to Base44; AuditService does not prove append-only DB audit; CapabilityRegistry has empty permission arrays. These files are source material for functional parity and migration planning, not evidence that Vantoris Base exists or is operational.
+
+
+## Final execution update for this continuation — 15 November 2026
+
+### VPI latest exact-head CI
+
+The VPI source-boundary branch now includes the mandatory Base integration dependency. Its latest commit is `11ec54f9067db3e8c24bf4b026daf2062a7d5978`. Both workflows completed successfully on that exact commit:
+
+- [PostgreSQL ledger — run 43670562041](https://github.com/iamtheoracle/vantoris-x-money/actions/runs/43670562041): success.
+- [Recovery build — run 43670562066](https://github.com/iamtheoracle/vantoris-x-money/actions/runs/43670562066): success.
+
+This verifies branch CI only. It does not verify independent repository ownership, production data, Base integration, production deployment or live banking.
+
+### X Money upstream recovery work
+
+- Located original upstream repository `The-Oracle-Arc/vantoris-live`.
+- Created [docs/UPSTREAM_RECOVERY_DIFF.md](https://github.com/iamtheoracle/vantoris-x-money/blob/work/xmoney-independent-runtime/docs/UPSTREAM_RECOVERY_DIFF.md) at commit `a0c37a351501b5cb73c31a9aaab96d86b7c932a6`.
+- Exact tree comparison: 478 upstream blobs, 379 recovery blobs, 201 identical, 138 changed, 139 upstream-only missing, 40 recovery-only added.
+- All 103 upstream route strings remain in the recovery router; two additional operations routes exist.
+- The missing upstream paths include agent definitions, connectors, 44 entity schemas, 7 server functions, 23 shared service/registry files, 9 workflow definitions and UI/support files.
+- Recovery PR #2 remains draft/unmerged and has AVCU-specific migration/docs/tests plus Vantoris PIP HTML metadata. Its latest inspected CI failure is a test/migration contract mismatch; no merge or transplant is approved.
+
+### Base remains a real completion gate
+
+- Dedicated issue #20 is updated with the legacy-service audit and the upstream shared-service inventory.
+- [docs/BASE_LEGACY_SERVICE_AUDIT.md](https://github.com/iamtheoracle/vantoriss/blob/feat/vantoris-institutional-world/docs/BASE_LEGACY_SERVICE_AUDIT.md) records why the old Base44 wrappers and in-memory registries are not an operational Base implementation.
+- No authoritative Vantoris Base repository/runtime has been identified in accessible GitHub repositories.
+- Institutional Link access remains blocked by the previous Base44 workspace integration-credit restriction. No Base44 sandbox retries, new Base repo, shared database or deployment occurred.
+
+### Still outstanding
+
+1. Restore Institutional Link/Base44 access and inspect its existing three workspaces and service/data boundaries.
+2. Identify the authoritative Vantoris Base product/runtime; do not substitute Oracle Control or legacy Base44 wrappers.
+3. Complete the file-level X Money provenance classification and recover missing approved upstream capabilities.
+4. Establish VPI's independent repository/application authority without moving or rewriting migration history.
+5. Continue Ashcombe pre-merge review; PR #55 remains draft and its latest CI run failed before any runner steps, so no current-head CI tests ran.
+6. Keep all institutions independent and do not merge/deploy until the relevant acceptance gates pass.
