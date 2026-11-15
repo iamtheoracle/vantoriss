@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { ArrowUpRight, Menu, X } from 'lucide-react';
 import { institutionalMedia } from './institutionalMedia';
@@ -459,6 +459,19 @@ export default function InstitutionalSite() {
   const location = useLocation();
   const key = location.pathname === '/' ? 'home' : location.pathname.replace(/^\//, '').replace(/\/$/, '');
   const page = pages[key];
+  useEffect(() => {
+    const title = key === 'home'
+      ? 'Vantoris — Private Institution Group'
+      : page
+        ? `${page.title} · Vantoris Private Institution Group`
+        : 'Page not found · Vantoris Private Institution Group';
+    const description = page?.lede || 'Vantoris Private Institution Group coordinates independent institutions with distinct identities, governance, research, heritage and long-term purpose.';
+    document.title = title;
+    document.querySelector('meta[name="description"]')?.setAttribute('content', description);
+    document.querySelector('meta[property="og:title"]')?.setAttribute('content', title);
+    document.querySelector('meta[property="og:description"]')?.setAttribute('content', description);
+  }, [key, page]);
+
   return (
     <div className="vi-site">
       <a className="sr-only focus:not-sr-only" href="#main">Skip to content</a>
