@@ -1,0 +1,39 @@
+{
+  "name": "Vantoris Private Institution Group",
+  "version": "1.0.0",
+  "status": "public identity implementation; legal identity and regulatory disclosures remain subject to founder and institution verification",
+  "palette": {
+    "midnightNavy": "#0B1B2B",
+    "warmIvory": "#F4F0E7",
+    "paper": "#FBF9F4",
+    "antiqueBrass": "#B8955A",
+    "inkSoft": "#24394B",
+    "mutedStone": "#706B62",
+    "line": "#DED7C9"
+  },
+  "typography": {
+    "display": "Instrument Serif",
+    "body": "Inter",
+    "fallbackDisplay": "Georgia, serif",
+    "fallbackBody": "Arial, sans-serif"
+  },
+  "marks": {
+    "emblem": "/brand/vantoris-emblem.svg",
+    "wordmarkHorizontal": "/brand/vantoris-wordmark-horizontal.svg",
+    "wordmarkInverse": "/brand/vantoris-wordmark-inverse.svg",
+    "wordmarkVertical": "/brand/vantoris-wordmark-vertical.svg",
+    "seal": "/brand/vantoris-seal.svg",
+    "appIcon": "/brand/vantoris-app-icon.svg",
+    "letterhead": "/brand/vantoris-letterhead.svg",
+    "presentationCover": "/brand/vantoris-presentation-cover.svg",
+    "socialCard": "/brand/vantoris-social-card.svg"
+  },
+  "principles": [
+    "Use the group wordmark for Vantoris Private Institution Group public identity.",
+    "Use the inverse wordmark on midnight navy surfaces.",
+    "Use the seal for institutional correspondence only after document-specific approval.",
+    "Do not use the Hambros Bank historical tribute as Vantoris brand material.",
+    "Do not represent editorial reference photographs as Vantoris-owned properties or historical evidence.",
+    "Do not publish unverified legal, regulatory, leadership, performance or operational claims."
+  ]
+}
