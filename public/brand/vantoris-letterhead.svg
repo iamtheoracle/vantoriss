@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 1754" role="img" aria-labelledby="title">
+<title id="title">Vantoris official letterhead template</title>
+<rect width="1240" height="1754" fill="#F4F0E7"/>
+<rect x="72" y="72" width="1096" height="1610" fill="none" stroke="#D8CBB2" stroke-width="2"/>
+<g transform="translate(110 110) scale(.58)"><path d="M16 24h16l28 57 28-57h16L60 96z" fill="#B8955A"/></g>
+<text x="225" y="177" fill="#0B1B2B" font-family="Instrument Serif,Georgia,serif" font-size="58" letter-spacing="3">VANTORIS</text>
+<text x="228" y="211" fill="#6C665D" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="3.2">PRIVATE INSTITUTION GROUP</text>
+<path d="M110 252h1020" stroke="#B8955A" stroke-width="2"/>
+<text x="110" y="1630" fill="#6C665D" font-family="Inter,Arial,sans-serif" font-size="13" letter-spacing="1.5">VANTORIS PRIVATE INSTITUTION GROUP</text>
+<text x="1130" y="1630" text-anchor="end" fill="#6C665D" font-family="Inter,Arial,sans-serif" font-size="13">OFFICIAL CORRESPONDENCE TEMPLATE</text>
+<path d="M110 1652h1020" stroke="#D8CBB2" stroke-width="1"/>
+</svg>
