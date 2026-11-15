@@ -503,3 +503,20 @@ This supersedes the earlier note that these runs were still in progress. These a
 - `iamtheoracle/oracle-control` has an implementation branch with a separately deployed Oracle Arc administrative control plane; main is README-only. Its branch CI passed. It is not identified as Vantoris Base.
 - `iamtheoracle/oracle-investment-platform` has a separate ledger foundation branch; main is README-only. Its branch CI passed. It is not Vantoris Base or an institutional ledger for the Vantoris banking products.
 - Neither repository has been merged into, deployed as, or connected to Vantoris Base. No shared authority or cross-database access has been introduced.
+
+
+## Execution update — original Vantoris upstream source recovered and compared (15 November 2026)
+
+Located the original public upstream repository referenced by the X Money recovery README: `The-Oracle-Arc/vantoris-live`.
+
+Exact tree comparison between upstream commit `7ededd1eb4a7b946a9ac50371b33546aad0e0d29` and X Money recovery branch `recovery/merge-vantoris-live` at `d0a68ddbfe7551835744624f39ff73445f6694e4`:
+- Upstream: 478 tracked blobs; recovery: 379.
+- 339 common paths; 201 identical blobs; 138 changed blobs.
+- 139 upstream-only paths missing from recovery; 40 recovery-only paths added.
+- Original route declarations: 103; recovery: 105. All original route strings remain, with two added operations routes.
+
+The upstream-only files include 17 agent definitions, Base44 config, 3 connectors, 44 entity schemas, 7 server functions, 23 shared registry/runtime/service files (identity, session, memory, notification, audit, workflow and related services), 9 workflow definitions and 16 UI/support files. These are valuable source inputs for recovering approved application capabilities and mapping shared-service requirements. They are legacy Base44 application source and are **not automatically the separate Vantoris Base infrastructure**.
+
+The recovery branch's README calls it X Money, but its migrations/docs/tests and workflow contain AVCU-specific payment architecture, while its HTML metadata uses Vantoris/PIP wording and its package remains generic Base44. The branch therefore remains mixed/unresolved and must not be merged into X Money main or transplanted into VPI/AVCU without file-level provenance review.
+
+Created the path-level manifest: [docs/UPSTREAM_RECOVERY_DIFF.md](https://github.com/iamtheoracle/vantoris-x-money/blob/work/xmoney-independent-runtime/docs/UPSTREAM_RECOVERY_DIFF.md). No source files were moved or deleted. This finding expands the Base inventory work: inspect the upstream shared services before designing replacements, but do not assume those legacy services are Base or operational.
