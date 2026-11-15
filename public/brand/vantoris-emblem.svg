@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title">
+<title id="title">Vantoris emblem</title>
+<rect width="160" height="160" rx="18" fill="#0B1B2B"/>
+<path d="M24 32h22l34 69 34-69h22L80 132z" fill="#B8955A"/>
+<path d="M35 36h8l37 76 37-76h8L80 126z" fill="none" stroke="#E7D7B4" stroke-opacity=".48" stroke-width="1.2"/>
+<path d="M80 17v9M80 134v9M17 80h9M134 80h9" stroke="#B8955A" stroke-width="1.2" opacity=".75"/>
+</svg>
