@@ -35,6 +35,18 @@ export const institutionalMedia = {
     photographer: 'Tanya Barrow',
     source: 'https://unsplash.com/photos/interior-of-a-grand-library-with-arched-windows-and-bookshelves-jwi366tgFB8',
   },
+  manuscript: {
+    src: 'https://images.unsplash.com/photo-1780246031803-023f065b5118?auto=format&fit=crop&fm=jpg&q=82&w=1400',
+    srcSet: [
+      'https://images.unsplash.com/photo-1780246031803-023f065b5118?auto=format&fit=crop&fm=jpg&q=78&w=720 720w',
+      'https://images.unsplash.com/photo-1780246031803-023f065b5118?auto=format&fit=crop&fm=jpg&q=80&w=1200 1200w',
+      'https://images.unsplash.com/photo-1780246031803-023f065b5118?auto=format&fit=crop&fm=jpg&q=82&w=1600 1600w',
+    ].join(', '),
+    alt: 'Open handwritten ledger with a quill pen and old books in the background.',
+    caption: 'Editorial image of handwritten material — not a specific sacred text or a verified Vantoris manuscript holding.',
+    photographer: 'Magic Fan',
+    source: 'https://unsplash.com/photos/an-open-ledger-with-handwritten-entries-and-a-quill-pen-OYTtXiDH8sk',
+  },
   collection: {
     src: 'https://images.unsplash.com/photo-1770131748972-b1a08d57efbc?auto=format&fit=crop&fm=jpg&q=82&w=1400',
     srcSet: [
