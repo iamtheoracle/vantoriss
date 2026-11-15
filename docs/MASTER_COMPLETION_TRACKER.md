@@ -408,3 +408,39 @@ Each application must declare whether it consumes a Base service, the exact API/
 3. Reconcile AVCU-labelled migration provenance and establish an independent VPI source/release boundary.
 4. Recover a complete X Money-specific source tree before making X Money runtime changes.
 5. Continue Ashcombe and Vantoris public-site work only on their own verified branches and preserve all existing work.
+
+
+## Execution update — VPI source inventory and exact-head CI (15 November 2026)
+
+The recovered VPI branch `iamtheoracle/vantoris-x-money:migration/remove-base44-and-codex` has now been inspected at source level.
+
+### Inventory evidence
+
+- 480 tracked Git tree entries.
+- 328 entries under `src/` (application router, member workspace, operations workspace, identity context, UI components and styles).
+- 62 entries under legacy `base44/` (18 entity schemas, 11 server-function entry points, shared payment code and older Oracle runtime files).
+- 25 SQL migration files: bootstrap `000` and ordered migrations `001`–`024`.
+- 9 Netlify function files.
+- 12 test entries, including disposable PostgreSQL integration and concurrency/rollback tests.
+- The separate `work/private-institution-programme` route register records 6 public/auth, 35 member and 62 operations routes. PR #4 remains a separate draft/open/unmerged VPI transformation branch; do not conflate its branch with the migration branch.
+
+### Migration label reconciliation
+
+The first five migration filenames retain an `avcu` label. Direct inspection of their SQL shows Vantoris-specific `vantoris_ledger` schema/tables/functions and Vantoris comments. CI provisions `vantoris_backend` as the restricted NOLOGIN role and a legacy `avcu_backend` CI login that inherits those Vantoris grants. The workflow verifies that inheritance. These labels are not proof that AVCU data or an AVCU ledger is being used. Original repository/migration provenance remains unresolved. Preserve existing migration filenames and SHA-256 history; do not rename or rewrite applied migrations.
+
+### Exact-head CI evidence
+
+On commit `b62b2b53d9b2f83242c66ba7f19a46ea2390c447`, both workflows completed successfully:
+
+- [Vantoris institutional ledger PostgreSQL — run 43669234464](https://github.com/iamtheoracle/vantoris-x-money/actions/runs/43669234464): PostgreSQL 16 service, ordered migrations/checksums, least-privilege runtime role inheritance, ledger integration, concurrent transfer race, forced rollback, member-auth cryptography and migration contract tests all passed.
+- [Recovery build check — run 43669234441](https://github.com/iamtheoracle/vantoris-x-money/actions/runs/43669234441): JavaScript syntax, migration runner/manifest, Oracle runtime checks, assistant and browser mutation guards, entity/security validation, Deno suites, ESLint, TypeScript typecheck and Vite production build all passed.
+
+The detailed source inventory and CI evidence are recorded in [docs/SOURCE_IDENTITY_BOUNDARY.md](https://github.com/iamtheoracle/vantoris-x-money/blob/migration/remove-base44-and-codex/docs/SOURCE_IDENTITY_BOUNDARY.md), subsequently updated at commit `6459c1c3064bbce1222597f8d2ea080c2f6700c9`.
+
+### Important boundary and outstanding work
+
+- The `base44/` directory is legacy VPI application source; it is not Vantoris Base shared infrastructure.
+- The VPI branch README states that active application configuration no longer depends on the Base44 SDK/Vite plugin, but legacy Base44 entity/function/runtime files remain to be archived or retired after parity and data continuity proof.
+- The VPI source remains hosted on a branch inside the X Money repository. Independent VPI repository/application ownership is not verified.
+- X Money `main` still reports its full source tree missing. No VPI code is to be used to fill that gap.
+- No production database migration, member-data import, merge or deployment occurred. Successful disposable PostgreSQL CI does not prove live banking or production readiness.
