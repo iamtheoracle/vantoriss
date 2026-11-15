@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title">
+<title id="title">Vantoris Private Institution Group</title>
+<rect width="1200" height="630" fill="#0B1B2B"/>
+<circle cx="1040" cy="110" r="340" fill="#142C41"/>
+<circle cx="1040" cy="110" r="250" fill="none" stroke="#B8955A" stroke-opacity=".2" stroke-width="2"/>
+<path d="M900 0h35l110 225L1155 0h35l-145 300z" fill="#B8955A" opacity=".15"/>
+<g transform="translate(100 155) scale(1.25)"><path d="M16 24h16l28 57 28-57h16L60 96z" fill="#B8955A"/></g>
+<text x="260" y="285" fill="#F4F0E7" font-family="Instrument Serif,Georgia,serif" font-size="90" letter-spacing="5">VANTORIS</text>
+<path d="M265 325h550" stroke="#B8955A" stroke-width="2"/>
+<text x="267" y="372" fill="#D8D0C2" font-family="Inter,Arial,sans-serif" font-size="21" letter-spacing="5">PRIVATE INSTITUTION GROUP</text>
+<text x="100" y="550" fill="#B8B1A5" font-family="Inter,Arial,sans-serif" font-size="18" letter-spacing="3">INDEPENDENT INSTITUTIONS. A COORDINATED GROUP.</text>
+</svg>
