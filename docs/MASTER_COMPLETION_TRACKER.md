@@ -289,3 +289,84 @@ For every task, record owner, dependency, source branch/commit, changed files, a
 - Operational
 
 Never infer a later state from an earlier one.
+
+## Dedicated workstream — Vantoris Base infrastructure
+
+**Status: ARCHITECTURE REQUIREMENT ACCEPTED; AUTHORITATIVE BASE IMPLEMENTATION NOT YET IDENTIFIED OR VERIFIED.**
+
+Base is a required platform workstream and a completion gate for the connected Vantoris ecosystem. It is not an optional afterthought, a fourth Institutional Link workspace, or a replacement for the independent institutional applications.
+
+### Repository and application reconciliation
+
+- A fresh inventory of repositories accessible to the connected GitHub account did not identify a repository explicitly named `vantoris-base` or `base`.
+- The existing Institutional Link / Group Headquarters application remains identified as Base44 app `6af8b50525cd7f7bb57813cc`. Its previous engineering access was blocked because the Base44 workspace exhausted integration credits. Do not retry sandbox tools until access/credits are restored.
+- The Vantoris group website repository is not evidence of a shared infrastructure runtime.
+- The separate `iamtheoracle/oracle-control` repository describes a restricted Oracle Arc administrative control plane. It is not assumed to be Vantoris Base and must not be repurposed or merged without an explicit identity and architecture decision.
+- No current evidence establishes a production Base runtime, shared service endpoints, tenant registry, common identity provider, shared PostgreSQL control plane, or connected application integrations.
+
+### Required Base responsibilities
+
+1. Identity foundation: authentication integration, account lifecycle, MFA, recovery, session inventory and revocation.
+2. Organisation registry: Vantoris Group and independently registered institutions, each with immutable internal identifiers and explicit status.
+3. Access control: central permission vocabulary and delegation policy, with authorisation enforced by each service and institution server-side.
+4. Integration layer: authenticated APIs, service identities, scoped tokens, event contracts, webhook signing, replay protection and delivery observability.
+5. Data infrastructure: PostgreSQL ownership boundaries, versioned migrations, encryption, backups and tested recovery.
+6. Audit infrastructure: append-only, attributable records for consequential actions, with controlled access and retention.
+7. Workflow engine: durable state transitions, maker-checker, dual approval, idempotency, concurrency control and cancellation/expiry handling.
+8. Notifications: verified email delivery, templates, delivery state, retries and suppression controls.
+9. Document infrastructure: private object storage, malware scanning, versioning, access grants, retention and legal hold.
+10. Monitoring: service health, structured logs, metrics, traces, alert routing and incident records.
+11. Administration: least-privilege platform operators, access reviews, break-glass controls and dual approval for privileged changes.
+12. Oracle Arc integration: separately permissioned reasoning, tools, SPARK memory and ORBITS media; capability discovery must not be represented as proof of operational integration.
+
+### Non-negotiable architecture boundaries
+
+- Base may provide shared infrastructure and validated coordination; it must not become an unrestricted shared business database.
+- Ashcombe Private Bank, Vantoris Private Institution, Vantoris X Money, AVCU and T Market retain independent identities, authoritative records, financial authority, permissions, ledgers and release controls.
+- Group Headquarters receives only approved, purpose-limited reports and coordination events. It does not gain institution-level banking or operational authority by virtue of using Base.
+- Shared authentication, if implemented, does not imply shared authorisation. Each application must validate its own actor, institution, resource, action and policy on the server.
+- No institution may trust client-supplied roles, tenant IDs, account IDs or approval status.
+- No shared ledger or financial settlement authority is introduced by Base.
+- Base must support independent application failure and recovery; a Base outage must not corrupt institutional records or silently authorise consequential actions.
+
+### Required architecture and acceptance evidence
+
+| Area | Required evidence / acceptance |
+|---|---|
+| Ownership and topology | Verified repository/application owner, source branch, runtime, environment inventory, dependency map and service data-flow diagram. |
+| Identity | Tests for account lifecycle, MFA, recovery, session rotation/revocation, service identities and institution-scoped claims. |
+| Organisation registry | Migration-backed organisation records, uniqueness constraints, lifecycle and explicit institution membership; no implicit affiliation. |
+| Authorisation | Server-side policy tests for cross-institution denial, least privilege, delegation expiry/revocation and privileged action separation. |
+| APIs and events | Versioned contracts, authenticated service-to-service calls, scoped credentials, signed webhooks, replay/idempotency and retry/dead-letter behaviour. |
+| PostgreSQL | Real PostgreSQL migrations from empty database, constraints, transaction/concurrency tests, backups and demonstrated restore. |
+| Audit | Append-only audit records, actor/resource/action/correlation IDs, tamper-resistance controls and access tests. |
+| Workflow | Atomic state transitions, maker-checker, dual-control enforcement, race/replay protection and full lifecycle tests. |
+| Documents and notifications | Private storage, malware scan, access/version/retention tests, verified email and delivery/retry evidence. |
+| Operations | Health checks, metrics, logs, alerts, incident runbooks, operator access reviews and recovery drills. |
+| Application integration | Contract tests for every connected application; failure isolation; no direct database sharing across institutional boundaries. |
+| Release | Per-environment configuration, secret rotation, migration/rollback plan, deployment evidence and explicit release approval. |
+
+### Required application dependency register
+
+Each application must declare whether it consumes a Base service, the exact API/event contract and version, its service identity, data exchanged, permission scope, failure behaviour and independent fallback. Initial candidates to reconcile are:
+
+- Institutional Link / Group Headquarters — existing coordination application; access currently blocked pending Base44 workspace credits.
+- Ashcombe Private Bank — independent application; integration must be explicit and must not move its client, banking or ledger authority into Base.
+- Vantoris Private Institution — independent source/runtime boundary must first be established.
+- Vantoris X Money — authoritative X Money source tree must first be recovered.
+- AVCU — remains a separate institution; no VPI or X Money identity crossover.
+- T Market — integration only after its approved business model and system boundary are recovered.
+- Vantoris public website — public content and enquiry integration only; no privileged institutional data access.
+
+### Execution sequence
+
+1. Identify the authoritative Base product, repository/application and owner; inspect existing source and deployment configuration before creating or changing anything.
+2. Recover Institutional Link access and inventory its existing services, workspaces, roles, data entities, integrations and current release state.
+3. Map existing shared capabilities in each repository; classify each as Base-owned, institution-owned, duplicated, missing or unverified.
+4. Produce a source-backed architecture/dependency map and migration plan that preserves existing functionality and data.
+5. Implement the next approved Base dependency in the existing authoritative location; do not create a second Base.
+6. Add real PostgreSQL, security, isolation, integration and recovery acceptance tests.
+7. Connect each application only through explicit, versioned, least-privilege contracts.
+8. Mark Base complete only when its own lifecycle and operations are verified and every connected application passes its independent integration and isolation acceptance suite.
+
+**Current deferral:** Base implementation changes are deferred until the authoritative Base location is identified and Institutional Link access is restored. This is a discovery/access blocker, not a decision to omit Base. No new Base repository, service, database or deployment has been created.
