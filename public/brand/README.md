@@ -19,7 +19,7 @@ The public identity system uses the approved visual direction: midnight navy, wa
 
 ## Usage boundaries
 
-These are original Vantoris SVG assets. The group wordmark is used by the new public company website. Existing member and operations portal branding is intentionally not replaced until the exact relationship between that application and the Vantoris Private Institution organisation is confirmed.
+These are original Vantoris SVG assets. The group wordmark is used by the new public company website. Portal lockups are prepared as artwork; the existing member and operations application branding is intentionally not replaced until the exact relationship between that application and the Vantoris Private Institution organisation is confirmed.
 
 The Hambros Bank historical tribute is a separate historical collection and must never be presented as Vantoris branding or as evidence of ownership, succession or affiliation.
 
