@@ -2,7 +2,7 @@ import React, { Suspense } from "react"
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -10,6 +10,7 @@ import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import PageTransition from './components/vantoris/PageTransition';
 import { ExceptionAuthProvider } from '@/components/vantoris/ExceptionAuthContext';
+import { appParams } from '@/lib/app-params';
 
 import MemberLayout from './components/vantoris/MemberLayout';
 import AdminLayout from './components/vantoris/AdminLayout';
@@ -112,6 +113,19 @@ const LoadingFallback = () => (
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated } = useAuth();
+  const location = useLocation();
+  const authenticationPaths = ['/login', '/register', '/forgot-password', '/reset-password', '/brand'];
+
+  // The company website is public content and must not wait for Base44 auth
+  // or public-settings availability. Authentication pages still use the
+  // existing Base44 flow.
+  if (!appParams.token && !authenticationPaths.includes(location.pathname)) {
+    return (
+      <Suspense fallback={<LoadingFallback />}>
+        <InstitutionalSite />
+      </Suspense>
+    );
+  }
 
   if (isLoadingPublicSettings || isLoadingAuth) return <LoadingFallback />;
 
