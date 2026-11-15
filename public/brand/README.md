@@ -13,6 +13,9 @@ The public identity system uses the approved visual direction: midnight navy, wa
 - vantoris-letterhead.svg — official correspondence layout artwork.
 - vantoris-presentation-cover.svg — presentation cover artwork.
 - vantoris-social-card.svg — social and publication card artwork.
+- vantoris-wordmark-monochrome.svg — single-colour lockup.
+- vantoris-staff-portal.svg — staff portal identity lockup.
+- vantoris-client-portal.svg — client portal identity lockup.
 
 ## Usage boundaries
 
