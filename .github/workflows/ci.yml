@@ -22,10 +22,15 @@ jobs:
           node-version: 22
           cache: npm
       - name: Install locked dependencies
+        id: install
         run: npm ci
-      - name: Lint
+      - name: Lint changed Vantoris public surface
+        run: npx eslint src/App.jsx src/pages/public/InstitutionalSite.jsx src/pages/public/institutionalMedia.js --quiet
+      - name: Full repository lint
         run: npm run lint
       - name: Typecheck
+        if: always() && steps.install.outcome == 'success'
         run: npm run typecheck
       - name: Production build
+        if: always() && steps.install.outcome == 'success'
         run: npm run build
