@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-labelledby="title">
+<title id="title">Vantoris Private Institution Group seal</title>
+<defs><path id="top" d="M160 160m-122 0a122 122 0 1 1 244 0"/><path id="bottom" d="M160 160m122 0a122 122 0 1 1 -244 0"/></defs>
+<circle cx="160" cy="160" r="151" fill="none" stroke="#B8955A" stroke-width="2"/>
+<circle cx="160" cy="160" r="140" fill="none" stroke="#0B1B2B" stroke-width="1"/>
+<circle cx="160" cy="160" r="112" fill="none" stroke="#B8955A" stroke-width="1"/>
+<text fill="#0B1B2B" font-family="Inter,Arial,sans-serif" font-size="13" letter-spacing="3.2"><textPath href="#top" startOffset="50%" text-anchor="middle">VANTORIS PRIVATE INSTITUTION GROUP · </textPath></text>
+<text fill="#6C665D" font-family="Inter,Arial,sans-serif" font-size="10" letter-spacing="2.7"><textPath href="#bottom" startOffset="50%" text-anchor="middle">INDEPENDENCE · GOVERNANCE · LONG VIEW · </textPath></text>
+<path d="M116 101h20l24 49 24-49h20l-44 91z" fill="#B8955A"/>
+<path d="M124 104h10l26 54 26-54h10l-36 75z" fill="none" stroke="#E7D7B4" stroke-width="1.2"/>
+<path d="M160 204v24M148 216h24" stroke="#B8955A" stroke-width="1.5"/>
+</svg>
