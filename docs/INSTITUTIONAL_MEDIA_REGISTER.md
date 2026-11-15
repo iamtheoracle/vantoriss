@@ -1,6 +1,6 @@
 # Vantoris Institutional Website — Media Register
 
-All four photographs below were verified on their Unsplash source pages as available under the Unsplash License. Unsplash permits commercial and non-commercial use under its license; the source pages and photographers are retained here for attribution and provenance. The photos are editorial references only and do not depict Vantoris-owned properties.
+All five photographs below were verified on their Unsplash source pages as available under the Unsplash License. Unsplash permits commercial and non-commercial use under its license; the source pages and photographers are retained here for attribution and provenance. The photos are editorial references only and do not depict Vantoris-owned properties.
 
 | Website use | Photographer | Subject / location | Source page | Caption boundary |
 |---|---|---|---|---|
