@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title">
+<title id="title">Vantoris presentation cover</title>
+<rect width="1600" height="900" fill="#0B1B2B"/>
+<path d="M1050 0h550v900h-720z" fill="#132B40"/>
+<path d="M1180 0h420v900h-590z" fill="#172F43" opacity=".75"/>
+<path d="M1120 120h58l170 350 170-350h58l-228 470z" fill="#B8955A" opacity=".13"/>
+<g transform="translate(140 190) scale(1.15)"><path d="M16 24h16l28 57 28-57h16L60 96z" fill="#C9A96F"/></g>
+<text x="140" y="425" fill="#F4F0E7" font-family="Instrument Serif,Georgia,serif" font-size="96" letter-spacing="4">VANTORIS</text>
+<path d="M145 465h560" stroke="#B8955A" stroke-width="2"/>
+<text x="145" y="515" fill="#D8D0C2" font-family="Inter,Arial,sans-serif" font-size="23" letter-spacing="5">PRIVATE INSTITUTION GROUP</text>
+<text x="145" y="760" fill="#B8B1A5" font-family="Inter,Arial,sans-serif" font-size="17" letter-spacing="2">INSTITUTIONAL PRESENTATION TEMPLATE</text>
+</svg>
