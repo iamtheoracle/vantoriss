@@ -487,3 +487,19 @@ The updated VPI source-boundary document at commit `6459c1c3064bbce1222597f8d2ea
 - PostgreSQL ledger: [run 43670364153](https://github.com/iamtheoracle/vantoris-x-money/actions/runs/43670364153).
 
 Both were still in progress at the last inspection. The prior exact-head pair on commit `b62b2b53d9b2f83242c66ba7f19a46ea2390c447` had passed. Do not claim the newer commit passed until these two runs complete.
+
+
+### CI completion correction — VPI source-boundary commit
+
+The two workflows for VPI source-boundary commit `6459c1c3064bbce1222597f8d2ea080c2f6700c9` have now completed successfully:
+
+- [Recovery build check — run 43670364151](https://github.com/iamtheoracle/vantoris-x-money/actions/runs/43670364151): passed. Includes syntax checks, migration runner/manifest, Oracle runtime checks, assistant and browser-side mutation guards, entity/security validation, Deno suites, ESLint, TypeScript typecheck and production build.
+- [Vantoris institutional ledger PostgreSQL — run 43670364153](https://github.com/iamtheoracle/vantoris-x-money/actions/runs/43670364153): passed. Includes PostgreSQL 16, ordered migrations/checksum history, least-privilege runtime-role inheritance, ledger integration, concurrent transfer race, forced rollback, member-auth cryptography and migration contract tests.
+
+This supersedes the earlier note that these runs were still in progress. These are successful CI results for the recovered VPI branch only; they do not establish independent VPI repository ownership, production data continuity, live provider connectivity, merge, deployment or operational banking.
+
+### Adjacent foundation boundary confirmation
+
+- `iamtheoracle/oracle-control` has an implementation branch with a separately deployed Oracle Arc administrative control plane; main is README-only. Its branch CI passed. It is not identified as Vantoris Base.
+- `iamtheoracle/oracle-investment-platform` has a separate ledger foundation branch; main is README-only. Its branch CI passed. It is not Vantoris Base or an institutional ledger for the Vantoris banking products.
+- Neither repository has been merged into, deployed as, or connected to Vantoris Base. No shared authority or cross-database access has been introduced.
