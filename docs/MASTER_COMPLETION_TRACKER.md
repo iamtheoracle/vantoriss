@@ -370,3 +370,41 @@ Each application must declare whether it consumes a Base service, the exact API/
 8. Mark Base complete only when its own lifecycle and operations are verified and every connected application passes its independent integration and isolation acceptance suite.
 
 **Current deferral:** Base implementation changes are deferred until the authoritative Base location is identified and Institutional Link access is restored. This is a discovery/access blocker, not a decision to omit Base. No new Base repository, service, database or deployment has been created.
+
+
+## Execution update — 15 November 2026
+
+### Base workstream opened
+
+- GitHub issue #20: https://github.com/iamtheoracle/vantoriss/issues/20
+- The dedicated Base section above records required services, architecture boundaries, application dependency register and acceptance evidence.
+- No Base repository, service, database or deployment was created because the authoritative existing implementation has not yet been identified.
+- Institutional Link access remains blocked by the previously reported Base44 workspace integration-credit restriction. No Base44 tools were retried.
+
+### VPI / X Money source boundary work opened
+
+- GitHub issue #5: https://github.com/iamtheoracle/vantoris-x-money/issues/5
+- Added `docs/SOURCE_IDENTITY_BOUNDARY.md` on `migration/remove-base44-and-codex`.
+- Commit: `b62b2b53d9b2f83242c66ba7f19a46ea2390c447`.
+- Source inspection reconfirmed that this branch's `package.json` and README identify Vantoris Private Institution, while the repository's main README identifies X Money and reports that the full X Money application tree is missing.
+- The recovered VPI README describes an independent Vantoris PostgreSQL ledger and separate member/staff authentication. It also states that the branch has not been merged to main or deployed.
+- The route preservation register's five SQL migrations are AVCU-labelled. Their product/schema provenance remains unresolved; they must not be applied, renamed or transplanted until ownership is established.
+
+### Vantoris website CI recheck
+
+- Workflow run `43668457861` for the tracker-era website branch completed with **failure**.
+- Targeted lint passed.
+- Full repository lint failed.
+- Typecheck failed.
+- Production build passed.
+- This matches the previously observed unchanged-main baseline of 103 lint errors and 504 typecheck diagnostics. Do not describe the branch as CI-passing.
+- The latest documentation-only tracker commit has no reported combined commit statuses; this is not a substitute for a passing workflow.
+- No merge or deployment was performed.
+
+### Current blockers and next actions
+
+1. Restore Institutional Link/Base44 workspace access; then inspect the existing app and map its real services before implementing Base-dependent changes.
+2. Establish Vantoris Base's authoritative repository/application and owner from source and deployment evidence; do not infer that `oracle-control` or Institutional Link is Base itself.
+3. Reconcile AVCU-labelled migration provenance and establish an independent VPI source/release boundary.
+4. Recover a complete X Money-specific source tree before making X Money runtime changes.
+5. Continue Ashcombe and Vantoris public-site work only on their own verified branches and preserve all existing work.
