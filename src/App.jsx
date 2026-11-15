@@ -111,7 +111,7 @@ const LoadingFallback = () => (
 );
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated, authChecked } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated } = useAuth();
 
   if (isLoadingPublicSettings || isLoadingAuth) return <LoadingFallback />;
 
@@ -119,7 +119,7 @@ const AuthenticatedApp = () => {
 
   // Public visitors receive the group website. The existing authenticated
   // member and operations route tree remains unchanged below.
-  if (!isAuthenticated && (authChecked || authError?.type === 'auth_required')) {
+  if (!isAuthenticated) {
     return (
       <Suspense fallback={<LoadingFallback />}>
         <ExceptionAuthProvider>
