@@ -34,6 +34,7 @@ const More = React.lazy(() => import('./pages/More'));
 const Discovery = React.lazy(() => import('./pages/Discovery'));
 const TransactionDispute = React.lazy(() => import('./pages/TransactionDispute'));
 const BrandIdentity = React.lazy(() => import('./pages/BrandIdentity'));
+const InstitutionalSite = React.lazy(() => import('./pages/public/InstitutionalSite'));
 const VantorisAssistant = React.lazy(() => import('./components/vantoris/VantorisAssistant'));
 const HeroBox = React.lazy(() => import('./pages/HeroBox'));
 const Investment = React.lazy(() => import('./pages/Investment'));
@@ -110,16 +111,31 @@ const LoadingFallback = () => (
 );
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated, authChecked } = useAuth();
 
   if (isLoadingPublicSettings || isLoadingAuth) return <LoadingFallback />;
 
-  if (authError) {
-    if (authError.type === 'user_not_registered') return <UserNotRegisteredError />;
-    if (authError.type === 'auth_required') {
-      navigateToLogin();
-      return null;
-    }
+  if (authError?.type === 'user_not_registered') return <UserNotRegisteredError />;
+
+  // Public visitors receive the group website. The existing authenticated
+  // member and operations route tree remains unchanged below.
+  if (!isAuthenticated && (authChecked || authError?.type === 'auth_required')) {
+    return (
+      <Suspense fallback={<LoadingFallback />}>
+        <ExceptionAuthProvider>
+          <Routes>
+            <Route element={<PageTransition />}>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/brand" element={<BrandIdentity />} />
+            </Route>
+            <Route path="*" element={<InstitutionalSite />} />
+          </Routes>
+        </ExceptionAuthProvider>
+      </Suspense>
+    );
   }
 
   return (
