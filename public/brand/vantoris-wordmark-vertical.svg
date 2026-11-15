@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 390" role="img" aria-labelledby="title">
+<title id="title">Vantoris Private Institution Group</title>
+<rect width="420" height="390" fill="none"/>
+<path d="M124 35h35l51 105 51-105h35L210 183z" fill="#B8955A"/>
+<path d="M137 39h17l56 115 56-115h17L210 169z" fill="none" stroke="#E7D7B4" stroke-width="1.5" stroke-opacity=".6"/>
+<text x="210" y="266" text-anchor="middle" fill="#0B1B2B" font-family="Instrument Serif, Georgia, serif" font-size="65" letter-spacing="5">VANTORIS</text>
+<path d="M80 287h260" stroke="#B8955A" stroke-width="1"/>
+<text x="210" y="321" text-anchor="middle" fill="#6C665D" font-family="Inter, Arial, sans-serif" font-size="13" letter-spacing="3.2">PRIVATE INSTITUTION</text>
+<text x="210" y="344" text-anchor="middle" fill="#6C665D" font-family="Inter, Arial, sans-serif" font-size="13" letter-spacing="3.2">GROUP</text>
+</svg>
