@@ -287,7 +287,7 @@ function HomePage() {
   return (
     <>
       <section className="vi-hero">
-        <img className="vi-hero-image" src={institutionalMedia.architecture.src} alt={institutionalMedia.architecture.alt} fetchPriority="high" />
+        <img className="vi-hero-image" src={institutionalMedia.architecture.src} alt={institutionalMedia.architecture.alt} loading="eager" />
         <div className="vi-shell vi-hero-content">
           <div className="vi-kicker">Vantoris Private Institution Group</div>
           <h1>An institutional world, built for the long view.</h1>
