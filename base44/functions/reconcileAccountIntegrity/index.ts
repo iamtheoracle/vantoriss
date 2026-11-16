@@ -1,19 +1,76 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.31";
-import {
-  ACCOUNT_INTEGRITY_REVIEW_ROLES,
-  canReviewAccountIntegrity,
-  parseAccountIntegrityInvocation,
-} from "../../shared/security/accountIntegrityAccess.ts";
+
+export const ACCOUNT_INTEGRITY_REVIEW_ROLES = Object.freeze([
+  "admin",
+  "administrator",
+  "super_administrator",
+  "executive",
+  "operations_manager",
+  "operations_officer",
+  "finance_officer",
+  "treasury_officer",
+  "auditor",
+]);
+
+const reviewerRoleSet = new Set(ACCOUNT_INTEGRITY_REVIEW_ROLES);
+
+export function canReviewAccountIntegrity(user) {
+  return Boolean(user && typeof user.role === "string" && reviewerRoleSet.has(user.role));
+}
+
+export function parseAccountIntegrityInvocation(payload) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return null;
+
+  const hasEvent = Object.prototype.hasOwnProperty.call(payload, "event");
+  if (!hasEvent) {
+    return Object.keys(payload).length === 0 ? { kind: "scheduled" } : null;
+  }
+
+  if (payload.event === null) {
+    return Object.keys(payload).every((key) => key === "event")
+      ? { kind: "scheduled" }
+      : null;
+  }
+
+  const event = payload.event;
+  if (!event || typeof event !== "object" || Array.isArray(event)) return null;
+  if (typeof event.entity_id !== "string" || !event.entity_id.trim()) return null;
+
+  const entityId = event.entity_id.trim();
+  if (
+    event.entity_name === "Transaction" &&
+    (event.type === "create" || event.type === "update")
+  ) {
+    return {
+      kind: "entity",
+      entityName: "Transaction",
+      entityId,
+      sourceEvent: `Transaction.${event.type}`,
+    };
+  }
+
+  if (event.entity_name === "Account" && event.type === "update") {
+    return {
+      kind: "entity",
+      entityName: "Account",
+      entityId,
+      sourceEvent: "Account.update",
+    };
+  }
+
+  return null;
+}
 
 const TOLERANCE = 0.01;
 const ACCOUNT_UPDATE_GRACE_MS = 120000;
 
-Deno.serve(async (req) => {
+async function handleRequest(req) {
   if (req.method !== "POST") {
     return Response.json({ error: "Method not allowed." }, { status: 405 });
   }
 
   try {
+    const { createClientFromRequest } = await import("npm:@base44/sdk@0.8.31");
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me().catch(() => null);
     if (!user) {
@@ -200,4 +257,8 @@ Deno.serve(async (req) => {
     console.error("Account integrity reconciliation failed:", error);
     return Response.json({ success: false, error: "Integrity reconciliation failed." }, { status: 500 });
   }
-});
+}
+
+if (import.meta.main) {
+  Deno.serve(handleRequest);
+}
