@@ -89,3 +89,12 @@ Reviewed the current PR branch implementations for the following paths. These fi
 - For every migrated operation, verify actor, capability, target account/member, transaction status, amount/sign, idempotency key, and approval state on the server. Derive account owner from the verified Account record.
 - Add failure-injection tests at every multi-step boundary and prove retries cannot double-post or leave an untraceable partial state.
 - Until these paths are migrated and staging-tested, Account create/update RLS and Transaction client write access remain unresolved security boundaries.
+
+
+## Additional privacy finding — Account read access
+
+The Account entity `read` RLS clause repeats the same broad staff-role allowlist used by create/update, in addition to member-owned reads via `data.user_id = {{user.id}}`. This means the policy expresses broad cross-member Account visibility for every listed staff role, not merely operational write access.
+
+The canonical capability matrix has narrower domain and capability boundaries. Roles such as customer support, HeroBox, shipping, risk, investment, and auditor do not all have a general customer-account read capability. The current static policy does not demonstrate purpose-limited or field-limited access to account numbers, balances, routing identifiers, and member relationships.
+
+**Required remediation:** define separate capabilities for account discovery, account-detail access, balance visibility, account-number/routing-identifier visibility, and account maintenance. Use purpose-limited backend queries or platform-supported RLS/field controls; do not grant broad account reads as a side effect of unrelated staff roles. Add negative cross-member read tests for each role and sensitive field. Until those tests pass, member financial-data confidentiality is not proven.
