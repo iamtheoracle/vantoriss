@@ -1,62 +1,32 @@
-export const ACCOUNT_INTEGRITY_REVIEW_ROLES = Object.freeze([
-  "admin",
-  "administrator",
-  "super_administrator",
-  "executive",
-  "operations_manager",
-  "operations_officer",
-  "finance_officer",
-  "treasury_officer",
-  "auditor",
-]);
+import {
+  getPermissionMatrix,
+  userHasCapability,
+} from "../../../src/lib/operationsAccess.js";
 
-const reviewerRoleSet = new Set(ACCOUNT_INTEGRITY_REVIEW_ROLES);
+export const ACCOUNT_INTEGRITY_REVIEW_CAPABILITY = "management.operations.review";
+
+export const ACCOUNT_INTEGRITY_REVIEW_ROLES = Object.freeze(
+  Object.keys(getPermissionMatrix()).filter(role =>
+    userHasCapability({ role }, ACCOUNT_INTEGRITY_REVIEW_CAPABILITY)
+  )
+);
 
 export function canReviewAccountIntegrity(user) {
-  return Boolean(user && typeof user.role === "string" && reviewerRoleSet.has(user.role));
+  return userHasCapability(user, ACCOUNT_INTEGRITY_REVIEW_CAPABILITY);
 }
 
-export function parseAccountIntegrityInvocation(payload) {
-  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return null;
-
-  const hasEvent = Object.prototype.hasOwnProperty.call(payload, "event");
-  if (!hasEvent) {
-    return Object.keys(payload).length === 0 ? { kind: "scheduled" } : null;
-  }
-
-  if (payload.event === null) {
-    return Object.keys(payload).every((key) => key === "event")
-      ? { kind: "scheduled" }
-      : null;
-  }
-
-  const event = payload.event;
-  if (!event || typeof event !== "object" || Array.isArray(event)) return null;
-  if (typeof event.entity_id !== "string" || !event.entity_id.trim()) return null;
-
-  const entityId = event.entity_id.trim();
-  if (
-    event.entity_name === "Transaction" &&
-    (event.type === "create" || event.type === "update")
-  ) {
-    return {
-      kind: "entity",
-      entityName: "Transaction",
-      entityId,
-      sourceEvent: `Transaction.${event.type}`,
-    };
-  }
-
-  if (event.entity_name === "Account" && event.type === "update") {
-    return {
-      kind: "entity",
-      entityName: "Account",
-      entityId,
-      sourceEvent: "Account.update",
-    };
-  }
-
-  return null;
+/**
+ * Base44 automation payloads do not prove the identity of the event initiator.
+ * Until the platform provides a verifiable trigger signature/identity, only
+ * an empty, authenticated scheduled/manual sweep invocation is accepted.
+ */
+export function isScheduledIntegrityInvocation(payload) {
+  return Boolean(
+    payload &&
+    typeof payload === "object" &&
+    !Array.isArray(payload) &&
+    Object.keys(payload).length === 0
+  );
 }
 
 const TOLERANCE = 0.01;
@@ -79,9 +49,10 @@ async function handleRequest(req) {
     }
 
     const payload = await req.json().catch(() => null);
-    const invocation = parseAccountIntegrityInvocation(payload);
-    if (!invocation) {
-      return Response.json({ error: "Unsupported or malformed integrity event." }, { status: 400 });
+    if (!isScheduledIntegrityInvocation(payload)) {
+      return Response.json({
+        error: "Only an authenticated scheduled/manual sweep is supported; event-triggered requests are not trusted.",
+      }, { status: 400 });
     }
 
     const service = base44.asServiceRole;
@@ -217,22 +188,6 @@ async function handleRequest(req) {
         }).catch(error => console.error("Integrity reviewer notification failed:", error))
       ));
       return { account_id: accountId, status: "alert_created", alert_id: created.id };
-    }
-
-    if (invocation.kind === "entity" && invocation.entityName === "Transaction") {
-      // Event data is untrusted. Resolve account ownership only from the stored
-      // transaction record fetched by the platform-supplied entity ID.
-      const transaction = await service.entities.Transaction.get(invocation.entityId).catch(() => null);
-      if (!transaction) {
-        return Response.json({ error: "Transaction event record not found." }, { status: 404 });
-      }
-      const result = await reconcileAccount(transaction.account_id, invocation.sourceEvent);
-      return Response.json({ success: true, result });
-    }
-
-    if (invocation.kind === "entity" && invocation.entityName === "Account") {
-      const result = await reconcileAccount(invocation.entityId, invocation.sourceEvent);
-      return Response.json({ success: true, result });
     }
 
     // Scheduled backstop: scan all accounts in bounded pages. This endpoint
