@@ -2,7 +2,7 @@ import {
   ACCOUNT_INTEGRITY_REVIEW_ROLES,
   canReviewAccountIntegrity,
   parseAccountIntegrityInvocation,
-} from "./accountIntegrityAccess.ts";
+} from "../../functions/reconcileAccountIntegrity/index.ts";
 
 Deno.test("only roles with operations review capability can review integrity alerts", () => {
   for (const role of ACCOUNT_INTEGRITY_REVIEW_ROLES) {
