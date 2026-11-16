@@ -1,13 +1,26 @@
 import {
+  ACCOUNT_INTEGRITY_REVIEW_CAPABILITY,
   ACCOUNT_INTEGRITY_REVIEW_ROLES,
   canReviewAccountIntegrity,
-  parseAccountIntegrityInvocation,
+  isScheduledIntegrityInvocation,
 } from "../../functions/reconcileAccountIntegrity/index.ts";
+import {
+  getPermissionMatrix,
+  userHasCapability,
+} from "../../../src/lib/operationsAccess.js";
 
-Deno.test("only roles with operations review capability can review integrity alerts", () => {
-  for (const role of ACCOUNT_INTEGRITY_REVIEW_ROLES) {
+Deno.test("integrity reviewer roles exactly follow the authoritative capability matrix", () => {
+  const expected = Object.keys(getPermissionMatrix()).filter(role =>
+    userHasCapability({ role }, ACCOUNT_INTEGRITY_REVIEW_CAPABILITY)
+  );
+
+  if (JSON.stringify(ACCOUNT_INTEGRITY_REVIEW_ROLES) !== JSON.stringify(expected)) {
+    throw new Error("Integrity reviewer roles diverge from operationsAccess capability matrix");
+  }
+
+  for (const role of expected) {
     if (!canReviewAccountIntegrity({ role })) {
-      throw new Error(`Expected ${role} to be an integrity reviewer`);
+      throw new Error(`Expected capability holder ${role} to review integrity alerts`);
     }
   }
 
@@ -24,6 +37,9 @@ Deno.test("only roles with operations review capability can review integrity ale
     "investment_manager",
     "investment_officer",
   ]) {
+    if (userHasCapability({ role }, ACCOUNT_INTEGRITY_REVIEW_CAPABILITY)) {
+      throw new Error(`Test assumption invalid: ${role} has the review capability`);
+    }
     if (canReviewAccountIntegrity({ role })) {
       throw new Error(`Unexpected integrity-review access for ${role}`);
     }
@@ -34,57 +50,22 @@ Deno.test("only roles with operations review capability can review integrity ale
   }
 });
 
-Deno.test("accepts only supported Transaction and Account event metadata", () => {
-  const transaction = parseAccountIntegrityInvocation({
-    event: { entity_name: "Transaction", type: "create", entity_id: "txn-1" },
-    data: { account_id: "forged-account" },
-  });
-  if (
-    transaction?.kind !== "entity" ||
-    transaction.entityName !== "Transaction" ||
-    transaction.entityId !== "txn-1" ||
-    transaction.sourceEvent !== "Transaction.create"
-  ) {
-    throw new Error("Transaction event metadata was not parsed correctly");
+Deno.test("scheduled/manual sweep accepts only an empty invocation object", () => {
+  if (!isScheduledIntegrityInvocation({})) {
+    throw new Error("Empty scheduled invocation was rejected");
   }
 
-  const account = parseAccountIntegrityInvocation({
-    event: { entity_name: "Account", type: "update", entity_id: "account-1" },
-  });
-  if (
-    account?.kind !== "entity" ||
-    account.entityName !== "Account" ||
-    account.entityId !== "account-1" ||
-    account.sourceEvent !== "Account.update"
-  ) {
-    throw new Error("Account event metadata was not parsed correctly");
-  }
-});
-
-Deno.test("rejects unsupported, incomplete, and malformed events", () => {
   for (const payload of [
     null,
     [],
-    { data: { account_id: "account-1" } },
-    { event: { entity_name: "Transaction", type: "delete", entity_id: "txn-1" } },
-    { event: { entity_name: "Account", type: "create", entity_id: "account-1" } },
-    { event: { entity_name: "User", type: "update", entity_id: "user-1" } },
-    { event: { entity_name: "Transaction", type: "create", entity_id: "" } },
-    { event: { entity_name: "Transaction", type: "create", entity_id: 123 } },
-    { event: "forged" },
-    { event: null, data: { account_id: "account-1" } },
+    { event: { entity_name: "Transaction", type: "create", entity_id: "txn-1" } },
+    { event: { entity_name: "Account", type: "update", entity_id: "account-1" } },
+    { data: { account_id: "forged-account" } },
+    { event: null },
+    { user_id: "forged-operator" },
   ]) {
-    if (parseAccountIntegrityInvocation(payload) !== null) {
-      throw new Error(`Unexpectedly accepted malformed payload: ${JSON.stringify(payload)}`);
+    if (isScheduledIntegrityInvocation(payload)) {
+      throw new Error(`Untrusted event/request payload was accepted: ${JSON.stringify(payload)}`);
     }
-  }
-});
-
-Deno.test("accepts only an empty payload as the scheduled sweep invocation", () => {
-  if (parseAccountIntegrityInvocation({})?.kind !== "scheduled") {
-    throw new Error("Empty scheduled invocation was rejected");
-  }
-  if (parseAccountIntegrityInvocation({ event: null })?.kind !== "scheduled") {
-    throw new Error("Null-event scheduled invocation was rejected");
   }
 });
