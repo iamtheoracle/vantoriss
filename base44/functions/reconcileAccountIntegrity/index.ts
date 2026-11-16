@@ -1,0 +1,222 @@
+import {
+  getPermissionMatrix,
+  userHasCapability,
+} from "../../../src/lib/operationsAccess.js";
+
+export const ACCOUNT_INTEGRITY_REVIEW_CAPABILITY = "management.operations.review";
+
+export const ACCOUNT_INTEGRITY_REVIEW_ROLES = Object.freeze(
+  Object.keys(getPermissionMatrix()).filter(role =>
+    userHasCapability({ role }, ACCOUNT_INTEGRITY_REVIEW_CAPABILITY)
+  )
+);
+
+export function canReviewAccountIntegrity(user) {
+  return userHasCapability(user, ACCOUNT_INTEGRITY_REVIEW_CAPABILITY);
+}
+
+export function getLatestPostedTransactionPair(transactions) {
+  const rows = Array.isArray(transactions) ? transactions : [];
+  const isPostedWithBalance = txn =>
+    !["pending", "failed", "reversed"].includes(txn.status || "completed") &&
+    txn.balance_after !== null && txn.balance_after !== undefined &&
+    Number.isFinite(Number(txn.balance_after));
+  const latestIndex = rows.findIndex(isPostedWithBalance);
+  if (latestIndex < 0) return { latest: null, prior: null };
+  return {
+    latest: rows[latestIndex],
+    prior: rows.slice(latestIndex + 1).find(isPostedWithBalance) || null,
+  };
+}
+
+/**
+ * Base44 automation payloads do not prove the identity of the event initiator.
+ * Until the platform provides a verifiable trigger signature/identity, only
+ * an empty, authenticated scheduled/manual sweep invocation is accepted.
+ */
+export function isScheduledIntegrityInvocation(payload) {
+  return Boolean(
+    payload &&
+    typeof payload === "object" &&
+    !Array.isArray(payload) &&
+    Object.keys(payload).length === 0
+  );
+}
+
+const TOLERANCE = 0.01;
+const ACCOUNT_UPDATE_GRACE_MS = 120000;
+
+async function handleRequest(req) {
+  if (req.method !== "POST") {
+    return Response.json({ error: "Method not allowed." }, { status: 405 });
+  }
+
+  try {
+    const { createClientFromRequest } = await import("npm:@base44/sdk@0.8.31");
+    const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me().catch(() => null);
+    if (!user) {
+      return Response.json({ error: "Authentication required." }, { status: 401 });
+    }
+    if (!canReviewAccountIntegrity(user)) {
+      return Response.json({ error: "Account integrity review access is required." }, { status: 403 });
+    }
+
+    const payload = await req.json().catch(() => null);
+    if (!isScheduledIntegrityInvocation(payload)) {
+      return Response.json({
+        error: "Only an authenticated scheduled/manual sweep is supported; event-triggered requests are not trusted.",
+      }, { status: 400 });
+    }
+
+    const service = base44.asServiceRole;
+    const now = new Date();
+
+    async function reconcileAccount(accountId, sourceEvent) {
+      if (!accountId) return { skipped: true };
+      const account = await service.entities.Account.get(accountId).catch(() => null);
+      if (!account) return { skipped: true, reason: "account_not_found" };
+
+      const transactions = await service.entities.Transaction.filter(
+        { account_id: accountId }, "-created_date", 20
+      );
+      const { latest, prior } = getLatestPostedTransactionPair(transactions);
+      if (!latest) return { skipped: true, reason: "no_posted_balance_snapshot" };
+
+      // An account write can arrive just before its matching transaction record.
+      // Give that pair a short grace period; the scheduled sweep is the backstop.
+      const accountUpdated = new Date(account.updated_date || 0).getTime();
+      const latestTxnCreated = new Date(latest.created_date || 0).getTime();
+      if (sourceEvent === "Account.update" && accountUpdated > latestTxnCreated &&
+          Date.now() - accountUpdated < ACCOUNT_UPDATE_GRACE_MS) {
+        return { skipped: true, reason: "account_update_grace_period" };
+      }
+      if (sourceEvent.startsWith("Transaction.") && latestTxnCreated > accountUpdated &&
+          Date.now() - latestTxnCreated < ACCOUNT_UPDATE_GRACE_MS) {
+        return { skipped: true, reason: "transaction_update_grace_period" };
+      }
+
+      const actual = Number(account.balance);
+      const expected = Number(latest.balance_after);
+      if (!Number.isFinite(actual) || !Number.isFinite(expected)) {
+        return { skipped: true, reason: "non_numeric_balance" };
+      }
+
+      const checks = [];
+      const accountDifference = Math.round((actual - expected) * 100) / 100;
+      if (Math.abs(accountDifference) > TOLERANCE) {
+        checks.push("Account balance " + actual.toFixed(2) +
+          " differs from the latest completed transaction balance_after " +
+          expected.toFixed(2) + " (difference " + accountDifference.toFixed(2) + ").");
+      }
+
+      let difference = accountDifference;
+      let expectedRecordedBalance = expected;
+      let actualRecordedBalance = actual;
+      if (prior && !["opening_balance", "transfer"].includes(latest.type) &&
+          Number.isFinite(Number(latest.amount))) {
+        const arithmeticExpected = Number(prior.balance_after) + Number(latest.amount);
+        const arithmeticDifference = Math.round((expected - arithmeticExpected) * 100) / 100;
+        if (Math.abs(arithmeticDifference) > TOLERANCE) {
+          checks.push("Transaction running-balance mismatch: previous posted balance " +
+            Number(prior.balance_after).toFixed(2) + " plus transaction amount " +
+            Number(latest.amount).toFixed(2) + " should be " +
+            arithmeticExpected.toFixed(2) + ", but the transaction records " +
+            expected.toFixed(2) + ".");
+          if (Math.abs(accountDifference) <= TOLERANCE) {
+            difference = arithmeticDifference;
+            expectedRecordedBalance = arithmeticExpected;
+            actualRecordedBalance = expected;
+          }
+        }
+      }
+
+      const openAlerts = await service.entities.IntegrityAlert.filter(
+        { account_id: accountId, status: "open" }, "-created_date", 10
+      );
+
+      if (checks.length === 0) {
+        for (const alert of (openAlerts || [])) {
+          await service.entities.IntegrityAlert.update(alert.id, {
+            status: "resolved",
+            resolved_at: now.toISOString(),
+            last_seen_at: now.toISOString()
+          });
+        }
+        return { account_id: accountId, status: "balanced" };
+      }
+
+      const fingerprint = accountId + ":account-ledger-integrity";
+      const details = checks.join(" ");
+      const existing = (openAlerts || []).find(alert => alert.fingerprint === fingerprint);
+      if (existing) {
+        await service.entities.IntegrityAlert.update(existing.id, {
+          actual_balance: actualRecordedBalance,
+          expected_balance: expectedRecordedBalance,
+          difference,
+          details,
+          last_seen_at: now.toISOString(),
+          source_event: sourceEvent
+        });
+        return { account_id: accountId, status: "alert_updated" };
+      }
+
+      const lastFour = String(account.account_number || "").slice(-4);
+      const created = await service.entities.IntegrityAlert.create({
+        account_id: accountId,
+        member_user_id: account.user_id || "",
+        fingerprint,
+        title: "Account balance discrepancy" + (lastFour ? " · •••• " + lastFour : ""),
+        details,
+        severity: "high",
+        status: "open",
+        expected_balance: expectedRecordedBalance,
+        actual_balance: actualRecordedBalance,
+        difference,
+        source_event: sourceEvent,
+        first_seen_at: now.toISOString(),
+        last_seen_at: now.toISOString()
+      });
+
+      const users = await service.entities.User.list("-created_date", 500);
+      const reviewers = (users || []).filter(candidate =>
+        ACCOUNT_INTEGRITY_REVIEW_ROLES.includes(candidate.role)
+      );
+      await Promise.all(reviewers.map(candidate =>
+        service.entities.Notification.create({
+          user_id: candidate.id,
+          title: "Account integrity alert",
+          message: "A balance discrepancy was detected for account ending " +
+            (lastFour || "unknown") + ". Review the open integrity alert in the operations dashboard.",
+          type: "warning",
+          link: "/operations"
+        }).catch(error => console.error("Integrity reviewer notification failed:", error))
+      ));
+      return { account_id: accountId, status: "alert_created", alert_id: created.id };
+    }
+
+    // Scheduled backstop: scan all accounts in bounded pages. This endpoint
+    // remains read-only for Account and Transaction records.
+    let offset = 0;
+    let checked = 0;
+    const pageSize = 500;
+    while (true) {
+      const accounts = await service.entities.Account.filter({}, "-created_date", pageSize, offset);
+      if (!accounts?.length) break;
+      for (const account of accounts) {
+        await reconcileAccount(account.id, "scheduled_reconciliation");
+        checked += 1;
+      }
+      if (accounts.length < pageSize) break;
+      offset += pageSize;
+    }
+    return Response.json({ success: true, checked, checked_at: now.toISOString() });
+  } catch (error) {
+    console.error("Account integrity reconciliation failed:", error);
+    return Response.json({ success: false, error: "Integrity reconciliation failed." }, { status: 500 });
+  }
+}
+
+if (import.meta.main) {
+  Deno.serve(handleRequest);
+}

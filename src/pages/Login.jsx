@@ -5,6 +5,8 @@ import AuthLayout from "@/components/AuthLayout";
 import SplashScreen from "@/components/auth/SplashScreen";
 import OnboardingCarousel from "@/components/auth/OnboardingCarousel";
 import { Loader2, Lock, User } from "lucide-react";
+import { useAuth } from "@/lib/AuthContext";
+import { hasOperationsAccess, isSuperAdmin } from "@/lib/operationsAccess";
 
 export default function Login() {
   const [phase, setPhase] = useState("splash");
@@ -14,6 +16,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { checkUserAuth } = useAuth();
 
   useEffect(() => {
     const saved = localStorage.getItem("vantoris_user_id");
@@ -42,14 +45,17 @@ export default function Login() {
       else localStorage.removeItem("vantoris_user_id");
       await base44.auth.loginViaEmailPassword(userId, password);
 
-      // Authentication establishes the session; it does not decide which
-      // Vantoris experience the user is allowed to access. All authenticated
-      // accounts enter the normal member portal by default. Authorized
-      // administrators/operators retain access to /operations through the
-      // existing OperationsRoute authorization boundary and Mission Control.
-      // This keeps member banking and the Operations OS as separate
-      // experiences without requiring separate credentials or accounts.
-      navigate("/", { replace: true });
+      // Refresh the shared auth context before routing. Without this step,
+      // ProtectedRoute and OperationsRoute can still see the pre-login
+      // unauthenticated state and immediately send the user back to /login.
+      const currentUser = await checkUserAuth();
+      if (!currentUser) {
+        setError("Your credentials were accepted, but we could not load your account session. Please try again.");
+        return;
+      }
+
+      const isOperationsUser = hasOperationsAccess(currentUser.role) || isSuperAdmin(currentUser);
+      navigate(isOperationsUser ? "/operations" : "/", { replace: true });
     } catch (err) {
       const status = err?.response?.status || err?.status;
       if (status === 404) {
