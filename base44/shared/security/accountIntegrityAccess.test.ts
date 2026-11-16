@@ -2,6 +2,7 @@ import {
   ACCOUNT_INTEGRITY_REVIEW_CAPABILITY,
   ACCOUNT_INTEGRITY_REVIEW_ROLES,
   canReviewAccountIntegrity,
+  getLatestPostedTransactionPair,
   isScheduledIntegrityInvocation,
 } from "../../functions/reconcileAccountIntegrity/index.ts";
 import {
@@ -67,5 +68,22 @@ Deno.test("scheduled/manual sweep accepts only an empty invocation object", () =
     if (isScheduledIntegrityInvocation(payload)) {
       throw new Error(`Untrusted event/request payload was accepted: ${JSON.stringify(payload)}`);
     }
+  }
+});
+
+
+Deno.test("prior posted balance skips newer pending or failed transactions", () => {
+  const olderPosted = { id: "posted-1", status: "completed", balance_after: 100 };
+  const latestPosted = { id: "posted-2", status: "completed", balance_after: 125 };
+  const pending = { id: "pending-1", status: "pending", balance_after: null };
+  const result = getLatestPostedTransactionPair([pending, latestPosted, olderPosted]);
+
+  if (result.latest !== latestPosted || result.prior !== olderPosted) {
+    throw new Error("Expected latest and prior posted transactions in chronological order");
+  }
+
+  const empty = getLatestPostedTransactionPair([pending]);
+  if (empty.latest !== null || empty.prior !== null) {
+    throw new Error("Transactions without a posted balance snapshot must be ignored");
   }
 });
