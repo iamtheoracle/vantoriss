@@ -62,3 +62,30 @@ No dedicated transaction-import capability currently exists. Do not widen access
 - **Not verified:** Base44 RLS evaluation, account-number uniqueness constraint, routing-number allocation, transactional guarantees, runtime authorization, and staging/member-isolation behavior.
 - **Deferred:** code changes to role mappings, Account RLS, account generation, and import writers pending explicit operation-capability definitions and platform transaction/RLS evidence.
 - **No deployment or live permission changes:** none performed.
+
+
+## Follow-up source inventory — direct Account and Transaction mutation paths
+
+Reviewed the current PR branch implementations for the following paths. These findings do not establish whether Base44 RLS permits each call at runtime.
+
+| Path | Direct mutation found | Security / integrity consequence |
+|---|---|---|
+| `src/pages/admin/AdminMembers.jsx` | Client creates Account with caller-supplied opening balance, then creates an opening-balance Transaction; member deletion attempts `Transaction.deleteMany`, `Account.delete`, then `User.delete`. | Separate writes can partially succeed. Permanent financial-history deletion is attempted from a client workflow; Account delete policy is currently false, but actual denial and partial-failure behavior are untested. Replace with controlled archival/deactivation and immutable financial records. |
+| `src/pages/admin/AdminApplications.jsx` | Client creates Accounts and opening Transactions in application approval flows. | Account-opening authority and initial ledger posting are enforced in client code rather than one server-authorized workflow. |
+| `src/pages/AccountDetail.jsx` | Client attempts to update Account status when freezing/unfreezing. | Status changes share the broad Account update policy with balance/metadata changes; field-level distinction and member-side authorization are unverified. |
+| `src/pages/admin/AdminAccounts.jsx` | Client creates/edits accounts and updates balance snapshots after creating transactions. | Multiple writes can partially succeed; client can directly mutate Account state. |
+| `src/pages/admin/AdminWithdrawals.jsx` | Client creates withdrawal Transaction, updates Account balance, and updates WithdrawalRequest status in separate calls. | A failure between calls can leave ledger, balance, and request state inconsistent. |
+| `src/pages/operations/VerificationRequests.jsx` | Client creates deposit/opening Transaction, updates Account balance, and updates VerificationRequest status in separate calls. | Approval and posting need one server-controlled lifecycle. |
+| `src/components/vantoris/QuickActionsMenu.jsx` | Client creates adjustment Transaction, updates Account balance, and sends notification separately. | Consequential adjustment has no single atomic server boundary in this path. |
+| `src/components/vantoris/FloatingCommandDock.jsx` | Client updates Account status and creates a Transaction during the freeze flow. | Freeze action and transaction record are split; do not invent a financial movement for a status-only event. |
+| `src/components/vantoris/HistoricalStatementImport.jsx` | Client creates HistoricalStatement and bulk-creates historical Transactions using the selected account ID; it intentionally does not update current Account balance. | Server must verify actor access, derive owner from Account, preserve source-document linkage, and prevent duplicate imports. |
+| `src/pages/operations/BulkTransactionImport.jsx` | Client bulk-creates Transaction rows. | Bypasses a central server-side validation and attribution boundary. |
+| `src/lib/ledgerImport.js` | Client creates HistoricalStatement, bulk-creates Transactions, updates Account closing balance, then writes AuditLog. | Separate writes can partially complete; ownership and audit attribution need server verification. |
+
+### Additional required controls
+
+- Do not use client-side cascading deletion for member financial records. Define member closure/deactivation, account closure, retention, legal hold, and audit-preserving archival as separate authorized lifecycle operations.
+- Treat account status changes, account metadata changes, and balance changes as separate capabilities and server-side operations.
+- For every migrated operation, verify actor, capability, target account/member, transaction status, amount/sign, idempotency key, and approval state on the server. Derive account owner from the verified Account record.
+- Add failure-injection tests at every multi-step boundary and prove retries cannot double-post or leave an untraceable partial state.
+- Until these paths are migrated and staging-tested, Account create/update RLS and Transaction client write access remain unresolved security boundaries.
