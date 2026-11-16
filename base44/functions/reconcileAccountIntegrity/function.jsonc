@@ -10,7 +10,7 @@
         "create",
         "update"
       ],
-      "is_active": true
+      "is_active": false
     },
     {
       "name": "Check updated account balances",
@@ -19,7 +19,7 @@
       "event_types": [
         "update"
       ],
-      "is_active": true
+      "is_active": false
     },
     {
       "name": "Scheduled account integrity sweep",
@@ -27,7 +27,7 @@
       "schedule_mode": "recurring",
       "schedule_type": "cron",
       "cron_expression": "*/5 * * * *",
-      "is_active": true,
+      "is_active": false,
       "description": "Reconcile account balances against the latest completed transaction every five minutes."
     }
   ]
