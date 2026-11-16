@@ -1,18 +1,35 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.31";
+import {
+  ACCOUNT_INTEGRITY_REVIEW_ROLES,
+  canReviewAccountIntegrity,
+  parseAccountIntegrityInvocation,
+} from "../../shared/security/accountIntegrityAccess.ts";
 
-const ADMIN_ROLES = new Set([
-  "admin", "administrator", "super_administrator", "operations_officer", "operations_manager", "compliance_officer", "executive", "finance_officer", "kyc_officer", "treasury_officer", "investment_officer", "investment_manager", "auditor", "risk_officer", "it_administrator", "customer_support", "herobox_manager", "volunteer_manager", "shipping_manager"
-]);
 const TOLERANCE = 0.01;
 const ACCOUNT_UPDATE_GRACE_MS = 120000;
 
 Deno.serve(async (req) => {
+  if (req.method !== "POST") {
+    return Response.json({ error: "Method not allowed." }, { status: 405 });
+  }
+
   try {
     const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me().catch(() => null);
+    if (!user) {
+      return Response.json({ error: "Authentication required." }, { status: 401 });
+    }
+    if (!canReviewAccountIntegrity(user)) {
+      return Response.json({ error: "Account integrity review access is required." }, { status: 403 });
+    }
+
+    const payload = await req.json().catch(() => null);
+    const invocation = parseAccountIntegrityInvocation(payload);
+    if (!invocation) {
+      return Response.json({ error: "Unsupported or malformed integrity event." }, { status: 400 });
+    }
+
     const service = base44.asServiceRole;
-    const payload = await req.json().catch(() => ({}));
-    const event = payload.event || null;
-    const eventData = payload.data || null;
     const now = new Date();
 
     async function reconcileAccount(accountId, sourceEvent) {
@@ -31,8 +48,8 @@ Deno.serve(async (req) => {
       if (!latest) return { skipped: true, reason: "no_posted_balance_snapshot" };
 
       // An account write can arrive just before its matching transaction record.
-      // Give that pair a short grace period; the five-minute sweep is the backstop.
-      const accountUpdated = new Date(account.updated_date || eventData?.updated_date || 0).getTime();
+      // Give that pair a short grace period; the scheduled sweep is the backstop.
+      const accountUpdated = new Date(account.updated_date || 0).getTime();
       const latestTxnCreated = new Date(latest.created_date || 0).getTime();
       if (sourceEvent === "Account.update" && accountUpdated > latestTxnCreated &&
           Date.now() - accountUpdated < ACCOUNT_UPDATE_GRACE_MS) {
@@ -131,35 +148,40 @@ Deno.serve(async (req) => {
       });
 
       const users = await service.entities.User.list("-created_date", 500);
-      const administrators = (users || []).filter(user => ADMIN_ROLES.has(user.role));
-      await Promise.all(administrators.map(user =>
+      const reviewers = (users || []).filter(candidate =>
+        ACCOUNT_INTEGRITY_REVIEW_ROLES.includes(candidate.role)
+      );
+      await Promise.all(reviewers.map(candidate =>
         service.entities.Notification.create({
-          user_id: user.id,
+          user_id: candidate.id,
           title: "Account integrity alert",
           message: "A balance discrepancy was detected for account ending " +
-            (lastFour || "unknown") + ". Review the open integrity alert in the admin dashboard.",
+            (lastFour || "unknown") + ". Review the open integrity alert in the operations dashboard.",
           type: "warning",
           link: "/operations"
-        }).catch(error => console.error("Admin alert notification failed:", error))
+        }).catch(error => console.error("Integrity reviewer notification failed:", error))
       ));
       return { account_id: accountId, status: "alert_created", alert_id: created.id };
     }
 
-    if (event?.entity_name === "Transaction") {
-      let transaction = eventData;
-      if (payload.payload_too_large || !transaction) {
-        transaction = await service.entities.Transaction.get(event.entity_id);
+    if (invocation.kind === "entity" && invocation.entityName === "Transaction") {
+      // Event data is untrusted. Resolve account ownership only from the stored
+      // transaction record fetched by the platform-supplied entity ID.
+      const transaction = await service.entities.Transaction.get(invocation.entityId).catch(() => null);
+      if (!transaction) {
+        return Response.json({ error: "Transaction event record not found." }, { status: 404 });
       }
-      const result = await reconcileAccount(transaction?.account_id, "Transaction." + event.type);
+      const result = await reconcileAccount(transaction.account_id, invocation.sourceEvent);
       return Response.json({ success: true, result });
     }
 
-    if (event?.entity_name === "Account") {
-      const result = await reconcileAccount(event.entity_id, "Account." + event.type);
+    if (invocation.kind === "entity" && invocation.entityName === "Account") {
+      const result = await reconcileAccount(invocation.entityId, invocation.sourceEvent);
       return Response.json({ success: true, result });
     }
 
-    // Scheduled backstop: scan all accounts in bounded pages.
+    // Scheduled backstop: scan all accounts in bounded pages. This endpoint
+    // remains read-only for Account and Transaction records.
     let offset = 0;
     let checked = 0;
     const pageSize = 500;
