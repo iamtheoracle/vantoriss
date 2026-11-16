@@ -15,6 +15,20 @@ export function canReviewAccountIntegrity(user) {
   return userHasCapability(user, ACCOUNT_INTEGRITY_REVIEW_CAPABILITY);
 }
 
+export function getLatestPostedTransactionPair(transactions) {
+  const rows = Array.isArray(transactions) ? transactions : [];
+  const isPostedWithBalance = txn =>
+    !["pending", "failed", "reversed"].includes(txn.status || "completed") &&
+    txn.balance_after !== null && txn.balance_after !== undefined &&
+    Number.isFinite(Number(txn.balance_after));
+  const latestIndex = rows.findIndex(isPostedWithBalance);
+  if (latestIndex < 0) return { latest: null, prior: null };
+  return {
+    latest: rows[latestIndex],
+    prior: rows.slice(latestIndex + 1).find(isPostedWithBalance) || null,
+  };
+}
+
 /**
  * Base44 automation payloads do not prove the identity of the event initiator.
  * Until the platform provides a verifiable trigger signature/identity, only
@@ -66,11 +80,7 @@ async function handleRequest(req) {
       const transactions = await service.entities.Transaction.filter(
         { account_id: accountId }, "-created_date", 20
       );
-      const latest = (Array.isArray(transactions) ? transactions : []).find(txn =>
-        !["pending", "failed", "reversed"].includes(txn.status || "completed") &&
-        txn.balance_after !== null && txn.balance_after !== undefined &&
-        Number.isFinite(Number(txn.balance_after))
-      );
+      const { latest, prior } = getLatestPostedTransactionPair(transactions);
       if (!latest) return { skipped: true, reason: "no_posted_balance_snapshot" };
 
       // An account write can arrive just before its matching transaction record.
@@ -100,11 +110,6 @@ async function handleRequest(req) {
           expected.toFixed(2) + " (difference " + accountDifference.toFixed(2) + ").");
       }
 
-      const prior = (Array.isArray(transactions) ? transactions : []).slice(1).find(txn =>
-        !["pending", "failed", "reversed"].includes(txn.status || "completed") &&
-        txn.balance_after !== null && txn.balance_after !== undefined &&
-        Number.isFinite(Number(txn.balance_after))
-      );
       let difference = accountDifference;
       let expectedRecordedBalance = expected;
       let actualRecordedBalance = actual;
