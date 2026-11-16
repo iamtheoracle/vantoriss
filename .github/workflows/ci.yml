@@ -56,4 +56,4 @@ jobs:
           deno-version: v2.x
 
       - name: Test Guardian and workflow registry
-        run: deno test --no-check base44/shared/runtime/guardian.test.ts base44/shared/registries/WorkflowRegistry.test.ts
+        run: deno test --no-check base44/shared/runtime/guardian.test.ts base44/shared/registries/WorkflowRegistry.test.ts base44/shared/security/accountIntegrityAccess.test.ts
