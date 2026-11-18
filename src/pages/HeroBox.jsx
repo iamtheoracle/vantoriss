@@ -61,13 +61,13 @@ export default function HeroBox() {
   function handleOrderComplete() {
     setCart([]);
     setActiveTab('orders');
-    toast({ title: 'Order placed', description: 'Your HeroBox order has been created.' });
+    toast({ title: 'Order placed', description: 'Your Community Support order has been created.' });
   }
 
   if (loading) return <div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin text-brass" /></div>;
 
   if (!profile) {
-    return <div className="px-5 pt-6 min-h-screen"><div className="vantoris-glass-premium p-8 text-center"><Heart size={32} className="text-brass mx-auto mb-4" /><h2 className="text-xl font-bold text-foreground mb-2">HeroBox is temporarily unavailable</h2><p className="text-gray text-sm leading-relaxed">We could not initialize your HeroBox membership. Please refresh and try again.</p></div></div>;
+    return <div className="px-5 pt-6 min-h-screen"><div className="vantoris-glass-premium p-8 text-center"><Heart size={32} className="text-brass mx-auto mb-4" /><h2 className="text-xl font-bold text-foreground mb-2">Community Support is temporarily unavailable</h2><p className="text-gray text-sm leading-relaxed">We could not initialize your Community Support profile. Please refresh and try again.</p></div></div>;
   }
 
   const cartCount = cart.reduce((s, c) => s + c.quantity, 0);
@@ -75,7 +75,7 @@ export default function HeroBox() {
   return (
     <div className="px-5 pt-6 pb-8 vantoris-scroll min-h-screen">
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3"><div className="w-11 h-11 rounded-xl bg-brass/10 border border-brass/15 flex items-center justify-center"><Heart size={22} className="text-brass" /></div><div><h1 className="text-xl font-bold text-foreground">HeroBox</h1><p className="text-xs text-gray">They are our heroes. We can be theirs too.</p></div></div>
+        <div className="flex items-center gap-3"><div className="w-11 h-11 rounded-xl bg-brass/10 border border-brass/15 flex items-center justify-center"><Heart size={22} className="text-brass" /></div><div><h1 className="text-xl font-bold text-foreground">Community Support</h1><p className="text-xs text-gray">Verified support for service members, families and communities.</p></div></div>
         {cartCount > 0 && <button onClick={() => setShowCheckout(true)} aria-label="Open cart" className="relative w-11 h-11 rounded-xl bg-navy flex items-center justify-center"><ShoppingCart size={20} className="text-white" /><span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-brass text-white text-[10px] font-bold flex items-center justify-center">{cartCount}</span></button>}
       </div>
 
@@ -86,7 +86,7 @@ export default function HeroBox() {
       {activeTab === 'packages' && <div><ProductCatalog cart={cart} onAddToCart={handleAddToCart} onRemoveFromCart={handleRemoveFromCart} view="packages" />{cartCount > 0 && <button onClick={() => setShowCheckout(true)} className="fixed bottom-24 left-5 right-5 max-w-md mx-auto py-3.5 rounded-xl bg-brass text-white font-semibold shadow-lg flex items-center justify-center gap-2 z-40"><ShoppingCart size={18} /> Checkout ({cartCount} item{cartCount !== 1 ? 's' : ''})</button>}</div>}
       {activeTab === 'shop' && <div><ProductCatalog cart={cart} onAddToCart={handleAddToCart} onRemoveFromCart={handleRemoveFromCart} view="shop" />{cartCount > 0 && <button onClick={() => setShowCheckout(true)} className="fixed bottom-24 left-5 right-5 max-w-md mx-auto py-3.5 rounded-xl bg-brass text-white font-semibold shadow-lg flex items-center justify-center gap-2 z-40"><ShoppingCart size={18} /> Checkout ({cartCount} item{cartCount !== 1 ? 's' : ''})</button>}</div>}
       {activeTab === 'orders' && <OrderHistory />}
-      {activeTab === 'donate' && <div><div className="vantoris-glass-premium p-6 mb-5 text-center"><Heart size={28} className="text-brass mx-auto mb-3" /><h3 className="text-base font-bold text-foreground mb-1">Donate to Verified Needs</h3><p className="text-gray text-xs leading-relaxed">Support verified humanitarian cases discovered by the Atchison Village Discovery. Every case is verified — The institution never fabricates people, needs, or emergencies. You choose exactly where your donation goes.</p></div><button onClick={() => setShowDonation(true)} className="w-full py-3.5 rounded-xl bg-brass text-white font-semibold flex items-center justify-center gap-2"><Heart size={18} /> Start a Donation</button></div>}
+      {activeTab === 'donate' && <div><div className="vantoris-glass-premium p-6 mb-5 text-center"><Heart size={28} className="text-brass mx-auto mb-3" /><h3 className="text-base font-bold text-foreground mb-1">Donate to Verified Needs</h3><p className="text-gray text-xs leading-relaxed">Support verified humanitarian cases discovered by AVCU Community Support. Every case is verified — The institution never fabricates people, needs, or emergencies. You choose exactly where your donation goes.</p></div><button onClick={() => setShowDonation(true)} className="w-full py-3.5 rounded-xl bg-brass text-white font-semibold flex items-center justify-center gap-2"><Heart size={18} /> Start a Donation</button></div>}
 
       {showCheckout && <CheckoutFlow cart={cart} onClose={() => setShowCheckout(false)} onOrderComplete={handleOrderComplete} />}
       {showDonation && <DonationFlow onClose={() => setShowDonation(false)} onOrderComplete={() => setActiveTab('orders')} />}

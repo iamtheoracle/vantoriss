@@ -5,8 +5,8 @@ import { Link } from 'react-router-dom';
 import ShieldLogo from '@/components/vantoris/ShieldLogo';
 
 /**
- * Classic Assistant — retained legacy conversation experience.
- * AVA is the current member-facing assistant and uses the authenticated Oracle runtime.
+ * Classic AVCU Assistant — retained compatibility conversation experience.
+ * AVA is the current member-facing assistant and uses the authenticated AVCU Core runtime.
  */
 export default function VantorisAssistant() {
   const [messages, setMessages] = useState([]);
@@ -61,7 +61,7 @@ export default function VantorisAssistant() {
       if (!conv) {
         conv = await base44.agents.createConversation({
           agent_name: 'vantoris_assistant',
-          metadata: { name: 'Classic Assistant', description: 'Member assistance session' },
+          metadata: { name: 'Classic AVCU Assistant', description: 'Member assistance session' },
         });
         setConversation(conv);
       }
@@ -89,8 +89,8 @@ export default function VantorisAssistant() {
               <ShieldLogo size={22} />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-foreground">Classic Assistant</h1>
-              <p className="text-xs text-gray">Retained legacy guidance · AVA handles current member support</p>
+              <h1 className="text-lg font-bold text-foreground">Classic AVCU Assistant</h1>
+              <p className="text-xs text-gray">Retained compatibility assistant · AVA handles current member support</p>
               <Link to="/ava" className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#173D32]">Open AVA <ArrowUpRight size={13} /></Link>
             </div>
           </div>
@@ -109,7 +109,7 @@ export default function VantorisAssistant() {
         <div className="px-5 py-2 max-w-3xl mx-auto w-full">
           <div className="flex items-center gap-2 text-xs text-gray">
             <Sparkles size={12} />
-            <span>Classic Assistant processing...</span>
+            <span>Classic AVCU Assistant processing...</span>
           </div>
         </div>
       )}
@@ -122,7 +122,7 @@ export default function VantorisAssistant() {
                 <Sparkles size={28} className="text-navy" />
               </div>
               <h2 className="text-lg font-semibold text-foreground mb-1">How can I help?</h2>
-              <p className="text-sm text-gray">Ask me anything about your accounts, transactions, investments, HeroBox, or platform features.</p>
+              <p className="text-sm text-gray">Ask me about your accounts, transactions, investments, community support, or available credit-union services.</p>
             </div>
           )}
           {messages.map((msg, i) => (
@@ -167,7 +167,7 @@ export default function VantorisAssistant() {
               el.style.height = 'auto';
               el.style.height = Math.min(el.scrollHeight, 120) + 'px';
             }}
-            placeholder="Message Classic Assistant…"
+            placeholder="Message Classic AVCU Assistant…"
             disabled={loading}
             rows={1}
             aria-label="Command input"

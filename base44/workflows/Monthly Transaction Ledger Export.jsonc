@@ -1,6 +1,6 @@
 {
   "name": "Monthly Transaction Ledger Export",
-  "description": "Automatically exports all HeroBox/Vantoris financial transactions to CSV on the first day of each month for reconciliation and reporting.",
+  "description": "Automatically exports all Atchison Village Credit Union financial transactions to CSV on the first day of each month for reconciliation and reporting.",
   "trigger": {
     "condition": null,
     "config": {

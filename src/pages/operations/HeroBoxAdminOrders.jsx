@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import OperationsPageLayout from '@/components/vantoris/OperationsPageLayout';
-import { Package, Loader2, Truck, Check, Clock, AlertCircle } from 'lucide-react';
+import { Package, Loader2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -42,7 +42,7 @@ export default function HeroBoxAdminOrders() {
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-brass" /></div>;
 
   return (
-    <OperationsPageLayout title="HeroBox Orders" description="Manage order fulfillment lifecycle" icon={Package}>
+    <OperationsPageLayout title="Community Support Orders" description="Manage order fulfillment lifecycle" icon={Package}>
       {orders.length === 0 ? (
         <div className="vantoris-glass p-12 text-center">
           <Package size={32} className="text-gray mx-auto mb-3" />

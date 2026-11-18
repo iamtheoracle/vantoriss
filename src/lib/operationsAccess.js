@@ -1,5 +1,5 @@
 // ============================================================
-// VANTORIS — Definitive Administrator Permission Matrix
+// AVCU — Definitive Administrator Permission Matrix
 // ============================================================
 // SOURCE OF TRUTH for all administrator authorization.
 //
@@ -7,7 +7,7 @@
 //   SUPER ADMINISTRATOR
 //       ├── Management (Operations + KYC + Compliance)
 //       ├── Support
-//       ├── HeroBox
+//       ├── Community Support
 //       └── Investment
 //
 // PRINCIPLES:
@@ -60,10 +60,10 @@ export const CAPABILITY_REGISTRY = {
   'support.communication.manage':  { domain: 'support', category: 'Support', label: 'Communicate with customers' },
   'support.escalate':              { domain: 'support', category: 'Support', label: 'Escalate KYC/compliance/operations issues to Management' },
 
-  // ---- HeroBox ----
-  'herobox.catalog.view':        { domain: 'herobox', category: 'Catalog',      label: 'View HeroBox products and categories' },
+  // ---- AVCU Community Support ----
+  'herobox.catalog.view':        { domain: 'herobox', category: 'Catalog',      label: 'View community support products and categories' },
   'herobox.catalog.manage':      { domain: 'herobox', category: 'Catalog',      label: 'Manage products, categories, packages, and availability' },
-  'herobox.orders.view':         { domain: 'herobox', category: 'Orders',       label: 'Review HeroBox orders and recipients' },
+  'herobox.orders.view':         { domain: 'herobox', category: 'Orders',       label: 'Review community support orders and recipients' },
   'herobox.orders.manage':       { domain: 'herobox', category: 'Orders',       label: 'Manage order states' },
   'herobox.fulfillment.manage':  { domain: 'herobox', category: 'Fulfillment',  label: 'Manage packing, shipping, and delivery' },
   'herobox.refunds.manage':      { domain: 'herobox', category: 'Refunds',      label: 'Process permitted refunds', financiallyConsequential: true },
@@ -89,7 +89,7 @@ export const CAPABILITY_REGISTRY = {
   // ---- System (Super Administrator-exclusive — require Exception Authentication) ----
   'system.apis.manage':           { domain: 'system', category: 'System', label: 'Add, remove, or modify APIs', superAdminExclusive: true },
   'system.integrations.manage':   { domain: 'system', category: 'System', label: 'Manage protected integrations and providers', superAdminExclusive: true },
-  'system.ai.manage':              { domain: 'system', category: 'System', label: 'Modify protected AI/LLM and Vantoris Assistant configuration', superAdminExclusive: true },
+  'system.ai.manage':              { domain: 'system', category: 'System', label: 'Modify protected AI/LLM and AVA assistant and AVCU intelligence configuration', superAdminExclusive: true },
   'system.security.manage':        { domain: 'system', category: 'System', label: 'Modify security architecture', superAdminExclusive: true },
   'system.architecture.manage':    { domain: 'system', category: 'System', label: 'Modify authorization and Command architecture', superAdminExclusive: true },
   'system.application.modify':     { domain: 'system', category: 'System', label: 'Modify protected application functionality', superAdminExclusive: true },
@@ -114,7 +114,7 @@ export function isSuperAdmin(user) {
 export const DOMAINS = {
   management: 'Management',
   support: 'Support',
-  herobox: 'HeroBox',
+  herobox: 'Community Support',
   investment: 'Investment',
 };
 
@@ -193,7 +193,7 @@ const ROLE_CAPABILITIES = {
     'support.communication.manage', 'support.escalate',
   ],
 
-  // ---- HeroBox domain ----
+  // ---- Community Support domain ----
   herobox_manager: [
     'herobox.catalog.view', 'herobox.catalog.manage',
     'herobox.orders.view', 'herobox.orders.manage',
@@ -575,7 +575,7 @@ export function getRoleLabel(role) {
     auditor: 'Auditor',
     it_administrator: 'IT Administrator',
     risk_officer: 'Risk Officer',
-    herobox_manager: 'HeroBox Manager',
+    herobox_manager: 'Community Support Manager',
     volunteer_manager: 'Volunteer Manager',
     shipping_manager: 'Shipping Manager',
     investment_manager: 'Investment Manager',
@@ -591,7 +591,7 @@ export function getRoleLabel(role) {
 export const WORKSPACE_LABELS = {
   management: 'Management',
   support: 'Support',
-  herobox: 'HeroBox',
+  herobox: 'Community Support',
   investment: 'Investment',
   // Legacy aliases
   executive: 'Management',

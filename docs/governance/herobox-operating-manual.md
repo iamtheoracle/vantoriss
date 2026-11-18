@@ -1,21 +1,21 @@
-# HEROBOX OPERATING MANUAL
+# AVCU COMMUNITY SUPPORT OPERATING MANUAL
 ## Version 2.0 — Master Platform Specification
 
 ---
 
 ## MASTER EXECUTION DIRECTIVE
 
-HeroBox is an existing production platform. Do not rebuild working functionality. Upgrade, extend, optimize, and complete existing systems while preserving existing users, authentication, data, products, orders, permissions, workflows, APIs, dashboards, and integrations. Every enhancement must be backward compatible unless an explicit migration has been approved.
+AVCU Community Support is an existing production platform. Do not rebuild working functionality. Upgrade, extend, optimize, and complete existing systems while preserving existing users, authentication, data, products, orders, permissions, workflows, APIs, dashboards, and integrations. Every enhancement must be backward compatible unless an explicit migration has been approved.
 
 ---
 
 ## PLATFORM IDENTITY
 
-HeroBox is **not** an ecommerce website, fundraising website, or generic donation platform.
+AVCU Community Support is **not** an ecommerce website, fundraising website, or generic donation platform.
 
-HeroBox is a **mission-driven humanitarian support ecosystem** that connects verified people in need with trusted supporters, organizations, volunteers, businesses, logistics providers, and communities through one transparent platform.
+AVCU Community Support is a **mission-driven humanitarian support ecosystem** that connects verified people in need with trusted supporters, organizations, volunteers, businesses, logistics providers, and communities through one transparent platform.
 
-**Military Support is HeroBox's flagship mission** and remains the foundation of the platform.
+**Military Support is AVCU Community Support's flagship mission** and remains the foundation of the platform.
 
 Every interaction should reinforce: Trust, Service, Compassion, Dignity, Community, Accountability, Transparency, Measurable Impact.
 
@@ -59,7 +59,7 @@ Every page, workflow, email, notification, dashboard, report, package, campaign,
 
 ## PROGRAM STRUCTURE
 
-Each mission area operates as a structured HeroBox Program:
+Each mission area operates as a structured AVCU Community Support Program:
 
 | Program | Mission Area |
 |---|---|
@@ -79,7 +79,7 @@ Programs share: Marketplace, Packages, Campaigns, Volunteers, Organizations, Log
 
 ---
 
-## HEROBOX SUPPORT MODEL — OPERATIONAL LIFECYCLE
+## AVCU COMMUNITY SUPPORT SUPPORT MODEL — OPERATIONAL LIFECYCLE
 
 1. Need Identified
 2. Verification
@@ -96,7 +96,7 @@ Programs share: Marketplace, Packages, Campaigns, Volunteers, Organizations, Log
 13. Transparency Reporting
 14. Case Completion or Ongoing Support
 
-This lifecycle must remain consistent across every HeroBox program.
+This lifecycle must remain consistent across every AVCU Community Support program.
 
 ---
 
@@ -124,7 +124,7 @@ Each system must integrate seamlessly. No isolated modules. No duplicated workfl
 
 ## DESIGN PRINCIPLES
 
-HeroBox should feel: Premium, Calm, Mission-driven, Human-centered, Respectful, Mobile-first, Accessible, Secure, Transparent, Enterprise-grade.
+AVCU Community Support should feel: Premium, Calm, Mission-driven, Human-centered, Respectful, Mobile-first, Accessible, Secure, Transparent, Enterprise-grade.
 
 ### Language Standards
 
@@ -142,6 +142,6 @@ Every implementation must be production-ready. Never generate placeholder pages,
 
 ## FINAL PRINCIPLE
 
-HeroBox is a humanitarian operating system. The Marketplace, Packages, Campaigns, Volunteers, Organizations, Families, Communications, Logistics, and Impact Reporting all exist to support one mission:
+AVCU Community Support is a humanitarian operating system. The Marketplace, Packages, Campaigns, Volunteers, Organizations, Families, Communications, Logistics, and Impact Reporting all exist to support one mission:
 
 > Connecting generosity with verified human need through trusted technology, transparent operations, and measurable impact while preserving the dignity of every person served.

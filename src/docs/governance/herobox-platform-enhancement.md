@@ -1,15 +1,15 @@
-# HEROBOX PLATFORM ENHANCEMENT
+# AVCU COMMUNITY SUPPORT PLATFORM ENHANCEMENT
 ## Production Amendment — Operations, Analytics & Bulk Management
 ## Version 1.0
 
-This amendment extends the existing HeroBox platform. Do not rebuild existing functionality. Preserve all users, data, permissions, audit logs, transactions, dashboards, and integrations.
+This amendment extends the existing AVCU Community Support platform. Do not rebuild existing functionality. Preserve all users, data, permissions, audit logs, transactions, dashboards, and integrations.
 
 ---
 
 ## MODULE 1 — AUTOMATED TRANSACTION LEDGER EXPORT
 
 ### Objective
-Automatically export HeroBox financial transactions into Google Sheets for reconciliation, reporting, bookkeeping, and operational analysis. This is an export service only — do not modify existing transaction workflows.
+Automatically export AVCU Community Support financial transactions into Google Sheets for reconciliation, reporting, bookkeeping, and operational analysis. This is an export service only — do not modify existing transaction workflows.
 
 ### Export Schedule
 - Monthly (default) — executes on the first day of each month
@@ -33,7 +33,7 @@ Display: Last Export, Next Scheduled Export, Export Status, Rows Exported, Faile
 
 ---
 
-## MODULE 2 — HEROBOX IMPACT DASHBOARD
+## MODULE 2 — AVCU COMMUNITY SUPPORT IMPACT DASHBOARD
 
 ### Objective
 Create a personalized impact dashboard showing the measurable difference each supporter has made. Only display data available to the signed-in user. Never expose other users' information.
@@ -82,4 +82,4 @@ Modern enterprise banking interface with: Sticky toolbar, Bulk action panel, Pro
 
 ## GENERAL REQUIREMENTS
 
-Maintain complete compatibility with existing HeroBox architecture. Do not remove current features. Do not modify existing permissions. Do not weaken security. Do not bypass approval workflows. Every enhancement must be: Production-ready, Fully audited, Role-aware, Secure, Scalable, Performance optimized, and consistent with HeroBox's humanitarian mission and enterprise operational standards.
+Maintain complete compatibility with existing AVCU Community Support architecture. Do not remove current features. Do not modify existing permissions. Do not weaken security. Do not bypass approval workflows. Every enhancement must be: Production-ready, Fully audited, Role-aware, Secure, Scalable, Performance optimized, and consistent with AVCU Community Support's humanitarian mission and enterprise operational standards.

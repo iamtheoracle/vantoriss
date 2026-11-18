@@ -1,9 +1,9 @@
 // ============================================================
-// VANTORIS — Super Administrator Exception Authentication
+// AVCU — Super Administrator Exception Authentication
 // ============================================================
 // Authorizes actions that are EXCLUSIVE to the Super Administrator
 // and outside the normal capabilities of Management, Support,
-// HeroBox, and Investment administrators.
+// Community Support and Investment administrators.
 //
 // SECURITY MODEL:
 // - The raw secret is stored via set_secrets (SUPER_ADMIN_EXCEPTION_SECRET)
@@ -52,7 +52,7 @@ export const SUPER_ADMIN_EXCLUSIVE_ACTIONS = {
   // LLM / AI Configuration
   change_llm_provider: 'Change the underlying LLM or provider',
   change_ai_config: 'Change protected AI configuration',
-  change_assistant_config: 'Change Vantoris Assistant system configuration',
+  change_assistant_config: 'Change AVCU assistant and model configuration',
   change_command_routing: 'Change Command routing architecture',
   add_remove_division: 'Add or remove Command divisions',
   change_division_capabilities: 'Materially change Command division capabilities',

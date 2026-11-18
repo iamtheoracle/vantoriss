@@ -7,10 +7,10 @@ const RELATED_CATEGORIES = [
   { label: 'Care Packages', query: 'care package', icon: Package, color: 'bg-brass/10 text-brass' },
   { label: 'Internet Support', query: 'internet support', icon: Wifi, color: 'bg-champagne/12 text-champagne' },
   { label: 'Medical Supplies', query: 'medical supplies', icon: Shield, color: 'bg-mint/10 text-mint' },
-  { label: 'Sponsor a Hero', query: 'sponsor hero support', icon: Heart, color: 'bg-navy/8 text-navy' },
+  { label: 'Support a Community Need', query: 'community support assistance', icon: Heart, color: 'bg-navy/8 text-navy' },
 ];
 
-export default function OrbitNoResults({ query, popularItems, onSelectSuggestion, onSelectItem }) {
+export default function CommunitySupportNoResults({ query, popularItems, onSelectSuggestion, onSelectItem }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}

@@ -1,9 +1,9 @@
 // ============================================================
-// VANTORIS — PROVIDER ARCHITECTURE
+// ATCHISON VILLAGE CREDIT UNION — PROVIDER ARCHITECTURE
 // ============================================================
 // The backbone of the "Reality first" principle (Spec §25, §30).
 //
-// Every product surface (Money, Cards, Travel, Homes, HeroBox,
+// Every product surface (Money, Cards, Travel, Homes, Community Support,
 // News, etc.) checks its provider before displaying data. If no
 // real provider is connected, the UI shows a truthful unavailable
 // state — never fabricated data.
@@ -66,11 +66,11 @@ export const providers = {
     description: 'Property search, listings, saved homes, and price alerts.',
   },
 
-  // ---- HeroBox Marketplace ----
+  // ---- AVCU Community Support ----
   marketplace: {
     id: 'marketplace',
-    name: 'HeroBox Marketplace',
-    connected: true, // HeroBoxProduct entity holds the catalog
+    name: 'AVCU Community Support',
+    connected: true, // Existing catalog entity remains the data source during migration
     capabilities: ['browse', 'categories', 'packages', 'checkout'],
     description: 'Marketplace products, packages, and checkout.',
   },
@@ -99,7 +99,7 @@ export const providers = {
     name: 'Giving',
     connected: true, // OrganizationProfile entity holds verified orgs
     capabilities: ['browse', 'donate', 'receipt'],
-    description: 'Discover verified organizations and donate through Vantoris.',
+    description: 'Discover verified organizations and support community initiatives through Atchison Village Credit Union.',
   },
 
   // ---- News ----
@@ -129,13 +129,13 @@ export const providers = {
     description: 'Central notification center with preference controls.',
   },
 
-  // ---- AI / Ask Vantoris ----
+  // ---- AVA Member Assistant ----
   ai: {
     id: 'ai',
-    name: 'Ask Vantoris',
-    connected: true, // Vantoris Assistant agent
+    name: 'AVA by Atchison Village',
+    connected: true, // Existing assistant integration; agent identifier remains a compatibility key
     capabilities: ['chat', 'account_data', 'guidance'],
-    description: 'AI intelligence layer connecting the entire ecosystem.',
+    description: 'Atchison Village member assistance for account guidance and supported services.',
   },
 };
 

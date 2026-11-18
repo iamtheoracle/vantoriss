@@ -36,7 +36,7 @@ export default function OrderHistory() {
       <div className="vantoris-glass p-8 text-center">
         <Package size={32} className="text-gray mx-auto mb-3" />
         <p className="text-foreground text-sm font-semibold">No Orders Yet</p>
-        <p className="text-gray text-xs mt-1">Your HeroBox orders will appear here once you place them.</p>
+        <p className="text-gray text-xs mt-1">Your community support orders will appear here once you place them.</p>
       </div>
     );
   }
