@@ -69,7 +69,7 @@ export default function OrderHistory() {
             )}
             <div className="flex justify-between items-center mt-3 pt-2 border-t border-slate-100">
               <span className="text-xs text-gray">Total</span>
-              <span className="text-sm font-bold text-foreground">{formatCurrency(order.total || 0)}</span>
+              <span className="text-sm font-bold text-foreground">{formatCurrency(order.total || 0, order.currency || 'USD')}</span>
             </div>
           </div>
         );

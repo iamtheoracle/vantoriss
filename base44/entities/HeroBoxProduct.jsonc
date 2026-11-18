@@ -19,7 +19,19 @@
         "phones",
         "airtime_data",
         "subscriptions",
-        "deployment_card"
+        "deployment_card",
+        "groceries",
+        "internet_access",
+        "wifi_devices",
+        "accessories",
+        "baby_care",
+        "elder_care",
+        "health_essentials",
+        "home_essentials",
+        "clothing",
+        "school_supplies",
+        "mobility_support",
+        "gifts"
       ],
       "description": "Product category / package stage"
     },
@@ -98,6 +110,62 @@
         "inactive"
       ],
       "default": "active"
+    },
+    "item_type": {
+      "type": "string",
+      "enum": [
+        "physical",
+        "digital_service",
+        "package"
+      ],
+      "default": "physical",
+      "description": "Whether the catalogue entry is a physical good, digital service or curated package."
+    },
+    "delivery_modes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "delivery",
+          "pickup",
+          "digital"
+        ]
+      },
+      "description": "Confirmed fulfilment modes supported by the source provider."
+    },
+    "provider_url": {
+      "type": "string",
+      "description": "Official provider or product URL for this listing."
+    },
+    "price_valid_until": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Time until which the quoted price is considered valid, when supplied by the provider."
+    },
+    "is_featured": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_deal": {
+      "type": "boolean",
+      "default": false
+    },
+    "deal_label": {
+      "type": "string"
+    },
+    "stock_status": {
+      "type": "string",
+      "enum": [
+        "in_stock",
+        "low_stock",
+        "out_of_stock",
+        "unknown"
+      ],
+      "default": "unknown"
+    },
+    "service_region": {
+      "type": "string",
+      "description": "Region or network coverage for digital services."
     }
   },
   "required": [

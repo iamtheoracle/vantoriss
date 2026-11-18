@@ -1,7 +1,8 @@
-export function formatCurrency(amount) {
+export function formatCurrency(amount, currency = 'USD') {
+  const safeCurrency = /^[A-Z]{3}$/.test(currency || '') ? currency : 'USD';
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'USD',
+    currency: safeCurrency,
     minimumFractionDigits: 2,
   }).format(amount || 0);
 }
