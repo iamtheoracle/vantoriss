@@ -1,16 +1,21 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Heart, Loader2, Check, AlertCircle, ArrowRight, Globe } from 'lucide-react';
+import { Heart, Loader2, AlertCircle, Globe } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { useToast } from '@/components/ui/use-toast';
 
 const DONATION_CATEGORIES = [
-  { id: 'food', label: 'Food & Essential Supplies', desc: 'Provide food, groceries, and essential household supplies' },
-  { id: 'children', label: "Children's Home / Orphanage", desc: "Support children's homes and orphanages with supplies" },
-  { id: 'medical', label: 'Medical / Surgery Support', desc: 'Help with documented medical fundraising' },
-  { id: 'military', label: 'Military Personnel / Family', desc: 'Support deployed service members and their families' },
-  { id: 'shelter', label: 'Shelter / Housing', desc: 'Support shelters and housing assistance' },
-  { id: 'general', label: 'General Assistance', desc: 'Flexible donation for verified needs' },
+  { id: 'military', label: 'Military, veterans & families', desc: 'Support service members, injured veterans and military families' },
+  { id: 'children', label: 'Orphans & vulnerable children', desc: 'Support child protection, education, health and safe care' },
+  { id: 'conflict', label: 'War zones & conflict response', desc: 'Support civilians affected by conflict and displacement' },
+  { id: 'refugees', label: 'Refugees & displaced families', desc: 'Support shelter, food, protection and essential services' },
+  { id: 'elderly', label: 'Older people & retirement homes', desc: 'Support dignified care, food, medicine and daily essentials' },
+  { id: 'disability', label: 'People with disabilities', desc: 'Support accessibility, mobility and essential care' },
+  { id: 'disaster', label: 'Disaster recovery', desc: 'Support communities affected by floods, fires and other emergencies' },
+  { id: 'food', label: 'Food & essential supplies', desc: 'Provide food, clean water and household necessities' },
+  { id: 'medical', label: 'Medical & health support', desc: 'Help with documented medical and rehabilitation needs' },
+  { id: 'shelter', label: 'Shelter & housing', desc: 'Support safe accommodation and rebuilding' },
+  { id: 'general', label: 'General humanitarian assistance', desc: 'Flexible support for other verified needs' },
 ];
 
 /**
@@ -49,12 +54,24 @@ export default function DonationFlow({ onClose, onOrderComplete }) {
           children: ['children_support'],
           medical: ['surgery_medical'],
           military: ['military_support'],
+          conflict: ['emergency', 'disaster_relief', 'shelter'],
+          refugees: ['shelter', 'essential_supplies', 'emergency'],
+          elderly: ['other', 'essential_supplies'],
+          disability: ['other', 'essential_supplies'],
+          disaster: ['disaster_relief', 'emergency', 'shelter'],
           shelter: ['shelter'],
           general: [],
         };
         const matchingCategories = categoryMap[category.id] || [];
         if (matchingCategories.length > 0) {
-          filtered = donorVisible.filter((c) => matchingCategories.includes(c.category));
+          filtered = donorVisible.filter((c) => {
+            const text = [c.case_title, c.recipient_name, c.recipient_type, c.stated_need, c.location].join(' ').toLowerCase();
+            if (category.id === 'refugees') return matchingCategories.includes(c.category) && /refugee|displaced|asylum|internally displaced/.test(text);
+            if (category.id === 'elderly') return /elderly|older people|senior|retirement|care home|aged/.test(text);
+            if (category.id === 'disability') return /disabilit|wheelchair|mobility|accessible/.test(text);
+            if (category.id === 'conflict') return matchingCategories.includes(c.category) && /conflict|war zone|war-affected|civilian|displaced|emergency/.test(text);
+            return matchingCategories.includes(c.category);
+          });
         }
       }
 
@@ -99,20 +116,17 @@ export default function DonationFlow({ onClose, onOrderComplete }) {
         total: donationAmount,
         status: 'payment_pending',
         payment_status: 'pending',
+        order_type: 'donation',
+        humanitarian_case_id: selectedCase?.id || '',
+        donation_category: category?.id || 'general',
         order_notes: selectedCase
           ? `Donation for: ${selectedCase.case_title} (Case ID: ${selectedCase.id.slice(-8).toUpperCase()})`
           : `General donation: ${category?.label}`,
       });
 
-      // Link order to humanitarian case if selected
-      if (selectedCase) {
-        await base44.entities.HumanitarianCase.update(selectedCase.id, {
-          case_status: 'matched',
-          matched_order_id: order.id,
-        }).catch(() => {});
-      }
-
-      toast({ title: 'Donation Created', description: `Your donation of ${formatCurrency(donationAmount)} has been created.` });
+      // A pending pledge must not change case funding or matching status.
+      // The case is linked to the order for later payment reconciliation.
+      toast({ title: 'Donation pledge saved', description: `${formatCurrency(donationAmount)} is recorded as pending. No money has been collected yet.` });
       onOrderComplete?.();
       onClose();
     } catch (err) {
@@ -157,7 +171,7 @@ export default function DonationFlow({ onClose, onOrderComplete }) {
           <div className="space-y-3">
             <div className="flex items-center gap-2 mb-2">
               <Heart size={16} className="text-brass" />
-              <p className="text-sm font-semibold text-foreground">Verified Cases</p>
+              <p className="text-sm font-semibold text-foreground">Approved cases</p>
             </div>
             {loading ? (
               <div className="flex justify-center py-8"><Loader2 className="animate-spin text-brass" /></div>
@@ -166,7 +180,7 @@ export default function DonationFlow({ onClose, onOrderComplete }) {
                 <AlertCircle size={28} className="text-gray mx-auto mb-2" />
                 <p className="text-sm font-medium text-foreground">No verified cases available right now</p>
                 <p className="text-xs text-gray mt-1">
-                  When Vantoris verifies a humanitarian case, it will appear here. You can still make a general donation.
+                  Only approved cases appear here. If none match this category, you can still create a general pledge, which remains pending until a payment route is enabled.
                 </p>
                 <button
                   onClick={() => { setSelectedCase(null); setStep(3); }}
@@ -187,9 +201,11 @@ export default function DonationFlow({ onClose, onOrderComplete }) {
                     <p className="text-xs text-gray mt-0.5">{c.recipient_name || c.recipient_type}</p>
                     {c.location && <p className="text-[10px] text-gray flex items-center gap-1 mt-1"><Globe size={10} /> {c.location}</p>}
                     <p className="text-xs text-gray mt-1 line-clamp-2">{c.stated_need}</p>
+                    {c.source_name && <p className="text-[10px] text-gray mt-1">Source: {c.source_name}</p>}
+                    {c.date_last_verified && <p className="text-[10px] text-gray">Last checked: {new Date(c.date_last_verified).toLocaleDateString()}</p>}
                     <div className="flex items-center gap-2 mt-2">
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-mint/10 text-mint font-medium">
-                        {c.verification_status === 'verified' ? 'Verified' : 'Partially Verified'}
+                        {c.verification_status === 'verified' ? 'Verified' : 'Review approved'}
                       </span>
                       <span className="text-[10px] text-gray">Confidence: {c.confidence_level}</span>
                     </div>
@@ -246,7 +262,7 @@ export default function DonationFlow({ onClose, onOrderComplete }) {
             </div>
             <div className="vantoris-glass-flat p-3 text-xs text-gray">
               <p className="font-medium text-foreground mb-1">Donor Control</p>
-              <p>You choose exactly where your donation goes. Vantoris never automatically selects a recipient or spends funds without your explicit authorization.</p>
+              <p>You choose exactly where your donation goes. Submitting this form records a pending pledge only. It does not charge your account or transfer money; a verified payment flow must be connected before funds can be collected.</p>
             </div>
             <div className="flex gap-2">
               <button onClick={() => setStep(2)} className="flex-1 py-3 rounded-xl border border-border text-sm font-medium text-gray">Back</button>
@@ -255,7 +271,7 @@ export default function DonationFlow({ onClose, onOrderComplete }) {
                 disabled={submitting || !amount}
                 className="flex-1 py-3 rounded-xl bg-brass text-white text-sm font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {submitting ? <Loader2 size={16} className="animate-spin" /> : <>Donate {amount ? formatCurrency(parseFloat(amount)) : ''}</>}
+                {submitting ? <Loader2 size={16} className="animate-spin" /> : <>Record pledge {amount ? formatCurrency(parseFloat(amount)) : ''}</>}
               </button>
             </div>
           </div>

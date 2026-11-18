@@ -12,6 +12,9 @@ const CATEGORIES = [
   { id: 'medical', label: 'Medical Relief', icon: Stethoscope },
   { id: 'military', label: 'Military & Veterans', icon: Shield },
   { id: 'humanitarian', label: 'Humanitarian Relief', icon: Users },
+  { id: 'conflict', label: 'Conflict Zones', icon: Shield },
+  { id: 'refugees', label: 'Refugees & Displacement', icon: Users },
+  { id: 'elderly', label: 'Older People', icon: Heart },
   { id: 'children', label: 'Children & Families', icon: Users },
   { id: 'emergency', label: 'Emergency Support', icon: AlertCircle },
   { id: 'food', label: 'Food Assistance', icon: Utensils },
@@ -26,6 +29,9 @@ const ORG_TYPE_MAP = {
   children: ['childrens_home', 'orphanage', 'shelter'],
   emergency: ['emergency_relief', 'disaster_response'],
   food: ['food_assistance'],
+  conflict: ['conflict_response', 'emergency_relief', 'disaster_response'],
+  refugees: ['refugee_support', 'displacement_support', 'humanitarian'],
+  elderly: ['elder_care', 'senior_support'],
 };
 
 const CASE_CATEGORY_MAP = {
@@ -36,6 +42,9 @@ const CASE_CATEGORY_MAP = {
   emergency: ['emergency', 'disaster_relief'],
   food: ['food'],
   care: ['essential_supplies', 'communication', 'food'],
+  conflict: ['emergency', 'disaster_relief', 'shelter'],
+  refugees: ['shelter', 'essential_supplies', 'emergency', 'disaster_relief'],
+  elderly: ['other', 'essential_supplies'],
 };
 
 export default function DiscoverFeed({ onShop, onDonate, standalone = false }) {
@@ -64,7 +73,7 @@ export default function DiscoverFeed({ onShop, onDonate, standalone = false }) {
     setDiscovering(true);
     setDiscoveryStatus(null);
     try {
-      const result = await executeHeroBoxDiscovery({ autoApproveHighConfidence: true });
+      const result = await executeHeroBoxDiscovery({ autoApproveHighConfidence: false });
       setDiscoveryStatus(result);
       await loadData();
     } catch (e) {
@@ -143,7 +152,13 @@ export default function DiscoverFeed({ onShop, onDonate, standalone = false }) {
 
         {(activeCategory === 'all' || activeCategory === 'organizations' || ORG_TYPE_MAP[activeCategory]) && <DiscoverSection title={activeCategory === 'all' ? 'Organizations' : CATEGORIES.find(c => c.id === activeCategory)?.label || 'Organizations'} icon={Heart} items={allOrgs.slice(0, activeCategory === 'all' ? 6 : 50)} renderItem={(item, i) => <DiscoverCard key={item.id} item={item} type="organization" onShop={onShop} onDonate={onDonate} index={i} />} />}
 
-        {activeCategory !== 'all' && activeCategory !== 'organizations' && activeCategory !== 'news' && CASE_CATEGORY_MAP[activeCategory] && <DiscoverSection title={CATEGORIES.find(c => c.id === activeCategory)?.label || 'Needs'} icon={CATEGORIES.find(c => c.id === activeCategory)?.icon || Heart} items={allCases} renderItem={(item, i) => <DiscoverCard key={item.id} item={item} type="case" onShop={onShop} onDonate={onDonate} index={i} />} />}
+        {activeCategory !== 'all' && activeCategory !== 'organizations' && activeCategory !== 'news' && CASE_CATEGORY_MAP[activeCategory] && <DiscoverSection title={CATEGORIES.find(c => c.id === activeCategory)?.label || 'Needs'} icon={CATEGORIES.find(c => c.id === activeCategory)?.icon || Heart} items={allCases.filter(c => {
+          const text = [c.case_title, c.recipient_name, c.recipient_type, c.stated_need, c.location].join(' ').toLowerCase();
+          if (activeCategory === 'refugees') return /refugee|displaced|asylum|internally displaced/.test(text);
+          if (activeCategory === 'elderly') return /elderly|older people|senior|retirement|care home|aged/.test(text);
+          if (activeCategory === 'conflict') return /conflict|war zone|war-affected|civilian|displaced|emergency/.test(text) || CASE_CATEGORY_MAP.conflict.includes(c.category);
+          return true;
+        })} renderItem={(item, i) => <DiscoverCard key={item.id} item={item} type="case" onShop={onShop} onDonate={onDonate} index={i} />} />}
 
         {(activeCategory === 'all' || activeCategory === 'news') && allNews.length > 0 && <DiscoverSection title="Humanitarian News" icon={Newspaper} items={allNews} renderItem={(item, i) => <DiscoverCard key={item.id} item={item} type="news" onShop={onShop} onDonate={onDonate} index={i} />} />}
 

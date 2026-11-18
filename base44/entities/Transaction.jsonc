@@ -7,7 +7,7 @@
     },
     "user_id": {
       "type": "string",
-      "description": "Denormalized owner of the account this entry belongs to \u2014 drives member-level read isolation"
+      "description": "Denormalized owner of the account this entry belongs to — drives member-level read isolation"
     },
     "type": {
       "type": "string",
@@ -56,7 +56,7 @@
         "system"
       ],
       "default": "live",
-      "description": "Origin of the transaction \u2014 live (system-generated), historical_import (from uploaded statement), admin_entry (manual), system (automated)"
+      "description": "Origin of the transaction — live (system-generated), historical_import (from uploaded statement), admin_entry (manual), system (automated)"
     },
     "imported_statement_id": {
       "type": "string",
@@ -83,6 +83,14 @@
       ],
       "default": "",
       "description": "For transfer-type transactions: in=received, out=sent, internal=between own accounts, external=to/from another bank"
+    },
+    "balance_before": {
+      "type": "number",
+      "description": "Account balance immediately before this posted transaction"
+    },
+    "withdrawal_request_id": {
+      "type": "string",
+      "description": "Source WithdrawalRequest ID for a posted withdrawal"
     }
   },
   "required": [

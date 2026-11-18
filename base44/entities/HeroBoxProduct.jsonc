@@ -19,7 +19,19 @@
         "phones",
         "airtime_data",
         "subscriptions",
-        "deployment_card"
+        "deployment_card",
+        "groceries",
+        "internet_access",
+        "wifi_devices",
+        "accessories",
+        "baby_care",
+        "elder_care",
+        "health_essentials",
+        "home_essentials",
+        "clothing",
+        "school_supplies",
+        "mobility_support",
+        "gifts"
       ],
       "description": "Product category / package stage"
     },
@@ -80,7 +92,7 @@
         "expired"
       ],
       "default": "fresh",
-      "description": "Catalog data freshness \u2014 stale items cannot be purchased"
+      "description": "Catalog data freshness — stale items cannot be purchased"
     },
     "retrieved_at": {
       "type": "string",
@@ -98,11 +110,223 @@
         "inactive"
       ],
       "default": "active"
+    },
+    "item_type": {
+      "type": "string",
+      "enum": [
+        "physical",
+        "digital_service",
+        "package"
+      ],
+      "default": "physical",
+      "description": "Whether the catalogue entry is a physical good, digital service or curated package."
+    },
+    "delivery_modes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "delivery",
+          "pickup",
+          "digital"
+        ]
+      },
+      "description": "Confirmed fulfilment modes supported by the source provider."
+    },
+    "provider_url": {
+      "type": "string",
+      "description": "Official provider or product URL for this listing."
+    },
+    "price_valid_until": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Time until which the quoted price is considered valid, when supplied by the provider."
+    },
+    "is_featured": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_deal": {
+      "type": "boolean",
+      "default": false
+    },
+    "deal_label": {
+      "type": "string"
+    },
+    "stock_status": {
+      "type": "string",
+      "enum": [
+        "in_stock",
+        "low_stock",
+        "out_of_stock",
+        "unknown"
+      ],
+      "default": "unknown"
+    },
+    "service_region": {
+      "type": "string",
+      "description": "Region or network coverage for digital services."
     }
   },
   "required": [
     "name",
     "category",
     "price"
-  ]
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.status": "active"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_manager"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "treasury_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "compliance_officer"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_manager"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "treasury_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "compliance_officer"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_manager"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "treasury_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "compliance_officer"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "administrator"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_administrator"
+          }
+        }
+      ]
+    }
+  }
 }

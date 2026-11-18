@@ -29,6 +29,7 @@
       "type": "string",
       "enum": [
         "pending",
+        "processing",
         "paid",
         "rejected"
       ],
@@ -36,6 +37,27 @@
     },
     "admin_notes": {
       "type": "string"
+    },
+    "processed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Server timestamp when the withdrawal was finalized as paid"
+    },
+    "processed_by": {
+      "type": "string",
+      "description": "Staff user ID that finalized the withdrawal"
+    },
+    "transaction_id": {
+      "type": "string",
+      "description": "Ledger transaction created for this withdrawal"
+    },
+    "processing_reference": {
+      "type": "string",
+      "description": "Stable idempotency reference WD-{request id}"
+    },
+    "failure_reason": {
+      "type": "string",
+      "description": "Last safe processing failure reason, if any"
     }
   },
   "required": [
@@ -79,12 +101,37 @@
         },
         {
           "user_condition": {
+            "role": "administrator"
+          }
+        },
+        {
+          "user_condition": {
             "role": "super_administrator"
           }
         },
         {
           "user_condition": {
             "role": "operations_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "operations_manager"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "treasury_officer"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "compliance_officer"
           }
         }
       ]
@@ -94,6 +141,11 @@
         {
           "user_condition": {
             "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "administrator"
           }
         },
         {
