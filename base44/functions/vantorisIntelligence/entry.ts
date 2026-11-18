@@ -24,8 +24,8 @@ export default async function(req) {
       return Response.json({ error: 'Message is required' }, { status: 400 });
     }
 
-    // Build the AI request through the Oracle pipeline:
-    // User → Bud → Oracle → Guardian → Nexus → Capability Registry → Platform Services / Spark / Orbit → Oracle → Bud
+    // Build the AI request through the Vantoris Intelligence pipeline:
+    // User → Bud → Vantoris Intelligence → Guardian → Nexus → Capability Registry → Platform Services / Spark / Orbit → Vantoris Intelligence → Bud
     const request = {
       id: crypto.randomUUID(),
       userId: user.id,
@@ -41,7 +41,7 @@ export default async function(req) {
       priority: context?.priority || 'normal',
     };
 
-    const response = await runtime.oracle.process(request);
+    const response = await runtime.vantorisIntelligence.process(request);
 
     // Persist conversation via ConversationService (not owned by Bud)
     const thread = await services.conversation.getOrCreateThread(user.id, 'AI Assistant');
@@ -167,7 +167,7 @@ export default async function(req) {
       escalated: response.escalate || false,
     });
   } catch (error) {
-    logger.error('Oracle runtime error', { error: error.message });
+    logger.error('Vantoris Intelligence runtime error', { error: error.message });
     return Response.json({ error: error.message }, { status: 500 });
   }
 }

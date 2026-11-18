@@ -6,14 +6,14 @@
  *   - renders responses
  *   - streams output
  *   - displays progress
- *   - requests work from Oracle
+ *   - requests work from Vantoris Intelligence
  *
  * Bud does NOT own:
  *   - memory, conversation history, capabilities, orchestration,
  *   - permissions, scheduling, auditing
  *
  * On the frontend, Bud is implemented as BudCompanion.jsx.
- * On the backend, Bud delegates to the oracleRuntime backend function.
+ * On the backend, Bud delegates to the vantorisIntelligence backend function.
  */
 
 export const BudContract = {
@@ -22,9 +22,9 @@ export const BudContract = {
   responsibilities: ['receive', 'render', 'stream', 'progress', 'delegate'],
   doesNotOwn: ['memory', 'history', 'capabilities', 'orchestration', 'permissions', 'scheduling', 'auditing'],
 
-  // Bud delegates ALL work to Oracle via the oracleRuntime backend function
+  // Bud delegates all reasoning and orchestration to Vantoris Intelligence.
   // Frontend invocation:
-  //   base44.functions.invoke('oracleRuntime', { message, action: 'process' })
+  //   base44.functions.invoke('vantorisIntelligence', { message, action: 'process' })
   // Health check:
-  //   base44.functions.invoke('oracleRuntime', { action: 'health' })
+  //   base44.functions.invoke('vantorisIntelligence', { action: 'health' })
 };

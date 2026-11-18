@@ -63,7 +63,7 @@ export function createSpark() {
         );
 
         eventBus.publish({
-          type: 'response', source: 'spark', target: 'oracle',
+          type: 'response', source: 'spark', target: 'vantoris_intelligence',
           payload: { requestId: request.id, model, structured: isActionImpacting },
         });
 

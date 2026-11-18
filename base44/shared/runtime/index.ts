@@ -1,7 +1,7 @@
 export { logger, createTracer } from './logger.ts';
 export { eventBus } from './eventBus.ts';
 export { CircuitBreaker, withRetry } from './circuitBreaker.ts';
-export { createOracle } from './oracle.ts';
+export { createVantorisIntelligence } from './intelligence.ts';
 export { createNexus } from './nexus.ts';
 export { createGuardian } from './guardian.ts';
 export { createOrbit } from './orbit.ts';

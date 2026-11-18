@@ -27,7 +27,7 @@ import { createGuardian } from './guardian.ts';
 import { createNexus } from './nexus.ts';
 import { createSpark } from './spark.ts';
 import { createOrbit } from './orbit.ts';
-import { createOracle } from './oracle.ts';
+import { createVantorisIntelligence } from './intelligence.ts';
 
 let cachedRuntime = null;
 
@@ -88,8 +88,8 @@ export async function boot(base44) {
     runtime.nexus = createNexus();
     runtime.spark = createSpark();
     runtime.orbit = createOrbit(base44);
-    runtime.oracle = createOracle(services, registries, runtime.guardian, runtime.nexus, runtime.spark, runtime.orbit);
-    logger.info('AI runtime initialized');
+    runtime.vantorisIntelligence = createVantorisIntelligence(services, registries, runtime.guardian, runtime.nexus, runtime.spark, runtime.orbit);
+    logger.info('Vantoris Intelligence runtime initialized');
   });
 
   // Stage 6: Application Boot

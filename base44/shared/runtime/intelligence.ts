@@ -1,18 +1,18 @@
 import { eventBus } from './eventBus.ts';
 import { logger, createTracer } from './logger.ts';
 
-export function createOracle(services, registries, guardian, nexus, spark, orbit) {
+export function createVantorisIntelligence(services, registries, guardian, nexus, spark, orbit) {
   const pipeline = ['guardian', 'nexus', 'capabilities', 'services', 'spark', 'orbit'];
 
   return {
     async process(request) {
       const traceId = crypto.randomUUID();
       const tracer = createTracer(traceId);
-      const span = tracer.startSpan('oracle.process');
+      const span = tracer.startSpan('vantoris_intelligence.process');
 
-      logger.info('Oracle processing request', { requestId: request.id, userId: request.userId, traceId });
+      logger.info('Vantoris Intelligence processing request', { requestId: request.id, userId: request.userId, traceId });
       eventBus.publish({
-        type: 'request', source: 'oracle', target: 'guardian',
+        type: 'request', source: 'vantoris_intelligence', target: 'guardian',
         payload: { requestId: request.id }, correlationId: traceId,
       });
 
@@ -36,7 +36,7 @@ export function createOracle(services, registries, guardian, nexus, spark, orbit
 
         // 2. Nexus — orchestrate capability resolution
         eventBus.publish({
-          type: 'capability', source: 'oracle', target: 'nexus',
+          type: 'capability', source: 'vantoris_intelligence', target: 'nexus',
           payload: { requestId: request.id }, correlationId: traceId,
         });
         const orchestration = await nexus.orchestrate(request, services, registries);
@@ -45,16 +45,16 @@ export function createOracle(services, registries, guardian, nexus, spark, orbit
         let response = orchestration;
         if (orchestration.requiresReasoning) {
           eventBus.publish({
-            type: 'request', source: 'oracle', target: 'spark',
+            type: 'request', source: 'vantoris_intelligence', target: 'spark',
             payload: { requestId: request.id }, correlationId: traceId,
           });
           response = await spark.reason(request, orchestration, services);
         }
 
-        // 3b. If Spark produced a structured recommendation, persist it for staff approval
+        // 3b. Persist recommendations for staff approval; never execute them here.
         if (response.recommendation) {
           eventBus.publish({
-            type: 'workflow', source: 'oracle',
+            type: 'workflow', source: 'vantoris_intelligence',
             payload: { requestId: request.id, specialist: orchestration.routing?.specialist, recommendationCreated: true },
             correlationId: traceId,
           });
@@ -68,12 +68,12 @@ export function createOracle(services, registries, guardian, nexus, spark, orbit
         }
 
         eventBus.publish({
-          type: 'response', source: 'oracle', target: 'bud',
+          type: 'response', source: 'vantoris_intelligence', target: 'bud',
           payload: { requestId: request.id }, correlationId: traceId,
         });
 
         span.end();
-        logger.info('Oracle completed request', { requestId: request.id, traceId });
+        logger.info('Vantoris Intelligence completed request', { requestId: request.id, traceId });
 
         return {
           requestId: request.id,
@@ -88,9 +88,9 @@ export function createOracle(services, registries, guardian, nexus, spark, orbit
       } catch (error) {
         span.setAttribute('error', error.message);
         span.end();
-        logger.error('Oracle pipeline error', { requestId: request.id, traceId, error: error.message });
+        logger.error('Vantoris Intelligence pipeline error', { requestId: request.id, traceId, error: error.message });
         eventBus.publish({
-          type: 'monitoring', source: 'oracle',
+          type: 'monitoring', source: 'vantoris_intelligence',
           payload: { error: error.message, requestId: request.id }, correlationId: traceId,
         });
         throw error;
