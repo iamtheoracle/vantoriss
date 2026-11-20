@@ -1,0 +1,7 @@
+# The Vantoris UI is hosted on Netlify; Base44 is the backend/API/auth provider.
+# These are public, non-secret identifiers baked into the frontend bundle at build time.
+# Set for every deploy context so production, deploy previews and branch deploys
+# all talk to the same Base44 backend.
+[build.environment]
+  VITE_BASE44_APP_ID = "6a3d85c1632966fefe16f3d4"
+  VITE_BASE44_SERVER_URL = "https://vantoris.base44.app"

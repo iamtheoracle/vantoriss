@@ -4,6 +4,8 @@ import { appParams } from '@/lib/app-params';
 import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
 import { seedResponseTemplates } from '@/lib/seedResponseTemplates';
 
+export const PUBLIC_AUTH_PATHS = ['/login', '/register', '/forgot-password', '/reset-password', '/brand'];
+
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -27,7 +29,7 @@ export const AuthProvider = ({ children }) => {
       // First, check app public settings (with token if available)
       // This will tell us if auth is required, user not registered, etc.
       const appClient = createAxiosClient({
-        baseURL: `/api/apps/public`,
+        baseURL: `${appParams.serverUrl}/api/apps/public`,
         headers: {
           'X-App-Id': appParams.appId
         },
@@ -124,10 +126,10 @@ export const AuthProvider = ({ children }) => {
   const logout = (shouldRedirect = true) => {
     setUser(null);
     setIsAuthenticated(false);
-    
+
     if (shouldRedirect) {
-      // Use the SDK's logout method which handles token cleanup and redirect
-      base44.auth.logout(window.location.href);
+      // Clears the stored session and returns to the Netlify-hosted login page.
+      base44.auth.logout('/login');
     } else {
       // Just remove the token without redirect
       base44.auth.logout();
@@ -135,7 +137,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const navigateToLogin = () => {
-    // Use the SDK's redirectToLogin method
+    // Already on a public auth screen — redirecting again would loop.
+    if (PUBLIC_AUTH_PATHS.includes(window.location.pathname)) return;
+    // redirectToLogin builds `${appBaseUrl}/login`, and appBaseUrl is this frontend's own origin.
     base44.auth.redirectToLogin(window.location.href);
   };
 
