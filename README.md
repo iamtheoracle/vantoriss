@@ -62,6 +62,8 @@ When you use `base44 dev`, the command injects the local Base44 values for you, 
 
 ## Publish Your Changes
 
+Netlify runs `npm run build` and publishes the generated `dist` directory. Do not publish the repository root: its entry point loads source JSX that needs to be compiled by Vite. The existing SPA rewrite serves `dist/index.html` for direct links to app routes.
+
 After pushing your changes to git, open the Base44 dashboard and publish the app:
 
 ```bash
